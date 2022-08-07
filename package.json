@@ -16,6 +16,10 @@
     "@react-native-async-storage/async-storage": "^1.17.7",
     "@react-native-community/datetimepicker": "^6.3.1",
     "@react-native-community/slider": "^4.2.4",
+    "@react-navigation/bottom-tabs": "^6.3.2",
+    "@react-navigation/native": "^6.0.11",
+    "@react-navigation/native-stack": "^6.7.0",
+    "@react-navigation/stack": "^6.2.2",
     "@storybook/addon-actions": "^6.5.10",
     "@storybook/addon-backgrounds": "^6.5.10",
     "@storybook/addon-controls": "^6.5.10",
@@ -27,7 +31,9 @@
     "@storybook/react-native": "^6.0.1-beta.7",
     "react": "18.0.0",
     "react-native": "0.69.3",
-    "react-native-safe-area-context": "^4.3.1"
+    "react-native-gesture-handler": "^2.5.0",
+    "react-native-safe-area-context": "^4.3.1",
+    "react-native-screens": "^3.15.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",

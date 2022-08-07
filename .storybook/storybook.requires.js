@@ -29,7 +29,10 @@ try {
 } catch {}
 
 const getStories = () => {
-  return [require("../app/components/Button/Button.stories.tsx")];
+  return [
+    require("../app/components/Button/Button.stories.tsx"),
+    require("../app/components/Switch/Switch.stories.tsx"),
+  ];
 };
 
 configure(getStories, module, false);
