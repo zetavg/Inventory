@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import type {ReactNode} from 'react';
+import type { ReactNode } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -26,7 +26,13 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-const Section = ({children, title}: { children: ReactNode, title: string }): JSX.Element => {
+const Section = ({
+  children,
+  title,
+}: {
+  children: ReactNode;
+  title: string;
+}): JSX.Element => {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
