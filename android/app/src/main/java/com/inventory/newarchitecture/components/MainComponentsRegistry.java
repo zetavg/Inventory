@@ -1,4 +1,4 @@
-package com.inventory.newarchitecture.components;
+package vg.zeta.app.inventory.newarchitecture.components;
 
 import com.facebook.jni.HybridData;
 import com.facebook.proguard.annotations.DoNotStrip;

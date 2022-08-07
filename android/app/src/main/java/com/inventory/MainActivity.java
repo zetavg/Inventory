@@ -1,4 +1,4 @@
-package com.inventory;
+package vg.zeta.app.inventory;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
