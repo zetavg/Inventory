@@ -11,7 +11,11 @@
     "moduleResolution": "node",
     "noEmit": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "baseUrl": ".",
+    "paths": {
+      "@app/*": ["./app/*"]
+    }
   },
   "exclude": [
     "node_modules",
