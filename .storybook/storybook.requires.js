@@ -7,7 +7,6 @@ import {
   addArgsEnhancer,
 } from "@storybook/react-native";
 
-import "@storybook/addon-ondevice-notes/register";
 import "@storybook/addon-ondevice-controls/register";
 import "@storybook/addon-ondevice-actions/register";
 
@@ -32,6 +31,7 @@ const getStories = () => {
   return [
     require("../app/components/Button/Button.stories.tsx"),
     require("../app/components/Switch/Switch.stories.tsx"),
+    require("../app/components/TextInput/TextInput.stories.tsx"),
   ];
 };
 

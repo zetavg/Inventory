@@ -14,7 +14,6 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  useColorScheme,
   View,
 } from 'react-native';
 
@@ -26,6 +25,9 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useTabBarInsets from '@app/hooks/useTabBarInsets';
+
 const Section = ({
   children,
   title,
@@ -33,7 +35,7 @@ const Section = ({
   children: ReactNode;
   title: string;
 }): JSX.Element => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const isDarkMode = useIsDarkMode();
   return (
     <View style={styles.sectionContainer}>
       <Text
@@ -42,7 +44,8 @@ const Section = ({
           {
             color: isDarkMode ? Colors.white : Colors.black,
           },
-        ]}>
+        ]}
+      >
         {title}
       </Text>
       <Text
@@ -51,7 +54,8 @@ const Section = ({
           {
             color: isDarkMode ? Colors.light : Colors.dark,
           },
-        ]}>
+        ]}
+      >
         {children}
       </Text>
     </View>
@@ -59,7 +63,8 @@ const Section = ({
 };
 
 const App: () => JSX.Element = () => {
-  const isDarkMode = useColorScheme() === 'dark';
+  const isDarkMode = useIsDarkMode();
+  const tabBarInsets = useTabBarInsets();
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -70,12 +75,16 @@ const App: () => JSX.Element = () => {
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+        style={backgroundStyle}
+        contentContainerStyle={{ paddingBottom: tabBarInsets.scrollViewBottom }}
+        scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
+      >
         <Header />
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
+          }}
+        >
           <Section title="Step One">
             Edit <Text style={styles.highlight}>App.js</Text> to change this
             screen and then come back to see your edits.
