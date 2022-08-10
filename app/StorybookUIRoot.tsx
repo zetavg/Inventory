@@ -40,14 +40,15 @@ function WrappedStorybookUIRoot({
               backgroundColor: darkTheme.colors.background,
               flexDirection: 'row',
               justifyContent: 'space-evenly',
-              paddingVertical: 12,
               marginBottom: navbarHeight,
             }}
           >
             <Button
+              compact
               mode="outlined"
               theme={darkTheme}
               onPress={() => setStorybookMode && setStorybookMode(false)}
+              style={{ marginVertical: 8 }}
             >
               Exit Storybook mode
             </Button>
@@ -55,6 +56,7 @@ function WrappedStorybookUIRoot({
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
+                marginVertical: 8,
               }}
             >
               <Text theme={darkTheme}>Dark mode </Text>

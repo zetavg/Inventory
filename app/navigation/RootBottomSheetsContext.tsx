@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import BottomSheetModal from '@gorhom/bottom-sheet';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 
 const RootBottomSheetsContext = React.createContext<{
   rfidScanSheet: React.RefObject<BottomSheetModal>;

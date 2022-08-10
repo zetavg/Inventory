@@ -132,7 +132,11 @@ function Navigation() {
     (props: React.ComponentProps<typeof BottomSheetHandle>) => (
       <BottomSheetHandle
         {...props}
-        style={{ backgroundColor }}
+        style={{
+          backgroundColor,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+        }}
         // eslint-disable-next-line react-native/no-inline-styles
         indicatorStyle={{
           backgroundColor: isDarkMode
@@ -301,7 +305,11 @@ function Navigation() {
             enablePanDownToClose
             handleComponent={renderBottomSheetHandleComponent}
             backdropComponent={renderBottomSheetBackdrop}
-            style={{ backgroundColor }}
+            style={{
+              backgroundColor,
+              borderTopLeftRadius: 10,
+              borderTopRightRadius: 10,
+            }}
           >
             <RfidScanScreen />
           </BottomSheetModal>

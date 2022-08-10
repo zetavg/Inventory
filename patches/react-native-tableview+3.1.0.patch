@@ -1,5 +1,17 @@
+diff --git a/node_modules/react-native-tableview/RNTableView/RNTableView.h b/node_modules/react-native-tableview/RNTableView/RNTableView.h
+index efe5048..33983a3 100644
+--- a/node_modules/react-native-tableview/RNTableView/RNTableView.h
++++ b/node_modules/react-native-tableview/RNTableView/RNTableView.h
+@@ -87,6 +87,7 @@
+ @property(nonatomic, copy) RCTBubblingEventBlock onChange;
+ @property(nonatomic, copy) RCTDirectEventBlock onScroll;
+ @property(nonatomic, copy) RCTDirectEventBlock onRefresh;
++@property(nonatomic, copy) RCTDirectEventBlock onSwitchChange;
+ 
+ - (void)addRefresh;
+ - (void)stopRefreshing;
 diff --git a/node_modules/react-native-tableview/RNTableView/RNTableView.m b/node_modules/react-native-tableview/RNTableView/RNTableView.m
-index c728382..7efa004 100644
+index c728382..1182a48 100644
 --- a/node_modules/react-native-tableview/RNTableView/RNTableView.m
 +++ b/node_modules/react-native-tableview/RNTableView/RNTableView.m
 @@ -108,7 +108,7 @@
@@ -11,6 +23,15 @@ index c728382..7efa004 100644
          _cells = [NSMutableArray array];
          _autoFocus = YES;
          _autoFocusAnimate = YES;
+@@ -133,7 +133,7 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
+ }
+ 
+ - (void)setContentInset:(UIEdgeInsets)insets {
+-    _contentInset = insets;
++//    _contentInset = insets;
+     _tableView.contentInset = insets;
+ }
+ 
 @@ -355,17 +355,17 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
          
      }
@@ -40,11 +61,76 @@ index c728382..7efa004 100644
      
      if (item[@"image"]) {
          UIImage *image;
+@@ -384,7 +384,10 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
+             UIGraphicsEndImageContext();
+         } else {
+             cell.imageView.image = image;
++            cell.imageView.transform = CGAffineTransformScale(CGAffineTransformIdentity, .2, .2);
+         }
++    } else {
++        cell.imageView.image = nil;
+     }
+     
+     self.onWillDisplayCell(@{@"target":self.reactTag, @"row":@(indexPath.row), @"section": @(indexPath.section)});
+@@ -475,9 +478,9 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
+     } else if (self.reactModuleForCell != nil && ![self.reactModuleForCell isEqualToString:@""]) {
+         cell = [self setupReactModuleCell:tableView data:item indexPath:indexPath];
+     } else {
+-        cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
++        cell = [tableView dequeueReusableCellWithIdentifier:item[@"cellKey"]];
+         if (cell == nil) {
+-            cell = [[UITableViewCell alloc] initWithStyle:self.tableViewCellStyle reuseIdentifier:@"Cell"];
++            cell = [[UITableViewCell alloc] initWithStyle:self.tableViewCellStyle reuseIdentifier:item[@"cellKey"]];
+         }
+         cell.textLabel.text = item[@"label"];
+         cell.detailTextLabel.text = item[@"detail"];
+@@ -503,9 +506,33 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
+     if (item[@"selectionStyle"] != nil) {
+         cell.selectionStyle = [RCTConvert int:item[@"selectionStyle"]];
+     }
++    if ([item[@"switch"] intValue]) {
++        if (![cell.accessoryView isKindOfClass:[UISwitch class]]) {
++            UISwitch *uiSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
++            [uiSwitch addTarget:self action:@selector(changeSwitch:) forControlEvents:UIControlEventValueChanged];
++
++            [cell addSubview:uiSwitch];
++            cell.accessoryView = uiSwitch;
++        }
++        
++        cell.accessoryView.tag = [RCTConvert int:item[@"switchTag"]];
++        [(UISwitch *)cell.accessoryView setOn:[item[@"switchValue"] intValue] animated:YES];
++
++    } else {
++        cell.accessoryView = nil;
++    }
+     return cell;
+ }
+ 
++-(void)changeSwitch:(id)sender{
++    UISwitch *s = (UISwitch*)sender;
++
++    self.onSwitchChange(@{
++        @"isOn": @(s.isOn),
++        @"tag": @(s.tag),
++      });
++}
++
+ -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+     return _sections[section][@"label"];
+ }
 diff --git a/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m b/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
-index 9f8ed41..932b8f8 100644
+index 9f8ed41..d32f3a4 100644
 --- a/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
 +++ b/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
-@@ -146,42 +146,83 @@ RCT_CUSTOM_VIEW_PROPERTY(cellLayoutMargins, UIEdgeInsets, RNTableView) {
+@@ -73,6 +73,7 @@ RCT_EXPORT_VIEW_PROPERTY(onAccessoryPress, RCTBubblingEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
+ RCT_EXPORT_VIEW_PROPERTY(onRefresh, RCTDirectEventBlock)
++RCT_EXPORT_VIEW_PROPERTY(onSwitchChange, RCTDirectEventBlock)
+ 
+ RCT_CUSTOM_VIEW_PROPERTY(refreshing, BOOL, RNTableView) {
+     view.refreshing = [RCTConvert BOOL:json];
+@@ -146,42 +147,83 @@ RCT_CUSTOM_VIEW_PROPERTY(cellLayoutMargins, UIEdgeInsets, RNTableView) {
  }
  
  - (NSDictionary *)constantsToExport {
@@ -211,7 +297,7 @@ index c3cdb3a..01b980a 100644
 +
  export default TableViewSection;
 diff --git a/node_modules/react-native-tableview/src/index.d.ts b/node_modules/react-native-tableview/src/index.d.ts
-index 0851e6c..cde5929 100644
+index 0851e6c..b54903d 100644
 --- a/node_modules/react-native-tableview/src/index.d.ts
 +++ b/node_modules/react-native-tableview/src/index.d.ts
 @@ -67,6 +67,7 @@ export interface Constants {
@@ -222,6 +308,40 @@ index 0851e6c..cde5929 100644
    };
    CellStyle: {
      Default: number;
+@@ -171,6 +172,8 @@ export interface SectionProps {
+    * Height of footer
+    */
+   footerHeight?: number;
++
++  children?: any;
+ }
+ 
+ export interface ItemProps {
+@@ -223,6 +226,14 @@ export interface ItemProps {
+    * Callback fired on pressing an item
+    */
+   onPress?(event: OnPressCallBack): void;
++
++  arrow?: boolean;
++  switch?: boolean;
++  switchValue?: boolean;
++  image?: any;
++  switchTag?: number;
++  cellKey?: string;
++  children?: any;
+ }
+ 
+ export interface TableViewProps {
+@@ -296,6 +307,9 @@ export interface TableViewProps {
+   onEndDisplayingCell?(event: DisplayCallBack): void;
+   cellSeparatorInset?: Insets;
+   cellLayoutMargins?: Insets;
++
++  onSwitchChange?: any;
++  children?: any;
+ }
+ 
+ declare class TableView extends React.Component<TableViewProps> {
 diff --git a/node_modules/react-native-tableview/src/util/ViewPropTypes.js b/node_modules/react-native-tableview/src/util/ViewPropTypes.js
 index 2a9dca7..35d0a7b 100644
 --- a/node_modules/react-native-tableview/src/util/ViewPropTypes.js

@@ -1,17 +1,16 @@
-import React from 'react';
-import { StyleSheet, ScrollView, Platform } from 'react-native';
-import { Appbar, List, Divider, Text, useTheme } from 'react-native-paper';
-import Color from 'color';
+import React, { useState } from 'react';
+import { StyleSheet } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useTabBarInsets from '@app/hooks/useTabBarInsets';
 import useColors from '@app/hooks/useColors';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
+import TableView from '@app/components/TableView';
+import commonStyles from '@app/utils/commonStyles';
 
 function SettingsScreen({
   navigation,
@@ -19,164 +18,158 @@ function SettingsScreen({
   const rootNavigation = useRootNavigation();
   const setStorybookMode = useSetStorybookModeFunction();
 
-  const { colors } = useTheme();
-  const safeArea = useSafeAreaInsets();
   const tabBarInsets = useTabBarInsets();
 
   const { backgroundColor } = useColors();
 
   const { rfidScanSheet } = useRootBottomSheets();
 
+  const [switchValue, setSwitchValue] = useState(false);
+  const [switchValue2, setSwitchValue2] = useState(false);
+
   return (
-    <>
-      {Platform.OS !== 'ios' && (
-        <Appbar.Header
-          elevated
-          mode="center-aligned"
-          style={{ paddingTop: safeArea.top, height: 56 + safeArea.top }}
+    <TableView
+      style={[commonStyles.flex1, { backgroundColor }]}
+      contentInsets={{ bottom: tabBarInsets.scrollViewBottom }}
+      scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
+    >
+      <TableView.Section>
+        <TableView.Item
+          label="Settings"
+          arrow
+          onPress={() => navigation.push('Settings')}
+        />
+      </TableView.Section>
+
+      <TableView.Section>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.person.png"
+          onPress={() => rootNavigation?.navigate('DemoModal')}
         >
-          {navigation.canGoBack() && (
-            <Appbar.BackAction onPress={() => navigation.goBack()} />
-          )}
-          <Appbar.Content title="Settings" />
-        </Appbar.Header>
-      )}
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        automaticallyAdjustsScrollIndicatorInsets
-        style={[
-          styles.container,
-          {
-            backgroundColor,
-            paddingLeft: safeArea.left,
-            paddingRight: safeArea.right,
-          },
-        ]}
-        contentContainerStyle={{ paddingBottom: tabBarInsets.scrollViewBottom }}
-        scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
-      >
-        <List.Section style={{ marginTop: 32 }}>
-          <Divider />
-          <List.Item
-            title="Settings"
-            onPress={() => navigation.push('Settings')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="Open demo modal"
-            onPress={() => rootNavigation?.navigate('DemoModal')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="Open RFID scan sheet"
-            onPress={() => rfidScanSheet.current?.present()}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-        </List.Section>
+          Profile
+        </TableView.Item>
+        <TableView.Item
+          iosImage="ios-menu.travel.png"
+          switch
+          switchValue={switchValue}
+          onSwitchChangeValue={v => setSwitchValue(v)}
+        >
+          Travel Mode
+        </TableView.Item>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.site.png"
+          onPress={() => navigation.push('Settings')}
+        >
+          Sites
+        </TableView.Item>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.tag.png"
+          onPress={() => navigation.push('Settings')}
+        >
+          Tags
+        </TableView.Item>
+      </TableView.Section>
+      <TableView.Section>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.wireless-scan.png"
+          onPress={() => rfidScanSheet.current?.present()}
+        >
+          Scan Tags
+        </TableView.Item>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.locate.png"
+          onPress={() => rfidScanSheet.current?.present()}
+        >
+          Locate Tag
+        </TableView.Item>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.wireless-read.png"
+          onPress={() => rfidScanSheet.current?.present()}
+        >
+          Read Tag
+        </TableView.Item>
+        <TableView.Item
+          arrow
+          iosImage="ios-menu.wireless-write.png"
+          onPress={() => rfidScanSheet.current?.present()}
+        >
+          Write Tag
+        </TableView.Item>
+      </TableView.Section>
 
-        <List.Section>
-          <List.Subheader style={{ opacity: 0.5 }}>
-            <Text variant="titleSmall">Developer Tools</Text>
-          </List.Subheader>
-          <Divider />
-          <List.Item
-            title="Storybook"
-            onPress={() => navigation.push('Storybook')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="Enter Storybook mode"
-            onPress={() => setStorybookMode && setStorybookMode(true)}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="React Native New App Screen"
-            onPress={() => navigation.push('NewAppScreen')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-        </List.Section>
+      <TableView.Section label="Developer Tools">
+        <TableView.Item
+          label="Storybook"
+          arrow
+          onPress={() => navigation.push('Storybook')}
+        />
+        <TableView.Item
+          label="Enter Storybook mode"
+          onPress={() => setStorybookMode && setStorybookMode(true)}
+        />
+        <TableView.Item
+          label="React Native New App Screen"
+          arrow
+          onPress={() => navigation.push('NewAppScreen')}
+        />
+      </TableView.Section>
 
-        <List.Section>
-          <List.Subheader style={{ opacity: 0.5 }}>
-            <Text variant="titleSmall">Developer Tools</Text>
-          </List.Subheader>
-          <Divider />
-          <List.Item
-            title="Storybook"
-            onPress={() => navigation.push('Storybook')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="Enter Storybook mode"
-            onPress={() => setStorybookMode && setStorybookMode(true)}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="React Native New App Screen"
-            onPress={() => navigation.push('NewAppScreen')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-        </List.Section>
+      <TableView.Section>
+        <TableView.Item arrow iosImage="ios-menu.import.png">
+          Import
+        </TableView.Item>
+        <TableView.Item arrow iosImage="ios-menu.export.png">
+          Export
+        </TableView.Item>
+      </TableView.Section>
+      <TableView.Section>
+        <TableView.Item arrow iosImage="ios-menu.tools.png">
+          Tools
+        </TableView.Item>
+        <TableView.Item arrow iosImage="ios-menu.developer.png">
+          Developer Tools
+        </TableView.Item>
+      </TableView.Section>
 
-        <List.Section>
-          <List.Subheader style={{ opacity: 0.5 }}>
-            <Text variant="titleSmall">Developer Tools</Text>
-          </List.Subheader>
-          <Divider />
-          <List.Item
-            title="Storybook"
-            onPress={() => navigation.push('Storybook')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="Enter Storybook mode"
-            onPress={() => setStorybookMode && setStorybookMode(true)}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-          <List.Item
-            title="React Native New App Screen"
-            onPress={() => navigation.push('NewAppScreen')}
-            style={{
-              backgroundColor: Color(colors.background).lighten(0.25).hex(),
-            }}
-          />
-          <Divider />
-        </List.Section>
-      </ScrollView>
-    </>
+      <TableView.Section label="Section 2" footerLabel="This is footer label.">
+        <TableView.Item arrow>Item with arrow</TableView.Item>
+        <TableView.Item selected>Item selected</TableView.Item>
+        <TableView.Item detail="Detail">Item with detail</TableView.Item>
+        <TableView.Item arrow detail="Detail">
+          Item with detail and arrow
+        </TableView.Item>
+        <TableView.Item
+          switch
+          switchValue={switchValue}
+          onPress={() => setSwitchValue(v => !v)}
+          onSwitchChangeValue={v => setSwitchValue(v)}
+        >
+          Item with switch
+        </TableView.Item>
+        <TableView.Item
+          switch
+          switchValue={switchValue2}
+          onPress={() => setSwitchValue2(v => !v)}
+          onSwitchChangeValue={v => setSwitchValue2(v)}
+        >
+          Item with switch 2
+        </TableView.Item>
+        <TableView.Item
+          switch
+          switchValue={switchValue}
+          onPress={() => setSwitchValue(v => !v)}
+          onSwitchChangeValue={v => setSwitchValue(v)}
+        >
+          Item with switch
+        </TableView.Item>
+      </TableView.Section>
+    </TableView>
   );
 }
 
