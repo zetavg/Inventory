@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from './index';
+import type { RootStackParamList } from './Navigation';
 
 type RootNavigation = StackScreenProps<
   RootStackParamList,

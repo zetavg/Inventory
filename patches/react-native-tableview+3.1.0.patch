@@ -1,0 +1,236 @@
+diff --git a/node_modules/react-native-tableview/RNTableView/RNTableView.m b/node_modules/react-native-tableview/RNTableView/RNTableView.m
+index c728382..7efa004 100644
+--- a/node_modules/react-native-tableview/RNTableView/RNTableView.m
++++ b/node_modules/react-native-tableview/RNTableView/RNTableView.m
+@@ -108,7 +108,7 @@
+             _bridge = [_bridge valueForKey:@"parentBridge"];
+         }
+         
+-        _cellHeight = 44;
++        _cellHeight = 50.4;
+         _cells = [NSMutableArray array];
+         _autoFocus = YES;
+         _autoFocusAnimate = YES;
+@@ -355,17 +355,17 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
+         
+     }
+     
+-    if (self.selectedBackgroundColor && [item[@"selected"] intValue])
+-    {
+-        [cell setBackgroundColor:self.selectedBackgroundColor];
+-    } else {
+-        if (item[@"transparent"])
+-        {
+-            [cell setBackgroundColor:[UIColor clearColor]];
+-        } else {
+-            [cell setBackgroundColor:[UIColor whiteColor]];
+-        }
+-    }
++     if (self.selectedBackgroundColor && [item[@"selected"] intValue])
++     {
++         [cell setBackgroundColor:self.selectedBackgroundColor];
++     } else {
++         if (item[@"transparent"])
++         {
++             [cell setBackgroundColor:[UIColor clearColor]];
++         } else {
++             [cell setBackgroundColor:nil];
++         }
++     }
+     
+     if (item[@"image"]) {
+         UIImage *image;
+diff --git a/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m b/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
+index 9f8ed41..932b8f8 100644
+--- a/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
++++ b/node_modules/react-native-tableview/RNTableView/RNTableViewManager.m
+@@ -146,42 +146,83 @@ RCT_CUSTOM_VIEW_PROPERTY(cellLayoutMargins, UIEdgeInsets, RNTableView) {
+ }
+ 
+ - (NSDictionary *)constantsToExport {
+-    return @{
+-             @"Constants": @{
+-                     @"Style": @{
+-                             @"Plain": @(UITableViewStylePlain),
+-                             @"Grouped": @(UITableViewStyleGrouped)
+-                             },
+-                     @"CellStyle": @{
+-                             @"Default": @(UITableViewCellStyleDefault),
+-                             @"Value1": @(UITableViewCellStyleValue1),
+-                             @"Value2": @(UITableViewCellStyleValue2),
+-                             @"Subtitle": @(UITableViewCellStyleSubtitle)
+-                             },
+-                     @"CellEditingStyle": @{
+-                             @"None": @(UITableViewCellEditingStyleNone),
+-                             @"Delete": @(UITableViewCellEditingStyleDelete),
+-                             @"Insert": @(UITableViewCellEditingStyleInsert)
+-                             },
+-                     @"CellSelectionStyle": @{
+-                             @"None": @(UITableViewCellSelectionStyleNone),
+-                             @"Blue": @(UITableViewCellSelectionStyleBlue),
+-                             @"Gray": @(UITableViewCellSelectionStyleGray),
+-                             @"Default": @(UITableViewCellSelectionStyleDefault)
+-                             },
+-                     @"SeparatorStyle": @{
+-                             @"None": @(UITableViewCellSeparatorStyleNone),
+-                             @"Line": @(UITableViewCellSeparatorStyleSingleLine)
+-                             },
+-                     @"AccessoryType": @{
+-                             @"None": @(UITableViewCellAccessoryNone),
+-                             @"DisclosureIndicator": @(UITableViewCellAccessoryDisclosureIndicator),
+-                             @"DisclosureButton": @(UITableViewCellAccessoryDetailDisclosureButton),
+-                             @"Checkmark": @(UITableViewCellAccessoryCheckmark),
+-                             @"DetailButton": @(UITableViewCellAccessoryDetailButton)
+-                             }
+-                     }
+-             };
++    if (@available(iOS 13.0, *)) {
++        return @{
++            @"Constants": @{
++                @"Style": @{
++                    @"Plain": @(UITableViewStylePlain),
++                    @"Grouped": @(UITableViewStyleGrouped),
++                    @"InsetGrouped": @(UITableViewStyleInsetGrouped)
++                },
++                @"CellStyle": @{
++                    @"Default": @(UITableViewCellStyleDefault),
++                    @"Value1": @(UITableViewCellStyleValue1),
++                    @"Value2": @(UITableViewCellStyleValue2),
++                    @"Subtitle": @(UITableViewCellStyleSubtitle)
++                },
++                @"CellEditingStyle": @{
++                    @"None": @(UITableViewCellEditingStyleNone),
++                    @"Delete": @(UITableViewCellEditingStyleDelete),
++                    @"Insert": @(UITableViewCellEditingStyleInsert)
++                },
++                @"CellSelectionStyle": @{
++                    @"None": @(UITableViewCellSelectionStyleNone),
++                    @"Blue": @(UITableViewCellSelectionStyleBlue),
++                    @"Gray": @(UITableViewCellSelectionStyleGray),
++                    @"Default": @(UITableViewCellSelectionStyleDefault)
++                },
++                @"SeparatorStyle": @{
++                    @"None": @(UITableViewCellSeparatorStyleNone),
++                    @"Line": @(UITableViewCellSeparatorStyleSingleLine)
++                },
++                @"AccessoryType": @{
++                    @"None": @(UITableViewCellAccessoryNone),
++                    @"DisclosureIndicator": @(UITableViewCellAccessoryDisclosureIndicator),
++                    @"DisclosureButton": @(UITableViewCellAccessoryDetailDisclosureButton),
++                    @"Checkmark": @(UITableViewCellAccessoryCheckmark),
++                    @"DetailButton": @(UITableViewCellAccessoryDetailButton)
++                }
++            }
++        };
++    } else {
++        return @{
++            @"Constants": @{
++                @"Style": @{
++                    @"Plain": @(UITableViewStylePlain),
++                    @"Grouped": @(UITableViewStyleGrouped),
++                    @"InsetGrouped": @(UITableViewStyleGrouped)
++                },
++                @"CellStyle": @{
++                    @"Default": @(UITableViewCellStyleDefault),
++                    @"Value1": @(UITableViewCellStyleValue1),
++                    @"Value2": @(UITableViewCellStyleValue2),
++                    @"Subtitle": @(UITableViewCellStyleSubtitle)
++                },
++                @"CellEditingStyle": @{
++                    @"None": @(UITableViewCellEditingStyleNone),
++                    @"Delete": @(UITableViewCellEditingStyleDelete),
++                    @"Insert": @(UITableViewCellEditingStyleInsert)
++                },
++                @"CellSelectionStyle": @{
++                    @"None": @(UITableViewCellSelectionStyleNone),
++                    @"Blue": @(UITableViewCellSelectionStyleBlue),
++                    @"Gray": @(UITableViewCellSelectionStyleGray),
++                    @"Default": @(UITableViewCellSelectionStyleDefault)
++                },
++                @"SeparatorStyle": @{
++                    @"None": @(UITableViewCellSeparatorStyleNone),
++                    @"Line": @(UITableViewCellSeparatorStyleSingleLine)
++                },
++                @"AccessoryType": @{
++                    @"None": @(UITableViewCellAccessoryNone),
++                    @"DisclosureIndicator": @(UITableViewCellAccessoryDisclosureIndicator),
++                    @"DisclosureButton": @(UITableViewCellAccessoryDetailDisclosureButton),
++                    @"Checkmark": @(UITableViewCellAccessoryCheckmark),
++                    @"DetailButton": @(UITableViewCellAccessoryDetailButton)
++                }
++            }
++        };
++    }
+     }
+ 
+ RCT_CUSTOM_VIEW_PROPERTY(fontSize, CGFloat, RNTableView)
+diff --git a/node_modules/react-native-tableview/src/TableView.js b/node_modules/react-native-tableview/src/TableView.js
+index 67bc0cb..77b9f6a 100644
+--- a/node_modules/react-native-tableview/src/TableView.js
++++ b/node_modules/react-native-tableview/src/TableView.js
+@@ -3,11 +3,13 @@ import PropTypes from 'prop-types';
+ import {
+   NativeModules,
+   requireNativeComponent,
+-  EdgeInsetsPropType,
+-  PointPropType,
+   findNodeHandle,
+   View,
+ } from 'react-native';
++import {
++  EdgeInsetsPropType,
++  PointPropType,
++} from 'deprecated-react-native-prop-types';
+ import TableViewSection from './TableViewSection';
+ import TableViewCell from './TableViewCell';
+ import TableViewItem from './TableViewItem';
+diff --git a/node_modules/react-native-tableview/src/TableViewItem.js b/node_modules/react-native-tableview/src/TableViewItem.js
+index 73f7e97..7fd1bbf 100644
+--- a/node_modules/react-native-tableview/src/TableViewItem.js
++++ b/node_modules/react-native-tableview/src/TableViewItem.js
+@@ -16,4 +16,8 @@ TableViewItem.propTypes = {
+   accessoryType: PropTypes.number,
+ };
+ 
++TableViewItem.defaultProps = {
++  // transparent: true,
++};
++
+ export default TableViewItem;
+diff --git a/node_modules/react-native-tableview/src/TableViewSection.js b/node_modules/react-native-tableview/src/TableViewSection.js
+index c3cdb3a..01b980a 100644
+--- a/node_modules/react-native-tableview/src/TableViewSection.js
++++ b/node_modules/react-native-tableview/src/TableViewSection.js
+@@ -16,4 +16,8 @@ TableViewSection.propTypes = {
+   headerHeight: PropTypes.number,
+ };
+ 
++TableViewSection.defaultProps = {
++  // transparent: true,
++};
++
+ export default TableViewSection;
+diff --git a/node_modules/react-native-tableview/src/index.d.ts b/node_modules/react-native-tableview/src/index.d.ts
+index 0851e6c..cde5929 100644
+--- a/node_modules/react-native-tableview/src/index.d.ts
++++ b/node_modules/react-native-tableview/src/index.d.ts
+@@ -67,6 +67,7 @@ export interface Constants {
+   Style: {
+     Plain: number;
+     Grouped: number;
++    InsetGrouped: number;
+   };
+   CellStyle: {
+     Default: number;
+diff --git a/node_modules/react-native-tableview/src/util/ViewPropTypes.js b/node_modules/react-native-tableview/src/util/ViewPropTypes.js
+index 2a9dca7..35d0a7b 100644
+--- a/node_modules/react-native-tableview/src/util/ViewPropTypes.js
++++ b/node_modules/react-native-tableview/src/util/ViewPropTypes.js
+@@ -1,5 +1,5 @@
+-import { View, ViewPropTypes as RNViewPropTypes } from 'react-native';
++import { ViewPropTypes as RNViewPropTypes } from 'deprecated-react-native-prop-types';
+ 
+-const ViewPropTypes = RNViewPropTypes || View.propTypes;
++const ViewPropTypes = RNViewPropTypes;
+ 
+ export default ViewPropTypes;

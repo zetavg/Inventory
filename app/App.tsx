@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
@@ -7,7 +8,7 @@ import { changeBarColors } from 'react-native-immersive-bars';
 import Navigation from '@app/navigation';
 import { usePersistedState } from '@app/hooks/usePersistedState';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import useColor from '@app/hooks/useColor';
+import useColors from '@app/hooks/useColors';
 import { darkTheme, lightTheme } from '@app/theme';
 
 import StorybookUIRoot, {
@@ -21,7 +22,7 @@ function App() {
     changeBarColors(isDarkMode);
   }, [isDarkMode]);
 
-  const { backgroundColor } = useColor();
+  const { backgroundColor } = useColors();
 
   /** A toggle to render the entire app as Storybook for development */
   const [storybookMode, setStorybookMode] = usePersistedState(
@@ -56,9 +57,11 @@ function App() {
             <GestureHandlerRootView
               style={[styles.container, { backgroundColor }]}
             >
-              <PaperProvider theme={theme}>
-                <Navigation />
-              </PaperProvider>
+              <SafeAreaProvider>
+                <PaperProvider theme={theme}>
+                  <Navigation />
+                </PaperProvider>
+              </SafeAreaProvider>
             </GestureHandlerRootView>
           );
         })()}

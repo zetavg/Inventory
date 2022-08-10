@@ -10,7 +10,8 @@ import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useTabBarInsets from '@app/hooks/useTabBarInsets';
-import useColor from '@app/hooks/useColor';
+import useColors from '@app/hooks/useColors';
+import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
 
 function SettingsScreen({
   navigation,
@@ -22,7 +23,9 @@ function SettingsScreen({
   const safeArea = useSafeAreaInsets();
   const tabBarInsets = useTabBarInsets();
 
-  const { backgroundColor } = useColor();
+  const { backgroundColor } = useColors();
+
+  const { rfidScanSheet } = useRootBottomSheets();
 
   return (
     <>
@@ -65,6 +68,14 @@ function SettingsScreen({
           <List.Item
             title="Open demo modal"
             onPress={() => rootNavigation?.navigate('DemoModal')}
+            style={{
+              backgroundColor: Color(colors.background).lighten(0.25).hex(),
+            }}
+          />
+          <Divider />
+          <List.Item
+            title="Open RFID scan sheet"
+            onPress={() => rfidScanSheet.current?.present()}
             style={{
               backgroundColor: Color(colors.background).lighten(0.25).hex(),
             }}

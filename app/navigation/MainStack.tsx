@@ -6,7 +6,7 @@ import {
 } from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import useColor from '@app/hooks/useColor';
+import useColors from '@app/hooks/useColors';
 
 import SettingsScreen from '@app/screens/SettingsScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
@@ -48,7 +48,7 @@ const SCREEN_OPTIONS = {
 
 function MainStack({ initialRouteName }: Props) {
   const isDarkMode = useIsDarkMode();
-  const { backgroundColor } = useColor();
+  const { backgroundColor } = useColors();
   const iosHeaderTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
 
   const screenOptions = useMemo(

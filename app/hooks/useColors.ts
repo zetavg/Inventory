@@ -1,13 +1,13 @@
 import useIsDarkMode from './useIsDarkMode';
 
-function useColor() {
+function useColors() {
   const isDarkMode = useIsDarkMode();
   const backgroundColor = isDarkMode ? '#000000' : '#F2F2F6';
 
   return { backgroundColor };
 }
 
-export default useColor;
+export default useColors;
 
 // Android backgroundColor?
 // Color(colors.background)

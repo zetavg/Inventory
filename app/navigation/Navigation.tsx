@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import color from 'color';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useTheme from '@app/hooks/useTheme';
+import useColors from '@app/hooks/useColors';
 
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import {
@@ -16,12 +18,20 @@ import {
   createBottomTabNavigator as createTabNavigator,
   BottomTabBar,
 } from '@react-navigation/bottom-tabs';
+import {
+  BottomSheetModal,
+  BottomSheetModalProvider,
+  BottomSheetBackdrop,
+  BottomSheetHandle,
+} from '@gorhom/bottom-sheet';
 
 import RootNavigationContext from './RootNavigationContext';
+import RootBottomSheetsContext from './RootBottomSheetsContext';
 
 import MainStack from './MainStack';
 
 import DemoModalScreen from '@app/screens/DemoModalScreen';
+import RfidScanScreen from '@app/screens/RfidScanScreen';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -56,8 +66,10 @@ const DEFAULT_TAB_SCREEN_OPTIONS = {
  * Composed navigation
  */
 function Navigation() {
+  const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
   const theme = useTheme();
+  const { backgroundColor } = useColors();
 
   const navigationTheme = useMemo(
     () => ({
@@ -87,17 +99,20 @@ function Navigation() {
                 .rgb()
                 .string(),
               borderTopColor: theme.colors.background,
+              height: 54 + safeAreaInsets.bottom,
             },
       tabBarLabelStyle:
         Platform.OS === 'android'
           ? ({
               fontSize: 12,
               fontWeight: '500',
+              marginBottom: 2,
             } as any)
           : {},
     }),
     [
       isDarkMode,
+      safeAreaInsets.bottom,
       theme.colors.background,
       theme.colors.primary,
       theme.colors.secondary,
@@ -105,64 +120,193 @@ function Navigation() {
     ],
   );
 
+  const rfidScanSheetRef = useRef<BottomSheetModal>(null);
+  const rfidScanSheetSnapPoints = useMemo(() => ['80%'], []);
+  const rootBottomSheetsContextProviderValue = useMemo(
+    () => ({
+      rfidScanSheet: rfidScanSheetRef,
+    }),
+    [],
+  );
+  const renderBottomSheetHandleComponent = useCallback(
+    (props: React.ComponentProps<typeof BottomSheetHandle>) => (
+      <BottomSheetHandle
+        {...props}
+        style={{ backgroundColor }}
+        // eslint-disable-next-line react-native/no-inline-styles
+        indicatorStyle={{
+          backgroundColor: isDarkMode
+            ? 'rgba(255, 255, 255, 0.5)'
+            : 'rgba(0, 0, 0, 0.75)',
+        }}
+      />
+    ),
+    [backgroundColor, isDarkMode],
+  );
+  const renderBottomSheetBackdrop = useCallback(
+    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    [],
+  );
+
   return (
     <NavigationContainer theme={navigationTheme}>
-      <Stack.Navigator screenOptions={DEFAULT_ROOT_STACK_SCREEN_OPTIONS}>
-        <Stack.Screen name="Main">
-          {({ navigation }) => (
-            <RootNavigationContext.Provider value={navigation}>
-              <Tab.Navigator
-                backBehavior="none"
-                screenOptions={defaultTabScreenOptions}
-                tabBar={
-                  Platform.OS === 'ios'
-                    ? (props: React.ComponentProps<typeof BottomTabBar>) => (
-                        <BlurView
-                          style={styles.tabBarBlurView}
-                          blurType={isDarkMode ? 'extraDark' : 'xlight'}
-                        >
-                          <BottomTabBar {...props} style={props.style} />
-                        </BlurView>
-                      )
-                    : (props: React.ComponentProps<typeof BottomTabBar>) => (
-                        <BottomTabBar {...props} />
-                      )
-                }
-              >
-                <Tab.Screen
-                  name="HomeTab"
-                  children={() => <MainStack initialRouteName="Settings" />}
-                  options={{
-                    tabBarIcon: ({ focused, ...props }) => (
-                      <Ionicons
-                        name={
-                          focused
-                            ? 'ios-information-circle'
-                            : 'ios-information-circle-outline'
-                        }
-                        {...props}
-                      />
-                    ),
-                  }}
-                />
-                <Tab.Screen
-                  name="SettingsTab"
-                  children={() => <MainStack initialRouteName="Settings" />}
-                  options={{
-                    tabBarIcon: ({ focused, ...props }) => (
-                      <Ionicons
-                        name={focused ? 'ios-list' : 'ios-list'}
-                        {...props}
-                      />
-                    ),
-                  }}
-                />
-              </Tab.Navigator>
-            </RootNavigationContext.Provider>
-          )}
-        </Stack.Screen>
-        <Stack.Screen name="DemoModal" component={DemoModalScreen} />
-      </Stack.Navigator>
+      <RootBottomSheetsContext.Provider
+        value={rootBottomSheetsContextProviderValue}
+      >
+        <BottomSheetModalProvider>
+          <Stack.Navigator screenOptions={DEFAULT_ROOT_STACK_SCREEN_OPTIONS}>
+            <Stack.Screen name="Main">
+              {({ navigation }) => (
+                <RootNavigationContext.Provider value={navigation}>
+                  <Tab.Navigator
+                    backBehavior="none"
+                    screenOptions={defaultTabScreenOptions}
+                    tabBar={
+                      Platform.OS === 'ios'
+                        ? (
+                            props: React.ComponentProps<typeof BottomTabBar>,
+                          ) => (
+                            <BlurView
+                              style={styles.tabBarBlurView}
+                              blurType={isDarkMode ? 'extraDark' : 'xlight'}
+                            >
+                              <BottomTabBar {...props} style={props.style} />
+                            </BlurView>
+                          )
+                        : (
+                            props: React.ComponentProps<typeof BottomTabBar>,
+                          ) => <BottomTabBar {...props} />
+                    }
+                  >
+                    <Tab.Screen
+                      name="DashboardTab"
+                      children={() => <MainStack initialRouteName="Settings" />}
+                      options={{
+                        title: 'Dashboard',
+                        tabBarIcon: ({ focused, ...props }) => (
+                          <Ionicons
+                            name={
+                              Platform.OS === 'ios'
+                                ? focused
+                                  ? 'ios-grid'
+                                  : 'ios-grid-outline'
+                                : focused
+                                ? 'md-grid'
+                                : 'md-grid-outline'
+                            }
+                            {...props}
+                          />
+                        ),
+                      }}
+                    />
+                    <Tab.Screen
+                      name="InventoryTab"
+                      children={() => <MainStack initialRouteName="Settings" />}
+                      options={{
+                        title: 'Inventory',
+                        tabBarIcon: ({ focused, ...props }) => (
+                          <Ionicons
+                            name={
+                              Platform.OS === 'ios'
+                                ? focused
+                                  ? 'ios-folder-open'
+                                  : 'ios-folder-open-outline'
+                                : focused
+                                ? 'md-folder-open'
+                                : 'md-folder-open-outline'
+                            }
+                            {...props}
+                          />
+                        ),
+                      }}
+                    />
+                    <Tab.Screen
+                      name="CheckTab"
+                      children={() => <MainStack initialRouteName="Settings" />}
+                      options={{
+                        title: 'Check',
+                        tabBarIcon: ({ focused, ...props }) => (
+                          <Ionicons
+                            name={
+                              Platform.OS === 'ios'
+                                ? focused
+                                  ? 'ios-scan'
+                                  : 'ios-scan-outline'
+                                : focused
+                                ? 'md-scan'
+                                : 'md-scan-outline'
+                            }
+                            {...props}
+                          />
+                        ),
+                      }}
+                    />
+                    <Tab.Screen
+                      name="SearchTab"
+                      children={() => <MainStack initialRouteName="Settings" />}
+                      options={{
+                        title: 'Search',
+                        tabBarIcon: ({ focused, ...props }) => (
+                          <Ionicons
+                            name={
+                              Platform.OS === 'ios'
+                                ? focused
+                                  ? 'ios-search'
+                                  : 'ios-search-outline'
+                                : focused
+                                ? 'md-search'
+                                : 'md-search-outline'
+                            }
+                            {...props}
+                          />
+                        ),
+                      }}
+                    />
+                    <Tab.Screen
+                      name="MoreTab"
+                      children={() => <MainStack initialRouteName="Settings" />}
+                      options={{
+                        title: 'More',
+                        tabBarIcon: ({ focused, ...props }) => (
+                          <Ionicons
+                            name={
+                              Platform.OS === 'ios'
+                                ? focused
+                                  ? 'ios-ellipsis-horizontal-circle-sharp'
+                                  : 'ios-ellipsis-horizontal-circle-outline'
+                                : focused
+                                ? 'md-ellipsis-horizontal-circle-sharp'
+                                : 'md-ellipsis-horizontal-circle-outline'
+                            }
+                            {...props}
+                          />
+                        ),
+                      }}
+                    />
+                  </Tab.Navigator>
+                </RootNavigationContext.Provider>
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="DemoModal" component={DemoModalScreen} />
+          </Stack.Navigator>
+          <BottomSheetModal
+            ref={rfidScanSheetRef}
+            snapPoints={rfidScanSheetSnapPoints}
+            enablePanDownToClose
+            handleComponent={renderBottomSheetHandleComponent}
+            backdropComponent={renderBottomSheetBackdrop}
+            style={{ backgroundColor }}
+          >
+            <RfidScanScreen />
+          </BottomSheetModal>
+        </BottomSheetModalProvider>
+      </RootBottomSheetsContext.Provider>
     </NavigationContainer>
   );
 }
