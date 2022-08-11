@@ -1,6 +1,8 @@
+import Color from 'color';
 import React, { useRef, useCallback } from 'react';
-import { Platform, ScrollView } from 'react-native';
-import TableViewIOS from 'react-native-tableview';
+import { Platform, ScrollView, Text, View } from 'react-native';
+import { Checkbox, RadioButton, Divider, List, Switch, useTheme } from 'react-native-paper';
+import TableViewIOS from './TableViewIOS';
 
 type Insets = {
   bottom: number;
@@ -174,7 +176,16 @@ function TableView({
     );
   }
 
-  return <ScrollView />;
+  return (
+    <ScrollView
+      children={children}
+      automaticallyAdjustContentInsets
+      automaticallyAdjustsScrollIndicatorInsets
+      contentInset={contentInsets}
+      scrollIndicatorInsets={scrollIndicatorInsets}
+      style={style}
+    />
+  );
 }
 
 type TableViewSectionProps = {
@@ -183,8 +194,44 @@ type TableViewSectionProps = {
   children: React.ReactNode;
 };
 
-function TableViewSection(props: TableViewSectionProps) {
-  return null;
+const SECTION_PADDING = 0;
+
+function TableViewSection({
+  label,
+  footerLabel,
+  children,
+}: TableViewSectionProps) {
+  return (
+    <View style={{ paddingTop: SECTION_PADDING }}>
+      {label && (
+        <List.Subheader
+          style={{
+            textTransform: 'uppercase',
+            opacity: 0.6,
+            fontSize: 12,
+            fontWeight: '700',
+            marginTop: 8 - SECTION_PADDING,
+            marginBottom: -4,
+          }}
+        >
+          {label}
+        </List.Subheader>
+      )}
+      {children}
+      {footerLabel && (
+        <List.Subheader
+          style={{
+            opacity: 0.6,
+            fontSize: 12,
+            marginTop: -2,
+          }}
+        >
+          {footerLabel}
+        </List.Subheader>
+      )}
+      <Divider style={{ marginTop: SECTION_PADDING }} />
+    </View>
+  );
 }
 
 TableViewSection.n = 'TableViewSection';
@@ -200,13 +247,83 @@ type TableViewItemProps = {
   switch?: boolean;
   switchValue?: boolean;
   onSwitchChangeValue?: (v: boolean) => void;
+  icon?: React.ComponentProps<typeof List.Icon>['icon'];
   iosImage?: any;
   onPress?: () => void;
   // accessoryType?: typeof TableView.Consts.DisclosureIndicator;
 };
 
-function TableViewItem(props: TableViewItemProps) {
-  return null;
+const ITEM_PADDING = 10;
+
+function TableViewItem({
+  children,
+  label,
+  detail,
+  arrow,
+  selected,
+  switch: sw,
+  switchValue,
+  onSwitchChangeValue,
+  icon,
+  onPress,
+}: TableViewItemProps) {
+  const theme = useTheme();
+
+  if (typeof selected === 'boolean') {
+    return (
+      <RadioButton.Item
+        style={[
+          { paddingVertical: ITEM_PADDING },
+          onPress ? {} : { opacity: 0.6 },
+        ]}
+        label={label || children || ''}
+        onPress={onPress}
+        status={selected ? 'checked' : 'unchecked'}
+      />
+    );
+  }
+
+  return (
+    <List.Item
+      style={[
+        { paddingVertical: ITEM_PADDING },
+        onPress || sw ? {} : { opacity: 0.7 },
+      ]}
+      title={label || children}
+      description={
+        detail && (
+          <Text
+            style={{
+              color: Color(theme.colors.onSurface).alpha(0.5).rgb().string(),
+            }}
+          >
+            {detail}
+            {}
+          </Text>
+        )
+      }
+      onPress={
+        onPress ||
+        (sw
+          ? () => onSwitchChangeValue && onSwitchChangeValue(!switchValue)
+          : undefined)
+      }
+      left={icon ? props => <List.Icon {...props} icon={icon} /> : undefined}
+      right={(() => {
+        if (sw) {
+          return () => (
+            <Switch
+              value={switchValue}
+              onChange={() =>
+                onSwitchChangeValue && onSwitchChangeValue(!switchValue)
+              }
+            />
+          );
+        }
+        return undefined;
+      })()}
+    />
+  );
 }
 
 TableViewItem.n = 'TableViewItem';
