@@ -12,4 +12,5 @@ AppRegistry.registerComponent(appName, () => App);
 
 LogBox.ignoreLogs([
   'Require cycle: node_modules/react-native-paper/src/components/Appbar',
+  'Require cycle: node_modules/pouch-db-utils/lib/index-browser.js',
 ]);

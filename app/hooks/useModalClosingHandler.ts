@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
-import { RootStackParamList } from '@app/navigation';
+import { RootStackParamList } from '@app/navigation/Navigation';
 import useIsDarkMode from './useIsDarkMode';
 
 type ReturnType = {

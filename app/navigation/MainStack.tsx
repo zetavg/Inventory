@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Platform } from 'react-native';
+import { Platform, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import {
   createStackNavigator,
   TransitionPresets,
@@ -9,11 +10,13 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 
 import SettingsScreen from '@app/screens/SettingsScreen';
+import PouchDBScreen from '@app/screens/PouchDBScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
 export type StackParamList = {
   Settings: undefined;
+  PouchDB: undefined;
   Storybook: undefined;
   NewAppScreen: undefined;
   DemoHome: undefined;
@@ -48,8 +51,7 @@ const SCREEN_OPTIONS = {
 
 function MainStack({ initialRouteName }: Props) {
   const isDarkMode = useIsDarkMode();
-  const { backgroundColor } = useColors();
-  const iosHeaderTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
+  const { backgroundColor, iosHeaderTintColor } = useColors();
 
   const screenOptions = useMemo(
     () => ({
@@ -73,6 +75,10 @@ function MainStack({ initialRouteName }: Props) {
       screenOptions={screenOptions}
     >
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen
+        name="PouchDB"
+        component={PouchDBScreen}
+      />
       <Stack.Screen
         name="Storybook"
         component={StorybookScreen}

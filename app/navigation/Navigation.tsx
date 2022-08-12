@@ -31,6 +31,7 @@ import RootBottomSheetsContext from './RootBottomSheetsContext';
 import MainStack from './MainStack';
 
 import DemoModalScreen from '@app/screens/DemoModalScreen';
+import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RfidScanScreen from '@app/screens/RfidScanScreen';
 
 const NAVIGATION_CONTAINER_THEME = {
@@ -44,6 +45,10 @@ const NAVIGATION_CONTAINER_THEME = {
 const Stack = createStackNavigator();
 export type RootStackParamList = {
   Main: undefined;
+  PouchDBPutDataModal: {
+    id?: string;
+    jsonData?: string;
+  };
   DemoModal: undefined;
   DemoDetails: { id: string };
 };
@@ -298,6 +303,10 @@ function Navigation() {
               )}
             </Stack.Screen>
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
+            <Stack.Screen
+              name="PouchDBPutDataModal"
+              component={PouchDBPutDataModalScreen}
+            />
           </Stack.Navigator>
           <BottomSheetModal
             ref={rfidScanSheetRef}

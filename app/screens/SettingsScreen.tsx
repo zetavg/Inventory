@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -11,6 +10,7 @@ import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 import useTabBarInsets from '@app/hooks/useTabBarInsets';
 import useColors from '@app/hooks/useColors';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
+import Appbar from '@app/components/Appbar';
 import TableView from '@app/components/TableView';
 import commonStyles from '@app/utils/commonStyles';
 
@@ -33,22 +33,7 @@ function SettingsScreen({
 
   return (
     <>
-      {Platform.OS !== 'ios' && (
-        <Appbar.Header
-          elevated
-          // mode="center-aligned"
-          style={{
-            paddingTop: safeAreaInsets.top,
-            height: 56 + safeAreaInsets.top,
-          }}
-        >
-          {navigation.canGoBack() && (
-            <Appbar.BackAction onPress={() => navigation.goBack()} />
-          )}
-          <Appbar.Content title="Settings" />
-        </Appbar.Header>
-      )}
-
+      <Appbar title="Settings" navigation={navigation} />
       <TableView
         style={[commonStyles.flex1, { backgroundColor }]}
         contentInsets={{ bottom: tabBarInsets.scrollViewBottom }}
@@ -87,7 +72,7 @@ function SettingsScreen({
             iosImage="ios-menu.site.png"
             onPress={() => navigation.push('Settings')}
           >
-            Sites
+            Locations
           </TableView.Item>
           <TableView.Item
             arrow
@@ -134,6 +119,11 @@ function SettingsScreen({
         </TableView.Section>
 
         <TableView.Section label="Developer Tools">
+          <TableView.Item
+            label="PouchDB"
+            arrow
+            onPress={() => navigation.push('PouchDB')}
+          />
           <TableView.Item
             label="Storybook"
             arrow
