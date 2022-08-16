@@ -1,29 +1,19 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, StatusBar, Alert } from 'react-native';
-import { Appbar, HelperText } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useModalClosingHandler from '@app/hooks/useModalClosingHandler';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
-import Button from '@app/components/Button';
-import TextInput from '@app/components/TextInput';
-import useColors from '@app/hooks/useColors';
-import commonStyles from '@app/utils/commonStyles';
 import db from '@app/db/pouchdb';
+import ModalContent from '@app/components/ModalContent';
+import InsetGroup from '@app/components/InsetGroup';
 
 function PouchDBPutDataModalScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'PouchDBPutDataModal'>) {
-  const { backgroundColor } = useColors();
-  const isDarkMode = useIsDarkMode();
-  const safeArea = useSafeAreaInsets();
-
-  const [showAppbar, setShowAppbar] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [id, setId] = useState(route.params?.id || '');
@@ -33,18 +23,14 @@ function PouchDBPutDataModalScreen({
   const handleIdChangeText = useCallback(
     (t: string) => {
       setId(t);
-      if (!hasUnsavedChanges) {
-        setHasUnsavedChanges(true);
-      }
+      if (!hasUnsavedChanges) setHasUnsavedChanges(true);
     },
     [hasUnsavedChanges],
   );
   const handleDataJsonChangeText = useCallback(
     (t: string) => {
       setDataJson(t);
-      if (!hasUnsavedChanges) {
-        setHasUnsavedChanges(true);
-      }
+      if (!hasUnsavedChanges) setHasUnsavedChanges(true);
     },
     [hasUnsavedChanges],
   );
@@ -77,14 +63,12 @@ function PouchDBPutDataModalScreen({
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
-      if (isDone) {
+      if (isDone.current) {
         confirm();
         return;
       }
 
-      if (loading) {
-        return;
-      }
+      if (loading) return;
 
       Alert.alert(
         'Discard data?',
@@ -110,82 +94,64 @@ function PouchDBPutDataModalScreen({
   const dataInputRef = useRef<any>(null);
 
   return (
-    <>
-      <StatusBar barStyle={statusBarStyle} />
-      {showAppbar && (
-        <Appbar.Header elevated mode="center-aligned">
-          {navigation.canGoBack() && (
-            <Appbar.BackAction onPress={() => navigation.goBack()} />
-          )}
-          <Appbar.Content title="Put Data" />
-        </Appbar.Header>
-      )}
+    <ModalContent
+      statusBarStyle={statusBarStyle}
+      title="Put Data"
+      action1Label="Put Data"
+      action1Variant="strong"
+      onAction1Press={
+        isJsonInvalid || !id || loading ? undefined : handlePutData
+      }
+      action2Label="Cancel"
+      onAction2Press={loading ? undefined : () => navigation.goBack()}
+    >
       <ScrollView
-        style={[styles.container, { backgroundColor }]}
         keyboardDismissMode="interactive"
-        // automaticallyAdjustKeyboardInsets
         automaticallyAdjustsScrollIndicatorInsets
         keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.contentContainer}
       >
-        <TextInput
-          label="ID"
-          mode="outlined"
-          style={styles.input}
-          placeholder=""
-          disabled={!!route.params?.id || loading}
-          autoFocus={!route.params?.id}
-          value={id}
-          onChangeText={handleIdChangeText}
-          onBlur={() => setIdTouched(true)}
-          error={idTouched && !id}
-          autoCapitalize="none"
-          onSubmitEditing={() => dataInputRef.current?.focus()}
-        />
-        <TextInput
-          ref={dataInputRef}
-          label="Data (JSON)"
-          mode="outlined"
-          style={[styles.input, { minHeight: 120 }]}
-          multiline
-          placeholder="{}"
-          value={dataJson}
-          onChangeText={handleDataJsonChangeText}
-          error={isJsonInvalid}
-          disabled={loading}
-          autoCapitalize="none"
-        />
-        <HelperText
-          type="error"
-          visible={isJsonInvalid}
-          style={{ marginTop: -12, marginBottom: 4 }}
-        >
-          Invalid JSON
-        </HelperText>
-        <View style={commonStyles.row}>
-          <Button
-            title="Cancel"
-            style={[styles.button, commonStyles.flex1]}
-            onPress={() => navigation.goBack()}
-            disabled={loading}
+        <InsetGroup footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}>
+          <InsetGroup.Item
+            compactLabel
+            label="ID"
+            detail={
+              <InsetGroup.TextInput
+                alignRight
+                returnKeyType="next"
+                autoCapitalize="none"
+                disabled={!!route.params?.id || loading}
+                autoFocus={!route.params?.id}
+                value={id}
+                onChangeText={handleIdChangeText}
+                onBlur={() => setIdTouched(true)}
+                onSubmitEditing={() => dataInputRef.current?.focus()}
+              />
+            }
           />
-          <View style={commonStyles.w16} />
-          <Button
-            title="Put data"
-            mode="contained"
-            style={[styles.button, commonStyles.flex2]}
-            onPress={handlePutData}
-            disabled={isJsonInvalid || !id || loading}
-            loading={loading}
-          />
-        </View>
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item compactLabel label="Data (JSON)">
+            <InsetGroup.TextInput
+              multiline
+              style={{ minHeight: 60 }}
+              placeholder="{}"
+              ref={dataInputRef}
+              value={dataJson}
+              onChangeText={handleDataJsonChangeText}
+              disabled={loading}
+              autoFocus={!!route.params?.id}
+              autoCapitalize="none"
+            />
+          </InsetGroup.Item>
+        </InsetGroup>
       </ScrollView>
-    </>
+    </ModalContent>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
-  contentContainer: { padding: 16 },
+  contentContainer: { paddingTop: 16 },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   switchText: { marginRight: 8 },
   input: { marginBottom: 16 },

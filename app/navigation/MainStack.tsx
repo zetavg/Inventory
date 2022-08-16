@@ -10,13 +10,17 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 
 import SettingsScreen from '@app/screens/SettingsScreen';
+import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
+import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
 export type StackParamList = {
   Settings: undefined;
+  DeveloperTools: undefined;
   PouchDB: undefined;
+  PouchDBItem: { id: string };
   Storybook: undefined;
   NewAppScreen: undefined;
   DemoHome: undefined;
@@ -76,9 +80,12 @@ function MainStack({ initialRouteName }: Props) {
     >
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen
-        name="PouchDB"
-        component={PouchDBScreen}
+        name="DeveloperTools"
+        component={DeveloperToolsScreen}
+        options={{ title: 'Developer Tools' }}
       />
+      <Stack.Screen name="PouchDB" component={PouchDBScreen} />
+      <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
       <Stack.Screen
         name="Storybook"
         component={StorybookScreen}

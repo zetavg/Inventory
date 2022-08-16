@@ -75,7 +75,7 @@ function ModalContent({
         <AppBarIOS
           title={title}
           left={
-            action2Label ? (
+            action2Label && onAction2Press ? (
               <AppBarIOS.Button
                 onPress={onAction2Press}
                 destructive={action2Variant === 'destructive'}
@@ -86,7 +86,7 @@ function ModalContent({
             ) : undefined
           }
           right={
-            action1Label ? (
+            action1Label && onAction1Press ? (
               <AppBarIOS.Button
                 onPress={onAction1Press}
                 destructive={action1Variant === 'destructive'}

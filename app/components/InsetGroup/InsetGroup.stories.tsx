@@ -215,6 +215,20 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
         <InsetGroup.ItemSeperator />
         <InsetGroup.Item
           compactLabel
+          label="Disabled"
+          detail={
+            <InsetGroup.TextInput
+              alignRight
+              disabled
+              value="Input value"
+              returnKeyType="done"
+              autoCapitalize="words"
+            />
+          }
+        />
+        <InsetGroup.ItemSeperator />
+        <InsetGroup.Item
+          compactLabel
           label="Tags"
           detail={
             <InsetGroup.ItemDetailButton

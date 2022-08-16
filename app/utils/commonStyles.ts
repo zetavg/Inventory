@@ -55,6 +55,15 @@ const commonStyles = StyleSheet.create({
   mr8: {
     marginRight: 8,
   },
+  mr12: {
+    marginRight: 12,
+  },
+  mr16: {
+    marginRight: 16,
+  },
+  pt16: {
+    paddingTop: 16,
+  },
   row: {
     flexDirection: 'row',
   },

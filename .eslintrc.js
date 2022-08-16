@@ -2,7 +2,15 @@ module.exports = {
   root: true,
   extends: '@react-native-community',
   rules: {
-    curly: ['warn', 'multi'],
-    '@typescript-eslint/no-unused-vars': 'warn',
+    curly: 'off',
+    'no-spaced-func': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      },
+    ],
   },
 };

@@ -117,14 +117,17 @@ function PouchDBScreen({
           <View>
             {data &&
               data.rows.map(d => (
-                <DataTable.Row key={d.key}>
+                <DataTable.Row
+                  key={d.id}
+                  onPress={() => navigation.push('PouchDBItem', { id: d.id })}
+                >
                   <DataTable.Cell>{d.id}</DataTable.Cell>
                   {/*<DataTable.Cell>{d.key}</DataTable.Cell>*/}
                   <DataTable.Cell>{JSON.stringify(d.value)}</DataTable.Cell>
                 </DataTable.Row>
               ))}
 
-            {loading && <TableLoadingOverlay />}
+            <TableLoadingOverlay show={loading} />
           </View>
 
           <DataTable.Pagination
@@ -147,19 +150,23 @@ function PouchDBScreen({
   );
 }
 
-function TableLoadingOverlay() {
+function TableLoadingOverlay({ show }: { show: boolean }) {
   const { backgroundColor } = useColors();
 
   return (
-    <View style={[commonStyles.overlay, commonStyles.centerChildren]}>
+    <View
+      style={[commonStyles.overlay, commonStyles.centerChildren]}
+      pointerEvents={show ? 'auto' : 'none'}
+    >
       <View
         style={[
           commonStyles.overlay,
           commonStyles.opacity05,
-          { backgroundColor },
+          show && { backgroundColor },
         ]}
+        pointerEvents={show ? 'auto' : 'none'}
       />
-      <ActivityIndicator animating size="large" />
+      <ActivityIndicator animating={show} hidesWhenStopped size="large" />
     </View>
   );
 }

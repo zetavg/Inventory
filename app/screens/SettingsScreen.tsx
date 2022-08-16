@@ -164,7 +164,12 @@ function SettingsScreen({
           >
             Tools
           </TableView.Item>
-          <TableView.Item arrow icon="hammer" iosImage="ios-menu.developer.png">
+          <TableView.Item
+            arrow
+            icon="hammer"
+            iosImage="ios-menu.developer.png"
+            onPress={() => navigation.push('DeveloperTools')}
+          >
             Developer Tools
           </TableView.Item>
         </TableView.Section>

@@ -217,7 +217,8 @@ function InsetGroupItem({
                 fontSize: FONT_SIZE,
                 color: vertical2 ? contentTextColor : contentSecondaryTextColor,
               }}
-              numberOfLines={1}
+              numberOfLines={vertical2 ? undefined : 1}
+              selectable
             >
               {detail}
             </Text>
@@ -289,14 +290,45 @@ function InsetGroupItemSeperator() {
 
 InsetGroup.ItemSeperator = InsetGroupItemSeperator;
 
-function InsetGroupTextInput({
-  style,
-  alignRight,
-  ...props
-}: React.ComponentProps<typeof TextInput> & { alignRight?: boolean }) {
-  const { contentTextColor, contentSecondaryTextColor } = useColors();
+function InsetGroupTextInput(
+  {
+    style,
+    alignRight,
+    disabled,
+    value,
+    ...props
+  }: React.ComponentProps<typeof TextInput> & {
+    alignRight?: boolean;
+    disabled?: boolean;
+  },
+  ref: React.MutableRefObject<TextInput | null>,
+) {
+  const {
+    contentTextColor,
+    contentDisabledTextColor,
+    contentSecondaryTextColor,
+  } = useColors();
+
+  if (disabled) {
+    return (
+      <Text
+        selectable
+        style={[
+          styles.insetGroupTextInput,
+          alignRight ? styles.insetGroupTextInputAlighRight : {},
+          { color: contentDisabledTextColor },
+          style,
+        ]}
+        {...props}
+      >
+        {value}
+      </Text>
+    );
+  }
+
   return (
     <TextInput
+      ref={ref}
       style={[
         styles.insetGroupTextInput,
         alignRight ? styles.insetGroupTextInputAlighRight : {},
@@ -306,12 +338,13 @@ function InsetGroupTextInput({
       placeholderTextColor={Color(contentSecondaryTextColor)
         .opaquer(-0.6)
         .hexa()}
+      value={value}
       {...props}
     />
   );
 }
 
-InsetGroup.TextInput = InsetGroupTextInput;
+InsetGroup.TextInput = React.forwardRef(InsetGroupTextInput);
 
 function InsetGroupItemAffix({ children }: { children: string }) {
   const { contentSecondaryTextColor } = useColors();
