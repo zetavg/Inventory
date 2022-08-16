@@ -7,8 +7,9 @@ import {
   Switch,
 } from 'react-native-paper';
 import StorybookUIRoot from '../.storybook/Storybook';
-import { usePersistedState } from '@app/hooks/usePersistedState';
+// import { usePersistedState } from '@app/hooks/usePersistedState';
 import { lightTheme, darkTheme } from '@app/theme';
+import useIsDarkMode from './hooks/useIsDarkMode';
 
 type Props = {
   darkMode?: boolean;
@@ -16,13 +17,14 @@ type Props = {
 };
 
 function WrappedStorybookUIRoot({
-  darkMode: dm1,
+  // darkMode: dm1,
   hideAdditionalControls,
 }: Props) {
   const setStorybookMode = useSetStorybookModeFunction();
-  const [dm2, setDarkMode] = usePersistedState('storybook_dark_mode', false);
+  // const [dm2, setDarkMode] = usePersistedState('storybook_dark_mode', false);
 
-  const darkMode = dm1 !== undefined ? dm1 : dm2;
+  // const darkMode = dm1 !== undefined ? dm1 : dm2;
+  const darkMode = useIsDarkMode();
 
   const theme = darkMode ? darkTheme : lightTheme;
 
@@ -52,7 +54,7 @@ function WrappedStorybookUIRoot({
             >
               Exit Storybook mode
             </Button>
-            <View
+            {/*<View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -65,7 +67,7 @@ function WrappedStorybookUIRoot({
                 value={darkMode}
                 onValueChange={() => setDarkMode(m => !m)}
               />
-            </View>
+            </View>*/}
           </SafeAreaView>
         )}
       </View>
