@@ -1,25 +1,20 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, StatusBar } from 'react-native';
-import { Appbar, Text, Switch, useTheme } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, View, ScrollView } from 'react-native';
+import { Text, Switch } from 'react-native-paper';
 
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation';
+import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useModalClosingHandler from '@app/hooks/useModalClosingHandler';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
 import Button from '@app/components/Button';
 import TextInput from '@app/components/TextInput';
-import { BlurView } from '@react-native-community/blur';
+import ModalContent from '@app/components/ModalContent';
 
 function DemoModalScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'DemoModal'>) {
-  const { colors } = useTheme();
-  const isDarkMode = useIsDarkMode();
-  const safeArea = useSafeAreaInsets();
-
   const [showAppbar, setShowAppbar] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -28,30 +23,24 @@ function DemoModalScreen({
     hasUnsavedChanges,
   );
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  useScrollViewContentInsetFix(scrollViewRef);
+
   return (
-    <>
-      <StatusBar barStyle={statusBarStyle} />
-      {showAppbar && (
-        <Appbar.Header elevated mode="center-aligned">
-          {navigation.canGoBack() && (
-            <Appbar.BackAction onPress={() => navigation.goBack()} />
-          )}
-          <Appbar.Content title="Demo Modal" />
-        </Appbar.Header>
-      )}
+    <ModalContent
+      statusBarStyle={statusBarStyle}
+      showAppBar={showAppbar}
+      title="Demo Modal"
+      action1Label="Save"
+      action1Variant="strong"
+      onAction1Press={() => navigation.goBack()}
+      action2Label="Cancel"
+      action2Variant={hasUnsavedChanges ? 'destructive' : 'normal'}
+      onAction2Press={() => navigation.goBack()}
+    >
       <ScrollView
-        style={[
-          styles.container,
-          {
-            backgroundColor: colors.background,
-            paddingLeft: safeArea.left,
-            paddingRight: safeArea.right,
-          },
-        ]}
-        contentContainerStyle={[
-          styles.contentContainer,
-          { paddingBottom: safeArea.bottom },
-        ]}
+        ref={scrollViewRef}
+        contentContainerStyle={styles.contentContainer}
       >
         <View style={styles.row}>
           <Text style={styles.switchText}>Show appbar</Text>
@@ -106,23 +95,11 @@ function DemoModalScreen({
           culpa qui officia deserunt mollit anim id est laborum.
         </Text>
       </ScrollView>
-      <BlurView
-        style={{
-          position: 'absolute',
-          left: 0,
-          bottom: 0,
-          right: 0,
-          height: safeArea.bottom,
-        }}
-        blurType={isDarkMode ? 'dark' : 'light'}
-        overlayColor="transparent"
-      />
-    </>
+    </ModalContent>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   contentContainer: { padding: 16 },
   row: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   switchText: { marginRight: 8 },

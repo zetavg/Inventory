@@ -31,9 +31,7 @@ function useModalClosingHandler(
   const [closing, setClosing] = useState(false);
   const isDarkMode = useIsDarkMode();
   const statusBarStyle = (() => {
-    if (!closing) {
-      return 'light-content';
-    }
+    if (!closing) return 'light-content';
 
     return isDarkMode ? 'light-content' : 'dark-content';
   })();
