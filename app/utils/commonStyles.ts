@@ -1,5 +1,8 @@
 import { StyleSheet } from 'react-native';
 
+/**
+ * Common, utility styles,
+ */
 const commonStyles = StyleSheet.create({
   flex1: {
     flex: 1,
@@ -39,6 +42,18 @@ const commonStyles = StyleSheet.create({
   },
   w16: {
     width: 16,
+  },
+  mr1: {
+    marginRight: 1,
+  },
+  mr2: {
+    marginRight: 2,
+  },
+  mr4: {
+    marginRight: 4,
+  },
+  mr8: {
+    marginRight: 8,
   },
   row: {
     flexDirection: 'row',

@@ -30,8 +30,10 @@ try {
 const getStories = () => {
   return [
     require("../app/components/Button/Button.stories.tsx"),
+    require("../app/components/InsetGroup/InsetGroup.stories.tsx"),
     require("../app/components/Switch/Switch.stories.tsx"),
     require("../app/components/TableView/TableView.stories.tsx"),
+    require("../app/components/Text/Text.stories.tsx"),
     require("../app/components/TextInput/TextInput.stories.tsx"),
   ];
 };
