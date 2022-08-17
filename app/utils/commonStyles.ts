@@ -61,6 +61,30 @@ const commonStyles = StyleSheet.create({
   mr16: {
     marginRight: 16,
   },
+  mr20: {
+    marginRight: 20,
+  },
+  mr24: {
+    marginRight: 24,
+  },
+  mr28: {
+    marginRight: 28,
+  },
+  mr32: {
+    marginRight: 32,
+  },
+  mrm1: {
+    marginRight: -1,
+  },
+  mrm2: {
+    marginRight: -2,
+  },
+  mrm4: {
+    marginRight: -4,
+  },
+  mrm8: {
+    marginRight: -8,
+  },
   pt16: {
     paddingTop: 16,
   },
@@ -78,6 +102,12 @@ const commonStyles = StyleSheet.create({
     opacity: 0.5,
   },
   centerChildren: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  touchableSFSymbolContainer: {
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },

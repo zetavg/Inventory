@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { DataTable, ActivityIndicator } from 'react-native-paper';
+import { SFSymbol } from 'react-native-sfsymbols';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
@@ -31,11 +32,33 @@ function PouchDBScreen({
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
-          onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
-        >
-          <Icon name="ios-add-circle" size={32} color={iosHeaderTintColor} />
-        </TouchableOpacity>
+        // <TouchableOpacity
+        //   onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
+        // >
+        //   <Icon name="ios-add-circle" size={32} color={iosHeaderTintColor} />
+        // </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
+            style={commonStyles.touchableSFSymbolContainer}
+          >
+            <SFSymbol
+              name="plus.square.fill"
+              color={iosHeaderTintColor}
+              size={22}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            // onPress={handleRemove}
+            style={[commonStyles.touchableSFSymbolContainer, commonStyles.mrm4]}
+          >
+            <SFSymbol
+              name="gearshape.fill"
+              color={iosHeaderTintColor}
+              size={22}
+            />
+          </TouchableOpacity>
+        </>
       ),
     });
   }, [iosHeaderTintColor, navigation, rootNavigation]);

@@ -10,6 +10,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SFSymbol } from 'react-native-sfsymbols';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
@@ -116,16 +117,23 @@ function PouchDBItemScreen({
                   jsonData,
                 })
               }
-              style={commonStyles.mr16}
+              style={commonStyles.touchableSFSymbolContainer}
             >
-              <Icon
-                name="ios-pencil-sharp"
-                size={24}
+              <SFSymbol
+                name="square.and.pencil"
                 color={iosHeaderTintColor}
+                size={22}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleRemove}>
-              <Icon name="ios-trash" size={24} color={iosHeaderTintColor} />
+            <TouchableOpacity
+              onPress={handleRemove}
+              style={[
+                commonStyles.touchableSFSymbolContainer,
+                commonStyles.mrm4,
+              ]}
+            >
+              {/*<Icon name="ios-trash" size={24} color={iosHeaderTintColor} />*/}
+              <SFSymbol name="trash" color={iosHeaderTintColor} size={22} />
             </TouchableOpacity>
           </>
         ),
