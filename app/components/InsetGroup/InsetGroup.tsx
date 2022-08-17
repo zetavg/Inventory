@@ -131,6 +131,7 @@ type InsetGroupItemProps = {
   compactLabel?: boolean;
   vertical2?: boolean;
   arrow?: boolean;
+  selected?: boolean;
   button?: boolean;
   destructive?: boolean;
   disabled?: boolean;
@@ -144,6 +145,7 @@ function InsetGroupItem({
   compactLabel,
   vertical2,
   arrow,
+  selected,
   button,
   destructive,
   disabled,
@@ -243,6 +245,16 @@ function InsetGroupItem({
               style={styles.iosArrow}
             />
           </View>
+        )}
+        {selected && (
+          <Image
+            source={
+              isDarkMode
+                ? require('./images/ios-ui.tableview.checked.dark.png')
+                : require('./images/ios-ui.tableview.checked.light.png')
+            }
+            style={styles.itemCheckedImage}
+          />
         )}
       </View>
       {children && (
@@ -481,6 +493,7 @@ const styles = StyleSheet.create({
   insetGroupItemDetailButtonText: {
     fontSize: FONT_SIZE * 0.82,
   },
+  itemCheckedImage: { width: 14, height: 16 },
   iosArrow: { width: 8.12, height: 14.41 },
   itemArrowContainer: {},
   itemVerticalArrowContainer: {

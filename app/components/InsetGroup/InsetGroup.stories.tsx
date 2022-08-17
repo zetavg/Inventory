@@ -141,6 +141,8 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           label="Arrow with onPress"
           onPress={action('press')}
         />
+        <InsetGroup.ItemSeperator />
+        <InsetGroup.Item selected label="Selected" />
       </InsetGroup>
       <InsetGroup>
         <InsetGroup.Item button label="Button" onPress={action('press')} />

@@ -30,6 +30,7 @@ import RootBottomSheetsContext from './RootBottomSheetsContext';
 
 import MainStack from './MainStack';
 
+import SampleModalScreen from '@app/screens/SampleModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RfidScanScreen from '@app/screens/RfidScanScreen';
@@ -49,12 +50,13 @@ export type RootStackParamList = {
     id?: string;
     jsonData?: string;
   };
+  SampleModal: { showAppbar?: boolean };
   DemoModal: undefined;
   DemoDetails: { id: string };
 };
 const DEFAULT_ROOT_STACK_SCREEN_OPTIONS = {
   headerShown: false,
-  gestureEnabled: true,
+  gestureEnabled: Platform.OS === 'android' ? false : true, // Will mess up the ScrollView in modals on Android
   ...TransitionPresets.ModalPresentationIOS,
 };
 
@@ -302,6 +304,7 @@ function Navigation() {
                 </RootNavigationContext.Provider>
               )}
             </Stack.Screen>
+            <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen
               name="PouchDBPutDataModal"

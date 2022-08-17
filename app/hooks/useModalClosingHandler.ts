@@ -8,7 +8,7 @@ type ReturnType = {
   statusBarStyle: 'light-content' | 'dark-content';
 };
 
-const defaultConfirmFn = (confirm: () => void) => {
+export const defaultConfirmCloseFn = (confirm: () => void) => {
   Alert.alert(
     'Discard data?',
     'You have unsaved data. Are you sure to discard them and leave?',
@@ -26,7 +26,7 @@ const defaultConfirmFn = (confirm: () => void) => {
 function useModalClosingHandler(
   navigation: StackScreenProps<RootStackParamList>['navigation'],
   preventClose: boolean,
-  confirmFn: (confirm: () => void) => void = defaultConfirmFn,
+  confirmFn: (confirm: () => void) => void = defaultConfirmCloseFn,
 ): ReturnType {
   const [closing, setClosing] = useState(false);
   const isDarkMode = useIsDarkMode();

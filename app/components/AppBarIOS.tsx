@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   titleText: { flex: 1, fontSize: 17, fontWeight: '600', textAlign: 'center' },
   actions: {
-    width: 100,
+    width: 80,
     marginHorizontal: 16,
   },
   actionRight: {

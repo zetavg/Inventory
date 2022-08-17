@@ -31,6 +31,8 @@ function DeveloperToolsScreen({
   const { backgroundColor } = useColors();
   const setStorybookMode = useSetStorybookModeFunction();
 
+  const rootNavigation = useRootNavigation();
+
   const handleEnterStorybookMode = useCallback(() => {
     if (!setStorybookMode) {
       Alert.alert('Storybook is not available.');
@@ -70,6 +72,8 @@ function DeveloperToolsScreen({
             onPress={() => navigation.push('PouchDB')}
           />
           <InsetGroup.ItemSeperator />
+        </InsetGroup>
+        <InsetGroup>
           <InsetGroup.Item
             label="Storybook"
             arrow
@@ -80,6 +84,13 @@ function DeveloperToolsScreen({
             label="Enter Storybook mode"
             button
             onPress={handleEnterStorybookMode}
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            label="Sample Modal Screen"
+            arrow
+            onPress={() => rootNavigation?.push('SampleModal')}
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
