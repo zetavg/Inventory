@@ -146,7 +146,7 @@ function PouchDBScreen({
                 >
                   <DataTable.Cell>{d.id}</DataTable.Cell>
                   {/*<DataTable.Cell>{d.key}</DataTable.Cell>*/}
-                  <DataTable.Cell>{JSON.stringify(d.value)}</DataTable.Cell>
+                  <DataTable.Cell>{JSON.stringify(d.doc)}</DataTable.Cell>
                 </DataTable.Row>
               ))}
 
