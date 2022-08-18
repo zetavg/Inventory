@@ -53,6 +53,12 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('PouchDBAttachments')}
           />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="SQLite"
+            arrow
+            onPress={() => navigation.push('SQLite')}
+          />
         </InsetGroup>
 
         <InsetGroup>

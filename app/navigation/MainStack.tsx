@@ -12,6 +12,7 @@ import useColors from '@app/hooks/useColors';
 import SettingsScreen from '@app/screens/SettingsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
+import SQLiteScreen from '@app/screens/SQLiteScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
@@ -101,6 +102,7 @@ function MainStack({ initialRouteName }: Props) {
         name="PouchDBAttachment"
         component={PouchDBAttachmentScreen}
       />
+      <Stack.Screen name="SQLite" component={SQLiteScreen} />
       <Stack.Screen name="Sample" component={SampleScreen} />
       <Stack.Screen
         name="Storybook"
