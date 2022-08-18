@@ -7,6 +7,7 @@ import type { RootStackParamList } from '@app/navigation/Navigation';
 import db from '@app/db/pouchdb';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
+import commonStyles from '@app/utils/commonStyles';
 
 function PouchDBPutDataModalScreen({
   route,
@@ -38,6 +39,15 @@ function PouchDBPutDataModalScreen({
   } catch (e) {
     isJsonInvalid = true;
   }
+
+  const handleAddField = useCallback(() => {
+    try {
+      const json = JSON.parse(dataJson);
+      setDataJson(JSON.stringify({ ...json, _: '' }, null, 2));
+    } catch (e: any) {
+      Alert.alert(e.message);
+    }
+  }, [dataJson]);
 
   const [loading, setLoading] = useState(false);
   const isDone = useRef(false);
@@ -104,7 +114,10 @@ function PouchDBPutDataModalScreen({
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}>
+        <InsetGroup
+          style={commonStyles.mt16}
+          footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}
+        >
           <InsetGroup.Item
             compactLabel
             label="ID"
@@ -136,6 +149,13 @@ function PouchDBPutDataModalScreen({
               autoCapitalize="none"
             />
           </InsetGroup.Item>
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="Add Field"
+            button
+            disabled={isJsonInvalid}
+            onPress={handleAddField}
+          />
         </InsetGroup>
       </ScrollView>
     </ModalContent>
