@@ -68,6 +68,7 @@
     "react-native-vector-icons": "^9.2.0",
     "react-redux": "^8.0.2",
     "redux": "^4.2.0",
+    "redux-persist": "^6.0.0",
     "stream": "^0.0.2",
     "uuid": "^8.3.2"
   },

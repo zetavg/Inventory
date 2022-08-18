@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
 import { StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
 
-import { store } from '@app/redux';
+import { store, persistor } from '@app/redux';
 
 import Navigation from '@app/navigation';
 import { usePersistedState } from '@app/hooks/usePersistedState';
@@ -35,40 +36,42 @@ function App() {
 
   return (
     <Provider store={store}>
-      <StatusBar
-        translucent
-        backgroundColor="rgba(0, 0, 0, 0.04)"
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-      />
-      <SetStorybookModeFunctionContext.Provider value={setStorybookMode}>
-        {(() => {
-          if (storybookMode) {
-            // Render Storybook (only!)
-            return (
-              <>
-                <StatusBar
-                  backgroundColor="rgba(0, 0, 0, 0.8)"
-                  barStyle="light-content"
-                />
-                <StorybookUIRoot />
-              </>
-            );
-          }
+      <PersistGate loading={null} persistor={persistor}>
+        <StatusBar
+          translucent
+          backgroundColor="rgba(0, 0, 0, 0.04)"
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        />
+        <SetStorybookModeFunctionContext.Provider value={setStorybookMode}>
+          {(() => {
+            if (storybookMode) {
+              // Render Storybook (only!)
+              return (
+                <>
+                  <StatusBar
+                    backgroundColor="rgba(0, 0, 0, 0.8)"
+                    barStyle="light-content"
+                  />
+                  <StorybookUIRoot />
+                </>
+              );
+            }
 
-          // Render application
-          return (
-            <GestureHandlerRootView
-              style={[styles.container, { backgroundColor }]}
-            >
-              <SafeAreaProvider>
-                <PaperProvider theme={theme}>
-                  <Navigation />
-                </PaperProvider>
-              </SafeAreaProvider>
-            </GestureHandlerRootView>
-          );
-        })()}
-      </SetStorybookModeFunctionContext.Provider>
+            // Render application
+            return (
+              <GestureHandlerRootView
+                style={[styles.container, { backgroundColor }]}
+              >
+                <SafeAreaProvider>
+                  <PaperProvider theme={theme}>
+                    <Navigation />
+                  </PaperProvider>
+                </SafeAreaProvider>
+              </GestureHandlerRootView>
+            );
+          })()}
+        </SetStorybookModeFunctionContext.Provider>
+      </PersistGate>
     </Provider>
   );
 }

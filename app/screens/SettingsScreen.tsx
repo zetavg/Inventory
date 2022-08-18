@@ -53,7 +53,7 @@ function SettingsScreen({
             arrow
             icon="account-box"
             iosImage="ios-menu.person.png"
-            onPress={() => rootNavigation?.navigate('DemoModal')}
+            onPress={() => rootNavigation?.navigate('SampleModal', {})}
           >
             Profile
           </TableView.Item>

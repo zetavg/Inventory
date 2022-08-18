@@ -1,15 +1,23 @@
 import { configureStore } from '@reduxjs/toolkit';
+import { persistStore } from 'redux-persist';
 
 import logger from './middlewares/logger';
 
 import counterReducer from '@app/features/counter/slice';
 
 export const store = configureStore({
-  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ['persist/PERSIST'],
+      },
+    }).concat(logger),
   reducer: {
     counter: counterReducer,
   },
 });
+
+export const persistor = persistStore(store);
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
