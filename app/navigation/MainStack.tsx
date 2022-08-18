@@ -13,6 +13,8 @@ import SettingsScreen from '@app/screens/SettingsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
+import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
+import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import SampleScreen from '@app/screens/SampleScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
@@ -23,6 +25,8 @@ export type StackParamList = {
   SQLite: undefined;
   PouchDB: undefined;
   PouchDBItem: { id: string };
+  PouchDBAttachments: undefined;
+  PouchDBAttachment: { id: string };
   Sample: {
     showAppbar?: boolean;
     showSearch?: boolean;
@@ -89,6 +93,14 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
+      <Stack.Screen
+        name="PouchDBAttachments"
+        component={PouchDBAttachmentsScreen}
+      />
+      <Stack.Screen
+        name="PouchDBAttachment"
+        component={PouchDBAttachmentScreen}
+      />
       <Stack.Screen name="Sample" component={SampleScreen} />
       <Stack.Screen
         name="Storybook"

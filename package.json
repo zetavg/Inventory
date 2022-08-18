@@ -47,8 +47,12 @@
     "pouchdb-react-native": "^7.0.0-beta-1",
     "react": "18.0.0",
     "react-native": "0.69.3",
+    "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.5.0",
     "react-native-get-random-values": "^1.8.0",
+    "react-native-image-picker": "^4.8.5",
+    "react-native-image-resizer": "^1.4.5",
+    "react-native-image-viewing": "^0.2.2",
     "react-native-immersive-bars": "^1.0.4",
     "react-native-paper": "^5.0.0-rc.3",
     "react-native-quick-base64": "^2.0.5",
@@ -60,7 +64,9 @@
     "react-native-sfsymbols": "^1.2.1",
     "react-native-tableview": "^3.1.0",
     "react-native-ui-lib": "^6.19.2",
-    "react-native-vector-icons": "^9.2.0"
+    "react-native-vector-icons": "^9.2.0",
+    "stream": "^0.0.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
@@ -73,6 +79,7 @@
     "@types/react-native": "^0.69.5",
     "@types/react-native-vector-icons": "^6.4.11",
     "@types/react-test-renderer": "^18.0.0",
+    "@types/uuid": "^8.3.4",
     "babel-jest": "^26.6.3",
     "babel-plugin-module-resolver": "^4.1.0",
     "eslint": "^7.32.0",

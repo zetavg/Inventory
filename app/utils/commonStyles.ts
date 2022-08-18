@@ -106,6 +106,9 @@ const commonStyles = StyleSheet.create({
   pt16: {
     paddingTop: 16,
   },
+  br8: {
+    borderRadius: 8
+  },
   row: {
     flexDirection: 'row',
   },

@@ -47,6 +47,12 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('PouchDB')}
           />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="PouchDB Attachments"
+            arrow
+            onPress={() => navigation.push('PouchDBAttachments')}
+          />
         </InsetGroup>
 
         <InsetGroup>

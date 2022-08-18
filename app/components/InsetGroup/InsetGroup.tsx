@@ -165,102 +165,107 @@ function InsetGroupItem({
 
   const element = (
     <>
-      <View
-        {...props}
-        style={[
-          vertical2
-            ? styles.insetGroupItemVertical2Container
-            : styles.insetGroupItemContainer,
-          { paddingVertical: 12 * fontScale },
-          ...(Array.isArray(style) ? style : [style]),
-        ]}
-      >
-        <Text
+      {label && (
+        <View
+          {...props}
           style={[
             vertical2
-              ? styles.insetGroupItemVertical2Text
-              : styles.insetGroupItemText,
-            compactLabel ? styles.insetGroupItemCompactLabelText : {},
-            {
-              color: (() => {
-                if (disabled) return contentDisabledTextColor;
-
-                if (button) {
-                  if (destructive) return iosDestructiveColor;
-
-                  return iosTintColor;
-                }
-
-                if (vertical2 && !compactLabel)
-                  return contentSecondaryTextColor;
-
-                return contentTextColor;
-              })(),
-            },
-            detail && !vertical2 ? styles.insetGroupItemWithDetailText : {},
+              ? styles.insetGroupItemVertical2Container
+              : styles.insetGroupItemContainer,
+            { paddingVertical: 12 * fontScale },
+            ...(Array.isArray(style) ? style : [style]),
           ]}
-          numberOfLines={1}
         >
-          {label}
-        </Text>
-        <View
-          style={
-            vertical2
-              ? [
-                  styles.insetGroupItemVertical2Detail,
-                  { marginTop: 2 * fontScale },
-                ]
-              : styles.insetGroupItemDetail
-          }
-        >
-          {typeof detail === 'string' ? (
-            <Text
-              style={{
-                fontSize: FONT_SIZE,
-                color: vertical2 ? contentTextColor : contentSecondaryTextColor,
-              }}
-              numberOfLines={vertical2 ? undefined : 1}
-              selectable
-            >
-              {detail}
-            </Text>
-          ) : (
-            detail
-          )}
-        </View>
-        {arrow && Platform.OS === 'ios' && (
+          <Text
+            style={[
+              vertical2
+                ? styles.insetGroupItemVertical2Text
+                : styles.insetGroupItemText,
+              compactLabel ? styles.insetGroupItemCompactLabelText : {},
+              {
+                color: (() => {
+                  if (disabled) return contentDisabledTextColor;
+
+                  if (button) {
+                    if (destructive) return iosDestructiveColor;
+
+                    return iosTintColor;
+                  }
+
+                  if (vertical2 && !compactLabel)
+                    return contentSecondaryTextColor;
+
+                  return contentTextColor;
+                })(),
+              },
+              detail && !vertical2 ? styles.insetGroupItemWithDetailText : {},
+            ]}
+            numberOfLines={1}
+          >
+            {label}
+          </Text>
           <View
             style={
               vertical2
-                ? styles.itemVerticalArrowContainer
-                : styles.itemArrowContainer
+                ? [
+                    styles.insetGroupItemVertical2Detail,
+                    { marginTop: 2 * fontScale },
+                  ]
+                : styles.insetGroupItemDetail
             }
           >
-            <Image
-              source={{
-                uri: isDarkMode
-                  ? 'ios-ui.tableview.arrow.dark.png'
-                  : 'ios-ui.tableview.arrow.light.png',
-              }}
-              style={styles.iosArrow}
-            />
+            {typeof detail === 'string' ? (
+              <Text
+                style={{
+                  fontSize: FONT_SIZE,
+                  color: vertical2
+                    ? contentTextColor
+                    : contentSecondaryTextColor,
+                }}
+                numberOfLines={vertical2 ? undefined : 1}
+                selectable
+              >
+                {detail}
+              </Text>
+            ) : (
+              detail
+            )}
           </View>
-        )}
-        {selected && (
-          <Image
-            source={
-              isDarkMode
-                ? require('./images/ios-ui.tableview.checked.dark.png')
-                : require('./images/ios-ui.tableview.checked.light.png')
-            }
-            style={styles.itemCheckedImage}
-          />
-        )}
-      </View>
+          {arrow && Platform.OS === 'ios' && (
+            <View
+              style={
+                vertical2
+                  ? styles.itemVerticalArrowContainer
+                  : styles.itemArrowContainer
+              }
+            >
+              <Image
+                source={{
+                  uri: isDarkMode
+                    ? 'ios-ui.tableview.arrow.dark.png'
+                    : 'ios-ui.tableview.arrow.light.png',
+                }}
+                style={styles.iosArrow}
+              />
+            </View>
+          )}
+          {selected && (
+            <Image
+              source={
+                isDarkMode
+                  ? require('./images/ios-ui.tableview.checked.dark.png')
+                  : require('./images/ios-ui.tableview.checked.light.png')
+              }
+              style={styles.itemCheckedImage}
+            />
+          )}
+        </View>
+      )}
       {children && (
         <View
           style={[
             styles.insetGroupItemContainer,
+            !label && { paddingTop: 12 * fontScale },
             { paddingBottom: 12 * fontScale },
             { marginTop: -2 * fontScale },
           ]}
