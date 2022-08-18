@@ -20,8 +20,17 @@ function SampleScreen({
     typeof route.params?.showAppbar === 'boolean'
       ? route.params?.showAppbar
       : true;
+  const showSearch =
+    typeof route.params?.showSearch === 'boolean'
+      ? route.params?.showSearch
+      : false;
+  // const autoFocusSearch =
+  //   typeof route.params?.autoFocusSearch === 'boolean'
+  //     ? route.params?.autoFocusSearch
+  //     : false;
 
   const [title, setTitle] = useState('Sample Screen');
+  const [searchText, setSearchText] = useState('');
 
   const [action1Label, setAction1Label] = useState('Action 1');
   const [action1SFSymbolName, setAction1SFSymbolName] =
@@ -70,6 +79,9 @@ function SampleScreen({
       navigation={navigation}
       showAppBar={showAppbar}
       title={title || 'Title'}
+      showSearch={showSearch}
+      // autoFocusSearch={autoFocusSearch}
+      onSearchChangeText={t => setSearchText(t)}
       action1Label={action1Label}
       action1SFSymbolName={debouncedAction1SFSymbolName}
       action1MaterialIconName={debouncedAction1MaterialIconName}
@@ -98,6 +110,8 @@ function SampleScreen({
                 onValueChange={() =>
                   navigation.push('Sample', {
                     showAppbar: !showAppbar,
+                    showSearch,
+                    // autoFocusSearch,
                   })
                 }
               />
@@ -117,6 +131,47 @@ function SampleScreen({
               />
             }
           />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="Show Search"
+            detail={
+              <Switch
+                value={showSearch}
+                onValueChange={() =>
+                  navigation.push('Sample', {
+                    showAppbar,
+                    showSearch: !showSearch,
+                    // autoFocusSearch,
+                  })
+                }
+              />
+            }
+          />
+          {showSearch && (
+            <>
+              {/*<InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                label="Auto Focus Search"
+                detail={
+                  <Switch
+                    value={autoFocusSearch}
+                    onValueChange={() =>
+                      navigation.push('Sample', {
+                        showAppbar,
+                        showSearch,
+                        autoFocusSearch: !autoFocusSearch,
+                      })
+                    }
+                  />
+                }
+              />*/}
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                label="Search Text"
+                detail={searchText || '(None)'}
+              />
+            </>
+          )}
         </InsetGroup>
 
         <InsetGroup>

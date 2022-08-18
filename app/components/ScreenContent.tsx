@@ -1,16 +1,19 @@
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useState } from 'react';
 import {
   Platform,
   StyleSheet,
   View,
   TouchableOpacity,
   Text,
+  TextInput,
+  BackHandler,
 } from 'react-native';
 import { Appbar } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useTabBarInsets from '@app/hooks/useTabBarInsets';
 import { SFSymbol } from 'react-native-sfsymbols';
-import { StackScreenProps } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 import useColors from '@app/hooks/useColors';
 import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
@@ -19,9 +22,13 @@ import commonStyles from '@app/utils/commonStyles';
 type Props = {
   navigation: StackScreenProps<StackParamList>['navigation'];
   showAppBar?: boolean;
+  showSearch?: boolean;
+  // autoFocusSearch?: boolean;
 
   title: string;
   children: JSX.Element;
+
+  onSearchChangeText?: (v: string) => void;
 
   action1Label?: string;
   action1SFSymbolName?: string;
@@ -42,6 +49,9 @@ type Props = {
 function ScreenContent({
   navigation,
   showAppBar = true,
+  showSearch,
+  // autoFocusSearch,
+  onSearchChangeText,
   title,
   children,
   action1Label,
@@ -73,6 +83,16 @@ function ScreenContent({
     navigation.setOptions({
       headerShown: true,
       title,
+      ...(showSearch
+        ? {
+            headerSearchBarOptions: {
+              // autoFocus: autoFocusSearch,
+              onChangeText: (event: any) =>
+                onSearchChangeText &&
+                onSearchChangeText(event?.nativeEvent?.text || ''),
+            },
+          }
+        : {}),
       headerRight: () => (
         <View
           style={[
@@ -180,12 +200,15 @@ function ScreenContent({
     action2SFSymbolName,
     action3Label,
     action3SFSymbolName,
+    // autoFocusSearch,
     iosHeaderTintColor,
     navigation,
     onAction1Press,
     onAction2Press,
     onAction3Press,
+    onSearchChangeText,
     showAppBar,
+    showSearch,
     title,
   ]);
 
@@ -199,6 +222,25 @@ function ScreenContent({
     action3MaterialIconName,
   );
 
+  const [searchEnabled, setSearchEnabled] = useState(false);
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        if (searchEnabled) {
+          setSearchEnabled(false);
+          return true;
+        } else {
+          return false;
+        }
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [searchEnabled]),
+  );
+
   return (
     <View style={commonStyles.flex1}>
       {Platform.OS !== 'ios' && showAppBar && (
@@ -209,27 +251,51 @@ function ScreenContent({
             height: 56 + safeAreaInsets.top,
           }}
         >
-          {navigation.canGoBack() && (
-            <Appbar.BackAction onPress={() => navigation.goBack()} />
-          )}
-          <Appbar.Content title={title} />
-          {verifiedAction3MaterialIconName && onAction2Press && (
-            <Appbar.Action
-              icon={verifiedAction3MaterialIconName}
-              onPress={onAction3Press}
+          {(navigation.canGoBack() || searchEnabled) && (
+            <Appbar.BackAction
+              onPress={() =>
+                searchEnabled ? setSearchEnabled(false) : navigation.goBack()
+              }
             />
           )}
-          {verifiedAction2MaterialIconName && onAction2Press && (
-            <Appbar.Action
-              icon={verifiedAction2MaterialIconName}
-              onPress={onAction2Press}
-            />
-          )}
-          {verifiedAction1MaterialIconName && onAction1Press && (
-            <Appbar.Action
-              icon={verifiedAction1MaterialIconName}
-              onPress={onAction1Press}
-            />
+          {searchEnabled ? (
+            <>
+              <TextInput
+                style={styles.searchTextInput}
+                autoFocus
+                placeholder="Search"
+                onChangeText={onSearchChangeText}
+                returnKeyType="search"
+              />
+            </>
+          ) : (
+            <>
+              <Appbar.Content title={title} />
+              {showSearch && (
+                <Appbar.Action
+                  icon="magnify"
+                  onPress={() => setSearchEnabled(true)}
+                />
+              )}
+              {verifiedAction3MaterialIconName && onAction2Press && (
+                <Appbar.Action
+                  icon={verifiedAction3MaterialIconName}
+                  onPress={onAction3Press}
+                />
+              )}
+              {verifiedAction2MaterialIconName && onAction2Press && (
+                <Appbar.Action
+                  icon={verifiedAction2MaterialIconName}
+                  onPress={onAction2Press}
+                />
+              )}
+              {verifiedAction1MaterialIconName && onAction1Press && (
+                <Appbar.Action
+                  icon={verifiedAction1MaterialIconName}
+                  onPress={onAction1Press}
+                />
+              )}
+            </>
           )}
         </Appbar.Header>
       )}
@@ -278,6 +344,10 @@ const styles = StyleSheet.create({
   },
   iosHeaderButtonText: {
     fontSize: 17,
+  },
+  searchTextInput: {
+    flex: 1,
+    fontSize: 16,
   },
 });
 

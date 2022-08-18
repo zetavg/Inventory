@@ -20,9 +20,14 @@ import NewAppScreen from '@app/screens/NewAppScreen';
 export type StackParamList = {
   Settings: undefined;
   DeveloperTools: undefined;
+  SQLite: undefined;
   PouchDB: undefined;
   PouchDBItem: { id: string };
-  Sample: { showAppbar?: boolean };
+  Sample: {
+    showAppbar?: boolean;
+    showSearch?: boolean;
+    // autoFocusSearch?: boolean;
+  };
   Storybook: undefined;
   NewAppScreen: undefined;
   DemoHome: undefined;
