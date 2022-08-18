@@ -13,6 +13,7 @@ import {
 import Color from 'color';
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import isTextContent from '@app/utils/isTextContent';
 
 const FONT_SIZE = 17;
 
@@ -214,7 +215,7 @@ function InsetGroupItem({
                 : styles.insetGroupItemDetail
             }
           >
-            {typeof detail === 'string' ? (
+            {isTextContent(detail) ? (
               <Text
                 style={{
                   fontSize: FONT_SIZE,
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexDirection: 'row',
   },
-  insetGroupItemVertical2Detail: { flex: 1 },
+  insetGroupItemVertical2Detail: { flex: 1, alignSelf: 'stretch' },
   insetGroupItemSeperator: {
     marginTop: -StyleSheet.hairlineWidth * 2,
     height: StyleSheet.hairlineWidth,
