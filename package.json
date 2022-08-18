@@ -25,6 +25,7 @@
     "@react-navigation/native": "^6.0.11",
     "@react-navigation/native-stack": "^6.7.0",
     "@react-navigation/stack": "^6.2.2",
+    "@reduxjs/toolkit": "^1.8.4",
     "@storybook/addon-actions": "^6.5.10",
     "@storybook/addon-backgrounds": "^6.5.10",
     "@storybook/addon-controls": "^6.5.10",
@@ -65,6 +66,8 @@
     "react-native-tableview": "^3.1.0",
     "react-native-ui-lib": "^6.19.2",
     "react-native-vector-icons": "^9.2.0",
+    "react-redux": "^8.0.2",
+    "redux": "^4.2.0",
     "stream": "^0.0.2",
     "uuid": "^8.3.2"
   },

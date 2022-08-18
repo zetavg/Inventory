@@ -89,6 +89,12 @@ function DeveloperToolsScreen({
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
+            label="Counter (Redux Sample)"
+            arrow
+            onPress={() => navigation.push('Counter')}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
             label="React Native New App Screen"
             arrow
             onPress={() => navigation.push('NewAppScreen')}

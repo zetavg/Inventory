@@ -1,9 +1,12 @@
 import React, { useEffect } from 'react';
+import { Provider } from 'react-redux';
 import { StatusBar, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
+
+import { store } from '@app/redux';
 
 import Navigation from '@app/navigation';
 import { usePersistedState } from '@app/hooks/usePersistedState';
@@ -31,7 +34,7 @@ function App() {
   );
 
   return (
-    <>
+    <Provider store={store}>
       <StatusBar
         translucent
         backgroundColor="rgba(0, 0, 0, 0.04)"
@@ -66,7 +69,7 @@ function App() {
           );
         })()}
       </SetStorybookModeFunctionContext.Provider>
-    </>
+    </Provider>
   );
 }
 

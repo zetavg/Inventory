@@ -20,6 +20,8 @@ import SampleScreen from '@app/screens/SampleScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
+import CounterScreen from '@app/features/counter/screens/CounterScreen';
+
 export type StackParamList = {
   Settings: undefined;
   DeveloperTools: undefined;
@@ -28,6 +30,7 @@ export type StackParamList = {
   PouchDBItem: { id: string };
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
+  Counter: undefined;
   Sample: {
     showAppbar?: boolean;
     showSearch?: boolean;
@@ -114,6 +117,8 @@ function MainStack({ initialRouteName }: Props) {
         component={NewAppScreen}
         options={SCREEN_OPTIONS.noHeader}
       />
+
+      <Stack.Screen name="Counter" component={CounterScreen} />
     </Stack.Navigator>
   );
 }
