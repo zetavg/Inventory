@@ -313,7 +313,7 @@ function InsetGroupTextInput(
     alignRight?: boolean;
     disabled?: boolean;
   },
-  ref: React.MutableRefObject<TextInput | null>,
+  ref: React.ForwardedRef<TextInput>,
 ) {
   const {
     contentTextColor,
