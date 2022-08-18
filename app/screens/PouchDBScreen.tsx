@@ -19,6 +19,8 @@ function PouchDBScreen({
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(0);
 
+  const [searchText, setSearchText] = useState('');
+
   const [data, setData] = useState<PouchDB.Core.AllDocsResponse<{}> | null>(
     null,
   );
@@ -32,14 +34,24 @@ function PouchDBScreen({
   const getData = useCallback(async () => {
     setLoading(true);
     try {
-      const results = await db.allDocs({ include_docs: true, skip, limit });
+      const results = await (searchText
+        ? (db as any).search({
+            query: searchText,
+            fields: ['a', 'b', 'c', 'name', 'description'],
+            // language: ['en', 'zh'],
+            language: 'en',
+            include_docs: true,
+            skip,
+            limit,
+          })
+        : db.allDocs({ include_docs: true, skip, limit }));
       setData(results);
     } catch (e: any) {
       Alert.alert(e?.message);
     } finally {
       setLoading(false);
     }
-  }, [limit, skip]);
+  }, [limit, searchText, skip]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -64,6 +76,8 @@ function PouchDBScreen({
     <ScreenContent
       navigation={navigation}
       title="PouchDB"
+      showSearch
+      onSearchChangeText={setSearchText}
       action1Label="Put Data"
       action1SFSymbolName="plus.square.fill"
       action1MaterialIconName="square-edit-outline"
@@ -74,6 +88,7 @@ function PouchDBScreen({
       onAction2Press={() => {}}
     >
       <ScrollView
+        keyboardDismissMode="interactive"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

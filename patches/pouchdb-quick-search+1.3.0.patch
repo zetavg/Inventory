@@ -1,0 +1,13 @@
+diff --git a/node_modules/pouchdb-quick-search/lib/pouch-utils.js b/node_modules/pouchdb-quick-search/lib/pouch-utils.js
+index 85e2561..879ae31 100644
+--- a/node_modules/pouchdb-quick-search/lib/pouch-utils.js
++++ b/node_modules/pouchdb-quick-search/lib/pouch-utils.js
+@@ -76,7 +76,7 @@ exports.toPromise = function (func) {
+ exports.inherits = require('inherits');
+ exports.Promise = Promise;
+ 
+-var crypto = require('crypto');
++var crypto = require('crypto-browserify');
+ var md5 = require('md5-jkmyers');
+ exports.MD5 = function (string) {
+   /* istanbul ignore if */
