@@ -170,7 +170,7 @@ function PouchDBAttachmentsScreen({
       showSearch
       onSearchChangeText={setSearchText}
       action1Label="Upload"
-      action1SFSymbolName="square.and.arrow.up.fill"
+      action1SFSymbolName="plus.app.fill"
       action1MaterialIconName="file-upload"
       onAction1Press={handleUpload}
       action2Label="Settings"
