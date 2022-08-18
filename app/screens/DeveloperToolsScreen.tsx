@@ -1,34 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import React, { useCallback } from 'react';
+import { Alert, ScrollView } from 'react-native';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
-import useTabBarInsets from '@app/hooks/useTabBarInsets';
-import useColors from '@app/hooks/useColors';
-import Appbar from '@app/components/Appbar';
 import commonStyles from '@app/utils/commonStyles';
-import db from '@app/db/pouchdb';
+import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 
 function DeveloperToolsScreen({
   navigation,
-  route,
 }: StackScreenProps<StackParamList, 'DeveloperTools'>) {
-  const tabBarInsets = useTabBarInsets();
-  const { backgroundColor } = useColors();
   const setStorybookMode = useSetStorybookModeFunction();
 
   const rootNavigation = useRootNavigation();
@@ -57,22 +39,16 @@ function DeveloperToolsScreen({
   }, [setStorybookMode]);
 
   return (
-    <>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        automaticallyAdjustsScrollIndicatorInsets
-        style={[commonStyles.flex1, commonStyles.pt16, { backgroundColor }]}
-        contentInset={{ bottom: tabBarInsets.scrollViewBottom }}
-        scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
-      >
-        <InsetGroup>
+    <ScreenContent navigation={navigation} title="Developer Tools">
+      <ScrollView>
+        <InsetGroup style={commonStyles.mt16}>
           <InsetGroup.Item
             label="PouchDB"
             arrow
             onPress={() => navigation.push('PouchDB')}
           />
-          <InsetGroup.ItemSeperator />
         </InsetGroup>
+
         <InsetGroup>
           <InsetGroup.Item
             label="Storybook"
@@ -81,16 +57,23 @@ function DeveloperToolsScreen({
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
-            label="Enter Storybook mode"
+            label="Enter Storybook Mode"
             button
             onPress={handleEnterStorybookMode}
           />
         </InsetGroup>
+
         <InsetGroup>
+          <InsetGroup.Item
+            label="Sample Screen"
+            arrow
+            onPress={() => navigation.push('Sample', {})}
+          />
+          <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             label="Sample Modal Screen"
             arrow
-            onPress={() => rootNavigation?.push('SampleModal')}
+            onPress={() => rootNavigation?.push('SampleModal', {})}
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
@@ -100,7 +83,7 @@ function DeveloperToolsScreen({
           />
         </InsetGroup>
       </ScrollView>
-    </>
+    </ScreenContent>
   );
 }
 

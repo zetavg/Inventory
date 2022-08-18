@@ -1,26 +1,12 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Alert, RefreshControl, ScrollView, View } from 'react-native';
 import { DataTable, ActivityIndicator } from 'react-native-paper';
-import { SFSymbol } from 'react-native-sfsymbols';
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
-import useTabBarInsets from '@app/hooks/useTabBarInsets';
 import useColors from '@app/hooks/useColors';
-import Appbar from '@app/components/Appbar';
+import ScreenContent from '@app/components/ScreenContent';
 import commonStyles from '@app/utils/commonStyles';
 import db from '@app/db/pouchdb';
 
@@ -28,46 +14,9 @@ function PouchDBScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'PouchDB'>) {
   const rootNavigation = useRootNavigation();
-  const { iosHeaderTintColor } = useColors();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        // <TouchableOpacity
-        //   onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
-        // >
-        //   <Icon name="ios-add-circle" size={32} color={iosHeaderTintColor} />
-        // </TouchableOpacity>
-        <>
-          <TouchableOpacity
-            onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
-            style={commonStyles.touchableSFSymbolContainer}
-          >
-            <SFSymbol
-              name="plus.square.fill"
-              color={iosHeaderTintColor}
-              size={22}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            // onPress={handleRemove}
-            style={[commonStyles.touchableSFSymbolContainer, commonStyles.mrm4]}
-          >
-            <SFSymbol
-              name="gearshape.fill"
-              color={iosHeaderTintColor}
-              size={22}
-            />
-          </TouchableOpacity>
-        </>
-      ),
-    });
-  }, [iosHeaderTintColor, navigation, rootNavigation]);
-
-  const tabBarInsets = useTabBarInsets();
-  const { backgroundColor } = useColors();
 
   const numberOfItemsPerPageList = [5, 10, 20, 50];
-  const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[0]);
+  const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(0);
 
   const [data, setData] = useState<PouchDB.Core.AllDocsResponse<{}> | null>(
@@ -112,20 +61,19 @@ function PouchDBScreen({
   }, [getData]);
 
   return (
-    <>
-      <Appbar title="PouchDB" navigation={navigation}>
-        <Appbar.Action
-          icon="square-edit-outline"
-          onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
-        />
-        <Appbar.Action icon="magnify" onPress={() => {}} />
-      </Appbar>
+    <ScreenContent
+      navigation={navigation}
+      title="PouchDB"
+      action1Label="Put Data"
+      action1SFSymbolName="plus.square.fill"
+      action1MaterialIconName="square-edit-outline"
+      onAction1Press={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
+      action2Label="Settings"
+      action2SFSymbolName="gearshape.fill"
+      action2MaterialIconName="cog"
+      onAction2Press={() => {}}
+    >
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        automaticallyAdjustsScrollIndicatorInsets
-        style={[commonStyles.flex1, { backgroundColor }]}
-        contentInset={{ bottom: tabBarInsets.scrollViewBottom }}
-        scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -169,7 +117,7 @@ function PouchDBScreen({
           />
         </DataTable>
       </ScrollView>
-    </>
+    </ScreenContent>
   );
 }
 

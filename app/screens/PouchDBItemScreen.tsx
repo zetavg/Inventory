@@ -1,26 +1,12 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'react';
-import {
-  Alert,
-  RefreshControl,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { SFSymbol } from 'react-native-sfsymbols';
-import Icon from 'react-native-vector-icons/Ionicons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
-import useTabBarInsets from '@app/hooks/useTabBarInsets';
-import useColors from '@app/hooks/useColors';
-import Appbar from '@app/components/Appbar';
 import commonStyles from '@app/utils/commonStyles';
 import db from '@app/db/pouchdb';
+import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
 function PouchDBItemScreen({
@@ -32,9 +18,6 @@ function PouchDBItemScreen({
   const [data, setData] = useState<
     (PouchDB.Core.IdMeta & PouchDB.Core.GetMeta) | null
   >(null);
-
-  const tabBarInsets = useTabBarInsets();
-  const { iosHeaderTintColor, backgroundColor } = useColors();
 
   const rootNavigation = useRootNavigation();
 
@@ -97,69 +80,37 @@ function PouchDBItemScreen({
     );
   }, [data, navigation]);
 
-  useLayoutEffect(() => {
-    const jsonData = (() => {
-      if (!data) return undefined;
+  const jsonData = (() => {
+    if (!data) return undefined;
 
-      const { _id: _, ...d } = data;
-      return JSON.stringify(d, null, 2);
-    })();
-
-    navigation.setOptions({
-      title: id,
-      headerRight: () =>
-        data && (
-          <>
-            <TouchableOpacity
-              onPress={() =>
-                rootNavigation?.navigate('PouchDBPutDataModal', {
-                  id,
-                  jsonData,
-                })
-              }
-              style={commonStyles.touchableSFSymbolContainer}
-            >
-              <SFSymbol
-                name="square.and.pencil"
-                color={iosHeaderTintColor}
-                size={22}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleRemove}
-              style={[
-                commonStyles.touchableSFSymbolContainer,
-                commonStyles.mrm4,
-              ]}
-            >
-              {/*<Icon name="ios-trash" size={24} color={iosHeaderTintColor} />*/}
-              <SFSymbol name="trash" color={iosHeaderTintColor} size={22} />
-            </TouchableOpacity>
-          </>
-        ),
-    });
-  }, [data, handleRemove, id, iosHeaderTintColor, navigation, rootNavigation]);
+    const { _id: _, ...d } = data;
+    return JSON.stringify(d, null, 2);
+  })();
 
   return (
-    <>
-      <Appbar title="PouchDB" navigation={navigation}>
-        <Appbar.Action
-          icon="square-edit-outline"
-          onPress={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
-        />
-        <Appbar.Action icon="magnify" onPress={() => {}} />
-      </Appbar>
+    <ScreenContent
+      navigation={navigation}
+      title={id}
+      action1Label={(data && 'Edit') || undefined}
+      action1SFSymbolName={(data && 'square.and.pencil') || undefined}
+      action1MaterialIconName={(data && 'pencil') || undefined}
+      onAction1Press={() =>
+        rootNavigation?.navigate('PouchDBPutDataModal', {
+          id,
+          jsonData,
+        })
+      }
+      action2Label={(data && 'Remove') || undefined}
+      action2SFSymbolName={(data && 'trash') || undefined}
+      action2MaterialIconName={(data && 'delete') || undefined}
+      onAction2Press={handleRemove}
+    >
       <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        automaticallyAdjustsScrollIndicatorInsets
-        style={[commonStyles.flex1, commonStyles.pt16, { backgroundColor }]}
-        contentInset={{ bottom: tabBarInsets.scrollViewBottom }}
-        scrollIndicatorInsets={{ bottom: tabBarInsets.scrollViewBottom }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <InsetGroup>
+        <InsetGroup style={commonStyles.mt16}>
           <InsetGroup.Item vertical2 label="ID" detail={id} />
           {data && (
             <>
@@ -173,7 +124,7 @@ function PouchDBItemScreen({
           )}
         </InsetGroup>
       </ScrollView>
-    </>
+    </ScreenContent>
   );
 }
 

@@ -4,8 +4,6 @@ import { StyleSheet, ScrollView, Alert } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useModalClosingHandler from '@app/hooks/useModalClosingHandler';
-
 import db from '@app/db/pouchdb';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
@@ -71,8 +69,8 @@ function PouchDBPutDataModalScreen({
       if (loading) return;
 
       Alert.alert(
-        'Discard data?',
-        'You have unsaved data. Are you sure to discard them and leave?',
+        'Discard changes?',
+        'The document is not saved yet. Are you sure to discard the changes and leave?',
         [
           { text: "Don't leave", style: 'cancel', onPress: () => {} },
           {
@@ -85,17 +83,13 @@ function PouchDBPutDataModalScreen({
     },
     [loading],
   );
-  const { statusBarStyle } = useModalClosingHandler(
-    navigation,
-    hasUnsavedChanges,
-    handleLeave,
-  );
-
   const dataInputRef = useRef<any>(null);
 
   return (
     <ModalContent
-      statusBarStyle={statusBarStyle}
+      navigation={navigation}
+      preventClose={hasUnsavedChanges}
+      confirmCloseFn={handleLeave}
       title="Put Data"
       action1Label="Put Data"
       action1Variant="strong"
@@ -107,9 +101,8 @@ function PouchDBPutDataModalScreen({
     >
       <ScrollView
         keyboardDismissMode="interactive"
-        automaticallyAdjustsScrollIndicatorInsets
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.contentContainer}
+        automaticallyAdjustKeyboardInsets
       >
         <InsetGroup footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}>
           <InsetGroup.Item
@@ -133,7 +126,7 @@ function PouchDBPutDataModalScreen({
           <InsetGroup.Item compactLabel label="Data (JSON)">
             <InsetGroup.TextInput
               multiline
-              style={{ minHeight: 60 }}
+              style={styles.textBox}
               placeholder="{}"
               ref={dataInputRef}
               value={dataJson}
@@ -150,12 +143,7 @@ function PouchDBPutDataModalScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  contentContainer: { paddingTop: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  switchText: { marginRight: 8 },
-  input: { marginBottom: 16 },
-  button: { marginBottom: 16 },
+  textBox: { minHeight: 60 },
 });
 
 export default PouchDBPutDataModalScreen;
