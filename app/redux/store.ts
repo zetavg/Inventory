@@ -1,8 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import logger from './middlewares/logger';
+
 import counterReducer from '@app/features/counter/slice';
 
 export const store = configureStore({
+  middleware: getDefaultMiddleware => getDefaultMiddleware().concat(logger),
   reducer: {
     counter: counterReducer,
   },

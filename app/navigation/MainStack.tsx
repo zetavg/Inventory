@@ -11,6 +11,8 @@ import useColors from '@app/hooks/useColors';
 
 import SettingsScreen from '@app/screens/SettingsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
+import ReduxScreen from '@app/screens/ReduxScreen';
+import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
 import SQLiteScreen from '@app/screens/SQLiteScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
@@ -25,6 +27,12 @@ import CounterScreen from '@app/features/counter/screens/CounterScreen';
 export type StackParamList = {
   Settings: undefined;
   DeveloperTools: undefined;
+  Redux: undefined;
+  ReduxActionDetail: {
+    action: any;
+    prevState: any;
+    nextState: any;
+  };
   SQLite: undefined;
   PouchDB: undefined;
   PouchDBItem: { id: string };
@@ -95,6 +103,11 @@ function MainStack({ initialRouteName }: Props) {
     >
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
+      <Stack.Screen name="Redux" component={ReduxScreen} />
+      <Stack.Screen
+        name="ReduxActionDetail"
+        component={ReduxActionDetailScreen}
+      />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
       <Stack.Screen

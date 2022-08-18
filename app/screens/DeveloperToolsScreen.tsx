@@ -43,6 +43,12 @@ function DeveloperToolsScreen({
       <ScrollView>
         <InsetGroup style={commonStyles.mt16}>
           <InsetGroup.Item
+            label="Redux"
+            arrow
+            onPress={() => navigation.push('Redux')}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
             label="PouchDB"
             arrow
             onPress={() => navigation.push('PouchDB')}

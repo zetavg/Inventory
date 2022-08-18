@@ -16,6 +16,7 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import isTextContent from '@app/utils/isTextContent';
 
 const FONT_SIZE = 17;
+const GROUP_LABEL_FONT_SIZE = 13;
 
 type Props = {
   children: React.ReactNode;
@@ -399,6 +400,7 @@ function InsetGroupItemDetailButton({
 InsetGroup.ItemDetailButton = InsetGroupItemDetailButton;
 
 InsetGroup.FONT_SIZE = FONT_SIZE;
+InsetGroup.GROUP_LABEL_FONT_SIZE = GROUP_LABEL_FONT_SIZE;
 
 const styles = StyleSheet.create({
   container: {
@@ -429,7 +431,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
     flex: 1,
     textTransform: 'uppercase',
-    fontSize: 13,
+    fontSize: GROUP_LABEL_FONT_SIZE,
   },
   groupTitleLarge: {
     marginRight: 4,
@@ -501,7 +503,7 @@ const styles = StyleSheet.create({
   },
   itemCheckedImage: { width: 14, height: 16 },
   iosArrow: { width: 8.12, height: 14.41 },
-  itemArrowContainer: {},
+  itemArrowContainer: { marginLeft: 12 },
   itemVerticalArrowContainer: {
     position: 'absolute',
     top: 0,
