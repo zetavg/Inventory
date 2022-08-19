@@ -6,12 +6,13 @@ import {
   Image,
   ImageBackground,
 } from 'react-native';
+import useDB from '@app/hooks/useDB';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 import commonStyles from '@app/utils/commonStyles';
-import { attachmentsDB } from '@app/db/pouchdb';
+// import { attachmentsDB } from '@app/db/pouchdb';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import AttachmentImage from '@app/components/AttachmentImage';
@@ -21,6 +22,8 @@ function PouchDBAttachmentScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'PouchDBAttachment'>) {
+  const { attachmentsDB } = useDB();
+
   const id = route.params.id;
   const [loading, setLoading] = useState(true);
   const [doc, setDoc] = useState<any>(null);
@@ -37,7 +40,7 @@ function PouchDBAttachmentScreen({
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [attachmentsDB, id]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -84,7 +87,7 @@ function PouchDBAttachmentScreen({
         },
       ],
     );
-  }, [doc, navigation]);
+  }, [attachmentsDB, doc, navigation]);
 
   const imageSourceUri = doc && `data:${doc.content_type};base64,${doc.data}`;
 

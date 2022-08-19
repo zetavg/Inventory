@@ -5,14 +5,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
+import useDB from '@app/hooks/useDB';
 import useColors from '@app/hooks/useColors';
 import ScreenContent from '@app/components/ScreenContent';
 import commonStyles from '@app/utils/commonStyles';
-import db from '@app/db/pouchdb';
 
 function PouchDBScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'PouchDB'>) {
+  const { db } = useDB();
   const rootNavigation = useRootNavigation();
 
   const numberOfItemsPerPageList = [5, 10, 20, 50];
@@ -51,7 +52,7 @@ function PouchDBScreen({
     } finally {
       setLoading(false);
     }
-  }, [limit, searchText, skip]);
+  }, [db, limit, searchText, skip]);
   useEffect(() => {
     getData();
   }, [getData]);

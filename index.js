@@ -16,6 +16,8 @@ AppRegistry.registerComponent(appName, () => App);
 // AppRegistry.registerComponent(appName, () => StorybookUIRoot);
 
 LogBox.ignoreLogs([
+  'Could not find Fiber with id',
+  'Non-serializable values were found in the navigation state.',
   'Require cycle: node_modules/react-native-paper/src/components/Appbar',
   'Require cycle: node_modules/pouchdb-utils/lib/index-browser.js',
   'Require cycle: node_modules/@craftzdog/pouchdb-adapter-websql-core',

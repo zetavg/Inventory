@@ -11,14 +11,13 @@ import InsetGroup from '@app/components/InsetGroup';
 import Switch from '@app/components/Switch';
 import commonStyles from '@app/utils/commonStyles';
 import useDebouncedValue from '@app/hooks/useDebouncedValue';
-import { DB_NAME } from '@app/db/pouchdb';
 
 import { QuickSQLite } from 'react-native-quick-sqlite';
 
 function SQLiteScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'SQLite'>) {
-  const [database, setDatabase] = useState(DB_NAME);
+  const [database, setDatabase] = useState('default');
   const [query, setQuery] = useState(
     "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
   );

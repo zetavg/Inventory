@@ -11,6 +11,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST'],
+        ignoredPaths: ['profiles.runtimeData'],
       },
     }).concat(logger),
   reducer: {

@@ -1,10 +1,11 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 
+import useDB from '@app/hooks/useDB';
+
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import db from '@app/db/pouchdb';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 import commonStyles from '@app/utils/commonStyles';
@@ -13,6 +14,7 @@ function PouchDBPutDataModalScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'PouchDBPutDataModal'>) {
+  const { db } = useDB();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [id, setId] = useState(route.params?.id || '');
@@ -67,7 +69,7 @@ function PouchDBPutDataModalScreen({
     } finally {
       setLoading(false);
     }
-  }, [dataJson, id, navigation]);
+  }, [dataJson, db, id, navigation]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {

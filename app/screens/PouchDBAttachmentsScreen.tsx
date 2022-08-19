@@ -12,7 +12,8 @@ import useColors from '@app/hooks/useColors';
 import ScreenContent from '@app/components/ScreenContent';
 import Text from '@app/components/Text';
 import commonStyles from '@app/utils/commonStyles';
-import { attachmentsDB } from '@app/db/pouchdb';
+
+import useDB from '@app/hooks/useDB';
 
 import { v4 as uuidv4 } from 'uuid';
 import InsetGroup from '@app/components/InsetGroup';
@@ -21,6 +22,7 @@ import base64FromFile from '@app/utils/base64FromFile';
 function PouchDBAttachmentsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'PouchDBAttachments'>) {
+  const { attachmentsDB } = useDB();
   const rootNavigation = useRootNavigation();
 
   const numberOfItemsPerPageList = [5, 10, 20, 50];

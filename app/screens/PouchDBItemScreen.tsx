@@ -4,8 +4,8 @@ import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
+import useDB from '@app/hooks/useDB';
 import commonStyles from '@app/utils/commonStyles';
-import db from '@app/db/pouchdb';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
@@ -13,6 +13,7 @@ function PouchDBItemScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'PouchDBItem'>) {
+  const { db } = useDB();
   const id = route.params.id;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<
