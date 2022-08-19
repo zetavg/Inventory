@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "storybook-watcher": "sb-rn-watcher",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && ./patches/patch-immediate-330.sh"
   },
   "dependencies": {
     "@craftzdog/pouchdb-binary-utils-react-native": "^7.2.4",
