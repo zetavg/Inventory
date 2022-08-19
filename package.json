@@ -62,6 +62,7 @@
     "react-native-reanimated": "^2.9.1",
     "react-native-safe-area-context": "^4.3.1",
     "react-native-screens": "^3.15.0",
+    "react-native-sensitive-info": "^6.0.0-alpha.9",
     "react-native-sfsymbols": "^1.2.1",
     "react-native-tableview": "^3.1.0",
     "react-native-ui-lib": "^6.19.2",
@@ -69,6 +70,7 @@
     "react-redux": "^8.0.2",
     "redux": "^4.2.0",
     "redux-persist": "^6.0.0",
+    "redux-persist-sensitive-storage": "^1.0.0",
     "stream": "^0.0.2",
     "uuid": "^8.3.2"
   },

@@ -4,6 +4,7 @@ import { persistStore } from 'redux-persist';
 import logger from './middlewares/logger';
 
 import counterReducer from '@app/features/counter/slice';
+import profilesReducer from '@app/features/profiles/slice';
 
 export const store = configureStore({
   middleware: getDefaultMiddleware =>
@@ -14,6 +15,7 @@ export const store = configureStore({
     }).concat(logger),
   reducer: {
     counter: counterReducer,
+    profiles: profilesReducer,
   },
 });
 

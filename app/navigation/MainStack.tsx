@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 
+import MoreScreen from '@app/screens/MoreScreen';
 import SettingsScreen from '@app/screens/SettingsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
@@ -25,6 +26,7 @@ import NewAppScreen from '@app/screens/NewAppScreen';
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 
 export type StackParamList = {
+  More: undefined;
   Settings: undefined;
   DeveloperTools: undefined;
   Redux: undefined;
@@ -101,6 +103,7 @@ function MainStack({ initialRouteName }: Props) {
       initialRouteName={initialRouteName}
       screenOptions={screenOptions}
     >
+      <Stack.Screen name="More" component={MoreScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
       <Stack.Screen name="Redux" component={ReduxScreen} />

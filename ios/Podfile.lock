@@ -322,6 +322,8 @@ PODS:
     - RCTTypeSafety
     - React
     - ReactCommon/turbomodule/core
+  - react-native-sensitive-info (6.0.0-alpha.9):
+    - React-Core
   - react-native-sfsymbols (1.2.1):
     - React
   - react-native-slider (4.2.4):
@@ -493,6 +495,7 @@ DEPENDENCIES:
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - react-native-sensitive-info (from `../node_modules/react-native-sensitive-info`)
   - react-native-sfsymbols (from `../node_modules/react-native-sfsymbols`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -592,6 +595,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-quick-sqlite"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-sensitive-info:
+    :path: "../node_modules/react-native-sensitive-info"
   react-native-sfsymbols:
     :path: "../node_modules/react-native-sfsymbols"
   react-native-slider:
@@ -681,6 +686,7 @@ SPEC CHECKSUMS:
   react-native-quick-base64: e657e9197e61b60a9dec49807843052b830da254
   react-native-quick-sqlite: 69befc539ffb566f2efc82fedc95ca14e20300ef
   react-native-safe-area-context: 6c12e3859b6f27b25de4fee8201cfb858432d8de
+  react-native-sensitive-info: d44e909d065f9c0e15734245e5dd6a24b82e3dcd
   react-native-sfsymbols: bd3a0d3eab185e80b571bae60753dcf5a0d57967
   react-native-slider: cecabb58ecffad671d2ad3ccc58c7f4d2d029e95
   React-perflogger: 39d2ba8cbcac54d1bb1d9a980dab348e96aef467

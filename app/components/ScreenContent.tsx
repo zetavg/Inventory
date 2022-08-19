@@ -32,16 +32,20 @@ type Props = {
 
   action1Label?: string;
   action1SFSymbolName?: string;
+  /** See: https://materialdesignicons.com */
   action1MaterialIconName?: string;
   onAction1Press?: () => void;
+  action1Color?: string;
 
   action2Label?: string;
   action2SFSymbolName?: string;
+  /** See: https://materialdesignicons.com */
   action2MaterialIconName?: string;
   onAction2Press?: () => void;
 
   action3Label?: string;
   action3SFSymbolName?: string;
+  /** See: https://materialdesignicons.com */
   action3MaterialIconName?: string;
   onAction3Press?: () => void;
 };
@@ -58,6 +62,7 @@ function ScreenContent({
   action1SFSymbolName,
   action1MaterialIconName,
   onAction1Press,
+  action1Color,
   action2Label,
   action2SFSymbolName,
   action2MaterialIconName,
@@ -175,7 +180,7 @@ function ScreenContent({
               {action1SFSymbolName ? (
                 <SFSymbol
                   name={action1SFSymbolName}
-                  color={iosHeaderTintColor}
+                  color={action1Color || iosHeaderTintColor}
                   size={22}
                 />
               ) : (
@@ -196,6 +201,7 @@ function ScreenContent({
   }, [
     action1Label,
     action1SFSymbolName,
+    action1Color,
     action2Label,
     action2SFSymbolName,
     action3Label,
@@ -251,12 +257,14 @@ function ScreenContent({
             height: 56 + safeAreaInsets.top,
           }}
         >
-          {(navigation.canGoBack() || searchEnabled) && (
+          {navigation.canGoBack() || searchEnabled ? (
             <Appbar.BackAction
               onPress={() =>
                 searchEnabled ? setSearchEnabled(false) : navigation.goBack()
               }
             />
+          ) : (
+            <View style={styles.appBarSpacer} />
           )}
           {searchEnabled ? (
             <>
@@ -348,6 +356,9 @@ const styles = StyleSheet.create({
   searchTextInput: {
     flex: 1,
     fontSize: 16,
+  },
+  appBarSpacer: {
+    width: 24,
   },
 });
 

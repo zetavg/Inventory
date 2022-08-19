@@ -11454,6 +11454,11 @@ react-native-screens@^3.15.0:
     react-freeze "^1.0.0"
     warn-once "^0.1.0"
 
+react-native-sensitive-info@^6.0.0-alpha.9:
+  version "6.0.0-alpha.9"
+  resolved "https://registry.yarnpkg.com/react-native-sensitive-info/-/react-native-sensitive-info-6.0.0-alpha.9.tgz#b488fab715d36efdf80b377a21545cfe888ab8d2"
+  integrity sha512-W2R1gUHgBAmy+wVl0BvA7s01SqqTitnG4Sdj2zmck0OS5a54kq+pTnXRqDljMa2NQs4Mue2IHyvd+Tf0X1ZL6Q==
+
 react-native-sfsymbols@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/react-native-sfsymbols/-/react-native-sfsymbols-1.2.1.tgz#53422d432dca1e028cfd95a283d69a590d3e3f84"
@@ -11797,6 +11802,11 @@ recast@^0.20.4:
     esprima "~4.0.0"
     source-map "~0.6.1"
     tslib "^2.0.1"
+
+redux-persist-sensitive-storage@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/redux-persist-sensitive-storage/-/redux-persist-sensitive-storage-1.0.0.tgz#19f5e5bd8ce4c4a4bc852eec61d18360abe07b66"
+  integrity sha512-AD8JyDsTpj+H+ZOGcg1qs9MkdcNOmHsBu+QL2kq2aKDB5HaCjy15qP4eryz7RVhWBatu4WC51R//1bfKHNb6yg==
 
 redux-persist@^6.0.0:
   version "6.0.0"

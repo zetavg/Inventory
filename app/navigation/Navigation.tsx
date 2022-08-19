@@ -30,10 +30,13 @@ import RootBottomSheetsContext from './RootBottomSheetsContext';
 
 import MainStack from './MainStack';
 
+import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
+import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
 import SampleModalScreen from '@app/screens/SampleModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RfidScanScreen from '@app/screens/RfidScanScreen';
+import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -46,6 +49,11 @@ const NAVIGATION_CONTAINER_THEME = {
 const Stack = createStackNavigator();
 export type RootStackParamList = {
   Main: undefined;
+  SwitchProfile: undefined;
+  NewProfile: undefined;
+  ReduxSelectCommonActions: {
+    callback: (data: string) => void;
+  };
   PouchDBPutDataModal: {
     id?: string;
     jsonData?: string;
@@ -72,7 +80,7 @@ const DEFAULT_TAB_SCREEN_OPTIONS = {
 /**
  * Composed navigation
  */
-function Navigation() {
+function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
   const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
   const theme = useTheme();
@@ -173,137 +181,160 @@ function Navigation() {
         <BottomSheetModalProvider>
           <Stack.Navigator screenOptions={DEFAULT_ROOT_STACK_SCREEN_OPTIONS}>
             <Stack.Screen name="Main">
-              {({ navigation }) => (
-                <RootNavigationContext.Provider value={navigation}>
-                  <Tab.Navigator
-                    backBehavior="none"
-                    screenOptions={defaultTabScreenOptions}
-                    tabBar={
-                      Platform.OS === 'ios'
-                        ? (
-                            props: React.ComponentProps<typeof BottomTabBar>,
-                          ) => (
-                            <BlurView
-                              style={styles.tabBarBlurView}
-                              blurType={isDarkMode ? 'extraDark' : 'xlight'}
-                            >
-                              <BottomTabBar {...props} style={props.style} />
-                            </BlurView>
-                          )
-                        : (
-                            props: React.ComponentProps<typeof BottomTabBar>,
-                          ) => <BottomTabBar {...props} />
-                    }
-                  >
-                    <Tab.Screen
-                      name="DashboardTab"
-                      children={() => <MainStack initialRouteName="Settings" />}
-                      options={{
-                        title: 'Dashboard',
-                        tabBarIcon: ({ focused, ...props }) => (
-                          <Ionicons
-                            name={
-                              Platform.OS === 'ios'
-                                ? focused
-                                  ? 'ios-grid'
-                                  : 'ios-grid-outline'
-                                : focused
-                                ? 'md-grid'
-                                : 'md-grid-outline'
-                            }
-                            {...props}
-                          />
-                        ),
-                      }}
-                    />
-                    <Tab.Screen
-                      name="InventoryTab"
-                      children={() => <MainStack initialRouteName="Settings" />}
-                      options={{
-                        title: 'Inventory',
-                        tabBarIcon: ({ focused, ...props }) => (
-                          <Ionicons
-                            name={
-                              Platform.OS === 'ios'
-                                ? focused
-                                  ? 'ios-folder-open'
-                                  : 'ios-folder-open-outline'
-                                : focused
-                                ? 'md-folder-open'
-                                : 'md-folder-open-outline'
-                            }
-                            {...props}
-                          />
-                        ),
-                      }}
-                    />
-                    <Tab.Screen
-                      name="CheckTab"
-                      children={() => <MainStack initialRouteName="Settings" />}
-                      options={{
-                        title: 'Check',
-                        tabBarIcon: ({ focused, ...props }) => (
-                          <Ionicons
-                            name={
-                              Platform.OS === 'ios'
-                                ? focused
-                                  ? 'ios-scan'
-                                  : 'ios-scan-outline'
-                                : focused
-                                ? 'md-scan'
-                                : 'md-scan-outline'
-                            }
-                            {...props}
-                          />
-                        ),
-                      }}
-                    />
-                    <Tab.Screen
-                      name="SearchTab"
-                      children={() => <MainStack initialRouteName="Settings" />}
-                      options={{
-                        title: 'Search',
-                        tabBarIcon: ({ focused, ...props }) => (
-                          <Ionicons
-                            name={
-                              Platform.OS === 'ios'
-                                ? focused
-                                  ? 'ios-search'
-                                  : 'ios-search-outline'
-                                : focused
-                                ? 'md-search'
-                                : 'md-search-outline'
-                            }
-                            {...props}
-                          />
-                        ),
-                      }}
-                    />
-                    <Tab.Screen
-                      name="MoreTab"
-                      children={() => <MainStack initialRouteName="Settings" />}
-                      options={{
-                        title: 'More',
-                        tabBarIcon: ({ focused, ...props }) => (
-                          <Ionicons
-                            name={
-                              Platform.OS === 'ios'
-                                ? focused
-                                  ? 'ios-ellipsis-horizontal-circle-sharp'
-                                  : 'ios-ellipsis-horizontal-circle-outline'
-                                : focused
-                                ? 'md-ellipsis-horizontal-circle-sharp'
-                                : 'md-ellipsis-horizontal-circle-outline'
-                            }
-                            {...props}
-                          />
-                        ),
-                      }}
-                    />
-                  </Tab.Navigator>
-                </RootNavigationContext.Provider>
-              )}
+              {({ navigation }) =>
+                onlyDevTools ? (
+                  <RootNavigationContext.Provider value={navigation}>
+                    <MainStack initialRouteName="DeveloperTools" />
+                  </RootNavigationContext.Provider>
+                ) : (
+                  <RootNavigationContext.Provider value={navigation}>
+                    <Tab.Navigator
+                      backBehavior="none"
+                      screenOptions={defaultTabScreenOptions}
+                      tabBar={
+                        Platform.OS === 'ios'
+                          ? (
+                              props: React.ComponentProps<typeof BottomTabBar>,
+                            ) => (
+                              <BlurView
+                                style={styles.tabBarBlurView}
+                                blurType={isDarkMode ? 'extraDark' : 'xlight'}
+                              >
+                                <BottomTabBar {...props} style={props.style} />
+                              </BlurView>
+                            )
+                          : (
+                              props: React.ComponentProps<typeof BottomTabBar>,
+                            ) => <BottomTabBar {...props} />
+                      }
+                    >
+                      <Tab.Screen
+                        name="DashboardTab"
+                        children={() => (
+                          <MainStack initialRouteName="Settings" />
+                        )}
+                        options={{
+                          title: 'Dashboard',
+                          tabBarIcon: ({ focused, ...props }) => (
+                            <Ionicons
+                              name={
+                                Platform.OS === 'ios'
+                                  ? focused
+                                    ? 'ios-grid'
+                                    : 'ios-grid-outline'
+                                  : focused
+                                  ? 'md-grid'
+                                  : 'md-grid-outline'
+                              }
+                              {...props}
+                            />
+                          ),
+                        }}
+                      />
+                      <Tab.Screen
+                        name="InventoryTab"
+                        children={() => (
+                          <MainStack initialRouteName="Settings" />
+                        )}
+                        options={{
+                          title: 'Inventory',
+                          tabBarIcon: ({ focused, ...props }) => (
+                            <Ionicons
+                              name={
+                                Platform.OS === 'ios'
+                                  ? focused
+                                    ? 'ios-folder-open'
+                                    : 'ios-folder-open-outline'
+                                  : focused
+                                  ? 'md-folder-open'
+                                  : 'md-folder-open-outline'
+                              }
+                              {...props}
+                            />
+                          ),
+                        }}
+                      />
+                      <Tab.Screen
+                        name="CheckTab"
+                        children={() => (
+                          <MainStack initialRouteName="Settings" />
+                        )}
+                        options={{
+                          title: 'Check',
+                          tabBarIcon: ({ focused, ...props }) => (
+                            <Ionicons
+                              name={
+                                Platform.OS === 'ios'
+                                  ? focused
+                                    ? 'ios-scan'
+                                    : 'ios-scan-outline'
+                                  : focused
+                                  ? 'md-scan'
+                                  : 'md-scan-outline'
+                              }
+                              {...props}
+                            />
+                          ),
+                        }}
+                      />
+                      <Tab.Screen
+                        name="SearchTab"
+                        children={() => (
+                          <MainStack initialRouteName="Settings" />
+                        )}
+                        options={{
+                          title: 'Search',
+                          tabBarIcon: ({ focused, ...props }) => (
+                            <Ionicons
+                              name={
+                                Platform.OS === 'ios'
+                                  ? focused
+                                    ? 'ios-search'
+                                    : 'ios-search-outline'
+                                  : focused
+                                  ? 'md-search'
+                                  : 'md-search-outline'
+                              }
+                              {...props}
+                            />
+                          ),
+                        }}
+                      />
+                      <Tab.Screen
+                        name="MoreTab"
+                        children={() => <MainStack initialRouteName="More" />}
+                        options={{
+                          title: 'More',
+                          tabBarIcon: ({ focused, ...props }) => (
+                            <Ionicons
+                              name={
+                                Platform.OS === 'ios'
+                                  ? focused
+                                    ? 'ios-ellipsis-horizontal-circle-sharp'
+                                    : 'ios-ellipsis-horizontal-circle-outline'
+                                  : focused
+                                  ? 'md-ellipsis-horizontal-circle-sharp'
+                                  : 'md-ellipsis-horizontal-circle-outline'
+                              }
+                              {...props}
+                            />
+                          ),
+                        }}
+                      />
+                    </Tab.Navigator>
+                  </RootNavigationContext.Provider>
+                )
+              }
             </Stack.Screen>
+            <Stack.Screen
+              name="ReduxSelectCommonActions"
+              component={ReduxSelectCommonActionsScreen}
+            />
+            <Stack.Screen
+              name="SwitchProfile"
+              component={SwitchProfileScreen}
+            />
+            <Stack.Screen name="NewProfile" component={NewProfileScreen} />
             <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen

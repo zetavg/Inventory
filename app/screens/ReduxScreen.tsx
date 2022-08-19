@@ -3,6 +3,7 @@ import { ScrollView, TouchableOpacity, Text } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import { useAppSelector, useAppDispatch } from '@app/redux';
 
@@ -28,6 +29,7 @@ const ACTION_STR_PLACEHOLDER = `{
 function ReduxScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'Redux'>) {
+  const rootNavigation = useRootNavigation();
   const { iosTintColor } = useColors();
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -80,6 +82,19 @@ function ReduxScreen({
                 value={actionStr}
                 onChangeText={setActionStr}
               />
+            }
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            // arrow
+            button
+            label="Select..."
+            onPress={() =>
+              rootNavigation?.push('ReduxSelectCommonActions', {
+                callback: (a: string) => {
+                  setActionStr(a);
+                },
+              })
             }
           />
           <InsetGroup.ItemSeperator />

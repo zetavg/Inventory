@@ -7,7 +7,7 @@ function useScrollViewContentInsetFix(
 ) {
   useEffect(() => {
     if (scrollviewRef.current)
-      scrollviewRef.current.scrollTo({ x: -100, y: -100, animated: false });
+      scrollviewRef.current.scrollTo({ x: -80, y: -80, animated: false });
   }, [scrollviewRef]);
 }
 

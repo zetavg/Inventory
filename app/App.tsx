@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { StatusBar, StyleSheet } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
 
-import { store, persistor } from '@app/redux';
+import { store, persistor, useAppSelector, useAppDispatch } from '@app/redux';
 
 import Navigation from '@app/navigation';
 import { usePersistedState } from '@app/hooks/usePersistedState';
@@ -18,6 +18,16 @@ import { darkTheme, lightTheme } from '@app/theme';
 import StorybookUIRoot, {
   SetStorybookModeFunctionContext,
 } from '@app/StorybookUIRoot';
+
+import SplashScreen from './SplashScreen';
+import {
+  selectActiveProfileName,
+  selectActiveProfileConfig,
+  selectActiveProfileRuntimeData,
+  createProfile,
+  prepareProfile,
+  switchProfile,
+} from '@app/features/profiles';
 
 function App() {
   const isDarkMode = useIsDarkMode();
@@ -36,12 +46,12 @@ function App() {
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <StatusBar
-          translucent
-          backgroundColor="rgba(0, 0, 0, 0.04)"
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        />
+      <StatusBar
+        translucent
+        backgroundColor="rgba(0, 0, 0, 0.04)"
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+      />
+      <PersistGate loading={<SplashScreen />} persistor={persistor}>
         <SetStorybookModeFunctionContext.Provider value={setStorybookMode}>
           {(() => {
             if (storybookMode) {
@@ -64,7 +74,9 @@ function App() {
               >
                 <SafeAreaProvider>
                   <PaperProvider theme={theme}>
-                    <Navigation />
+                    <ProfileReadyGate>
+                      <Navigation />
+                    </ProfileReadyGate>
                   </PaperProvider>
                 </SafeAreaProvider>
               </GestureHandlerRootView>
@@ -74,6 +86,39 @@ function App() {
       </PersistGate>
     </Provider>
   );
+}
+
+function ProfileReadyGate({ children }: { children: JSX.Element }) {
+  const { ready, ignore } = useAppSelector(selectActiveProfileRuntimeData);
+  const profileName = useAppSelector(selectActiveProfileName);
+  const profileConfig = useAppSelector(selectActiveProfileConfig);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!profileName) {
+      dispatch(switchProfile('default'));
+      return;
+    }
+
+    if (!profileConfig) {
+      dispatch(createProfile({ name: profileName }));
+      return;
+    }
+
+    if (ignore) return;
+
+    if (!ready) {
+      dispatch(prepareProfile());
+      return;
+    }
+  }, [dispatch, ignore, profileConfig, profileName, ready]);
+
+  if (!ready) {
+    return <SplashScreen />;
+  }
+
+  return children;
 }
 
 const styles = StyleSheet.create({

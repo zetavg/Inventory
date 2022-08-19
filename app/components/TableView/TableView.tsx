@@ -11,6 +11,7 @@ type Insets = {
 type Props = {
   children: React.ReactNode;
   contentInsets?: Insets;
+  contentInset?: Insets;
   scrollIndicatorInsets?: Insets;
   style?: React.ComponentProps<typeof ScrollView>['style'];
   scrollViewRef?: any;
@@ -20,6 +21,7 @@ type Props = {
 function TableView({
   children,
   contentInsets,
+  contentInset,
   scrollIndicatorInsets,
   style,
   iosStyle,
@@ -153,7 +155,7 @@ function TableView({
       <TableViewIOS
         ref={scrollViewRef}
         style={style as any}
-        contentInset={contentInsets}
+        contentInset={contentInsets || contentInset}
         scrollIndicatorInsets={scrollIndicatorInsets}
         onSwitchChange={handleSwitchChange}
         tableViewStyle={(() => {
@@ -181,7 +183,7 @@ function TableView({
       children={children}
       automaticallyAdjustContentInsets
       automaticallyAdjustsScrollIndicatorInsets
-      contentInset={contentInsets}
+      contentInset={contentInsets || contentInset}
       scrollIndicatorInsets={scrollIndicatorInsets}
       style={style}
     />

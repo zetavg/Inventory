@@ -15,7 +15,11 @@
     "baseUrl": ".",
     "paths": {
       "@app/*": ["./app/*"]
-    }
+    },
+    "typeRoots": [
+      "node_modules/@types",
+      "app/lib/types"
+    ]
   },
   "exclude": [
     "node_modules",
