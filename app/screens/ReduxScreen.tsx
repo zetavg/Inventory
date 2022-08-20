@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, TouchableOpacity, Text } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  View,
+  TouchableOpacity,
+  Text,
+  TextInput,
+} from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -9,12 +16,14 @@ import { useAppSelector, useAppDispatch } from '@app/redux';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 import useColors from '@app/hooks/useColors';
+import useScrollTo from '@app/hooks/useScrollTo';
 
 import cs from '@app/utils/commonStyles';
 
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import { addCallback, ActionLog } from '@app/redux/middlewares/logger';
+import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
 
 const INITIAL_ACTION_STR = `{
   "type": "counter/incrementByAmount",
@@ -52,8 +61,23 @@ function ReduxScreen({
   }, []);
   useEffect(() => addCallback(logAction), [logAction]);
 
+  const dispatchActionGroup = useRef<View>(null);
+  const dispatchActionInput = useRef<TextInput>(null);
+
+  const scrollTo = useScrollTo(scrollViewRef);
+
   return (
-    <ScreenContent navigation={navigation} title="Redux">
+    <ScreenContent
+      navigation={navigation}
+      title="Redux"
+      action1Label="Dispatch Action"
+      action1SFSymbolName="arrow.forward.square.fill"
+      action1MaterialIconName="arrow-right-bold-box"
+      onAction1Press={() => {
+        dispatchActionInput.current?.focus();
+        scrollTo(dispatchActionGroup);
+      }}
+    >
       <ScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
@@ -71,12 +95,14 @@ function ReduxScreen({
         <InsetGroup
           label="Dispatch Action"
           footerLabel={isActionInvalid ? 'Invalid JSON' : undefined}
+          ref={dispatchActionGroup}
         >
           <InsetGroup.Item
             vertical2
             label="Action"
             detail={
               <InsetGroup.TextInput
+                ref={dispatchActionInput}
                 multiline
                 placeholder={ACTION_STR_PLACEHOLDER}
                 value={actionStr}
