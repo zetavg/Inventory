@@ -64,7 +64,7 @@ function ReduxScreen({
           <InsetGroup.Item
             vertical2
             label="Current State"
-            detail={JSON.stringify(state, null, 2)}
+            detail={removePasswordFromJSON(JSON.stringify(state, null, 2))}
           />
         </InsetGroup>
 
