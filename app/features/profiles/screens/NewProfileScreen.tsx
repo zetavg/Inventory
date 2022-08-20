@@ -14,7 +14,8 @@ import cs from '@app/utils/commonStyles';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import { ProfileColor, createProfile, selectProfiles } from '../slice';
+import { ProfileColor, createProfile } from '../slice';
+import { selectProfiles } from '../selectors';
 
 const COLORS = [
   'red',

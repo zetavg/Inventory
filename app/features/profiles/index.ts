@@ -3,8 +3,13 @@ export {
   prepareProfile,
   createProfile,
   switchProfile,
+  updateConfig,
+  updateSettings,
+} from './slice';
+
+export {
   selectActiveProfileName,
   selectActiveProfileConfig,
   selectActiveProfileSettings,
   selectActiveProfileRuntimeData,
-} from './slice';
+} from './selectors';

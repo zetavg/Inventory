@@ -24,10 +24,12 @@ import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
+import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
 
 export type StackParamList = {
   More: undefined;
   Settings: undefined;
+  DBSyncConfig: undefined;
   DeveloperTools: undefined;
   Redux: undefined;
   ReduxActionDetail: {
@@ -135,6 +137,7 @@ function MainStack({ initialRouteName }: Props) {
       />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
+      <Stack.Screen name="DBSyncConfig" component={DBSyncConfigScreen} />
     </Stack.Navigator>
   );
 }

@@ -24,6 +24,7 @@ type Props = {
   footerLabel?: string;
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
+  labelContainerStyle?: React.ComponentProps<typeof View>['style'];
 } & React.ComponentProps<typeof View>;
 
 function InsetGroup({
@@ -33,6 +34,7 @@ function InsetGroup({
   footerLabel,
   labelVariant,
   labelRight,
+  labelContainerStyle,
   ...props
 }: Props) {
   const { contentBackgroundColor, contentTextColor, groupTitleColor } =
@@ -41,16 +43,21 @@ function InsetGroup({
     <>
       {label && (
         <View
-          style={(() => {
-            switch (labelVariant) {
-              case 'large':
-                return styles.groupTitleLargeContainer;
+          style={[
+            (() => {
+              switch (labelVariant) {
+                case 'large':
+                  return styles.groupTitleLargeContainer;
 
-              case 'normal':
-              default:
-                return styles.groupTitleContainer;
-            }
-          })()}
+                case 'normal':
+                default:
+                  return styles.groupTitleContainer;
+              }
+            })(),
+            ...(Array.isArray(labelContainerStyle)
+              ? labelContainerStyle
+              : [labelContainerStyle]),
+          ]}
         >
           <Text
             numberOfLines={1}

@@ -32,6 +32,7 @@ import MainStack from './MainStack';
 
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
+import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
 import SampleModalScreen from '@app/screens/SampleModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
@@ -51,6 +52,9 @@ export type RootStackParamList = {
   Main: undefined;
   SwitchProfile: undefined;
   NewProfile: undefined;
+  DBSyncConfigUpdate: {
+    name?: string;
+  };
   ReduxSelectCommonActions: {
     callback: (data: string) => void;
   };
@@ -335,6 +339,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               component={SwitchProfileScreen}
             />
             <Stack.Screen name="NewProfile" component={NewProfileScreen} />
+            <Stack.Screen
+              name="DBSyncConfigUpdate"
+              component={DBSyncConfigUpdateScreen}
+            />
             <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen

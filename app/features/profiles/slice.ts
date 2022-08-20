@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { RootState } from '@app/redux/store';
 import { persistReducer } from 'redux-persist';
 import createSensitiveStorage from 'redux-persist-sensitive-storage';
 
@@ -9,6 +8,10 @@ import {
   Database,
   AttachmentsDatabase,
 } from '@app/db';
+import dbSyncConfigReducer, {
+  DBSyncConfigState,
+  initialState as dbSyncInitialState,
+} from '@app/features/db-sync/config/slice';
 
 export type ProfileColor =
   | 'red'
@@ -26,13 +29,15 @@ export type ProfileConfig = {
   dbName: string;
   attachmentsDbName: string;
 
-  remoteDbUri?: string;
-  remoteDbUsername?: string;
-  remoteDbPassword?: string;
+  dbSync: DBSyncConfigState;
 
-  remoteAttachmentsDbUri?: string;
-  remoteAttachmentsDbUsername?: string;
-  remoteAttachmentsDbPassword?: string;
+  // remoteDbUri?: string;
+  // remoteDbUsername?: string;
+  // remoteDbPassword?: string;
+
+  // remoteAttachmentsDbUri?: string;
+  // remoteAttachmentsDbUsername?: string;
+  // remoteAttachmentsDbPassword?: string;
 };
 
 export type ProfileSettings = {};
@@ -91,6 +96,7 @@ export const counterSlice = createSlice({
       state.configs.default = {
         dbName: 'default',
         attachmentsDbName: 'default_attachments',
+        dbSync: dbSyncInitialState,
       };
     },
     createProfile: (
@@ -103,6 +109,7 @@ export const counterSlice = createSlice({
       state.configs[profileName] = {
         dbName: profileName,
         attachmentsDbName: `${profileName}_attachments`,
+        dbSync: dbSyncInitialState,
         ...config,
       };
     },
@@ -161,6 +168,46 @@ export const counterSlice = createSlice({
 
       state.runtimeData[activeProfile].ready = true;
     },
+    updateConfig: (state, action: PayloadAction<Partial<ProfileConfig>>) => {
+      const { activeProfile } = state;
+      if (!activeProfile) return;
+
+      const config = state.configs[activeProfile];
+      if (!config) return;
+
+      state.configs[activeProfile] = {
+        ...config,
+        ...action.payload,
+      };
+    },
+    updateSettings: (
+      state,
+      action: PayloadAction<Partial<ProfileSettings>>,
+    ) => {
+      const { activeProfile } = state;
+      if (!activeProfile) return;
+
+      if (state.settings[activeProfile]) state.settings[activeProfile] = {};
+
+      state.settings[activeProfile] = {
+        ...state.settings[activeProfile],
+        ...action.payload,
+      };
+    },
+  },
+  extraReducers: builder => {
+    builder.addMatcher(
+      action => action.type.startsWith('dbSyncConfig'),
+      (state, action) => {
+        const { activeProfile } = state;
+        if (!activeProfile) return;
+
+        const config = state.configs[activeProfile];
+        if (!config) return;
+
+        config.dbSync = dbSyncConfigReducer(config.dbSync, action);
+      },
+    );
   },
 });
 
@@ -169,25 +216,9 @@ export const {
   createProfile,
   switchProfile,
   prepareProfile,
+  updateConfig,
+  updateSettings,
 } = counterSlice.actions;
-
-export const selectProfiles = (state: RootState) => state.profiles;
-export const selectActiveProfileName = (state: RootState) =>
-  state.profiles.activeProfile;
-export const selectActiveProfileConfig = (state: RootState) =>
-  state.profiles.activeProfile
-    ? state.profiles.configs[state.profiles.activeProfile]
-    : undefined;
-export const selectActiveProfileSettings = (state: RootState) =>
-  state.profiles.activeProfile
-    ? state.profiles.settings[state.profiles.activeProfile]
-    : undefined;
-export const selectActiveProfileRuntimeData = (state: RootState) =>
-  state.profiles.activeProfile
-    ? state.profiles.runtimeData[state.profiles.activeProfile] || {
-        ready: false,
-      }
-    : { ready: false };
 
 const sensitiveStorage = createSensitiveStorage({
   keychainService: 'app',

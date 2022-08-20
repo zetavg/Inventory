@@ -46,6 +46,12 @@ function SettingsScreen({
             arrow
             onPress={() => navigation.push('Settings')}
           />
+          <TableView.Item
+            icon="cog"
+            label="Sync"
+            arrow
+            onPress={() => navigation.push('DBSyncConfig')}
+          />
         </TableView.Section>
 
         <TableView.Section>

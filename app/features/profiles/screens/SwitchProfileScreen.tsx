@@ -14,11 +14,8 @@ import cs from '@app/utils/commonStyles';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import {
-  selectActiveProfileName,
-  selectProfiles,
-  switchProfile,
-} from '../slice';
+import { switchProfile } from '../slice';
+import { selectActiveProfileName, selectProfiles } from '../selectors';
 
 function SwitchProfileScreen({
   navigation,

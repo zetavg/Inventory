@@ -1,10 +1,12 @@
 import PouchDBRN from 'pouchdb-react-native';
+import PouchDBAuthentication from 'pouchdb-authentication';
 import WebSQLite from 'react-native-quick-websql';
 import { DBContent, AttachmentDBContent } from './types';
 
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);
 
 PouchDBRN.plugin(require('pouchdb-quick-search'));
+PouchDBRN.plugin(PouchDBAuthentication);
 PouchDBRN.plugin(SQLiteAdapter);
 
 export type Database = PouchDB.Database<DBContent>;
@@ -19,3 +21,5 @@ export function getAttachmentsDatabase(name: string): AttachmentsDatabase {
     adapter: 'react-native-sqlite',
   });
 }
+
+export const PouchDB = PouchDBRN;
