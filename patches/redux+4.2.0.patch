@@ -1,0 +1,40 @@
+diff --git a/node_modules/redux/index.d.ts b/node_modules/redux/index.d.ts
+index f922196..f40284e 100644
+--- a/node_modules/redux/index.d.ts
++++ b/node_modules/redux/index.d.ts
+@@ -101,7 +101,8 @@ export type PreloadedState<S> = Required<S> extends EmptyObject
+  */
+ export type Reducer<S = any, A extends Action = AnyAction> = (
+   state: S | undefined,
+-  action: A
++  action: A,
++  rootState?: any
+ ) => S
+
+ /**
+diff --git a/node_modules/redux/lib/redux.js b/node_modules/redux/lib/redux.js
+index 9218f82..de5296e 100644
+--- a/node_modules/redux/lib/redux.js
++++ b/node_modules/redux/lib/redux.js
+@@ -565,7 +565,7 @@ function combineReducers(reducers) {
+       var _key = finalReducerKeys[_i];
+       var reducer = finalReducers[_key];
+       var previousStateForKey = state[_key];
+-      var nextStateForKey = reducer(previousStateForKey, action);
++      var nextStateForKey = reducer(previousStateForKey, action, state);
+
+       if (typeof nextStateForKey === 'undefined') {
+         var actionType = action && action.type;
+diff --git a/node_modules/redux/src/combineReducers.js b/node_modules/redux/src/combineReducers.js
+index 6ed79c2..60520bf 100644
+--- a/node_modules/redux/src/combineReducers.js
++++ b/node_modules/redux/src/combineReducers.js
+@@ -154,7 +154,7 @@ export default function combineReducers(reducers) {
+       const key = finalReducerKeys[i]
+       const reducer = finalReducers[key]
+       const previousStateForKey = state[key]
+-      const nextStateForKey = reducer(previousStateForKey, action)
++      const nextStateForKey = reducer(previousStateForKey, action, state)
+       if (typeof nextStateForKey === 'undefined') {
+         const actionType = action && action.type
+         throw new Error(

@@ -1,0 +1,52 @@
+diff --git a/node_modules/redux-persist/es/persistReducer.js b/node_modules/redux-persist/es/persistReducer.js
+index ad49055..c9e47d3 100644
+--- a/node_modules/redux-persist/es/persistReducer.js
++++ b/node_modules/redux-persist/es/persistReducer.js
+@@ -42,7 +42,7 @@ export default function persistReducer(config, baseReducer) {
+     return state;
+   };
+ 
+-  return function (state, action) {
++  return function (state, action, rootState) {
+     var _ref = state || {},
+         _persist = _ref._persist,
+         rest = _objectWithoutProperties(_ref, ["_persist"]); // $FlowIgnore need to update State type
+@@ -141,10 +141,10 @@ export default function persistReducer(config, baseReducer) {
+     } // if we have not already handled PERSIST, straight passthrough
+ 
+ 
+-    if (!_persist) return baseReducer(state, action); // run base reducer:
++    if (!_persist) return baseReducer(state, action, rootState); // run base reducer:
+     // is state modified ? return original : return updated
+ 
+-    var newState = baseReducer(restState, action);
++    var newState = baseReducer(restState, action, rootState);
+     if (newState === restState) return state;
+     return conditionalUpdate(_objectSpread({}, newState, {
+       _persist: _persist
+diff --git a/node_modules/redux-persist/lib/persistReducer.js b/node_modules/redux-persist/lib/persistReducer.js
+index 1116881..03d51e4 100644
+--- a/node_modules/redux-persist/lib/persistReducer.js
++++ b/node_modules/redux-persist/lib/persistReducer.js
+@@ -54,7 +54,7 @@ function persistReducer(config, baseReducer) {
+     return state;
+   };
+ 
+-  return function (state, action) {
++  return function (state, action, rootState) {
+     var _ref = state || {},
+         _persist = _ref._persist,
+         rest = _objectWithoutProperties(_ref, ["_persist"]); // $FlowIgnore need to update State type
+@@ -153,10 +153,10 @@ function persistReducer(config, baseReducer) {
+     } // if we have not already handled PERSIST, straight passthrough
+ 
+ 
+-    if (!_persist) return baseReducer(state, action); // run base reducer:
++    if (!_persist) return baseReducer(state, action, rootState); // run base reducer:
+     // is state modified ? return original : return updated
+ 
+-    var newState = baseReducer(restState, action);
++    var newState = baseReducer(restState, action, rootState);
+     if (newState === restState) return state;
+     return conditionalUpdate(_objectSpread({}, newState, {
+       _persist: _persist
