@@ -124,6 +124,7 @@ function InsetGroupContainer({
       {...props}
       style={[
         { backgroundColor: backgroundColor },
+        styles.insetGroupContainer,
         ...(Array.isArray(style) ? style : [style]),
       ]}
     >
@@ -138,6 +139,7 @@ type InsetGroupItemProps = {
   label?: string;
   detail?: string | React.ReactNode;
   compactLabel?: boolean;
+  vertical?: boolean;
   vertical2?: boolean;
   arrow?: boolean;
   selected?: boolean;
@@ -152,6 +154,7 @@ function InsetGroupItem({
   label,
   detail,
   compactLabel,
+  vertical,
   vertical2,
   arrow,
   selected,
@@ -178,10 +181,12 @@ function InsetGroupItem({
         <View
           {...props}
           style={[
-            vertical2
-              ? styles.insetGroupItemVertical2Container
+            vertical || vertical2
+              ? styles.insetGroupItemVerticalContainer
               : styles.insetGroupItemContainer,
-            { paddingVertical: 12 * fontScale },
+            {
+              paddingVertical: (vertical ? 4 : vertical2 ? 8 : 12) * fontScale,
+            },
             ...(Array.isArray(style) ? style : [style]),
           ]}
         >
@@ -215,9 +220,9 @@ function InsetGroupItem({
           </Text>
           <View
             style={
-              vertical2
+              vertical || vertical2
                 ? [
-                    styles.insetGroupItemVertical2Detail,
+                    styles.insetGroupItemVerticalDetail,
                     { marginTop: 2 * fontScale },
                   ]
                 : styles.insetGroupItemDetail
@@ -226,7 +231,7 @@ function InsetGroupItem({
             {isTextContent(detail) ? (
               <Text
                 style={{
-                  fontSize: FONT_SIZE,
+                  fontSize: vertical ? FONT_SIZE * 0.8 : FONT_SIZE,
                   color: vertical2
                     ? contentTextColor
                     : contentSecondaryTextColor,
@@ -243,7 +248,7 @@ function InsetGroupItem({
           {arrow && Platform.OS === 'ios' && (
             <View
               style={
-                vertical2
+                vertical || vertical2
                   ? styles.itemVerticalArrowContainer
                   : styles.itemArrowContainer
               }
@@ -430,7 +435,7 @@ const styles = StyleSheet.create({
   groupTitleLargeContainer: {
     marginHorizontal: 16,
     marginTop: 0,
-    marginBottom: 16,
+    marginBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -456,7 +461,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
   },
-  insetGroupItemVertical2Container: {
+  insetGroupItemVerticalContainer: {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'flex-start',
@@ -485,7 +490,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     flexDirection: 'row',
   },
-  insetGroupItemVertical2Detail: { flex: 1, alignSelf: 'stretch' },
+  insetGroupItemVerticalDetail: { flex: 1, alignSelf: 'stretch' },
   insetGroupItemSeperator: {
     marginTop: -StyleSheet.hairlineWidth * 2,
     height: StyleSheet.hairlineWidth,
@@ -517,6 +522,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 16,
     justifyContent: 'center',
+  },
+  insetGroupContainer: {
+    paddingTop: 16,
   },
 });
 
