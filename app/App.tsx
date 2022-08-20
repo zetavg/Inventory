@@ -29,6 +29,8 @@ import {
   switchProfile,
 } from '@app/features/profiles';
 
+import DBSyncManager from './DBSyncManager';
+
 function App() {
   const isDarkMode = useIsDarkMode();
   const theme = isDarkMode ? darkTheme : lightTheme;
@@ -75,7 +77,10 @@ function App() {
                 <SafeAreaProvider>
                   <PaperProvider theme={theme}>
                     <ProfileReadyGate>
-                      <Navigation />
+                      <>
+                        <Navigation />
+                        <DBSyncManager />
+                      </>
                     </ProfileReadyGate>
                   </PaperProvider>
                 </SafeAreaProvider>
