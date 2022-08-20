@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
 
 function useScrollViewContentInsetFix(
-  scrollviewRef: React.MutableRefObject<{
+  scrollViewRef: React.MutableRefObject<{
     scrollTo: (o: { x?: number; y?: number; animated?: boolean }) => void;
   } | null>,
 ) {
   useEffect(() => {
-    if (scrollviewRef.current)
-      scrollviewRef.current.scrollTo({ x: -80, y: -80, animated: false });
-  }, [scrollviewRef]);
+    if (scrollViewRef.current)
+      scrollViewRef.current.scrollTo({ x: -80, y: -80, animated: false });
+  }, [scrollViewRef]);
 }
 
 export default useScrollViewContentInsetFix;
