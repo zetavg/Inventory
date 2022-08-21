@@ -10,6 +10,7 @@ import cs from '@app/utils/commonStyles';
 
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
+import { dbSyncSettingsSlice } from '@app/features/db-sync/manage/settingsSlice';
 
 const SWITCH_PROFILE_ACTION = `{
   "type": "profiles/switchProfile",
@@ -28,6 +29,21 @@ const DELETE_PROFILE_ACTION = `{
     "name": ""
   }
 }`;
+
+const UPDATE_SETTINGS_ACTION = `{
+  "type": "settings/updateSettings",
+  "payload": {
+    "key": "value"
+  }
+}`;
+
+const RESET_SETTINGS_ACTION = '{ "type": "settings/resetSettings" }';
+
+const DB_SYNC_SET_DISABLED = JSON.stringify(
+  dbSyncSettingsSlice.actions.setDisabled(true),
+  null,
+  2,
+);
 
 function ReduxSelectCommonActionsScreen({
   navigation,
@@ -69,6 +85,26 @@ function ReduxSelectCommonActionsScreen({
             label="Delete Profile"
             detail={DELETE_PROFILE_ACTION.replace(/\n */, '')}
             onPress={() => handleSelect(DELETE_PROFILE_ACTION)}
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            label="Update Settings"
+            detail={UPDATE_SETTINGS_ACTION.replace(/\n */, '')}
+            onPress={() => handleSelect(UPDATE_SETTINGS_ACTION)}
+          />
+          <InsetGroup.Item
+            label="Reset Settings"
+            detail={RESET_SETTINGS_ACTION.replace(/\n */, '')}
+            onPress={() => handleSelect(RESET_SETTINGS_ACTION)}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
+            label="DBSync Set Disabled"
+            detail={DB_SYNC_SET_DISABLED.replace(/\n */, '')}
+            onPress={() => handleSelect(DB_SYNC_SET_DISABLED)}
           />
         </InsetGroup>
       </ScrollView>

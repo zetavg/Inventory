@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 import { ScrollView } from 'react-native';
 
+import { diff } from 'deep-object-diff';
+
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 
@@ -36,6 +38,13 @@ function ReduxActionDetailScreen({
             vertical2
             label="Action"
             detail={JSON.stringify(action, null, 2)}
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            vertical2
+            label="State Diff"
+            detail={JSON.stringify(diff(prevState, nextState), null, 2)}
           />
         </InsetGroup>
         <InsetGroup>

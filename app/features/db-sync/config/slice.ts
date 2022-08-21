@@ -1,6 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { RootState } from '@app/redux/store';
-import { persistReducer } from 'redux-persist';
 
 type RemoteDBConnectionConfig = {
   uri: string;

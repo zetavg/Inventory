@@ -7,8 +7,11 @@ import {
   getAttachmentsDatabase,
   Database,
   AttachmentsDatabase,
+  LogsDatabase,
+  getLogsDatabase,
 } from '@app/db';
 import dbSyncConfigReducer, {
+  dbSyncConfigSlice,
   DBSyncConfigState,
   initialState as dbSyncInitialState,
 } from '@app/features/db-sync/config/slice';
@@ -30,17 +33,7 @@ export type ProfileConfig = {
   attachmentsDbName: string;
 
   dbSync: DBSyncConfigState;
-
-  // remoteDbUri?: string;
-  // remoteDbUsername?: string;
-  // remoteDbPassword?: string;
-
-  // remoteAttachmentsDbUri?: string;
-  // remoteAttachmentsDbUsername?: string;
-  // remoteAttachmentsDbPassword?: string;
 };
-
-export type ProfileSettings = {};
 
 export type ProfileRuntimeData = {
   /**
@@ -65,15 +58,17 @@ export type ProfileRuntimeData = {
    * Function prevents the whole structure from being stringified in logs or development tools.
    */
   getAttachmentsDB?: () => AttachmentsDatabase;
+  /**
+   * Returns the logs database for this profile.
+   * Function prevents the whole structure from being stringified in logs or development tools.
+   */
+  getLogsDB?: () => LogsDatabase;
 };
 
 type ProfilesState = {
   activeProfile?: string;
   configs: {
     [name: string]: ProfileConfig;
-  };
-  settings: {
-    [name: string]: ProfileSettings;
   };
   runtimeData: {
     [name: string]: ProfileRuntimeData;
@@ -82,11 +77,10 @@ type ProfilesState = {
 
 const initialState: ProfilesState = {
   configs: {},
-  settings: {},
   runtimeData: {},
 };
 
-export const counterSlice = createSlice({
+export const profilesSlice = createSlice({
   name: 'profiles',
   initialState,
   reducers: {
@@ -122,6 +116,12 @@ export const counterSlice = createSlice({
       if (!config) return;
 
       // TODO: Delete databases
+      const db = getDatabase(config.dbName);
+      const attachmentsDB = getAttachmentsDatabase(config.attachmentsDbName);
+      const logsDB = getLogsDatabase(`${config.dbName}_logs`);
+      db.destroy();
+      attachmentsDB.destroy();
+      logsDB.destroy();
 
       const configs = {
         ...state.configs,
@@ -147,8 +147,6 @@ export const counterSlice = createSlice({
       const config = state.configs[activeProfile];
       if (!config) return;
 
-      if (!state.settings[activeProfile]) state.settings[activeProfile] = {};
-
       if (!state.runtimeData[activeProfile])
         state.runtimeData[activeProfile] = { ready: false };
 
@@ -165,6 +163,10 @@ export const counterSlice = createSlice({
       const getAttachmentsDB = () => attachmentsDB;
       getAttachmentsDB.toJSON = () => '...';
       state.runtimeData[activeProfile].getAttachmentsDB = getAttachmentsDB;
+      const logsDB = getLogsDatabase(`${config.dbName}_logs`);
+      const getLogsDB = () => logsDB;
+      getLogsDB.toJSON = () => '...';
+      state.runtimeData[activeProfile].getLogsDB = getLogsDB;
 
       state.runtimeData[activeProfile].ready = true;
     },
@@ -180,24 +182,10 @@ export const counterSlice = createSlice({
         ...action.payload,
       };
     },
-    updateSettings: (
-      state,
-      action: PayloadAction<Partial<ProfileSettings>>,
-    ) => {
-      const { activeProfile } = state;
-      if (!activeProfile) return;
-
-      if (state.settings[activeProfile]) state.settings[activeProfile] = {};
-
-      state.settings[activeProfile] = {
-        ...state.settings[activeProfile],
-        ...action.payload,
-      };
-    },
   },
   extraReducers: builder => {
     builder.addMatcher(
-      action => action.type.startsWith('dbSyncConfig'),
+      action => action.type.startsWith(dbSyncConfigSlice.name),
       (state, action) => {
         const { activeProfile } = state;
         if (!activeProfile) return;
@@ -215,10 +203,10 @@ export const {
   setupDefaultProfile,
   createProfile,
   switchProfile,
+  deleteProfile,
   prepareProfile,
   updateConfig,
-  updateSettings,
-} = counterSlice.actions;
+} = profilesSlice.actions;
 
 const sensitiveStorage = createSensitiveStorage({
   keychainService: 'app',
@@ -229,7 +217,8 @@ export default persistReducer(
   {
     key: 'profile-configs',
     storage: sensitiveStorage,
-    whitelist: ['configs', 'settings', 'activeProfile'],
+    whitelist: ['configs', 'activeProfile'],
+    timeout: 50000,
   },
-  counterSlice.reducer,
+  profilesSlice.reducer,
 );

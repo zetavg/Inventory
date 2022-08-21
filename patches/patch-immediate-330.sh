@@ -6,4 +6,7 @@
 # seems to be working fine.
 mv node_modules/websql/node_modules/immediate node_modules/websql/node_modules/immediate2 2>/dev/null
 mv node_modules/@craftzdog/pouchdb-adapter-websql-core/node_modules/immediate node_modules/@craftzdog/pouchdb-adapter-websql-core/node_modules/immediate2 2>/dev/null
+mv node_modules/pouchdb-find/node_modules/immediate node_modules/pouchdb-find/node_modules/immediate2 2>/dev/null
+mv node_modules/pouchdb-abstract-mapreduce/node_modules/immediate node_modules/pouchdb-abstract-mapreduce/node_modules/immediate2 2>/dev/null
+mv node_modules/pouchdb-selector-core/node_modules/immediate node_modules/pouchdb-selector-core/node_modules/immediate2 2>/dev/null
 exit 0

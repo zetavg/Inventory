@@ -12,6 +12,7 @@ import TableView from '@app/components/TableView';
 
 import { useAppSelector } from '@app/redux';
 import { selectActiveProfileConfig } from '@app/features/profiles';
+import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
 
 function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const rootNavigation = useRootNavigation();
@@ -48,6 +49,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const { rfidScanSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
+  const [overallDBSyncStatus] = useOverallDBSyncStatus();
 
   return (
     <ScreenContent
@@ -70,9 +72,11 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           />
           <TableView.Item
             arrow
-            icon="account-box"
-            iosImage="ios-menu.person.png"
-            onPress={() => rootNavigation?.navigate('SampleModal', {})}
+            label="Data Sync"
+            detail={overallDBSyncStatus}
+            icon="sync"
+            iosImage="ios-menu.sync.png"
+            onPress={() => navigation.push('PouchDBSync')}
           >
             Profile
           </TableView.Item>

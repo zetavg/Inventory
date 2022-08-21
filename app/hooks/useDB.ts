@@ -3,7 +3,7 @@ import { useAppSelector } from '@app/redux';
 import { useMemo } from 'react';
 
 export default function useDB() {
-  const { getDB, getAttachmentsDB } = useAppSelector(
+  const { getDB, getAttachmentsDB, getLogsDB } = useAppSelector(
     selectActiveProfileRuntimeData,
   );
 
@@ -15,9 +15,18 @@ export default function useDB() {
       `AttachmentsDB is not initialized (called by ${useDB.caller}).`,
     );
   }
+  if (!getLogsDB) {
+    throw new Error(
+      `AttachmentsDB is not initialized (called by ${useDB.caller}).`,
+    );
+  }
 
   return useMemo(
-    () => ({ db: getDB(), attachmentsDB: getAttachmentsDB() }),
+    () => ({
+      db: getDB(),
+      attachmentsDB: getAttachmentsDB(),
+      logsDB: getLogsDB(),
+    }),
     [getDB, getAttachmentsDB],
   );
 }

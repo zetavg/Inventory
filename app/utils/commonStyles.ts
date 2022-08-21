@@ -103,11 +103,17 @@ const commonStyles = StyleSheet.create({
   mt16: {
     marginTop: 16,
   },
+  mt20: {
+    marginTop: 20,
+  },
+  mt24: {
+    marginTop: 24,
+  },
   pt16: {
     paddingTop: 16,
   },
   br8: {
-    borderRadius: 8
+    borderRadius: 8,
   },
   row: {
     flexDirection: 'row',

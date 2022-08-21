@@ -37,6 +37,11 @@ export const { increment, decrement, incrementByAmount } = counterSlice.actions;
 export const selectCount = (state: RootState) => state.counter.value;
 
 export default persistReducer(
-  { key: 'counter', storage: AsyncStorage, whitelist: ['value'] },
+  {
+    key: 'counter',
+    storage: AsyncStorage,
+    whitelist: ['value'],
+    timeout: 50000,
+  },
   counterSlice.reducer,
 );

@@ -124,6 +124,7 @@ function DBSyncConfigUpdateScreen({
   ]);
 
   const dispatch = useAppDispatch();
+  const [saved, setSaved] = useState(false);
   const handleSave = useCallback(() => {
     if (nameErrorMessage) {
       Alert.alert('Notice', nameErrorMessage);
@@ -156,7 +157,8 @@ function DBSyncConfigUpdateScreen({
       }),
     );
 
-    navigation.goBack();
+    setSaved(true);
+    setTimeout(() => navigation.goBack(), 10);
   }, [
     attachmentsDbErrorMessage,
     attachmentsDbPassword,
@@ -187,7 +189,8 @@ function DBSyncConfigUpdateScreen({
           onPress: () => {
             dispatch(removeSync({ name }));
 
-            navigation.goBack();
+            setSaved(true);
+            setTimeout(() => navigation.goBack(), 10);
           },
         },
       ],
@@ -197,11 +200,21 @@ function DBSyncConfigUpdateScreen({
   return (
     <ModalContent
       navigation={navigation}
-      title={route.params.name ? `Edit ${route.params.name}` : 'New Remote'}
+      title={route.params.name ? 'Edit Connection' : 'Add Server'}
       action1Label="Save"
       action1MaterialIconName="check"
       action1Variant="strong"
       onAction1Press={handleSave}
+      backButtonLabel="Cancel"
+      preventClose={
+        !saved &&
+        (dbUri !== (oldConfig.db?.uri || '') ||
+          dbUsername !== (oldConfig.db?.username || '') ||
+          dbPassword !== (oldConfig.db?.password || '') ||
+          attachmentsDbUri !== (oldConfig.attachmentsDB?.uri || '') ||
+          attachmentsDbUsername !== (oldConfig.attachmentsDB?.username || '') ||
+          attachmentsDbPassword !== (oldConfig.attachmentsDB?.password || ''))
+      }
     >
       <ScrollView
         ref={scrollViewRef}
@@ -212,7 +225,7 @@ function DBSyncConfigUpdateScreen({
         {!route.params.name && (
           <InsetGroup
             labelContainerStyle={cs.mt16}
-            label="Remote Name"
+            label="Server Name"
             footerLabel={nameErrorMessage}
           >
             <InsetGroup.Item>
@@ -228,7 +241,7 @@ function DBSyncConfigUpdateScreen({
         )}
         <InsetGroup
           labelContainerStyle={route.params.name ? cs.mt16 : undefined}
-          label="Remote DB"
+          label="DB Connection"
           footerLabel={dbErrorMessage}
         >
           <InsetGroup.Item
@@ -265,7 +278,7 @@ function DBSyncConfigUpdateScreen({
             detail={
               <InsetGroup.TextInput
                 secureTextEntry
-                placeholder="password"
+                placeholder="********"
                 autoCapitalize="none"
                 value={dbPassword}
                 onChangeText={setDbPassword}
@@ -274,7 +287,7 @@ function DBSyncConfigUpdateScreen({
           />
         </InsetGroup>
         <InsetGroup
-          label="Remote Attachments DB"
+          label="Attachments DB Connection"
           footerLabel={attachmentsDbErrorMessage}
         >
           <InsetGroup.Item
@@ -311,7 +324,7 @@ function DBSyncConfigUpdateScreen({
             detail={
               <InsetGroup.TextInput
                 secureTextEntry
-                placeholder="password"
+                placeholder="********"
                 autoCapitalize="none"
                 value={attachmentsDbPassword}
                 onChangeText={setAttachmentsDbPassword}

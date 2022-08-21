@@ -69,7 +69,7 @@ function SQLiteScreen({
             vertical2
             detail={
               <InsetGroup.TextInput
-                placeholder={DB_NAME}
+                placeholder={'default'}
                 autoCapitalize="none"
                 returnKeyType="done"
                 value={database}

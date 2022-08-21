@@ -55,7 +55,7 @@ function DeveloperToolsScreen({
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
-            label="PouchDB Attachments"
+            label="PouchDB (Attachments)"
             arrow
             onPress={() => navigation.push('PouchDBAttachments')}
           />
@@ -64,6 +64,14 @@ function DeveloperToolsScreen({
             label="SQLite"
             arrow
             onPress={() => navigation.push('SQLite')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
+            label="PouchDB Sync"
+            arrow
+            onPress={() => navigation.push('PouchDBSync')}
           />
         </InsetGroup>
 

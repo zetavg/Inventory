@@ -104,6 +104,7 @@ function PouchDBPutDataModalScreen({
       confirmCloseFn={handleLeave}
       title="Put Data"
       action1Label="Put Data"
+      action1MaterialIconName="check"
       action1Variant="strong"
       onAction1Press={
         isJsonInvalid || !id || loading ? undefined : handlePutData

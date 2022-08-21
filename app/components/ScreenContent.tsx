@@ -26,6 +26,7 @@ type Props = {
   // autoFocusSearch?: boolean;
 
   title: string;
+  headerLargeTitle?: boolean;
   children: JSX.Element;
 
   onSearchChangeText?: (v: string) => void;
@@ -57,6 +58,7 @@ function ScreenContent({
   // autoFocusSearch,
   onSearchChangeText,
   title,
+  headerLargeTitle = true,
   children,
   action1Label,
   action1SFSymbolName,
@@ -87,6 +89,7 @@ function ScreenContent({
 
     navigation.setOptions({
       headerShown: true,
+      ...({ headerLargeTitle } as any),
       title,
       ...(showSearch
         ? {
@@ -216,6 +219,7 @@ function ScreenContent({
     showAppBar,
     showSearch,
     title,
+    headerLargeTitle,
   ]);
 
   const verifiedAction1MaterialIconName = verifyMaterialCommunityIconName(

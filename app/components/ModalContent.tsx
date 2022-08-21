@@ -137,27 +137,23 @@ function ModalContent({
           title={title}
           left={(() => {
             if (action2Label) {
-              return (
-                onAction2Press && (
-                  <AppBarIOS.Button
-                    onPress={onAction2Press}
-                    destructive={action2Variant === 'destructive'}
-                    strong={action2Variant === 'strong'}
-                  >
-                    {action2Label}
-                  </AppBarIOS.Button>
-                )
-              );
+              return onAction2Press ? (
+                <AppBarIOS.Button
+                  onPress={onAction2Press}
+                  destructive={action2Variant === 'destructive'}
+                  strong={action2Variant === 'strong'}
+                >
+                  {action2Label}
+                </AppBarIOS.Button>
+              ) : undefined;
             }
 
             if (showBackButton) {
-              return (
-                navigation.canGoBack() && (
-                  <AppBarIOS.Button onPress={() => navigation.goBack()}>
-                    {backButtonLabel}
-                  </AppBarIOS.Button>
-                )
-              );
+              return navigation.canGoBack() ? (
+                <AppBarIOS.Button onPress={() => navigation.goBack()}>
+                  {backButtonLabel}
+                </AppBarIOS.Button>
+              ) : undefined;
             }
           })()}
           right={

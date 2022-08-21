@@ -104,6 +104,7 @@ function ReduxScreen({
               <InsetGroup.TextInput
                 ref={dispatchActionInput}
                 multiline
+                scrollEnabled={false}
                 placeholder={ACTION_STR_PLACEHOLDER}
                 value={actionStr}
                 onChangeText={setActionStr}
@@ -119,6 +120,7 @@ function ReduxScreen({
               rootNavigation?.push('ReduxSelectCommonActions', {
                 callback: (a: string) => {
                   setActionStr(a);
+                  scrollTo(dispatchActionGroup);
                 },
               })
             }
@@ -126,6 +128,7 @@ function ReduxScreen({
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             button
+            destructive
             label="Dispatch Action"
             disabled={isActionInvalid}
             onPress={() => dispatch(JSON.parse(actionStr))}

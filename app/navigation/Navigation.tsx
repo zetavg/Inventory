@@ -214,9 +214,7 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
                     >
                       <Tab.Screen
                         name="DashboardTab"
-                        children={() => (
-                          <MainStack initialRouteName="Settings" />
-                        )}
+                        children={() => <MainStack initialRouteName="More" />}
                         options={{
                           title: 'Dashboard',
                           tabBarIcon: ({ focused, ...props }) => (

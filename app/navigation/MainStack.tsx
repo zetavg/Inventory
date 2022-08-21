@@ -11,6 +11,7 @@ import useColors from '@app/hooks/useColors';
 
 import MoreScreen from '@app/screens/MoreScreen';
 import SettingsScreen from '@app/screens/SettingsScreen';
+import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
@@ -24,11 +25,23 @@ import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
+import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
+import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
+import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
 import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
 
 export type StackParamList = {
   More: undefined;
   Settings: undefined;
+  GenericTextDetails: {
+    title?: string;
+    details: string;
+  };
+  PouchDBSync: undefined;
+  PouchDBSyncDetails: {
+    serverName: string;
+  };
+  PouchDBSyncLogs: undefined;
   DBSyncConfig: undefined;
   DeveloperTools: undefined;
   Redux: undefined;
@@ -107,6 +120,10 @@ function MainStack({ initialRouteName }: Props) {
     >
       <Stack.Screen name="More" component={MoreScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen
+        name="GenericTextDetails"
+        component={GenericTextDetailsScreen}
+      />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
       <Stack.Screen name="Redux" component={ReduxScreen} />
       <Stack.Screen
@@ -137,6 +154,12 @@ function MainStack({ initialRouteName }: Props) {
       />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
+      <Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />
+      <Stack.Screen
+        name="PouchDBSyncDetails"
+        component={PouchDBSyncDetailsScreen}
+      />
+      <Stack.Screen name="PouchDBSyncLogs" component={PouchDBSyncLogsScreen} />
       <Stack.Screen name="DBSyncConfig" component={DBSyncConfigScreen} />
     </Stack.Navigator>
   );

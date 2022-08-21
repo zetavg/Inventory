@@ -5,6 +5,8 @@ import logger from './middlewares/logger';
 
 import counterReducer from '@app/features/counter/slice';
 import profilesReducer from '@app/features/profiles/slice';
+import settingsReducer from '@app/features/settings/slice';
+import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
 
 export const store = configureStore({
   middleware: getDefaultMiddleware =>
@@ -17,6 +19,8 @@ export const store = configureStore({
   reducer: {
     counter: counterReducer,
     profiles: profilesReducer,
+    settings: settingsReducer,
+    dbSyncStatus: dbSyncStatusReducer,
   },
 });
 

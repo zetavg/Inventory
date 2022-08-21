@@ -17,6 +17,7 @@ import isTextContent from '@app/utils/isTextContent';
 
 const FONT_SIZE = 17;
 const GROUP_LABEL_FONT_SIZE = 13;
+const INSET_GROUP_ITEM_PADDING_HORIZONTAL = 16;
 
 type Props = {
   children: React.ReactNode;
@@ -27,22 +28,28 @@ type Props = {
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
 } & React.ComponentProps<typeof View>;
 
-function InsetGroup({
-  children,
-  style,
-  label,
-  footerLabel,
-  labelVariant,
-  labelRight,
-  labelContainerStyle,
-  ...props
-}: Props) {
+type AddRefToPropsHack = { ref?: React.ForwardedRef<View> };
+
+function InsetGroup(
+  {
+    children,
+    style,
+    label,
+    footerLabel,
+    labelVariant,
+    labelRight,
+    labelContainerStyle,
+    ...props
+  }: Props & AddRefToPropsHack,
+  ref?: React.ForwardedRef<View>,
+) {
   const { contentBackgroundColor, contentTextColor, groupTitleColor } =
     useColors();
   return (
     <>
       {label && (
         <View
+          ref={ref}
           style={[
             (() => {
               switch (labelVariant) {
@@ -83,6 +90,7 @@ function InsetGroup({
         </View>
       )}
       <View
+        ref={label ? undefined : ref}
         {...props}
         style={[
           styles.container,
@@ -108,6 +116,8 @@ function InsetGroup({
     </>
   );
 }
+
+(InsetGroup as any) = React.forwardRef(InsetGroup);
 
 type InsetGroupContainerProps = {
   children: React.ReactNode;
@@ -194,6 +204,8 @@ function InsetGroupItem({
             style={[
               vertical2
                 ? styles.insetGroupItemVertical2Text
+                : vertical
+                ? styles.insetGroupItemVerticalText
                 : styles.insetGroupItemText,
               compactLabel ? styles.insetGroupItemCompactLabelText : {},
               {
@@ -212,7 +224,9 @@ function InsetGroupItem({
                   return contentTextColor;
                 })(),
               },
-              detail && !vertical2 ? styles.insetGroupItemWithDetailText : {},
+              detail && !(vertical || vertical2)
+                ? styles.insetGroupItemWithDetailText
+                : {},
             ]}
             numberOfLines={1}
           >
@@ -413,6 +427,7 @@ InsetGroup.ItemDetailButton = InsetGroupItemDetailButton;
 
 InsetGroup.FONT_SIZE = FONT_SIZE;
 InsetGroup.GROUP_LABEL_FONT_SIZE = GROUP_LABEL_FONT_SIZE;
+InsetGroup.ITEM_PADDING_HORIZONTAL = INSET_GROUP_ITEM_PADDING_HORIZONTAL;
 
 const styles = StyleSheet.create({
   container: {
@@ -459,7 +474,7 @@ const styles = StyleSheet.create({
   insetGroupItemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: INSET_GROUP_ITEM_PADDING_HORIZONTAL,
   },
   insetGroupItemVerticalContainer: {
     flexDirection: 'column',
@@ -474,6 +489,9 @@ const styles = StyleSheet.create({
   insetGroupItemVertical2Text: {
     fontSize: FONT_SIZE * 0.8,
     fontWeight: '500',
+    maxWidth: '95%',
+  },
+  insetGroupItemVerticalText: {
     maxWidth: '95%',
   },
   insetGroupItemCompactLabelText: {
