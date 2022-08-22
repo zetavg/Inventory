@@ -2,7 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { persistReducer } from 'redux-persist';
 
-export type Status = 'Success' | 'Online' | 'Offline' | 'AuthError' | 'Error';
+export type Status =
+  | 'Success'
+  | 'Online'
+  | 'Offline'
+  | 'Config Error'
+  | 'Auth Error'
+  | 'Error';
 
 export type ConnectionStatus = {
   lastStatus?: Status;
@@ -73,7 +79,8 @@ export const dbSyncStatusSlice = createSlice({
               lastStatus: status,
               lastOfflineMessage: message,
             };
-          case 'AuthError':
+          case 'Config Error':
+          case 'Auth Error':
           case 'Error':
             return {
               lastStatus: status,

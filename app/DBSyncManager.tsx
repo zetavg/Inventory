@@ -90,6 +90,12 @@ export default function DBSyncManager() {
 
           remoteDB
             .logIn(remoteUsername, remotePassword)
+            .then(response =>
+              // Test if we can access the database
+              remoteDB
+                .allDocs({ limit: 1, include_docs: false })
+                .then(() => response),
+            )
             .then(response => {
               // debugLog(
               //   `[DB Sync - ${syncName}] login success: ${JSON.stringify(
@@ -258,15 +264,69 @@ export default function DBSyncManager() {
               resolve([syncName, sync]);
             })
             .catch(e => {
-              dispatch(
-                reportDBSyncStatus({
-                  profileName,
-                  serverName,
-                  type,
-                  status: 'AuthError',
-                  message: JSON.stringify(e)?.slice(0, 8000),
-                }),
-              );
+              switch (e?.error) {
+                case 'unauthorized':
+                  dispatch(
+                    reportDBSyncStatus({
+                      profileName,
+                      serverName,
+                      type,
+                      status: 'Auth Error',
+                      message: e.reason,
+                    }),
+                  );
+                  break;
+                case 'not_found':
+                  dispatch(
+                    reportDBSyncStatus({
+                      profileName,
+                      serverName,
+                      type,
+                      status: 'Config Error',
+                      message: e.reason,
+                    }),
+                  );
+                  break;
+                default:
+                  if (e?.code === 'ETIMEDOUT') {
+                    dispatch(
+                      reportDBSyncStatus({
+                        profileName,
+                        serverName,
+                        type,
+                        status: 'Offline',
+                        message: JSON.stringify(e)?.slice(0, 8000),
+                      }),
+                    );
+                  } else if (e?.status === 0) {
+                    dispatch(
+                      reportDBSyncStatus({
+                        profileName,
+                        serverName,
+                        type,
+                        status: 'Offline',
+                        message: JSON.stringify(e)?.slice(0, 8000),
+                      }),
+                    );
+                  } else {
+                    dispatch(
+                      reportDBSyncStatus({
+                        profileName,
+                        serverName,
+                        type,
+                        status: 'Config Error',
+                        message:
+                          e?.reason ||
+                          `Cannot connect to server: ${JSON.stringify(e)?.slice(
+                            0,
+                            8000,
+                          )}.`,
+                      }),
+                    );
+                  }
+                  break;
+              }
+
               debugLog(
                 `[DB Sync - ${syncName}] login fail: ${JSON.stringify(e)}`,
               );

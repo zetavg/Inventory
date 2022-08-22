@@ -1,5 +1,9 @@
 import { Status, ServerStatus } from './statusSlice';
 
+export function isErrorStatus(s: Status | null | undefined | 'Disabled') {
+  return s === 'Error' || s === 'Auth Error' || s === 'Config Error';
+}
+
 export type ReducedServerStatus = {
   status: Status | 'Disabled' | null;
   lastUpdatedAt?: number;
@@ -15,10 +19,17 @@ export function reduceServerStatus(
     if (serverDisabled) return 'Disabled';
 
     if (
-      status.db?.lastStatus === 'AuthError' ||
-      status.attachments_db?.lastStatus === 'AuthError'
+      status.db?.lastStatus === 'Auth Error' ||
+      status.attachments_db?.lastStatus === 'Auth Error'
     ) {
-      return 'AuthError';
+      return 'Auth Error';
+    }
+
+    if (
+      status.db?.lastStatus === 'Config Error' ||
+      status.attachments_db?.lastStatus === 'Config Error'
+    ) {
+      return 'Config Error';
     }
 
     if (

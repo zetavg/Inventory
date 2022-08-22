@@ -21,6 +21,7 @@ import { selectDBSyncStatus, selectSettings } from '../selectors';
 import { setServerDisabled } from '../settingsSlice';
 import { selectDBSyncSettings } from '..';
 import formatDate from '@app/utils/formatDate';
+import { isErrorStatus } from '../utils';
 
 function PouchDBSyncDetailsScreen({
   navigation,
@@ -87,6 +88,16 @@ function PouchDBSyncDetailsScreen({
               />
             </>
           )}
+          {isErrorStatus(serverStatus.db?.lastStatus) &&
+            serverStatus.db?.lastErrorMessage && (
+              <>
+                <InsetGroup.ItemSeperator />
+                <InsetGroup.Item
+                  label="Info"
+                  detail={serverStatus.db?.lastErrorMessage}
+                />
+              </>
+            )}
           {serverStatus.db?.lastUpdatedAt && (
             <>
               <InsetGroup.ItemSeperator />
@@ -113,6 +124,16 @@ function PouchDBSyncDetailsScreen({
               />
             </>
           )}
+          {isErrorStatus(serverStatus.attachments_db?.lastStatus) &&
+            serverStatus.attachments_db?.lastErrorMessage && (
+              <>
+                <InsetGroup.ItemSeperator />
+                <InsetGroup.Item
+                  label="Info"
+                  detail={serverStatus.db?.lastErrorMessage}
+                />
+              </>
+            )}
           {serverStatus.attachments_db?.lastUpdatedAt && (
             <>
               <InsetGroup.ItemSeperator />
