@@ -136,14 +136,18 @@ function PouchDBSyncLogsScreen({
                       if (doc.event === 'paused' || doc.event === 'active') {
                         return 'transparent';
                       }
-                      return doc.ok ? colors.green : colors.pink;
+                      if (doc.ok === true) return colors.green;
+                      if (doc.ok === false) return colors.pink;
+                      return 'transparent';
                     })(),
                     paddingLeft: InsetGroup.ITEM_PADDING_HORIZONTAL - 4,
                   }}
                   vertical
                   compactLabel
                   key={doc._id}
-                  label={`[${doc.event}] ${(doc as any).raw}`}
+                  label={`${doc.live ? '[live]' : ''}[${doc.event}] ${
+                    (doc as any).raw
+                  }`}
                   detail={`${formatDate(new Date(doc.timestamp))}${
                     doc.server === '_all' ? '' : `·${doc.server}`
                   }`}

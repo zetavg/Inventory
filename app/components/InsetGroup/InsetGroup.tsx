@@ -148,6 +148,7 @@ InsetGroup.Container = InsetGroupContainer;
 type InsetGroupItemProps = {
   label?: string;
   detail?: string | React.ReactNode;
+  detailAsText?: boolean;
   compactLabel?: boolean;
   vertical?: boolean;
   vertical2?: boolean;
@@ -163,6 +164,7 @@ function InsetGroupItem({
   style,
   label,
   detail,
+  detailAsText,
   compactLabel,
   vertical,
   vertical2,
@@ -242,7 +244,7 @@ function InsetGroupItem({
                 : styles.insetGroupItemDetail
             }
           >
-            {isTextContent(detail) ? (
+            {isTextContent(detail) || detailAsText ? (
               <Text
                 style={{
                   fontSize: vertical ? FONT_SIZE * 0.8 : FONT_SIZE,

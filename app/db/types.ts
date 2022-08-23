@@ -18,38 +18,48 @@ export type AttachmentsDBContent = {
 export type DBSyncLog = {
   type: 'db_sync';
   timestamp: number;
-  ok: boolean;
   server: string;
 } & (
   | { event: 'info'; raw: string }
   | { event: 'error_recovery'; raw: string }
   | { event: 'start'; raw: string }
   | { event: 'stop'; raw: string }
-  | { event: 'login'; raw: string }
+  | { event: 'login'; ok: boolean; raw: string }
   | ({
       event: 'complete';
+      live: boolean;
       raw: string;
+      ok: boolean;
+      canceled: boolean;
     } & PouchDB.Replication.SyncResultComplete<{}>)
   | ({
       event: 'change';
+      live: boolean;
       raw: string;
+      ok: boolean;
     } & Omit<PouchDB.Replication.SyncResult<{}>, 'change'> & {
         change: Omit<PouchDB.Replication.SyncResult<{}>['change'], 'docs'>;
       })
   | {
       event: 'error';
+      live: boolean;
       raw: string;
+      ok: false;
     }
   | {
       event: 'paused';
+      live: boolean;
       raw: string;
+      ok: boolean;
     }
   | {
       event: 'active';
+      live: boolean;
       // raw: string;
     }
   | {
       event: 'denied';
+      live: boolean;
       raw: string;
     }
 );

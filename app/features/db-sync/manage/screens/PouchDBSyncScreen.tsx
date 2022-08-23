@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Text } from 'react-native';
+import TimeAgo from 'react-native-timeago';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -20,7 +21,6 @@ import { selectDBSyncStatus, selectSettings } from '../selectors';
 import { setDisabled, setLoggingEnabled } from '../settingsSlice';
 import useOverallDBSyncStatus from '../../hooks/useOverallDBSyncStatus';
 import { reduceServerStatus } from '../utils';
-import timeAgo from '@app/utils/timeAgo';
 
 function PouchDBSyncScreen({
   navigation,
@@ -90,23 +90,31 @@ function PouchDBSyncScreen({
                     !!(syncSettings.serverSettings || {})[name]?.disabled,
                     !!syncSettings.disabled,
                   );
-                  const statusString = [
-                    reducedServerStatus.status,
-                    reducedServerStatus.lastSyncedAt
-                      ? `last updated ${timeAgo.format(
-                          new Date(reducedServerStatus.lastSyncedAt),
-                        )}`
-                      : null,
+                  const statusElements = [
+                    reducedServerStatus.status && (
+                      <Text>{reducedServerStatus.status}</Text>
+                    ),
+                    reducedServerStatus.lastSyncedAt ? (
+                      <Text>
+                        last synced{' '}
+                        {<TimeAgo time={reducedServerStatus.lastSyncedAt} />}
+                      </Text>
+                    ) : null,
                   ]
                     .filter(s => !!s)
-                    .join(' · ');
+                    .flatMap(element => [element, <Text> · </Text>])
+                    .slice(0, -1);
                   return [
                     <InsetGroup.Item
                       vertical
                       arrow
                       key={name}
                       label={name}
-                      detail={statusString || config.db.uri}
+                      detailAsText
+                      detail={
+                        (statusElements.length > 0 && statusElements) ||
+                        config.db.uri
+                      }
                       onPress={() =>
                         navigation.push('PouchDBSyncDetails', {
                           serverName: name,

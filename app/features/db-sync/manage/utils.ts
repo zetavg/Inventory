@@ -46,28 +46,31 @@ export function reduceServerStatus(
       return 'Offline';
     }
 
+    if (status.db?.lastStatus === 'Syncing') return 'Syncing';
+    if (status.attachments_db?.lastStatus === 'Syncing') return 'Syncing';
+
     if (status.db?.lastStatus === 'Success') return 'Success';
     if (status.attachments_db?.lastStatus === 'Success') return 'Success';
     return 'Online';
   })();
 
   let lastSyncedAt: number | undefined = Math.max(
-    status.db?.lastUpdatedAt || 0,
-    status.attachments_db?.lastUpdatedAt || 0,
+    status.db?.lastSyncedAt || 0,
+    status.attachments_db?.lastSyncedAt || 0,
   );
 
   if (
     status.db?.lastStatus !== 'Success' &&
     status.db?.lastStatus !== 'Online'
   ) {
-    lastSyncedAt = status.db?.lastUpdatedAt;
+    lastSyncedAt = status.db?.lastSyncedAt;
   }
 
   if (
     status.attachments_db?.lastStatus !== 'Success' &&
     status.attachments_db?.lastStatus !== 'Online'
   ) {
-    lastSyncedAt = status.attachments_db?.lastUpdatedAt;
+    lastSyncedAt = status.attachments_db?.lastSyncedAt;
   }
 
   return {

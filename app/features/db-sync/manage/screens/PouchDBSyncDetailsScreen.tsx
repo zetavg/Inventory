@@ -98,12 +98,12 @@ function PouchDBSyncDetailsScreen({
                 />
               </>
             )}
-          {serverStatus.db?.lastUpdatedAt && (
+          {serverStatus.db?.lastSyncedAt && (
             <>
               <InsetGroup.ItemSeperator />
               <InsetGroup.Item
-                label="Last Update"
-                detail={formatDate(new Date(serverStatus.db?.lastUpdatedAt))}
+                label="Last Synced"
+                detail={formatDate(new Date(serverStatus.db?.lastSyncedAt))}
               />
             </>
           )}
@@ -134,13 +134,13 @@ function PouchDBSyncDetailsScreen({
                 />
               </>
             )}
-          {serverStatus.attachments_db?.lastUpdatedAt && (
+          {serverStatus.attachments_db?.lastSyncedAt && (
             <>
               <InsetGroup.ItemSeperator />
               <InsetGroup.Item
-                label="Last Update"
+                label="Last Synced"
                 detail={formatDate(
-                  new Date(serverStatus.attachments_db?.lastUpdatedAt),
+                  new Date(serverStatus.attachments_db?.lastSyncedAt),
                 )}
               />
             </>

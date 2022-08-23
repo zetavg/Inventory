@@ -54,5 +54,9 @@ export default function useOverallDBSyncStatus(): ReturnValue {
     return ['Error', EMPTY_OBJECT];
   }
 
+  if (syncStatusOfEachServer.some(s => s === 'Syncing')) {
+    return ['Syncing', EMPTY_OBJECT];
+  }
+
   return ['Enabled', EMPTY_OBJECT];
 }

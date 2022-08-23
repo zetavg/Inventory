@@ -5,6 +5,7 @@ import { persistReducer } from 'redux-persist';
 export type Status =
   | 'Success'
   | 'Online'
+  | 'Syncing'
   | 'Offline'
   | 'Config Error'
   | 'Auth Error'
@@ -16,7 +17,7 @@ export type ConnectionStatus = {
   lastSuccessMessage?: string;
   lastOfflineMessage?: string;
   lastOnlineAt?: number;
-  lastUpdatedAt?: number;
+  lastSyncedAt?: number;
 };
 
 export type ServerStatus = {
@@ -28,6 +29,11 @@ export type DBSyncStatus = {
   serverStatus?: {
     [serverName: string]: ServerStatus;
   };
+  /**
+   * Status version number. Any updates which the version number does not match
+   * the current version number will be ignored.
+   */
+  v?: number;
 };
 
 export type DBSyncStatusState = {
@@ -40,9 +46,18 @@ export const dbSyncStatusSlice = createSlice({
   name: 'dbSyncStatus',
   initialState,
   reducers: {
+    updateV: (
+      state,
+      action: PayloadAction<{ profileName: string; v: number }>,
+    ) => {
+      if (!state[action.payload.profileName])
+        state[action.payload.profileName] = {};
+      state[action.payload.profileName].v = action.payload.v;
+    },
     reportStatus: (
       state,
       action: PayloadAction<{
+        v: number;
         profileName: string;
         serverName: string;
         type: 'db' | 'attachments_db';
@@ -60,16 +75,24 @@ export const dbSyncStatusSlice = createSlice({
         timestamp = new Date().getTime(),
       } = action.payload;
 
+      if (!state[profileName]) state[profileName] = {};
+      if (state[profileName].v !== action.payload.v) return;
+
       const updatedStatus = (() => {
         switch (status) {
           case 'Success':
             return {
-              lastStatus: status,
-              lastUpdatedAt: timestamp,
+              lastStatus: 'Online' as Status,
+              lastSyncedAt: timestamp,
               lastOnlineAt: timestamp,
               lastSuccessMessage: message,
             };
           case 'Online':
+            return {
+              lastStatus: status,
+              lastOnlineAt: timestamp,
+            };
+          case 'Syncing':
             return {
               lastStatus: status,
               lastOnlineAt: timestamp,
@@ -89,7 +112,6 @@ export const dbSyncStatusSlice = createSlice({
         }
       })();
 
-      if (!state[profileName]) state[profileName] = {};
       if (!state[profileName].serverStatus)
         state[profileName].serverStatus = {};
       const serverStatus = state[profileName].serverStatus;
@@ -109,7 +131,7 @@ export const dbSyncStatusSlice = createSlice({
 
 // TODO: Delete data when profile or DB config is deleted
 
-export const { reportStatus, clearStatus } = dbSyncStatusSlice.actions;
+export const { updateV, reportStatus, clearStatus } = dbSyncStatusSlice.actions;
 
 export default persistReducer(
   {

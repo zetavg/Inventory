@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { PouchDB } from '@app/db';
 import {
   selectActiveProfileNameOrThrowError,
@@ -12,9 +12,16 @@ import {
   clearDBSyncStatus,
 } from '@app/features/db-sync/manage';
 import insertTimestampIdRecord from '@app/utils/insertTimestampIdRecord';
+import { updateV } from './features/db-sync/manage/statusSlice';
 
 const debugLog = console.warn;
 // const debugLog = (_s: string) => {};
+
+type SyncRef = {
+  sync: PouchDB.Replication.Sync<{}> | null;
+  remoteDB: PouchDB.Database<{}> | null;
+  canceled: boolean;
+};
 
 const EMPTY_OBJECT: { [k: string]: undefined } = {};
 
@@ -29,6 +36,7 @@ export default function DBSyncManager() {
   // const loggingEnabled = true
 
   const { db, attachmentsDB, logsDB } = useDB();
+  const version = useRef(0);
 
   useEffect(() => {
     if (!dbSyncConfig || Object.keys(dbSyncConfig).length <= 0) {
@@ -61,6 +69,10 @@ export default function DBSyncManager() {
       return;
     }
 
+    version.current += 1;
+    const v = version.current;
+    dispatch(updateV({ profileName, v }));
+
     // debugLog('[DB Sync] initializing sync...');
     if (loggingEnabled) {
       insertTimestampIdRecord(logsDB, {
@@ -68,7 +80,6 @@ export default function DBSyncManager() {
         timestamp: new Date().getTime(),
         event: 'start',
         server: '_all',
-        ok: true,
         raw: 'Initializing sync...',
       });
     }
@@ -81,111 +92,217 @@ export default function DBSyncManager() {
       remotePassword: string,
       serverName: string,
       type: 'db' | 'attachments_db',
-    ): Promise<[string, PouchDB.Replication.Sync<{}> | null]> {
-      return new Promise(resolve => {
+    ): Promise<[string, SyncRef]> {
+      return new Promise(async resolve => {
         try {
           const remoteDB = new PouchDB(remoteUri, {
             skip_setup: true,
           });
 
-          remoteDB
-            .logIn(remoteUsername, remotePassword)
-            .then(response =>
-              // Test if we can access the database
-              remoteDB
-                .allDocs({ limit: 1, include_docs: false })
-                .then(() => response),
-            )
-            .then(response => {
-              // debugLog(
-              //   `[DB Sync - ${syncName}] login success: ${JSON.stringify(
-              //     response,
-              //   )}`,
-              // );
-              dispatch(
-                reportDBSyncStatus({
-                  profileName,
-                  serverName,
-                  type,
-                  status: 'Online',
-                }),
-              );
-              if (loggingEnabled) {
-                insertTimestampIdRecord(logsDB, {
-                  type: 'db_sync',
-                  timestamp: new Date().getTime(),
-                  event: 'login',
-                  server: syncName,
-                  ok: true,
-                  raw: JSON.stringify(response)?.slice(0, 8000),
-                });
-              }
-              const sync = localDB
-                .sync(remoteDB, {
-                  live: true,
-                  retry: true,
-                })
-                .on('complete', function (result) {
+          const syncRef: SyncRef = {
+            sync: null,
+            remoteDB,
+            canceled: false,
+          };
+
+          resolve([syncName, syncRef]);
+
+          function loginToRemoteDB() {
+            remoteDB
+              .logIn(remoteUsername, remotePassword)
+              .then(response =>
+                // Test if we can access the database
+                remoteDB
+                  .allDocs({ limit: 1, include_docs: false })
+                  .then(() => response),
+              )
+              .then(response => {
+                dispatch(
+                  reportDBSyncStatus({
+                    v,
+                    profileName,
+                    serverName,
+                    type,
+                    status: 'Online',
+                  }),
+                );
+                startInitialSync();
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'login',
+                    server: syncName,
+                    ok: true,
+                    raw: JSON.stringify(response)?.slice(0, 8000),
+                  });
+                }
+              })
+              .catch((e: any) => {
+                switch (e?.error) {
+                  case 'unauthorized':
+                    dispatch(
+                      reportDBSyncStatus({
+                        v,
+                        profileName,
+                        serverName,
+                        type,
+                        status: 'Auth Error',
+                        message: e.reason,
+                      }),
+                    );
+                    break;
+                  case 'not_found':
+                    dispatch(
+                      reportDBSyncStatus({
+                        v,
+                        profileName,
+                        serverName,
+                        type,
+                        status: 'Config Error',
+                        message: e.reason,
+                      }),
+                    );
+                    break;
+                  default:
+                    if (e?.code === 'ETIMEDOUT') {
+                      dispatch(
+                        reportDBSyncStatus({
+                          v,
+                          profileName,
+                          serverName,
+                          type,
+                          status: 'Offline',
+                          message: JSON.stringify(e)?.slice(0, 8000),
+                        }),
+                      );
+                    } else if (e?.status === 0) {
+                      dispatch(
+                        reportDBSyncStatus({
+                          v,
+                          profileName,
+                          serverName,
+                          type,
+                          status: 'Offline',
+                          message: JSON.stringify(e)?.slice(0, 8000),
+                        }),
+                      );
+                    } else {
+                      dispatch(
+                        reportDBSyncStatus({
+                          v,
+                          profileName,
+                          serverName,
+                          type,
+                          status: 'Config Error',
+                          message:
+                            e?.reason ||
+                            `Cannot connect to server: ${JSON.stringify(
+                              e,
+                            )?.slice(0, 8000)}.`,
+                        }),
+                      );
+                    }
+                    break;
+                }
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'login',
+                    server: syncName,
+                    ok: false,
+                    raw: JSON.stringify(e)?.slice(0, 8000),
+                  });
+                }
+              });
+          }
+
+          loginToRemoteDB();
+
+          function addSyncEventListeners(
+            sync: PouchDB.Replication.Sync<{}>,
+            { live }: { live: boolean },
+          ) {
+            sync
+              .on('complete', function (result) {
+                if (live || syncRef.canceled) {
                   dispatch(
                     reportDBSyncStatus({
+                      v,
+                      profileName,
+                      serverName,
+                      type,
+                      status: 'Offline',
+                    }),
+                  );
+                } else {
+                  dispatch(
+                    reportDBSyncStatus({
+                      v,
                       profileName,
                       serverName,
                       type,
                       status: 'Success',
                     }),
                   );
-                  // debugLog(
-                  //   `[DB Sync - ${syncName}] sync complete: ${JSON.stringify(
-                  //     result,
-                  //   )?.slice(0, 8000)}`,
-                  // );
-                  if (loggingEnabled) {
-                    insertTimestampIdRecord(logsDB, {
-                      type: 'db_sync',
-                      timestamp: new Date().getTime(),
-                      event: 'complete',
-                      server: syncName,
-                      ok:
-                        result.pull?.ok !== false && result.push?.ok !== false,
-                      raw: JSON.stringify(result)?.slice(0, 8000),
-                      ...result,
-                    });
-                  }
-                })
-                .on('change', function (result) {
+                  startLiveSync();
+                }
+
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'complete',
+                    server: syncName,
+                    live,
+                    canceled: syncRef.canceled,
+                    ok: result.pull?.ok !== false && result.push?.ok !== false,
+                    raw: JSON.stringify(result)?.slice(0, 8000),
+                    ...result,
+                  });
+                }
+              })
+              .on('change', function (result) {
+                if (live) {
                   dispatch(
                     reportDBSyncStatus({
+                      v,
                       profileName,
                       serverName,
                       type,
                       status: 'Success',
                     }),
                   );
-                  // debugLog(
-                  //   `[DB Sync - ${syncName}] change synced: ${JSON.stringify(
-                  //     result,
-                  //   )?.slice(0, 8000)}`,
-                  // );
-                  if (loggingEnabled) {
-                    const {
-                      change: { docs: _d, ...chg },
-                      ...res
-                    } = result;
-                    const resultWithoutDocs = { ...res, change: chg };
-                    insertTimestampIdRecord(logsDB, {
-                      type: 'db_sync',
-                      timestamp: new Date().getTime(),
-                      event: 'change',
-                      server: syncName,
-                      ok: result.change.ok,
-                      raw: JSON.stringify(result)?.slice(0, 8000),
-                      ...resultWithoutDocs,
-                    });
-                  }
-                })
-                .on('error', function (e) {
+                }
+                // debugLog(
+                //   `[DB Sync - ${syncName}] change synced: ${JSON.stringify(
+                //     result,
+                //   )?.slice(0, 8000)}`,
+                // );
+                if (loggingEnabled) {
+                  const {
+                    change: { docs: _d, ...chg },
+                    ...res
+                  } = result;
+                  const resultWithoutDocs = { ...res, change: chg };
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'change',
+                    server: syncName,
+                    live,
+                    ok: result.change.ok,
+                    raw: JSON.stringify(result)?.slice(0, 8000),
+                    ...resultWithoutDocs,
+                  });
+                }
+              })
+              .on('error', function (e) {
+                if (live) {
                   dispatch(
                     reportDBSyncStatus({
+                      v,
                       profileName,
                       serverName,
                       type,
@@ -198,171 +315,140 @@ export default function DBSyncManager() {
                       e,
                     )?.slice(0, 8000)}`,
                   );
-                  if (loggingEnabled) {
-                    insertTimestampIdRecord(logsDB, {
-                      type: 'db_sync',
-                      timestamp: new Date().getTime(),
-                      event: 'error',
-                      server: syncName,
-                      ok: false,
-                      raw: JSON.stringify(e)?.slice(0, 8000),
-                    });
-                  }
-                })
-                .on('paused', function (e) {
-                  // debugLog(
-                  //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(
-                  //     e,
-                  //   )?.slice(0, 8000)}`,
-                  // );
-                  // if (loggingEnabled) {
-                  //   insertTimestampIdRecord(logsDB, {
-                  //     type: 'db_sync',
-                  //     timestamp: new Date().getTime(),
-                  //     event: 'paused',
-                  //     server: syncName,
-                  //     ok: false,
-                  //     raw: JSON.stringify(e)?.slice(0, 8000),
-                  //   });
-                  // }
-                })
-                .on('active', function () {
-                  // debugLog(
-                  //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(e)?.slice(
-                  //     0,
-                  //     8000,
-                  //   )}`,
-                  // );
-                  // if (loggingEnabled) {
-                  //   insertTimestampIdRecord(logsDB, {
-                  //     type: 'db_sync',
-                  //     timestamp: new Date().getTime(),
-                  //     event: 'active',
-                  //     server: syncName,
-                  //     ok: true,
-                  //   });
-                  // }
-                })
-                .on('denied', function (e) {
-                  // debugLog(
-                  //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(
-                  //     e,
-                  //   )?.slice(0, 8000)}`,
-                  // );
-                  if (loggingEnabled) {
-                    insertTimestampIdRecord(logsDB, {
-                      type: 'db_sync',
-                      timestamp: new Date().getTime(),
-                      event: 'denied',
-                      server: syncName,
-                      ok: false,
-                      raw: JSON.stringify(e)?.slice(0, 8000),
-                    });
-                  }
-                  // TODO: Report status?
-                });
-              resolve([syncName, sync]);
-            })
-            .catch(e => {
-              switch (e?.error) {
-                case 'unauthorized':
+                } else {
+                  // TODO: Handle other errors
                   dispatch(
                     reportDBSyncStatus({
+                      v,
                       profileName,
                       serverName,
                       type,
-                      status: 'Auth Error',
-                      message: e.reason,
+                      status: 'Offline',
+                      message: JSON.stringify(e)?.slice(0, 8000),
                     }),
                   );
-                  break;
-                case 'not_found':
-                  dispatch(
-                    reportDBSyncStatus({
-                      profileName,
-                      serverName,
-                      type,
-                      status: 'Config Error',
-                      message: e.reason,
-                    }),
-                  );
-                  break;
-                default:
-                  if (e?.code === 'ETIMEDOUT') {
-                    dispatch(
-                      reportDBSyncStatus({
-                        profileName,
-                        serverName,
-                        type,
-                        status: 'Offline',
-                        message: JSON.stringify(e)?.slice(0, 8000),
-                      }),
-                    );
-                  } else if (e?.status === 0) {
-                    dispatch(
-                      reportDBSyncStatus({
-                        profileName,
-                        serverName,
-                        type,
-                        status: 'Offline',
-                        message: JSON.stringify(e)?.slice(0, 8000),
-                      }),
-                    );
-                  } else {
-                    dispatch(
-                      reportDBSyncStatus({
-                        profileName,
-                        serverName,
-                        type,
-                        status: 'Config Error',
-                        message:
-                          e?.reason ||
-                          `Cannot connect to server: ${JSON.stringify(e)?.slice(
-                            0,
-                            8000,
-                          )}.`,
-                      }),
-                    );
-                  }
-                  break;
-              }
+                  setTimeout(startInitialSync, 5000);
+                }
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'error',
+                    server: syncName,
+                    live,
+                    ok: false,
+                    raw: JSON.stringify(e)?.slice(0, 8000),
+                  });
+                }
+              })
+              .on('paused', async function (e) {
+                // dispatch(
+                //   reportDBSyncStatus({
+                //     profileName,
+                //     serverName,
+                //     type,
+                //     status: 'Success',
+                //   }),
+                // );
+                // debugLog(
+                //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(
+                //     e,
+                //   )?.slice(0, 8000)}`,
+                // );
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'paused',
+                    server: syncName,
+                    live,
+                    raw: JSON.stringify(e)?.slice(0, 8000),
+                    ok: !e,
+                  });
+                }
+              })
+              .on('active', function () {
+                dispatch(
+                  reportDBSyncStatus({
+                    v,
+                    profileName,
+                    serverName,
+                    type,
+                    status: 'Syncing',
+                  }),
+                );
+                // debugLog(
+                //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(e)?.slice(
+                //     0,
+                //     8000,
+                //   )}`,
+                // );
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'active',
+                    server: syncName,
+                    live,
+                  });
+                }
+              })
+              .on('denied', function (e) {
+                // debugLog(
+                //   `[DB Sync - ${syncName}] sync error: ${JSON.stringify(
+                //     e,
+                //   )?.slice(0, 8000)}`,
+                // );
+                if (loggingEnabled) {
+                  insertTimestampIdRecord(logsDB, {
+                    type: 'db_sync',
+                    timestamp: new Date().getTime(),
+                    event: 'denied',
+                    server: syncName,
+                    live,
+                    raw: JSON.stringify(e)?.slice(0, 8000),
+                  });
+                }
+              });
 
-              debugLog(
-                `[DB Sync - ${syncName}] login fail: ${JSON.stringify(e)}`,
-              );
-              if (loggingEnabled) {
-                insertTimestampIdRecord(logsDB, {
-                  type: 'db_sync',
-                  timestamp: new Date().getTime(),
-                  event: 'login',
-                  server: syncName,
-                  ok: false,
-                  raw: JSON.stringify(e)?.slice(0, 8000),
-                });
-              }
-              resolve([syncName, null]);
-            });
-        } catch (e) {
-          dispatch(
-            reportDBSyncStatus({
-              profileName,
-              serverName,
-              type,
-              status: 'Offline',
-              message: JSON.stringify(e)?.slice(0, 8000),
-            }),
-          );
-          if (loggingEnabled) {
-            insertTimestampIdRecord(logsDB, {
-              type: 'db_sync',
-              timestamp: new Date().getTime(),
-              event: 'login',
-              server: syncName,
-              ok: false,
-              raw: JSON.stringify(e)?.slice(0, 8000),
+            return sync;
+          }
+
+          function startInitialSync() {
+            if (syncRef.sync) syncRef.sync.cancel();
+            if (syncRef.canceled) return;
+
+            dispatch(
+              reportDBSyncStatus({
+                v,
+                profileName,
+                serverName,
+                type,
+                status: 'Syncing',
+              }),
+            );
+
+            syncRef.sync = addSyncEventListeners(localDB.sync(remoteDB), {
+              live: false,
             });
           }
-          resolve([syncName, null]);
+
+          function startLiveSync() {
+            if (syncRef.sync) syncRef.sync.cancel();
+            if (syncRef.canceled) return;
+
+            syncRef.sync = addSyncEventListeners(
+              localDB.sync(remoteDB, {
+                live: true,
+                retry: true,
+              }),
+              { live: true },
+            );
+
+            setTimeout(startInitialSync, 1000 * 60 * 30);
+          }
+        } catch (e: any) {
+          // TODO: Handle unknown error
         }
       });
     }
@@ -406,8 +492,8 @@ export default function DBSyncManager() {
       }
 
       syncPromises.forEach(async syncPromise => {
-        const [syncName, sync] = await syncPromise;
-        if (!sync) {
+        const [syncName, syncRef] = await syncPromise;
+        if (!syncRef.sync) {
           // debugLog(`[DB Sync - ${syncName}] stop: not started`);
           if (loggingEnabled) {
             insertTimestampIdRecord(logsDB, {
@@ -422,7 +508,8 @@ export default function DBSyncManager() {
           return;
         }
 
-        sync.cancel();
+        syncRef.canceled = true;
+        syncRef.sync.cancel();
         // debugLog(`[DB Sync - ${syncName}] stop: cancel called`);
         insertTimestampIdRecord(logsDB, {
           type: 'db_sync',
@@ -434,7 +521,16 @@ export default function DBSyncManager() {
         });
       });
     };
-  }, [attachmentsDB, db, dbSyncConfig, loggingEnabled, logsDB, syncSettings]);
+  }, [
+    attachmentsDB,
+    db,
+    dbSyncConfig,
+    dispatch,
+    loggingEnabled,
+    logsDB,
+    profileName,
+    syncSettings,
+  ]);
 
   return null;
 }
