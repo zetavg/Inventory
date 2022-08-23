@@ -92,17 +92,20 @@ function PouchDBSyncScreen({
                   );
                   const statusElements = [
                     reducedServerStatus.status && (
-                      <Text>{reducedServerStatus.status}</Text>
+                      <Text key="status">{reducedServerStatus.status}</Text>
                     ),
                     reducedServerStatus.lastSyncedAt ? (
-                      <Text>
+                      <Text key="lastSyncedAt">
                         last synced{' '}
                         {<TimeAgo time={reducedServerStatus.lastSyncedAt} />}
                       </Text>
                     ) : null,
                   ]
                     .filter(s => !!s)
-                    .flatMap(element => [element, <Text> · </Text>])
+                    .flatMap((element, i) => [
+                      element,
+                      <Text key={`s-${i}`}> · </Text>,
+                    ])
                     .slice(0, -1);
                   return [
                     <InsetGroup.Item
