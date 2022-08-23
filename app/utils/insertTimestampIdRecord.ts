@@ -15,7 +15,7 @@ export default async function insertTimestampIdRecord<T>(
   while (true) {
     try {
       return await db.put({
-        _id: (timestamp + timestampOffset).toString(),
+        _id: (timestamp + timestampOffset).toString().padStart(16, '0'),
         ...doc,
       });
     } catch (e) {
