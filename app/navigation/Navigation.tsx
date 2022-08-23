@@ -36,6 +36,7 @@ import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyn
 import SampleModalScreen from '@app/screens/SampleModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
+import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
 import RfidScanScreen from '@app/screens/RfidScanScreen';
 import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
 
@@ -61,6 +62,10 @@ export type RootStackParamList = {
   PouchDBPutDataModal: {
     id?: string;
     jsonData?: string;
+  };
+  RelationalPouchDBSave: {
+    type: string;
+    defaultContentJson?: string;
   };
   SampleModal: { showAppbar?: boolean };
   DemoModal: undefined;
@@ -346,6 +351,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             <Stack.Screen
               name="PouchDBPutDataModal"
               component={PouchDBPutDataModalScreen}
+            />
+            <Stack.Screen
+              name="RelationalPouchDBSave"
+              component={RelationalPouchDBSaveScreen}
             />
           </Stack.Navigator>
           <BottomSheetModal

@@ -18,6 +18,9 @@ import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
 import SQLiteScreen from '@app/screens/SQLiteScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
+import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
+import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
+import RelationalPouchDBTypeDetailScreen from '@app/screens/RelationalPouchDBTypeDetailScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import SampleScreen from '@app/screens/SampleScreen';
@@ -53,6 +56,14 @@ export type StackParamList = {
   SQLite: undefined;
   PouchDB: undefined;
   PouchDBItem: { id: string };
+  RelationalPouchDB: undefined;
+  RelationalPouchDBType: {
+    type: string;
+  };
+  RelationalPouchDBTypeDetail: {
+    type: string;
+    id: string | number;
+  };
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
   Counter: undefined;
@@ -132,6 +143,18 @@ function MainStack({ initialRouteName }: Props) {
       />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
+      <Stack.Screen
+        name="RelationalPouchDB"
+        component={RelationalPouchDBScreen}
+      />
+      <Stack.Screen
+        name="RelationalPouchDBType"
+        component={RelationalPouchDBTypeScreen}
+      />
+      <Stack.Screen
+        name="RelationalPouchDBTypeDetail"
+        component={RelationalPouchDBTypeDetailScreen}
+      />
       <Stack.Screen
         name="PouchDBAttachments"
         component={PouchDBAttachmentsScreen}

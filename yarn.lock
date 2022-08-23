@@ -11998,6 +11998,13 @@ regjsparser@^0.8.2:
   dependencies:
     jsesc "~0.5.0"
 
+relational-pouch@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/relational-pouch/-/relational-pouch-4.0.0.tgz#f2702e0f756e4cf161323e51888bd836c5956303"
+  integrity sha512-1BH3SIPMKqFAOeg6pOu/fpfEYgMQHOM24JheP6d9COCHze7FoGfgY4dC+9C/gkBLFeLVXDcuiY5oZy/U1aPZIQ==
+  dependencies:
+    uniq "^1.0.1"
+
 relative-time-format@^1.1.4:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/relative-time-format/-/relative-time-format-1.1.4.tgz#50c308a482985333a13df119b1ff2763e3eb0685"

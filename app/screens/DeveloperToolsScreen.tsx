@@ -55,7 +55,13 @@ function DeveloperToolsScreen({
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
-            label="PouchDB (Attachments)"
+            label="Relational PouchDB"
+            arrow
+            onPress={() => navigation.push('RelationalPouchDB')}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="Attachments DB"
             arrow
             onPress={() => navigation.push('PouchDBAttachments')}
           />

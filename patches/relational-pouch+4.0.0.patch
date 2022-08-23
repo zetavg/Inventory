@@ -1,0 +1,52 @@
+diff --git a/node_modules/relational-pouch/lib/index.js b/node_modules/relational-pouch/lib/index.js
+index 24cd6b0..2eb16ef 100644
+--- a/node_modules/relational-pouch/lib/index.js
++++ b/node_modules/relational-pouch/lib/index.js
+@@ -1,4 +1,4 @@
+-import uuid from './uuid';
++import { v4 as uuid } from 'uuid';
+ import uniq from 'uniq';
+ function createError(str) {
+     let err = new Error(str);
+@@ -13,14 +13,14 @@ const TYPE_OBJ = '3';
+ function serialize(type, id = undefined) {
+     // simple collation that goes like this:
+     // undefined < numbers < strings < object
+-    let res = type.replace('_', '') + '_';
++    let res = type.replace('-', '') + '-';
+     if (typeof id === 'number') {
+         // zpad
+         id = id.toString();
+         while (id.length < MAX_INT_LENGTH) {
+             id = '0' + id;
+         }
+-        res += TYPE_NUM + '_' + id;
++        res += TYPE_NUM + '-' + id;
+     }
+     else if (typeof id === 'undefined') {
+         // need lowest possible value
+@@ -31,13 +31,13 @@ function serialize(type, id = undefined) {
+         res += TYPE_OBJ;
+     }
+     else { // string
+-        res += TYPE_STRING + '_' + id;
++        res += TYPE_STRING + '-' + id;
+     }
+     return res;
+ }
+ function deserialize(str) {
+     // should only have to deserialize numbers and strings
+-    let idx = str.indexOf('_');
++    let idx = str.indexOf('-');
+     let collationType = str.charAt(idx + 1);
+     let id = str.substring(idx + 3);
+     if (collationType === TYPE_NUM) {
+@@ -372,7 +372,7 @@ function createRel(db, keysToSchemas, schema) {
+         return _del(type, obj);
+     }
+     function parseDocID(str) {
+-        let idx = str.indexOf('_');
++        let idx = str.indexOf('-');
+         let type = str.substring(0, idx);
+         let relId = deserialize(str);
+         let defaultType = keysToSchemas.get(type);
