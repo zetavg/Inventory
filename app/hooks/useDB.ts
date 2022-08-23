@@ -27,6 +27,6 @@ export default function useDB() {
       attachmentsDB: getAttachmentsDB(),
       logsDB: getLogsDB(),
     }),
-    [getDB, getAttachmentsDB],
+    [getDB, getAttachmentsDB, getLogsDB],
   );
 }

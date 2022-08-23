@@ -241,7 +241,7 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
                       <Tab.Screen
                         name="InventoryTab"
                         children={() => (
-                          <MainStack initialRouteName="Settings" />
+                          <MainStack initialRouteName="DeveloperTools" />
                         )}
                         options={{
                           title: 'Inventory',

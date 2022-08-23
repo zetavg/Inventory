@@ -79,7 +79,7 @@ function PouchDBItemScreen({
         },
       ],
     );
-  }, [data, navigation]);
+  }, [data, db, navigation]);
 
   const jsonData = (() => {
     if (!data) return undefined;
