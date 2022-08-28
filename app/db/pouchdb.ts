@@ -5,6 +5,7 @@ import PouchDBAuthentication from 'pouchdb-authentication';
 import WebSQLite from 'react-native-quick-websql';
 import { DBContent, AttachmentsDBContent, LogsDBContent } from './types';
 import schema from './schema';
+import { translateSchema } from './relationalUtils';
 
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);
 
@@ -20,7 +21,7 @@ export type LogsDatabase = PouchDB.Database<LogsDBContent>;
 
 export function getDatabase(name: string): Database {
   const db = new PouchDBRN<DBContent>(name, { adapter: 'react-native-sqlite' });
-  const relDB = db.setSchema(schema);
+  const relDB = db.setSchema(translateSchema(schema));
   return relDB;
 }
 

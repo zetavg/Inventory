@@ -14,6 +14,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import {
   findWithRelations,
   FindWithRelationsReturnedData,
+  getDataTypeNameFromRelation,
+  getQueryInverseFromRelation,
+  getTypeFromRelation,
 } from '@app/db/relationalUtils';
 
 function RelationalPouchDBTypeDetailScreen({
@@ -22,7 +25,7 @@ function RelationalPouchDBTypeDetailScreen({
 }: StackScreenProps<StackParamList, 'RelationalPouchDBTypeDetail'>) {
   const rootNavigation = useRootNavigation();
   const { type, id } = route.params;
-  const typeDef = schema.find(s => s.singular === type);
+  const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
   const { db } = useDB();
@@ -71,11 +74,7 @@ function RelationalPouchDBTypeDetailScreen({
   return (
     <ScreenContent
       navigation={navigation}
-      title={
-        data?.data
-          ? data?.data[typeDef.titleField]
-          : titleCase(typeDef.singular)
-      }
+      title={data?.data ? data?.data[typeDef.titleField] : titleCase(type)}
       action1Label="Edit"
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}
       action1MaterialIconName={(data && 'pencil') || undefined}
@@ -111,30 +110,37 @@ function RelationalPouchDBTypeDetailScreen({
                     />
                   </InsetGroup>
 
-                  {Object.entries(data.relations).map(
-                    ([field, relationData]) => {
-                      const relationDataTypeDef = schema.find(
-                        s => s.singular === relationData.type,
-                      );
-                      if (!relationDataTypeDef)
-                        throw new Error(`No such type: ${relationData.type}`);
+                  {Object.entries(typeDef.relations).map(
+                    ([field, relationDef]) => {
+                      const dataTypeNameOfRelation =
+                        getDataTypeNameFromRelation(relationDef);
+                      if (!dataTypeNameOfRelation)
+                        throw new Error(
+                          `Can't get data type name for field "${field}": ${JSON.stringify(
+                            relationDef,
+                          )}`,
+                        );
+                      const dataTypeDefOfRelation =
+                        schema[dataTypeNameOfRelation];
+                      const relationType = getTypeFromRelation(relationDef);
+                      const queryInverse =
+                        getQueryInverseFromRelation(relationDef);
 
-                      const elements = (
-                        Array.isArray(relationData.data)
-                          ? relationData.data
-                          : [relationData.data]
-                      )
+                      const elements = data
+                        .getRelated(field, {
+                          arrElementType: dataTypeNameOfRelation,
+                        })
                         .flatMap((rData: any) => {
                           return [
                             <InsetGroup.Item
                               key={rData.id}
                               arrow
                               vertical
-                              label={rData[relationDataTypeDef.titleField]}
+                              label={rData[dataTypeDefOfRelation.titleField]}
                               detail={rData.id}
                               onPress={() =>
                                 navigation.push('RelationalPouchDBTypeDetail', {
-                                  type: relationData.type,
+                                  type: dataTypeNameOfRelation,
                                   id: rData.id,
                                 })
                               }
@@ -143,14 +149,14 @@ function RelationalPouchDBTypeDetailScreen({
                           ];
                         })
                         .slice(0, -1);
+
                       return (
                         <InsetGroup
                           key={field}
                           label={`${titleCase(field)} (${titleCase(
-                            camelToSnakeCase(relationData.relation).replace(
-                              '_',
-                              ' ',
-                            ),
+                            camelToSnakeCase(
+                              Object.keys(relationDef)[0] || '',
+                            ).replace('_', ' '),
                           )})`}
                         >
                           {elements.length > 0 ? (
@@ -158,33 +164,33 @@ function RelationalPouchDBTypeDetailScreen({
                           ) : (
                             <InsetGroup.Item disabled label={`No ${field}`} />
                           )}
-                          {relationData.relation === 'hasMany' &&
-                            relationData.queryInverse && (
-                              <>
-                                <InsetGroup.ItemSeperator />
-                                <InsetGroup.Item
-                                  button
-                                  label={`Add ${titleCase(relationData.type)}`}
-                                  onPress={() =>
-                                    rootNavigation?.push(
-                                      'RelationalPouchDBSave',
-                                      {
-                                        type: relationData.type,
-                                        defaultContentJson: JSON.stringify(
-                                          {
-                                            ...relationDataTypeDef.sample,
-                                            [relationData.queryInverse as string]:
-                                              d.id,
-                                          },
-                                          null,
-                                          2,
-                                        ),
-                                      },
-                                    )
-                                  }
-                                />
-                              </>
-                            )}
+                          {relationType === 'hasMany' && queryInverse && (
+                            <>
+                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.Item
+                                button
+                                label={`Add ${titleCase(
+                                  dataTypeNameOfRelation,
+                                )}`}
+                                onPress={() =>
+                                  rootNavigation?.push(
+                                    'RelationalPouchDBSave',
+                                    {
+                                      type: dataTypeNameOfRelation,
+                                      defaultContentJson: JSON.stringify(
+                                        {
+                                          ...dataTypeDefOfRelation.sample,
+                                          [queryInverse as string]: d.id,
+                                        },
+                                        null,
+                                        2,
+                                      ),
+                                    },
+                                  )
+                                }
+                              />
+                            </>
+                          )}
                         </InsetGroup>
                       );
                     },

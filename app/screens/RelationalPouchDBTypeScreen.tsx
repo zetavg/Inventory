@@ -17,7 +17,7 @@ function RelationalPouchDBTypeScreen({
 }: StackScreenProps<StackParamList, 'RelationalPouchDBType'>) {
   const rootNavigation = useRootNavigation();
   const { type } = route.params;
-  const typeDef = schema.find(s => s.singular === type);
+  const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
   const { db } = useDB();

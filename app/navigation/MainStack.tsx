@@ -33,6 +33,8 @@ import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/Pouch
 import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
 import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
 
+import type { TypeName as DataTypeName } from '@app/db/schema';
+
 export type StackParamList = {
   More: undefined;
   Settings: undefined;
@@ -58,10 +60,10 @@ export type StackParamList = {
   PouchDBItem: { id: string };
   RelationalPouchDB: undefined;
   RelationalPouchDBType: {
-    type: string;
+    type: DataTypeName;
   };
   RelationalPouchDBTypeDetail: {
-    type: string;
+    type: DataTypeName;
     id: string | number;
   };
   PouchDBAttachments: undefined;

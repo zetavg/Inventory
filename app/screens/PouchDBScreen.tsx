@@ -38,7 +38,22 @@ function PouchDBScreen({
       const results = await (searchText
         ? (db as any).search({
             query: searchText,
-            fields: ['a', 'b', 'c', 'name', 'description'],
+            fields: [
+              'a',
+              'b',
+              'c',
+              'name',
+              'title',
+              'description',
+              'keywords',
+              'data.a',
+              'data.b',
+              'data.c',
+              'data.name',
+              'data.title',
+              'data.description',
+              'data.keywords',
+            ],
             // language: ['en', 'zh'],
             language: 'en',
             include_docs: true,

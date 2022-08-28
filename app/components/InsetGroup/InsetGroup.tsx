@@ -196,6 +196,9 @@ function InsetGroupItem({
             vertical || vertical2
               ? styles.insetGroupItemVerticalContainer
               : styles.insetGroupItemContainer,
+            (vertical || vertical2) &&
+              arrow &&
+              styles.insetGroupItemVerticalContainerWithArrow,
             {
               paddingVertical: (vertical ? 4 : vertical2 ? 8 : 12) * fontScale,
             },
@@ -483,6 +486,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-start',
     paddingHorizontal: 16,
+  },
+  insetGroupItemVerticalContainerWithArrow: {
+    paddingRight: 36,
   },
   insetGroupItemText: {
     fontSize: FONT_SIZE,

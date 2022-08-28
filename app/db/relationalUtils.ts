@@ -1,16 +1,12 @@
 import { Database } from './pouchdb';
-import schema, { Type } from './schema';
+import schema, { Schema, TypeName, DataType, RelationDef } from './schema';
 
 export type FindWithRelationsReturnedData = {
   data: any;
-  relations: {
-    [field: string]: {
-      type: Type;
-      relation: 'belongsTo' | 'hasMany';
-      queryInverse?: string;
-      data: any;
-    };
-  };
+  getRelated: <T extends TypeName>(
+    field: string,
+    options: { arrElementType: T },
+  ) => ReadonlyArray<DataType<T>>;
 };
 
 /**
@@ -19,82 +15,84 @@ export type FindWithRelationsReturnedData = {
  */
 export async function findWithRelations(
   db: Database,
-  type: Type,
+  type: TypeName,
   id: number | string,
 ): Promise<FindWithRelationsReturnedData> {
-  const typeDef = schema.find(s => s.singular === type);
+  const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
   const data = await db.rel.find(type, id);
   const doc =
-    data[typeDef.plural] && data[typeDef.plural].find((d: any) => d?.id === id);
+    data &&
+    data[typeDef.plural] &&
+    data[typeDef.plural].find((d: any) => d?.id === id);
 
-  if (!doc) return { data: null, relations: {} };
+  if (!doc) return { data: null, getRelated: () => [] };
 
-  const returnedRelations: any = Object.fromEntries(
-    Object.entries(typeDef.relations || {}).map(([field, r]) => [
-      field,
-      {
-        type: getTypeFromRelation(r),
-        relation: Object.keys(r)[0],
-        queryInverse: getQueryInverseFromRelation(r),
-        data: [],
-      },
-    ]),
-  );
+  const relatedData: Record<
+    string,
+    undefined | Array<DataType<any>> | DataType<any>
+  > = {};
 
   Object.entries(data).forEach(([relationDataTypePlural, relationData]) => {
-    const relationDataType = schema.find(
-      s => s.plural === relationDataTypePlural,
+    const relationDataTypeNameAndDef = Object.entries(schema).find(
+      ([_, def]) => def.plural === relationDataTypePlural,
     );
-    if (!relationDataType) return;
+    if (!relationDataTypeNameAndDef) return;
 
-    const relatedRelation = Object.entries(typeDef.relations || {}).filter(
+    const [relationDataTypeName, _relationDataTypeDef] =
+      relationDataTypeNameAndDef;
+
+    const relatedRelations = Object.entries(typeDef.relations || {}).filter(
       ([_field, relation]) =>
-        (relation as any)?.belongsTo === relationDataType.singular ||
-        (relation as any)?.belongsTo?.type === relationDataType.singular ||
-        (relation as any)?.hasMany === relationDataType.singular ||
-        (relation as any)?.hasMany?.type === relationDataType.singular,
+        relation?.belongsTo === relationDataTypeName ||
+        relation?.belongsTo?.type === relationDataTypeName ||
+        relation?.hasMany === relationDataTypeName ||
+        relation?.hasMany?.type === relationDataTypeName,
     );
 
+    // Check each datum against each relation and see where they belongs to.
     (relationData as any).forEach((relationD: any) => {
-      relatedRelation.forEach(([field, relation]) => {
-        const relationK =
+      relatedRelations.forEach(([field, relation]) => {
+        const relationDefValue =
           (relation as any).belongsTo || (relation as any).hasMany;
         if (Array.isArray(doc[field]) && doc[field].includes(relationD.id)) {
-          if (!returnedRelations[field])
-            returnedRelations[field] = {
-              type: relationDataType.singular,
-              data: [],
-            };
-          returnedRelations[field].data.push(relationD);
+          // Has many relation without queryInverse
+          if (!relatedData[field]) relatedData[field] = [];
+          relatedData[field]?.push(relationD);
         } else if (doc[field] === relationD.id) {
-          if (!returnedRelations[field])
-            returnedRelations[field] = {
-              type: relationDataType.singular,
-              data: [],
-            };
-          returnedRelations[field].data = relationD;
+          // belongsTo
+          relatedData[field] = relationD;
         } else if (
-          typeof relationK === 'object' &&
-          (relationK as any).options?.queryInverse &&
-          relationD[(relationK as any).options?.queryInverse] === doc.id
+          typeof relationDefValue === 'object' &&
+          (relationDefValue as any).options?.queryInverse &&
+          relationD[(relationDefValue as any).options?.queryInverse] === doc.id
         ) {
-          if (!returnedRelations[field])
-            returnedRelations[field] = {
-              type: relationDataType.singular,
-              data: [],
-            };
-          returnedRelations[field].data.push(relationD);
+          // Has many relation with queryInverse
+          if (!relatedData[field]) relatedData[field] = [];
+          relatedData[field]?.push(relationD);
         }
       });
     });
   });
 
-  return { data: doc, relations: returnedRelations };
+  const getRelated: FindWithRelationsReturnedData['getRelated'] = field => {
+    const d = relatedData[field];
+    if (!d) return [];
+
+    if (Array.isArray(d)) return d;
+    return [d];
+  };
+
+  return { data: doc, getRelated };
 }
 
-function getTypeFromRelation(relation: any) {
+/**
+ * Get related data type name from relation definition
+ */
+export function getDataTypeNameFromRelation(
+  relation: any,
+): TypeName | undefined {
   if (typeof relation?.belongsTo === 'string') return relation.belongsTo;
   if (typeof relation?.hasMany === 'string') return relation.hasMany;
   if (typeof relation?.belongsTo?.type === 'string')
@@ -103,10 +101,35 @@ function getTypeFromRelation(relation: any) {
     return relation?.hasMany?.type;
 }
 
-function getQueryInverseFromRelation(relation: any) {
+/**
+ * Get relation type (`hasMany`, `belongsTo`) name from relation definition
+ */
+export function getTypeFromRelation(relation: RelationDef): string | undefined {
+  return Object.keys(relation)[0];
+}
+
+export function getQueryInverseFromRelation(
+  relation: any,
+): TypeName | undefined {
   if (
     typeof relation?.hasMany === 'object' &&
     relation.hasMany?.options?.queryInverse
   )
     return relation.hasMany?.options?.queryInverse;
+}
+
+/**
+ * Translate schema to relational-pouch schema.
+ */
+export function translateSchema(s: Schema) {
+  return Object.entries(s).map(([singular, { relations, ...typeDef }]) => ({
+    ...typeDef,
+    singular,
+    relations: Object.fromEntries(
+      Object.entries(relations).filter(([_field, relDef]) => {
+        const t = Object.keys(relDef)[0];
+        return t === 'belongsTo' || t === 'hasMany';
+      }),
+    ),
+  }));
 }

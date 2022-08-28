@@ -15,17 +15,17 @@ function RelationalPouchDBScreen({
     <ScreenContent navigation={navigation} title="Relational PouchDB">
       <ScrollView keyboardDismissMode="interactive">
         <InsetGroup label="Types">
-          {schema
-            .flatMap(s => [
+          {Object.entries(schema)
+            .flatMap(([type, typeDef]) => [
               <InsetGroup.Item
-                key={s.plural}
-                label={titleCase(s.plural)}
+                key={type}
+                label={titleCase(typeDef.plural)}
                 arrow
                 onPress={() =>
-                  navigation.push('RelationalPouchDBType', { type: s.singular })
+                  navigation.push('RelationalPouchDBType', { type })
                 }
               />,
-              <InsetGroup.ItemSeperator key={`s-${s.plural}`} />,
+              <InsetGroup.ItemSeperator key={`s-${type}`} />,
             ])
             .slice(0, -1)}
         </InsetGroup>
