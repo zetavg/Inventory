@@ -5,6 +5,7 @@ function useColors() {
   const backgroundColor = isDarkMode ? '#000000' : '#F2F2F6';
   const groupTitleColor = isDarkMode ? '#8D8D93' : '#85858B';
   const contentBackgroundColor = isDarkMode ? '#1C1C1E' : '#FFFFFF';
+  const sheetBackgroundColor = isDarkMode ? '#1C1C1E' : '#F2F2F6';
   const contentTextColor = isDarkMode ? '#FFFFFF' : '#000000';
   const contentSecondaryTextColor = isDarkMode ? '#98989F' : '#8A8A8E';
   const contentDisabledTextColor = isDarkMode ? '#8F8F8F' : '#8F8F8F';
@@ -23,10 +24,35 @@ function useColors() {
   const purple = isDarkMode ? '#BF5AF2' : '#AF52DE';
   const pink = isDarkMode ? '#FF2D55' : '#FF2D55';
 
+  const red2 = isDarkMode ? '#FF6A61' : '#FF6259';
+  const orange2 = isDarkMode ? '#FF6A61' : '#FFAA33';
+  const yellow2 = isDarkMode ? '#FFDE3B' : '#FFD633';
+  const green2 = isDarkMode ? '#5BDF6F' : '#53D767';
+  const blue2 = isDarkMode ? '#3B9DFF' : '#3395FF';
+  const purple2 = isDarkMode ? '#CB7BF5' : '#BF75E5';
+  const grey2 = isDarkMode ? '#ADADB1' : '#A5A5A9';
+
+  const redTag = isDarkMode ? '#FF736A' : '#F75B52';
+  const orangeTag = isDarkMode ? '#FFBA44' : '#F7A234';
+  const yellowTag = isDarkMode ? '#FFE643' : '#F7CE33';
+  const greenTag = isDarkMode ? '#66FF78' : '#4ECF60';
+  const blueTag = isDarkMode ? '#44A4FF' : '#348CF7';
+  const purpleTag = isDarkMode ? '#D683FF' : '#B270D3';
+  const greyTag = isDarkMode ? '#B4B4B8' : '#9C9CA0';
+
+  const redTagBorder = isDarkMode ? '#FF5045' : '#F53227';
+  const orangeTagBorder = isDarkMode ? '#FFA914' : '#F58B01';
+  const yellowTagBorder = isDarkMode ? '#FFE013' : '#F5C201';
+  const greenTagBorder = isDarkMode ? '#40FF56' : '#23C338';
+  const blueTagBorder = isDarkMode ? '#148EFF' : '#0171F5';
+  const purpleTagBorder = isDarkMode ? '#CB66FF' : '#9F4CC9';
+  const greyTagBorder = isDarkMode ? '#A2A2A7' : '#848489';
+
   return {
     backgroundColor,
     groupTitleColor,
     contentBackgroundColor,
+    sheetBackgroundColor,
     contentTextColor,
     contentSecondaryTextColor,
     contentDisabledTextColor,
@@ -43,6 +69,27 @@ function useColors() {
     indigo,
     purple,
     pink,
+    red2,
+    orange2,
+    yellow2,
+    green2,
+    blue2,
+    purple2,
+    grey2,
+    redTag,
+    orangeTag,
+    yellowTag,
+    greenTag,
+    blueTag,
+    purpleTag,
+    greyTag,
+    redTagBorder,
+    orangeTagBorder,
+    yellowTagBorder,
+    greenTagBorder,
+    blueTagBorder,
+    purpleTagBorder,
+    greyTagBorder,
   };
 }
 
