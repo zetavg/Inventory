@@ -23,6 +23,7 @@ import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScree
 import RelationalPouchDBTypeDetailScreen from '@app/screens/RelationalPouchDBTypeDetailScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
+import RFIDUHFUARTScreen from '@app/screens/RFIDUHFUARTScreen';
 import SampleScreen from '@app/screens/SampleScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
@@ -68,6 +69,7 @@ export type StackParamList = {
   };
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
+  RFIDUHFUART: undefined;
   Counter: undefined;
   Sample: {
     showAppbar?: boolean;
@@ -165,6 +167,7 @@ function MainStack({ initialRouteName }: Props) {
         name="PouchDBAttachment"
         component={PouchDBAttachmentScreen}
       />
+      <Stack.Screen name="RFIDUHFUART" component={RFIDUHFUARTScreen} />
       <Stack.Screen name="SQLite" component={SQLiteScreen} />
       <Stack.Screen name="Sample" component={SampleScreen} />
       <Stack.Screen

@@ -83,6 +83,14 @@ function DeveloperToolsScreen({
 
         <InsetGroup>
           <InsetGroup.Item
+            label="RFID UHF UART"
+            arrow
+            onPress={() => navigation.push('RFIDUHFUART')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="Storybook"
             arrow
             onPress={() => navigation.push('Storybook')}
