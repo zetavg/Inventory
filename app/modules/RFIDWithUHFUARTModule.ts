@@ -124,6 +124,12 @@ const RFIDWithUHFUARTModule = {
     (RFIDWithUHFUARTModule as any)._scanListener?.remove();
     return NativeRFIDWithUHFUARTModule.free();
   },
+  isPowerOn: (): Promise<boolean> => {
+    return NativeRFIDWithUHFUARTModule.isPowerOn();
+  },
+  isWorking: (): Promise<boolean> => {
+    return NativeRFIDWithUHFUARTModule.isWorking();
+  },
   setFrequencyMode: (mode: number): Promise<void> => {
     return NativeRFIDWithUHFUARTModule.setFrequencyMode(mode);
   },

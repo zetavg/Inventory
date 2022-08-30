@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View, Switch, TouchableOpacity, Text } from 'react-native';
+import { ScrollView, View, Switch, TouchableOpacity, Text, Alert } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -69,6 +69,24 @@ function RFIDUHFUARTScreen({
     }
   }, []);
 
+  const isPowerOn = useCallback(async () => {
+    try {
+      const result = await RFIDWithUHFUARTModule.isPowerOn();
+      Alert.alert('isPowerOn', result.toString());
+    } catch (e: any) {
+      Alert.alert('isPowerOn Error', e?.message);
+    }
+  }, []);
+
+  const isWorking = useCallback(async () => {
+    try {
+      const result = await RFIDWithUHFUARTModule.isWorking();
+      Alert.alert('isWorking', result.toString());
+    } catch (e: any) {
+      Alert.alert('isWorking Error', e?.message);
+    }
+  }, []);
+
   const initFreeUi = useMemo(
     () => (
       <InsetGroup label="Device Status">
@@ -77,9 +95,13 @@ function RFIDUHFUARTScreen({
         <InsetGroup.Item button label="Free" onPress={freeUhf} />
         <InsetGroup.ItemSeperator />
         <InsetGroup.Item label="Status" detail={uhfInitStatus} />
+        <InsetGroup.ItemSeperator />
+        <InsetGroup.Item button label="Is Power On?" onPress={isPowerOn} />
+        <InsetGroup.ItemSeperator />
+        <InsetGroup.Item button label="Is Working?" onPress={isWorking} />
       </InsetGroup>
     ),
-    [freeUhf, initUhf, uhfInitStatus],
+    [freeUhf, initUhf, isPowerOn, isWorking, uhfInitStatus],
   );
 
   useEffect(() => {

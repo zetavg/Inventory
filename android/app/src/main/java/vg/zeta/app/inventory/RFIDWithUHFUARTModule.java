@@ -48,22 +48,12 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
 
   @ReactMethod
   public void init(Promise promise) {
+    InitTask initTask = new InitTask();
+    initTask.setPromise(promise);
     try {
-      uhfReader = RFIDWithUHFUART.getInstance();
-      initSound();
+      initTask.execute();
     } catch (Exception e) {
-      promise.reject(e.getMessage(), e);
-      return;
-    }
-
-    if (uhfReader != null) {
-      InitTask initTask = new InitTask();
-      initTask.setPromise(promise);
-      try {
-        initTask.execute();
-      } catch (Exception e) {
-        promise.reject(e.getMessage(), new Throwable(e.getMessage()));
-      }
+      promise.reject(e.getMessage(), new Throwable(e.getMessage()));
     }
   }
 
@@ -82,7 +72,9 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
     @Override
     protected Boolean doInBackground(String... params) {
       try {
-        uhfReader.free();
+        uhfReader = RFIDWithUHFUART.getInstance();
+        initSound();
+        // uhfReader.free();
         return uhfReader.init();
       } catch (Exception e) {
         promise.reject(e.getMessage(), new Throwable(e.getMessage()));
@@ -117,6 +109,24 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
         promise.reject(new Throwable("UHF reader free failed"));
       }
       releaseSoundPool();
+    } catch (Exception e) {
+      promise.reject(e.getMessage(), e);
+    }
+  }
+
+  @ReactMethod
+  public void isPowerOn(Promise promise) {
+    try {
+      promise.resolve(uhfReader.isPowerOn());
+    } catch (Exception e) {
+      promise.reject(e.getMessage(), e);
+    }
+  }
+
+  @ReactMethod
+  public void isWorking(Promise promise) {
+    try {
+      promise.resolve(uhfReader.isWorking());
     } catch (Exception e) {
       promise.reject(e.getMessage(), e);
     }
