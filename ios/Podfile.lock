@@ -396,11 +396,15 @@ PODS:
     - React-perflogger (= 0.69.3)
   - RNCAsyncStorage (1.17.7):
     - React-Core
+  - RNCPicker (2.4.4):
+    - React-Core
   - RNDateTimePicker (6.3.1):
     - React-Core
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.5.0):
+    - React-Core
+  - RNReactNativeHapticFeedback (1.14.0):
     - React-Core
   - RNReanimated (2.9.1):
     - DoubleConversion
@@ -432,6 +436,8 @@ PODS:
   - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
+  - RNSVG (13.0.0):
+    - React-Core
   - RNTableView (3.1.0):
     - React
   - RNVectorIcons (9.2.0):
@@ -511,11 +517,14 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNSVG (from `../node_modules/react-native-svg`)
   - RNTableView (from `../node_modules/react-native-tableview`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -627,16 +636,22 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNCPicker:
+    :path: "../node_modules/@react-native-picker/picker"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNFS:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNReactNativeHapticFeedback:
+    :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSVG:
+    :path: "../node_modules/react-native-svg"
   RNTableView:
     :path: "../node_modules/react-native-tableview"
   RNVectorIcons:
@@ -702,11 +717,14 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 607eb048e22a16388c908ee1f6644200e8d1e19b
   ReactCommon: af7636436b382db7cde4583bbd642f0978e6e3ed
   RNCAsyncStorage: d81ee5c3db1060afd49ea7045ad460eff82d2b7d
+  RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888
   RNDateTimePicker: 95e0cb71cba4c2f08c62444029f834e6168a2b96
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: bad495418bcbd3ab47017a38d93d290ebd406f50
+  RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 2cf7451318bb9cc430abeec8d67693f9cf4e039c
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
+  RNSVG: 42a0c731b11179ebbd27a3eeeafa7201ebb476ff
   RNTableView: 296188cd689281c71285ec30b57747b16f6ed971
   RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608

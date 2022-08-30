@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-neomorph-shadows/src/NeomorphBox.js b/node_modules/react-native-neomorph-shadows/src/NeomorphBox.js
+index b4c7933..8c4ff57 100644
+--- a/node_modules/react-native-neomorph-shadows/src/NeomorphBox.js
++++ b/node_modules/react-native-neomorph-shadows/src/NeomorphBox.js
+@@ -53,6 +53,7 @@ export default class NeomorphBox extends React.PureComponent {
+         shadowRadius = 0,
+         backgroundColor = 'rgb(230,230,230)',
+         shadowOpacity = 0,
++        shadowOpacityLight,
+         width = 0,
+         height = 0,
+         ...otherStyle
+@@ -74,6 +75,9 @@ export default class NeomorphBox extends React.PureComponent {
+       shOpacityLight = interpolate(opacity, 0.025, 1);
+       shOpacityDark = interpolate(1 - opacity, 0, 0.35);
+     }
++    if (shadowOpacityLight) {
++      shOpacityLight = shadowOpacityLight;
++    }
+     const styleAll = {
+       backgroundColor: backgroundColor,
+       shadowRadius: shadowRadius,
