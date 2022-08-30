@@ -5,11 +5,12 @@ import { Divider, Text } from 'react-native-paper';
 type Props = {
   title?: string;
   children: React.ReactNode;
+  style?: React.ComponentProps<typeof View>['style'];
 };
 
-function StorybookSection({ title, children }: Props) {
+function StorybookSection({ title, children, style }: Props) {
   return (
-    <View style={{ marginBottom: 16 }}>
+    <View style={[{ marginBottom: 16 }, style]}>
       {title ? (
         <>
           <Text variant="labelSmall" style={styles.title}>
