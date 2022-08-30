@@ -346,6 +346,7 @@ function InsetGroupTextInput(
     alignRight,
     disabled,
     value,
+    scrollEnabled = false,
     ...props
   }: React.ComponentProps<typeof TextInput> & {
     alignRight?: boolean;
@@ -385,6 +386,7 @@ function InsetGroupTextInput(
         { color: contentTextColor },
         style,
       ]}
+      scrollEnabled={scrollEnabled}
       placeholderTextColor={Color(contentSecondaryTextColor)
         .opaquer(-0.6)
         .hexa()}
