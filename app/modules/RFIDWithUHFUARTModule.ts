@@ -1,4 +1,5 @@
 import { DeviceEventEmitter, NativeModules } from 'react-native';
+import crypto from 'crypto-browserify';
 
 export type MemoryBank = 'RESERVED' | 'EPC' | 'TID' | 'USER';
 
@@ -322,11 +323,14 @@ export async function unlockAndReset(
     soundEnabled: boolean;
   },
 ) {
+  /** Used to ensure that we're working with the same tag on subsequent operations */
+  const randHex = crypto.randomBytes(4).toString('hex');
+
   const writeResetOptions = {
     memoryBank: 'EPC' as MemoryBank,
     offset: 1,
-    count: 2,
-    data: '08000000',
+    count: 4,
+    data: '08000000' + randHex,
     power,
     filter,
     soundEnabled: false,
@@ -357,8 +361,8 @@ export async function unlockAndReset(
   const newFilter = {
     memoryBank: 'EPC' as const,
     bitOffset: 16 * 2,
-    bitCount: 16,
-    data: '0000',
+    bitCount: 16 * 3,
+    data: '0000' + randHex,
   };
 
   try {
