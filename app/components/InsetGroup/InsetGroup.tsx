@@ -432,6 +432,30 @@ function InsetGroupItemDetailButton({
 
 InsetGroup.ItemDetailButton = InsetGroupItemDetailButton;
 
+function InsetGroupGroupLabelRightButton({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: () => void;
+}) {
+  const { iosTintColor } = useColors();
+  return (
+    <TouchableOpacity onPress={onPress}>
+      <Text
+        style={{
+          fontSize: GROUP_LABEL_FONT_SIZE,
+          color: iosTintColor,
+        }}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+InsetGroup.GroupLabelRightButton = InsetGroupGroupLabelRightButton;
+
 InsetGroup.FONT_SIZE = FONT_SIZE;
 InsetGroup.GROUP_LABEL_FONT_SIZE = GROUP_LABEL_FONT_SIZE;
 InsetGroup.ITEM_PADDING_HORIZONTAL = INSET_GROUP_ITEM_PADDING_HORIZONTAL;
