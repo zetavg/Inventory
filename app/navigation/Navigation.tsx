@@ -37,8 +37,11 @@ import SampleModalScreen from '@app/screens/SampleModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
+import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
 import RfidScanScreen from '@app/screens/RfidScanScreen';
 import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
+
+import { TypeName } from '@app/db/schema';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -64,8 +67,12 @@ export type RootStackParamList = {
     jsonData?: string;
   };
   RelationalPouchDBSave: {
-    type: string;
-    defaultContentJson?: string;
+    type: TypeName;
+    initialData?: Record<string, any>;
+  };
+  RelationalPouchDBTypeDataSelect: {
+    type: TypeName;
+    callback: (id: string) => void;
   };
   SampleModal: { showAppbar?: boolean };
   DemoModal: undefined;
@@ -355,6 +362,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             <Stack.Screen
               name="RelationalPouchDBSave"
               component={RelationalPouchDBSaveScreen}
+            />
+            <Stack.Screen
+              name="RelationalPouchDBTypeDataSelect"
+              component={RelationalPouchDBTypeDataSelectScreen}
             />
           </Stack.Navigator>
           <BottomSheetModal

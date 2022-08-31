@@ -1,66 +1,44 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
-
-import useDB from '@app/hooks/useDB';
-
+import { ScrollView, Alert } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
-
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 import commonStyles from '@app/utils/commonStyles';
+import titleCase from '@app/utils/titleCase';
+
+import schema from '@app/db/schema';
+import useDB from '@app/hooks/useDB';
+import { save } from '@app/db/relationalUtils';
 
 function RelationalPouchDBSaveScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'RelationalPouchDBSave'>) {
-  const { type } = route.params;
+  const { type, initialData } = route.params;
+
+  const typeDef = schema[type];
+  if (!typeDef) throw new Error(`No such type: ${type}`);
+
   const { db } = useDB();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const [dataJson, setDataJson] = useState(
-    route.params.defaultContentJson || '{}',
-  );
+  const [data, setData] = useState<Record<string, any>>(initialData || {});
 
-  const handleDataJsonChangeText = useCallback(
-    (t: string) => {
-      setDataJson(t);
-      if (!hasUnsavedChanges) setHasUnsavedChanges(true);
-    },
-    [hasUnsavedChanges],
-  );
-  let isJsonInvalid = false;
-  try {
-    JSON.parse(dataJson);
-  } catch (e) {
-    isJsonInvalid = true;
-  }
-
-  const handleAddField = useCallback(() => {
-    try {
-      const json = JSON.parse(dataJson);
-      setDataJson(JSON.stringify({ ...json, _: '' }, null, 2));
-    } catch (e: any) {
-      Alert.alert(e.message);
-    }
-  }, [dataJson]);
-
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
-    setLoading(true);
+    setSaving(true);
     try {
-      const doc = JSON.parse(dataJson);
-      await db.rel.save(type, doc);
-
+      await save(db, type, data);
       isDone.current = true;
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Unknown error');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
-  }, [dataJson, db.rel, navigation, type]);
+  }, [data, db, navigation, type]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
@@ -69,7 +47,7 @@ function RelationalPouchDBSaveScreen({
         return;
       }
 
-      if (loading) return;
+      if (saving) return;
 
       Alert.alert(
         'Discard changes?',
@@ -84,59 +62,117 @@ function RelationalPouchDBSaveScreen({
         ],
       );
     },
-    [loading],
+    [saving],
   );
-  const dataInputRef = useRef<any>(null);
 
   return (
     <ModalContent
       navigation={navigation}
       preventClose={hasUnsavedChanges}
       confirmCloseFn={handleLeave}
-      title="Save Data"
+      title={`${data.id ? 'Edit' : 'Add'} ${titleCase(type)}`}
       action1Label="Save"
       action1MaterialIconName="check"
       action1Variant="strong"
-      onAction1Press={isJsonInvalid || loading ? undefined : handleSave}
+      onAction1Press={handleSave}
       action2Label="Cancel"
-      onAction2Press={loading ? undefined : () => navigation.goBack()}
+      onAction2Press={saving ? undefined : () => navigation.goBack()}
     >
       <ScrollView
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup
-          style={commonStyles.mt16}
-          footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}
-        >
-          <InsetGroup.Item compactLabel label="Data (JSON)">
-            <InsetGroup.TextInput
-              multiline
-              style={styles.textBox}
-              placeholder="{}"
-              ref={dataInputRef}
-              value={dataJson}
-              onChangeText={handleDataJsonChangeText}
-              disabled={loading}
-              autoCapitalize="none"
-            />
-          </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
-          <InsetGroup.Item
-            label="Add Field"
-            button
-            disabled={isJsonInvalid}
-            onPress={handleAddField}
-          />
+        <InsetGroup style={commonStyles.mt16}>
+          {[
+            ...Object.entries(typeDef.dataSchema.properties),
+            // ...Object.entries(typeDef.dataSchema.optionalProperties),
+          ]
+            .flatMap(([field, fieldDef]) => [
+              (() => {
+                const relation =
+                  typeDef.relations && (typeDef.relations as any)[field];
+                const relationType = relation && Object.keys(relation)[0];
+
+                switch (true) {
+                  case fieldDef.type === 'string':
+                    return (
+                      <InsetGroup.Item
+                        key={field}
+                        compactLabel
+                        label={titleCase(field)}
+                        detail={(() => {
+                          switch (relationType) {
+                            case 'belongsTo':
+                              return (
+                                <>
+                                  <InsetGroup.TextInput
+                                    alignRight
+                                    style={commonStyles.mr4}
+                                    placeholder={`Enter ${field}`}
+                                    value={data[field]}
+                                    onChangeText={t => {
+                                      setData(d => ({ ...d, [field]: t }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                  />
+                                  <InsetGroup.ItemDetailButton
+                                    label="Select"
+                                    onPress={() =>
+                                      navigation.push(
+                                        'RelationalPouchDBTypeDataSelect',
+                                        {
+                                          type:
+                                            relation[relationType].type ||
+                                            relation[relationType],
+                                          callback: id => {
+                                            setData(d => ({
+                                              ...d,
+                                              [field]: id,
+                                            }));
+                                            setHasUnsavedChanges(true);
+                                          },
+                                        },
+                                      )
+                                    }
+                                  />
+                                </>
+                              );
+                            default:
+                              return (
+                                <InsetGroup.TextInput
+                                  alignRight
+                                  placeholder={`Enter ${field}`}
+                                  value={data[field]}
+                                  onChangeText={t => {
+                                    setData(d => ({ ...d, [field]: t }));
+                                    setHasUnsavedChanges(true);
+                                  }}
+                                />
+                              );
+                          }
+                        })()}
+                      />
+                    );
+
+                  default:
+                    return (
+                      <InsetGroup.Item
+                        key={field}
+                        compactLabel
+                        label={titleCase(field)}
+                        detail={`Unsupported: ${JSON.stringify(fieldDef)}`}
+                      />
+                    );
+                }
+              })(),
+              <InsetGroup.ItemSeperator key={`s-${field}`} />,
+            ])
+            .slice(0, -1)}
         </InsetGroup>
       </ScrollView>
     </ModalContent>
   );
 }
-
-const styles = StyleSheet.create({
-  textBox: { minHeight: 60 },
-});
 
 export default RelationalPouchDBSaveScreen;

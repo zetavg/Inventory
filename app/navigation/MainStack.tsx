@@ -20,7 +20,7 @@ import SQLiteScreen from '@app/screens/SQLiteScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
 import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
 import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
-import RelationalPouchDBTypeDetailScreen from '@app/screens/RelationalPouchDBTypeDetailScreen';
+import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchDBTypeDataDetailScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -64,7 +64,7 @@ export type StackParamList = {
   RelationalPouchDBType: {
     type: DataTypeName;
   };
-  RelationalPouchDBTypeDetail: {
+  RelationalPouchDBTypeDataDetail: {
     type: DataTypeName;
     id: string | number;
   };
@@ -158,8 +158,8 @@ function MainStack({ initialRouteName }: Props) {
         component={RelationalPouchDBTypeScreen}
       />
       <Stack.Screen
-        name="RelationalPouchDBTypeDetail"
-        component={RelationalPouchDBTypeDetailScreen}
+        name="RelationalPouchDBTypeDataDetail"
+        component={RelationalPouchDBTypeDataDetailScreen}
       />
       <Stack.Screen
         name="PouchDBAttachments"

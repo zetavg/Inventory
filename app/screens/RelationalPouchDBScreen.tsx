@@ -7,6 +7,7 @@ import InsetGroup from '@app/components/InsetGroup';
 
 import schema from '@app/db/schema';
 import titleCase from '@app/utils/titleCase';
+import objectEntries from '@app/utils/objectEntries';
 
 function RelationalPouchDBScreen({
   navigation,
@@ -15,7 +16,7 @@ function RelationalPouchDBScreen({
     <ScreenContent navigation={navigation} title="Relational PouchDB">
       <ScrollView keyboardDismissMode="interactive">
         <InsetGroup label="Types">
-          {Object.entries(schema)
+          {objectEntries(schema)
             .flatMap(([type, typeDef]) => [
               <InsetGroup.Item
                 key={type}

@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+import type { RootStackParamList } from '@app/navigation';
 import { useFocusEffect } from '@react-navigation/native';
-import ScreenContent from '@app/components/ScreenContent';
+import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
+import commonStyles from '@app/utils/commonStyles';
 
 import schema from '@app/db/schema';
 import useDB from '@app/hooks/useDB';
@@ -15,9 +15,8 @@ import titleCase from '@app/utils/titleCase';
 function RelationalPouchDBTypeScreen({
   navigation,
   route,
-}: StackScreenProps<StackParamList, 'RelationalPouchDBType'>) {
-  const rootNavigation = useRootNavigation();
-  const { type } = route.params;
+}: StackScreenProps<RootStackParamList, 'RelationalPouchDBTypeDataSelect'>) {
+  const { type, callback } = route.params;
   const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
@@ -38,19 +37,18 @@ function RelationalPouchDBTypeScreen({
     }, [loadData]),
   );
 
+  const handleSelect = useCallback(
+    (id: string) => {
+      callback(id);
+      navigation.goBack();
+    },
+    [callback, navigation],
+  );
+
   return (
-    <ScreenContent
-      navigation={navigation}
-      title={titleCase(typeDef.plural)}
-      action1Label="Add"
-      action1SFSymbolName="plus.square.fill"
-      action1MaterialIconName="square-edit-outline"
-      onAction1Press={() =>
-        rootNavigation?.navigate('RelationalPouchDBSave', { type })
-      }
-    >
-      <ScrollView keyboardDismissMode="interactive">
-        <InsetGroup>
+    <ModalContent navigation={navigation} title={`Select ${titleCase(type)}`}>
+      <ScrollView>
+        <InsetGroup style={commonStyles.mt16}>
           {data ? (
             data
               .flatMap(d => [
@@ -59,13 +57,8 @@ function RelationalPouchDBTypeScreen({
                   arrow
                   vertical
                   label={d[typeDef.titleField]}
-                  detail={d.id}
-                  onPress={() =>
-                    navigation.push('RelationalPouchDBTypeDataDetail', {
-                      type,
-                      id: d.id || '',
-                    })
-                  }
+                  detail={d.id?.toLowerCase()}
+                  onPress={() => handleSelect(d.id || '')}
                 />,
                 <InsetGroup.ItemSeperator key={`s-${d.id}`} />,
               ])
@@ -75,7 +68,7 @@ function RelationalPouchDBTypeScreen({
           )}
         </InsetGroup>
       </ScrollView>
-    </ScreenContent>
+    </ModalContent>
   );
 }
 

@@ -3,14 +3,15 @@ import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+import { useFocusEffect } from '@react-navigation/native';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
+import commonStyles from '@app/utils/commonStyles';
+import camelToSnakeCase from '@app/utils/camelToSnakeCase';
+import titleCase from '@app/utils/titleCase';
 
 import schema from '@app/db/schema';
-import titleCase from '@app/utils/titleCase';
-import camelToSnakeCase from '@app/utils/camelToSnakeCase';
 import useDB from '@app/hooks/useDB';
-import { useFocusEffect } from '@react-navigation/native';
 import {
   findWithRelations,
   FindWithRelationsReturnedData,
@@ -19,17 +20,19 @@ import {
   getTypeFromRelation,
 } from '@app/db/relationalUtils';
 
-function RelationalPouchDBTypeDetailScreen({
+function RelationalPouchDBTypeDataDetailScreen({
   navigation,
   route,
-}: StackScreenProps<StackParamList, 'RelationalPouchDBTypeDetail'>) {
+}: StackScreenProps<StackParamList, 'RelationalPouchDBTypeDataDetail'>) {
   const rootNavigation = useRootNavigation();
   const { type, id } = route.params;
   const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
   const { db } = useDB();
-  const [data, setData] = useState<null | FindWithRelationsReturnedData>(null);
+  const [data, setData] = useState<null | FindWithRelationsReturnedData<
+    typeof type
+  >>(null);
 
   const loadData = useCallback(async () => {
     setData(await findWithRelations(db, type as any, id));
@@ -83,7 +86,7 @@ function RelationalPouchDBTypeDetailScreen({
           ? () =>
               rootNavigation?.navigate('RelationalPouchDBSave', {
                 type,
-                defaultContentJson: JSON.stringify(data.data, null, 2),
+                initialData: data.data || {},
               })
           : undefined
       }
@@ -100,14 +103,55 @@ function RelationalPouchDBTypeDetailScreen({
 
               return (
                 <>
-                  <InsetGroup>
+                  <InsetGroup style={commonStyles.mt16}>
                     <InsetGroup.Item vertical2 label="ID" detail={d.id} />
-                    <InsetGroup.ItemSeperator />
-                    <InsetGroup.Item
-                      vertical2
-                      label="Data"
-                      detail={JSON.stringify(d, null, 2)}
-                    />
+                  </InsetGroup>
+
+                  <InsetGroup>
+                    {[
+                      ...Object.entries(typeDef.dataSchema.properties),
+                      // ...Object.entries(typeDef.dataSchema.optionalProperties),
+                    ]
+                      .flatMap(([field, fieldDef]) => [
+                        (() => {
+                          const relation =
+                            typeDef.relations &&
+                            (typeDef.relations as any)[field];
+                          const relationType =
+                            relation && Object.keys(relation)[0];
+
+                          switch (true) {
+                            case fieldDef.type === 'string':
+                              return (
+                                <InsetGroup.Item
+                                  key={field}
+                                  vertical2
+                                  label={titleCase(field)}
+                                  detail={(() => {
+                                    switch (relationType) {
+                                      default:
+                                        return (d as any)[field];
+                                    }
+                                  })()}
+                                />
+                              );
+
+                            default:
+                              return (
+                                <InsetGroup.Item
+                                  key={field}
+                                  compactLabel
+                                  label={titleCase(field)}
+                                  detail={`Unsupported: ${JSON.stringify(
+                                    fieldDef,
+                                  )}`}
+                                />
+                              );
+                          }
+                        })(),
+                        <InsetGroup.ItemSeperator key={`s-${field}`} />,
+                      ])
+                      .slice(0, -1)}
                   </InsetGroup>
 
                   {Object.entries(typeDef.relations).map(
@@ -139,10 +183,13 @@ function RelationalPouchDBTypeDetailScreen({
                               label={rData[dataTypeDefOfRelation.titleField]}
                               detail={rData.id}
                               onPress={() =>
-                                navigation.push('RelationalPouchDBTypeDetail', {
-                                  type: dataTypeNameOfRelation,
-                                  id: rData.id,
-                                })
+                                navigation.push(
+                                  'RelationalPouchDBTypeDataDetail',
+                                  {
+                                    type: dataTypeNameOfRelation,
+                                    id: rData.id,
+                                  },
+                                )
                               }
                             />,
                             <InsetGroup.ItemSeperator key={`s-${rData.id}`} />,
@@ -177,14 +224,9 @@ function RelationalPouchDBTypeDetailScreen({
                                     'RelationalPouchDBSave',
                                     {
                                       type: dataTypeNameOfRelation,
-                                      defaultContentJson: JSON.stringify(
-                                        {
-                                          ...dataTypeDefOfRelation.sample,
-                                          [queryInverse as string]: d.id,
-                                        },
-                                        null,
-                                        2,
-                                      ),
+                                      initialData: {
+                                        [queryInverse as string]: d.id,
+                                      },
                                     },
                                   )
                                 }
@@ -209,4 +251,4 @@ function RelationalPouchDBTypeDetailScreen({
   );
 }
 
-export default RelationalPouchDBTypeDetailScreen;
+export default RelationalPouchDBTypeDataDetailScreen;

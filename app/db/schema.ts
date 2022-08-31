@@ -1,3 +1,8 @@
+import type { Schema as JTDSchema } from 'jtd';
+import { JTDDataType } from 'ajv/dist/jtd';
+
+// ==== Type of Schema ==== //
+
 export type RelationDef =
   | { belongsTo: string }
   // `queryInverse` must be used to avoid the need of adding foreign keys on both sides.
@@ -5,234 +10,223 @@ export type RelationDef =
 
 export type TypeDef = Readonly<{
   plural: string;
+  dataSchema: JTDSchema;
   relations: {
     [field: string]: RelationDef;
   };
   /** The title field of this type, mainly used in auto UI generation */
   titleField: string;
-  /** A sample of the data of this type */
-  sample: any;
 }>;
 
 export type Schema = Readonly<{ [type: string]: TypeDef }>;
 
+// ==== Util Functions ==== //
+
 /**
- * For type-checking the schema while the constant type of the schema can be infered.
+ * For type-checking the JTD schema while the constant type of the schema can be infered.
+ */
+function jtdSchema<T extends JTDSchema>(schema: T): T {
+  return schema;
+}
+
+/**
+ * For type-checking the relational schema while the constant type of the schema can be infered.
  */
 function s<T extends Schema>(schema: T): T {
   return schema;
 }
 
+// ==== Schema ==== //
+
 export const schema = s({
-  tsite: {
-    plural: 'tsites',
+  site: {
+    plural: 'sites',
+    dataSchema: jtdSchema({
+      properties: {
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+      },
+      additionalProperties: false,
+    }),
     relations: {
       rooms: {
-        hasMany: { type: 'troom', options: { queryInverse: 'site' } },
+        hasMany: { type: 'room', options: { queryInverse: 'site' } },
       },
     },
     titleField: 'name',
-    sample: {
-      name: 'My Home',
-    },
   },
-  troom: {
-    plural: 'trooms',
+  room: {
+    plural: 'rooms',
+    dataSchema: jtdSchema({
+      properties: {
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        // relations
+        site: { type: 'string' },
+      },
+      additionalProperties: false,
+    }),
     relations: {
-      site: { belongsTo: 'tsite' },
+      site: { belongsTo: 'site' },
       locations: {
-        hasMany: { type: 'tlocation', options: { queryInverse: 'room' } },
+        hasMany: { type: 'location', options: { queryInverse: 'room' } },
       },
     },
     titleField: 'name',
-    sample: {
-      site: 'id_of_site',
-      name: 'My Room',
-    },
   },
-  tlocation: {
-    plural: 'tlocations',
+  location: {
+    plural: 'locations',
+    dataSchema: jtdSchema({
+      properties: {
+        name: { type: 'string' },
+        // relations
+        room: { type: 'string' },
+      },
+      additionalProperties: false,
+    }),
     relations: {
-      room: { belongsTo: 'troom' },
-      fixedThings: {
-        hasMany: { type: 'tthing', options: { queryInverse: 'fixedLocation' } },
-      },
-      things: {
-        hasMany: { type: 'tthing', options: { queryInverse: 'location' } },
-      },
-      // Do not use temporary? A thing that has fixed but also has location is temp.
-      temporaryThings: {
-        hasMany: {
-          type: 'tthing',
-          options: { queryInverse: 'temporaryLocation' },
-        },
-      },
+      room: { belongsTo: 'room' },
     },
     titleField: 'name',
-    sample: {
-      room: 'id_of_room',
-      name: 'My Shelf',
-    },
   },
-  tthing: {
-    plural: 'tthings',
-    relations: {
-      // location
-      fixedLocation: { belongsTo: 'tlocation' },
-      location: { belongsTo: 'tlocation' },
-      temporaryLocation: { belongsTo: 'tlocation' },
-      // container
-      fixedContains: {
-        hasMany: {
-          type: 'tthing',
-          options: { queryInverse: 'fixedContainer' },
-        },
-      },
-      fixedContainer: { belongsTo: 'tthing' },
-      contains: {
-        hasMany: { type: 'tthing', options: { queryInverse: 'container' } },
-      },
-      container: { belongsTo: 'tthing' },
-      temporaryContains: {
-        hasMany: {
-          type: 'tthing',
-          options: { queryInverse: 'temporaryContainer' },
-        },
-      },
-      temporaryContainer: { belongsTo: 'tthing' },
-      accessories: {
-        hasMany: { type: 'tthing', options: { queryInverse: 'accessoryOf' } },
-      },
-      // accessoryOf
-      accessoryOf: { belongsTo: 'tthing' },
-    },
-    titleField: 'name',
-    sample: {
-      name: 'My Computer',
-      // location, container, accessoryOf
-      storageType: 'location',
-      container: false,
-    },
-  },
-  post: {
-    plural: 'posts',
-    relations: {
-      author: { belongsTo: 'author' },
-      comments: {
-        hasMany: { type: 'comment', options: { queryInverse: 'post' } },
-      },
-      parentPost: { belongsTo: 'post' },
-      childPosts: {
-        hasMany: { type: 'post', options: { queryInverse: 'parentPost' } },
-      },
-    },
-    titleField: 'title',
-    sample: {
-      author: 'id_of_author',
-      title: 'Post #1',
-      text: 'Hello world, this is a post.',
-    },
-  },
-  author: {
-    plural: 'authors',
-    relations: {
-      posts: { hasMany: { type: 'post', options: { queryInverse: 'author' } } },
-    },
-    titleField: 'name',
-    sample: {
-      name: 'Nobody',
-      description: 'No body is perfect.',
-    },
-  },
-  comment: {
-    singular: 'comment',
-    plural: 'comments',
-    titleField: 'content',
-    relations: {
-      post: { belongsTo: 'post' },
-    },
-    sample: {
-      content: 'Awesome!',
-    },
-  },
+  // room: {
+  //   plural: 'rooms',
+  //   relations: {
+  //     site: { belongsTo: 'site' },
+  //     locations: {
+  //       hasMany: { type: 'location', options: { queryInverse: 'room' } },
+  //     },
+  //   },
+  //   titleField: 'name',
+  //   sample: {
+  //     site: 'id_of_site',
+  //     name: 'New Room',
+  //   },
+  // },
+  // location: {
+  //   plural: 'locations',
+  //   relations: {
+  //     room: { belongsTo: 'room' },
+  //     // fixedThings: {
+  //     //   hasMany: { type: 'thing', options: { queryInverse: 'fixedLocation' } },
+  //     // },
+  //     // things: {
+  //     //   hasMany: { type: 'tthing', options: { queryInverse: 'location' } },
+  //     // },
+  //     // Do not use temporary? A thing that has fixed but also has location is temp.
+  //     // temporaryThings: {
+  //     //   hasMany: {
+  //     //     type: 'tthing',
+  //     //     options: { queryInverse: 'temporaryLocation' },
+  //     //   },
+  //     // },
+  //   },
+  //   titleField: 'name',
+  //   sample: {
+  //     room: 'id_of_room',
+  //     name: 'New Shelf',
+  //   },
+  // },
+  // collection: {
+  //   plural: 'collections',
+  //   relations: {
+  //     items: {
+  //       hasMany: { type: 'item', options: { queryInverse: 'collection' } },
+  //     },
+  //   },
+  //   titleField: 'name',
+  //   sample: {
+  //     name: 'New Collection',
+  //   },
+  // },
+  // item: {
+  //   plural: 'items',
+  //   relations: {
+  //     collection: { belongsTo: 'collection' },
+  //     // location
+  //     // fixedLocation: { belongsTo: 'tlocation' },
+  //     // location: { belongsTo: 'tlocation' },
+  //     // temporaryLocation: { belongsTo: 'tlocation' },
+  //     // container
+  //     dedicatedItems: {
+  //       hasMany: {
+  //         type: 'item',
+  //         options: { queryInverse: 'dedicatedContainer' },
+  //       },
+  //     },
+  //     dedicatedContainer: { belongsTo: 'item' },
+  //     items: {
+  //       hasMany: { type: 'item', options: { queryInverse: 'container' } },
+  //     },
+  //     container: { belongsTo: 'item' },
+  //     // travelContainer: { belongsTo: 'item' },
+  //   },
+  //   titleField: 'name',
+  //   sample: {
+  //     name: 'New Item',
+  //     // location, container, accessoryOf
+  //     // storageType: 'location',
+  //     // container: false,
+  //   },
+  // },
+  // post: {
+  //   plural: 'posts',
+  //   relations: {
+  //     author: { belongsTo: 'author' },
+  //     comments: {
+  //       hasMany: { type: 'comment', options: { queryInverse: 'post' } },
+  //     },
+  //     parentPost: { belongsTo: 'post' },
+  //     childPosts: {
+  //       hasMany: { type: 'post', options: { queryInverse: 'parentPost' } },
+  //     },
+  //   },
+  //   titleField: 'title',
+  //   sample: {
+  //     author: 'id_of_author',
+  //     title: 'Post #1',
+  //     text: 'Hello world, this is a post.',
+  //   },
+  // },
+  // author: {
+  //   plural: 'authors',
+  //   relations: {
+  //     posts: { hasMany: { type: 'post', options: { queryInverse: 'author' } } },
+  //   },
+  //   titleField: 'name',
+  //   sample: {
+  //     name: 'Nobody',
+  //     description: 'No body is perfect.',
+  //   },
+  // },
+  // comment: {
+  //   singular: 'comment',
+  //   plural: 'comments',
+  //   titleField: 'content',
+  //   relations: {
+  //     post: { belongsTo: 'post' },
+  //   },
+  //   sample: {
+  //     content: 'Awesome!',
+  //   },
+  // },
 } as const);
 
-type GeneralizeConstantFields<T> = {
-  [P in keyof T]: T[P] extends boolean
-    ? boolean
-    : T[P] extends string
-    ? string
-    : never;
-};
+// type GeneralizeConstantFields<T> = {
+//   [P in keyof T]: T[P] extends boolean
+//     ? boolean
+//     : T[P] extends string
+//     ? string
+//     : never;
+// };
 
-type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
+// type DeepWriteable<T> = { -readonly [P in keyof T]: DeepWriteable<T[P]> };
 
 export type TypeName = keyof typeof schema;
-export type DataType<T extends TypeName> = GeneralizeConstantFields<
-  DeepWriteable<typeof schema[T]['sample']>
+
+// export type DataType<T extends TypeName> = GeneralizeConstantFields<
+//   DeepWriteable<typeof schema[T]['sample']>
+// >;
+export type DataType<T extends TypeName> = JTDDataType<
+  typeof schema[T]['dataSchema']
 >;
 
-// export type Type = typeof schema[number]['singular'];
-
 export default schema;
-
-// export const schema = [
-//   {
-//     singular: 'post',
-//     plural: 'posts',
-//     titleField: 'title',
-//     relations: {
-//       author: { belongsTo: 'author' },
-//       comments: {
-//         hasMany: { type: 'comment', options: { queryInverse: 'post' } },
-//       },
-//       parentPost: { belongsTo: 'post' },
-//       childPosts: {
-//         hasMany: { type: 'post', options: { queryInverse: 'parentPost' } },
-//       },
-//     },
-//     sample: {
-//       author: 'id_of_author',
-//       title: 'Rails is Unagi',
-//       text: 'Delicious unagi. Mmmmmm.',
-//     },
-//     optionalFields: [],
-//   },
-//   {
-//     singular: 'author',
-//     plural: 'authors',
-//     titleField: 'name',
-//     relations: {
-//       posts: { hasMany: { type: 'post', options: { queryInverse: 'author' } } },
-//     },
-//     sample: {
-//       name: 'Nobody',
-//       description: 'No body is perfect.' as undefined | string,
-//     },
-//   },
-//   {
-//     singular: 'comment',
-//     plural: 'comments',
-//     titleField: 'content',
-//     relations: {
-//       post: { belongsTo: 'post' },
-//     },
-//     sample: {
-//       content: 'Awesome!',
-//     },
-//     optionalFields: [],
-//   },
-//   // Many to many is not very useful
-//   // {
-//   //   singular: 'tag',
-//   //   plural: 'tags',
-//   //   titleField: 'name',
-//   //   relations: {
-//   //     posts: { hasMany: { type: 'post', options: { queryInverse: 'author' } } },
-//   //   },
-//   //   sample: {
-//   //     name: 'Awesome Tag',
-//   //   },
-//   //   optionalFields: [],
-//   // },
-// ] as const;

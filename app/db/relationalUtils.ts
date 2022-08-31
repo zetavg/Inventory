@@ -1,23 +1,108 @@
+import Ajv, {
+  _,
+  ErrorObject,
+  KeywordCxt,
+  ValidateFunction,
+} from 'ajv/dist/jtd';
 import { Database } from './pouchdb';
 import schema, { Schema, TypeName, DataType, RelationDef } from './schema';
 
-export type FindWithRelationsReturnedData = {
-  data: any;
+// ==== Validators ==== //
+
+let ajv: Ajv | undefined;
+export function getAjv(): Ajv {
+  if (ajv) return ajv;
+
+  ajv = new Ajv({ allErrors: true });
+
+  ajv.addKeyword({
+    keyword: 'trimAndNotEmpty',
+    type: 'string',
+    schemaType: 'boolean',
+    code: (cxt: KeywordCxt) => {
+      if (cxt.schema) {
+        cxt.gen.assign(cxt.data, _`${cxt.data}.trim()`);
+        cxt.gen.assign(
+          _`${cxt.it.parentData}[${cxt.it.parentDataProperty}]`,
+          cxt.data,
+        );
+        cxt.fail(_`${cxt.data} === ''`);
+      }
+    },
+  });
+
+  return ajv;
+}
+
+const cachedValidators: {
+  [cacheKey: string]: ValidateFunction<any>;
+} = {};
+
+export function getValidator<T extends TypeName>(
+  key: T,
+): ValidateFunction<DataType<T>> {
+  if (cachedValidators[key]) {
+    return cachedValidators[key];
+  }
+
+  const dataSchema: any = schema[key].dataSchema;
+
+  const validator: any = getAjv().compile({
+    ...dataSchema,
+    optionalProperties: {
+      id: { type: 'string' },
+      rev: { type: 'string' },
+      ...dataSchema.optionalProperties,
+    },
+  });
+  cachedValidators[key] = validator;
+
+  return validator;
+}
+
+// ==== Types ==== //
+
+export type DataTypeWithID<T extends TypeName> = {
+  id?: string;
+  rev?: string;
+} & DataType<T>;
+
+export type FindWithRelationsReturnedData<T extends TypeName> = {
+  data: DataTypeWithID<T> | null;
   getRelated: <T extends TypeName>(
     field: string,
     options: { arrElementType: T },
-  ) => ReadonlyArray<DataType<T>>;
+  ) => ReadonlyArray<DataTypeWithID<T>>;
 };
+
+// ==== Util Functions ==== //
+
+/**
+ * A wrapper of `db.rel.find` with better types and returned data format.
+ */
+export async function find<T extends TypeName>(
+  db: Database,
+  type: T,
+): Promise<DataTypeWithID<T>[]> {
+  const typeDef = schema[type];
+  if (!typeDef) throw new Error(`No such type: ${type}`);
+
+  const data = await db.rel.find(type);
+
+  const docs = data && data[typeDef.plural];
+
+  return docs;
+}
 
 /**
  * A wrapper of `db.rel.find` with better types and returned data format.
  * @type {[type]}
  */
-export async function findWithRelations(
+export async function findWithRelations<T extends TypeName>(
   db: Database,
-  type: TypeName,
+  type: T,
   id: number | string,
-): Promise<FindWithRelationsReturnedData> {
+): Promise<FindWithRelationsReturnedData<T>> {
   const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
@@ -36,7 +121,7 @@ export async function findWithRelations(
 
   Object.entries(data).forEach(([relationDataTypePlural, relationData]) => {
     const relationDataTypeNameAndDef = Object.entries(schema).find(
-      ([_, def]) => def.plural === relationDataTypePlural,
+      ([__, def]) => def.plural === relationDataTypePlural,
     );
     if (!relationDataTypeNameAndDef) return;
 
@@ -59,7 +144,7 @@ export async function findWithRelations(
         if (Array.isArray(doc[field]) && doc[field].includes(relationD.id)) {
           // Has many relation without queryInverse
           if (!relatedData[field]) relatedData[field] = [];
-          relatedData[field]?.push(relationD);
+          (relatedData[field] as any)?.push(relationD);
         } else if (doc[field] === relationD.id) {
           // belongsTo
           relatedData[field] = relationD;
@@ -70,13 +155,13 @@ export async function findWithRelations(
         ) {
           // Has many relation with queryInverse
           if (!relatedData[field]) relatedData[field] = [];
-          relatedData[field]?.push(relationD);
+          (relatedData[field] as any)?.push(relationD);
         }
       });
     });
   });
 
-  const getRelated: FindWithRelationsReturnedData['getRelated'] = field => {
+  const getRelated: FindWithRelationsReturnedData<T>['getRelated'] = field => {
     const d = relatedData[field];
     if (!d) return [];
 
@@ -86,6 +171,88 @@ export async function findWithRelations(
 
   return { data: doc, getRelated };
 }
+
+/**
+ * A wrapper of `db.rel.save` with better types and returned data format.
+ */
+export async function save<T extends TypeName>(
+  db: Database,
+  type: T,
+  data: any,
+): Promise<void> {
+  const typeDef = schema[type];
+  if (!typeDef) throw new Error(`No such type: ${type}`);
+
+  await validate(db, type, data);
+
+  // TODO: pre-process
+
+  await db.rel.save(type, data);
+
+  // TODO: post-process
+}
+
+export function validateData<T extends TypeName>(
+  type: T,
+  data: unknown,
+): data is DataTypeWithID<T> {
+  const v = getValidator(type);
+  const valid = v(data);
+
+  if (!valid) {
+    const errors = v.errors;
+    if (errors) validateData.errors = errors;
+  }
+
+  return valid;
+}
+
+validateData.errors = [] as ErrorObject[];
+
+export async function validate<T extends TypeName>(
+  db: Database,
+  type: T,
+  data: any,
+): Promise<void> {
+  const typeDef = schema[type];
+  if (!typeDef) throw new Error(`No such type: ${type}`);
+
+  if (!validateData(type, data)) {
+    const error: any = new Error(
+      validateData.errors.map(e => e.message).join(', '),
+    );
+    error.errors = validateData.errors;
+    throw error;
+  }
+
+  const relations = typeDef.relations;
+
+  for (const [field, relationDef] of Object.entries(relations)) {
+    const relationType = Object.keys(relationDef)[0];
+    const value = (data as any)[field];
+    if (!value) continue;
+
+    switch (relationType) {
+      case 'belongsTo': {
+        const foreignTypeName = relationDef[relationType];
+        const foreignTypeDef = (schema as any)[foreignTypeName];
+        if (!foreignTypeDef)
+          throw new Error(
+            `No such type: ${foreignTypeName}, check the relations definition of type ${type}`,
+          );
+
+        const exists = await db
+          .get(`${foreignTypeName}-${2}-${value}`)
+          .then(() => true)
+          .catch(() => false);
+        if (!exists) throw new Error(`${field} of ${value} does not exist`);
+        break;
+      }
+    }
+  }
+}
+
+// ==== Base Util Functions ==== //
 
 /**
  * Get related data type name from relation definition
@@ -117,6 +284,8 @@ export function getQueryInverseFromRelation(
   )
     return relation.hasMany?.options?.queryInverse;
 }
+
+// ==== Schema Util Functions ==== //
 
 /**
  * Translate schema to relational-pouch schema.
