@@ -1,0 +1,13 @@
+diff --git a/node_modules/epc-tds/epc/giai/giai96.js b/node_modules/epc-tds/epc/giai/giai96.js
+index 81eeb0b..2a008f6 100644
+--- a/node_modules/epc-tds/epc/giai/giai96.js
++++ b/node_modules/epc-tds/epc/giai/giai96.js
+@@ -17,7 +17,7 @@
+ 
+ class Giai96 extends Epc {
+ 
+-	static EPC_HEADER = 0x52;
++	static EPC_HEADER = 0x34;
+ 
+ 	static TOTAL_BITS = 96;
+ 	static PARTITION_OFFSET = 11;

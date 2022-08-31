@@ -5780,6 +5780,11 @@ envinfo@^7.7.2:
   resolved "https://registry.yarnpkg.com/envinfo/-/envinfo-7.8.1.tgz#06377e3e5f4d379fea7ac592d5ad8927e0c4d475"
   integrity sha512-/o+BXHmB7ocbHEAs6F2EnG0ogybVVUdkRunTT2glZU9XAaGmhqskrvKwqXuDfNjEO0LZKWdejEEpnq8aM0tOaw==
 
+epc-tds@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/epc-tds/-/epc-tds-1.3.0.tgz#b7b8d4a35eff2b025d556372e1450c84937c3852"
+  integrity sha512-n/o0++ehkHdNVb0iqb5AWT/QB8kC5x3YJUMiURuDzKwRRR6Mw8Xh29EJopz2Lrqbu4tXI3sbvGuYCxGkZQjzUQ==
+
 err-code@^2.0.2:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/err-code/-/err-code-2.0.3.tgz#23c2f3b756ffdfc608d30e27c9a941024807e7f9"

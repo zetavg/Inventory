@@ -83,6 +83,14 @@ function DeveloperToolsScreen({
 
         <InsetGroup>
           <InsetGroup.Item
+            label="EPC-TDS"
+            arrow
+            onPress={() => navigation.push('EPCTDS')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="RFID UHF UART"
             arrow
             onPress={() => navigation.push('RFIDUHFUART')}
