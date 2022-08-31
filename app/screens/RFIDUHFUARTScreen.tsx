@@ -5,7 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View, Switch, TouchableOpacity, Text, Alert } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Switch,
+  TouchableOpacity,
+  Text,
+  Alert,
+} from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
