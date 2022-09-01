@@ -67,6 +67,7 @@ export type StackParamList = {
   RelationalPouchDBTypeDataDetail: {
     type: DataTypeName;
     id: string | number;
+    initialTitle?: string;
   };
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
