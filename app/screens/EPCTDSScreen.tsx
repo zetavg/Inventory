@@ -33,11 +33,11 @@ function EPCTDSScreen({
     encoded = { error: e };
   }
 
-  const [encodeIARPrefix, setEncodeIARPrefix] = useState<number | null>(10);
+  const [encodeIARPrefix, setEncodeIARPrefix] = useState<number | null>(32);
   const handleEncodeIARPrefixChange =
     useNumberInputChangeHandler(setEncodeIARPrefix);
-  const [encodeIARCollectionRef, setEncodeIARCollectionRef] = useState('0000');
-  const [encodeIARItemRef, setEncodeIARItemRef] = useState('0000');
+  const [encodeIARCollectionRef, setEncodeIARCollectionRef] = useState('0010');
+  const [encodeIARItemRef, setEncodeIARItemRef] = useState('1234');
   const [encodeIARSerial, setEncodeIARSerial] = useState<number | null>(0);
   const handleEncodeIARSerialChange =
     useNumberInputChangeHandler(setEncodeIARSerial);
@@ -174,7 +174,7 @@ function EPCTDSScreen({
             label="Prefix"
             detail={
               <InsetGroup.TextInput
-                placeholder="10"
+                placeholder="32"
                 value={encodeIARPrefix?.toString()}
                 onChangeText={handleEncodeIARPrefixChange}
               />
@@ -198,7 +198,7 @@ function EPCTDSScreen({
             label="Item Reference"
             detail={
               <InsetGroup.TextInput
-                placeholder="0"
+                placeholder="1234"
                 value={encodeIARItemRef}
                 onChangeText={setEncodeIARItemRef}
               />
