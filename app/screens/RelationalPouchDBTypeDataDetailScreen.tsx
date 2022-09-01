@@ -25,7 +25,7 @@ function RelationalPouchDBTypeDataDetailScreen({
   route,
 }: StackScreenProps<StackParamList, 'RelationalPouchDBTypeDataDetail'>) {
   const rootNavigation = useRootNavigation();
-  const { type, id } = route.params;
+  const { type, id, initialTitle } = route.params;
   const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
 
@@ -77,7 +77,11 @@ function RelationalPouchDBTypeDataDetailScreen({
   return (
     <ScreenContent
       navigation={navigation}
-      title={data?.data ? data?.data[typeDef.titleField] : titleCase(type)}
+      title={
+        data?.data
+          ? data?.data[typeDef.titleField]
+          : initialTitle || titleCase(type)
+      }
       action1Label="Edit"
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}
       action1MaterialIconName={(data && 'pencil') || undefined}

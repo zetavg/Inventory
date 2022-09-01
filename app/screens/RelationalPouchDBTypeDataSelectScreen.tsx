@@ -54,7 +54,6 @@ function RelationalPouchDBTypeScreen({
               .flatMap(d => [
                 <InsetGroup.Item
                   key={d.id}
-                  arrow
                   vertical
                   label={d[typeDef.titleField]}
                   detail={d.id?.toLowerCase()}

@@ -96,64 +96,66 @@ function RelationalPouchDBSaveScreen({
 
                 switch (true) {
                   case fieldDef.type === 'string':
-                    return (
-                      <InsetGroup.Item
-                        key={field}
-                        compactLabel
-                        label={titleCase(field)}
-                        detail={(() => {
-                          switch (relationType) {
-                            case 'belongsTo':
-                              return (
-                                <>
-                                  <InsetGroup.TextInput
-                                    alignRight
-                                    style={commonStyles.mr4}
-                                    placeholder={`Enter ${field}`}
-                                    value={data[field]}
-                                    onChangeText={t => {
-                                      setData(d => ({ ...d, [field]: t }));
-                                      setHasUnsavedChanges(true);
-                                    }}
-                                  />
-                                  <InsetGroup.ItemDetailButton
-                                    label="Select"
-                                    onPress={() =>
-                                      navigation.push(
-                                        'RelationalPouchDBTypeDataSelect',
-                                        {
-                                          type:
-                                            relation[relationType].type ||
-                                            relation[relationType],
-                                          callback: id => {
-                                            setData(d => ({
-                                              ...d,
-                                              [field]: id,
-                                            }));
-                                            setHasUnsavedChanges(true);
-                                          },
-                                        },
-                                      )
-                                    }
-                                  />
-                                </>
-                              );
-                            default:
-                              return (
-                                <InsetGroup.TextInput
-                                  alignRight
-                                  placeholder={`Enter ${field}`}
-                                  value={data[field]}
-                                  onChangeText={t => {
-                                    setData(d => ({ ...d, [field]: t }));
-                                    setHasUnsavedChanges(true);
-                                  }}
-                                />
-                              );
-                          }
-                        })()}
-                      />
-                    );
+                    switch (relationType) {
+                      case 'belongsTo':
+                        return (
+                          <InsetGroup.Item
+                            key={field}
+                            compactLabel
+                            label={titleCase(field)}
+                            detail={
+                              <InsetGroup.ItemDetailButton
+                                label="Select"
+                                onPress={() =>
+                                  navigation.push(
+                                    'RelationalPouchDBTypeDataSelect',
+                                    {
+                                      type:
+                                        relation[relationType].type ||
+                                        relation[relationType],
+                                      callback: id => {
+                                        setData(d => ({
+                                          ...d,
+                                          [field]: id,
+                                        }));
+                                        setHasUnsavedChanges(true);
+                                      },
+                                    },
+                                  )
+                                }
+                              />
+                            }
+                          >
+                            <InsetGroup.TextInput
+                              placeholder={`Enter ${field} ID`}
+                              value={data[field]}
+                              onChangeText={t => {
+                                setData(d => ({ ...d, [field]: t }));
+                                setHasUnsavedChanges(true);
+                              }}
+                            />
+                          </InsetGroup.Item>
+                        );
+                      default:
+                        return (
+                          <InsetGroup.Item
+                            key={field}
+                            compactLabel
+                            label={titleCase(field)}
+                            detail={
+                              <InsetGroup.TextInput
+                                alignRight
+                                placeholder={`Enter ${field}`}
+                                value={data[field]}
+                                onChangeText={t => {
+                                  setData(d => ({ ...d, [field]: t }));
+                                  setHasUnsavedChanges(true);
+                                }}
+                              />
+                            }
+                          />
+                        );
+                    }
 
                   default:
                     return (

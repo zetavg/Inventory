@@ -64,6 +64,7 @@ function RelationalPouchDBTypeScreen({
                     navigation.push('RelationalPouchDBTypeDataDetail', {
                       type,
                       id: d.id || '',
+                      initialTitle: d[typeDef.titleField],
                     })
                   }
                 />,
