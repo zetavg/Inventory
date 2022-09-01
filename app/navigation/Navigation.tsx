@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from '@react-native-community/blur';
@@ -25,8 +25,6 @@ import {
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
-  BottomSheetBackdrop,
-  BottomSheetHandle,
 } from '@gorhom/bottom-sheet';
 
 import RootNavigationContext from './RootNavigationContext';
@@ -42,8 +40,8 @@ import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
 import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
-import RfidScanScreen from '@app/screens/RfidScanScreen';
 import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
+import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
 import { TypeName } from '@app/db/schema';
 
@@ -103,10 +101,7 @@ const DEFAULT_TAB_SCREEN_OPTIONS = {
  * Composed navigation
  */
 function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
-  const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
-  const theme = useTheme();
-  const { backgroundColor } = useColors();
 
   const navigationTheme = useMemo(
     () => ({
@@ -116,41 +111,19 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
     [isDarkMode],
   );
 
-  const rfidScanSheetRef = useRef<BottomSheetModal>(null);
-  const rfidScanSheetSnapPoints = useMemo(() => ['80%'], []);
+  const rfidSheetRef = useRef<BottomSheetModal>(null);
+  const rfidSheetPassOptionsFnRef =
+    useRef<(options: RFIDSheetOptions) => void>(null);
   const rootBottomSheetsContextProviderValue = useMemo(
     () => ({
-      rfidScanSheet: rfidScanSheetRef,
+      rfidSheet: rfidSheetRef,
+      rfidSheetPassOptionsFn: rfidSheetPassOptionsFnRef,
+      openRfidSheet: (options: RFIDSheetOptions) => {
+        rfidSheetPassOptionsFnRef.current &&
+          rfidSheetPassOptionsFnRef.current(options);
+        rfidSheetRef.current?.present();
+      },
     }),
-    [],
-  );
-  const renderBottomSheetHandleComponent = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetHandle>) => (
-      <BottomSheetHandle
-        {...props}
-        style={{
-          backgroundColor,
-          borderTopLeftRadius: 10,
-          borderTopRightRadius: 10,
-        }}
-        // eslint-disable-next-line react-native/no-inline-styles
-        indicatorStyle={{
-          backgroundColor: isDarkMode
-            ? 'rgba(255, 255, 255, 0.5)'
-            : 'rgba(0, 0, 0, 0.75)',
-        }}
-      />
-    ),
-    [backgroundColor, isDarkMode],
-  );
-  const renderBottomSheetBackdrop = useCallback(
-    (props: React.ComponentProps<typeof BottomSheetBackdrop>) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-      />
-    ),
     [],
   );
 
@@ -202,20 +175,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               component={RelationalPouchDBTypeDataSelectScreen}
             />
           </Stack.Navigator>
-          <BottomSheetModal
-            ref={rfidScanSheetRef}
-            snapPoints={rfidScanSheetSnapPoints}
-            enablePanDownToClose
-            handleComponent={renderBottomSheetHandleComponent}
-            backdropComponent={renderBottomSheetBackdrop}
-            style={{
-              backgroundColor,
-              borderTopLeftRadius: 10,
-              borderTopRightRadius: 10,
-            }}
-          >
-            <RfidScanScreen />
-          </BottomSheetModal>
+          <RFIDSheet
+            ref={rfidSheetRef}
+            rfidSheetPassOptionsFnRef={rfidSheetPassOptionsFnRef}
+          />
         </BottomSheetModalProvider>
       </RootBottomSheetsContext.Provider>
     </NavigationContainer>

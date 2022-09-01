@@ -49,6 +49,7 @@ function ElevatedButton({
   onPressOut,
   down: downProp,
   loading,
+  disabled,
   ...props
 }: Props) {
   const [down, setDown] = useState(false);
@@ -102,6 +103,7 @@ function ElevatedButton({
   return (
     <TouchableWithoutFeedback
       {...props}
+      disabled={disabled}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
     >
@@ -109,6 +111,7 @@ function ElevatedButton({
         style={[
           styles.container,
           currentDown && styles.containerDown,
+          disabled && styles.containerDisabled,
           { backgroundColor },
           style,
         ]}
@@ -185,12 +188,15 @@ const styles = StyleSheet.create({
 
     transform: [{ translateX: 0 }, { translateY: 1 }, { scale: 0.999 }],
   },
+  containerDisabled: {
+    opacity: 0.5,
+  },
   contentContainer: {
     borderRadius: 1000,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 20,
 
     shadowColor: '#000',
     shadowOffset: {

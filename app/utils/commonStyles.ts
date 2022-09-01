@@ -112,6 +112,21 @@ const commonStyles = StyleSheet.create({
   pt16: {
     paddingTop: 16,
   },
+  ph8: {
+    paddingHorizontal: 8,
+  },
+  ph16: {
+    paddingHorizontal: 16,
+  },
+  pv24: {
+    paddingVertical: 24,
+  },
+  pv36: {
+    paddingVertical: 36,
+  },
+  pv40: {
+    paddingVertical: 40,
+  },
   br8: {
     borderRadius: 8,
   },

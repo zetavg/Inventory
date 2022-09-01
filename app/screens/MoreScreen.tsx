@@ -46,7 +46,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
     }
   })();
 
-  const { rfidScanSheet } = useRootBottomSheets();
+  const { openRfidSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
   const [overallDBSyncStatus] = useOverallDBSyncStatus();
@@ -111,7 +111,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="cellphone-wireless"
             iosImage="ios-menu.wireless-scan.png"
-            onPress={() => rfidScanSheet.current?.present()}
+            onPress={() => openRfidSheet({ functionality: 'scan' })}
           >
             Scan Tags
           </TableView.Item>
@@ -119,7 +119,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="magnify-scan"
             iosImage="ios-menu.locate.png"
-            onPress={() => rfidScanSheet.current?.present()}
+            onPress={() => openRfidSheet({ functionality: 'locate' })}
           >
             Locate Tag
           </TableView.Item>
@@ -127,7 +127,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="note-search"
             iosImage="ios-menu.wireless-read.png"
-            onPress={() => rfidScanSheet.current?.present()}
+            onPress={() => openRfidSheet({ functionality: 'read' })}
           >
             Read Tag
           </TableView.Item>
@@ -135,7 +135,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="square-edit-outline"
             iosImage="ios-menu.wireless-write.png"
-            onPress={() => rfidScanSheet.current?.present()}
+            onPress={() => openRfidSheet({ functionality: 'write' })}
           >
             Write Tag
           </TableView.Item>
