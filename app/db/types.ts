@@ -1,3 +1,10 @@
+export type ConfigStoredInDB = {
+  epcCompanyPrefix: string;
+  rfidTagAccessPassword: string;
+  rfidTagAccessPasswordEncoding: string;
+  epcPrefix: number;
+};
+
 export type DBContent = {
   a: any;
 };

@@ -1,5 +1,6 @@
 import type { Schema as JTDSchema } from 'jtd';
 import { JTDDataType } from 'ajv/dist/jtd';
+import EPCUtils from '@app/modules/EPCUtils';
 
 // ==== Type of Schema ==== //
 
@@ -76,7 +77,7 @@ export const schema = s({
     plural: 'locations',
     dataSchema: jtdSchema({
       properties: {
-        name: { type: 'string' },
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
         // relations
         room: { type: 'string' },
       },
@@ -84,6 +85,82 @@ export const schema = s({
     }),
     relations: {
       room: { belongsTo: 'room' },
+    },
+    titleField: 'name',
+  },
+  collection: {
+    plural: 'collections',
+    dataSchema: jtdSchema({
+      properties: {
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        collectionReferenceNumber: {
+          type: 'string',
+          metadata: { match: EPCUtils.COLLECTION_REFERENCE_REGEX },
+        },
+      },
+      additionalProperties: false,
+    }),
+    relations: {
+      items: {
+        hasMany: { type: 'item', options: { queryInverse: 'collection' } },
+      },
+    },
+    titleField: 'name',
+  },
+  item: {
+    plural: 'items',
+    dataSchema: jtdSchema({
+      properties: {
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        // relations
+        collection: { type: 'string' },
+      },
+      optionalProperties: {
+        itemReferenceNumber: {
+          type: 'string',
+          metadata: { match: EPCUtils.ITEM_REFERENCE_REGEX },
+        },
+        serial: {
+          type: 'uint16',
+          // TODO: validate range
+        },
+        individualAssetReference: {
+          type: 'string',
+          metadata: { editable: false },
+        },
+        calculatedRfidTagEpcMemoryBankContents: {
+          type: 'string',
+          metadata: { editable: false },
+        },
+        actualRfidTagEpcMemoryBankContents: {
+          type: 'string',
+          metadata: { editable: false },
+        },
+        rfidTagAccessPassword: {
+          type: 'string',
+          metadata: { editable: false },
+        },
+        // relations
+        dedicatedContainer: { type: 'string' },
+        container: { type: 'string' },
+      },
+      additionalProperties: false,
+    }),
+    relations: {
+      collection: { belongsTo: 'collection' },
+      // container
+      dedicatedContainer: { belongsTo: 'item' },
+      container: { belongsTo: 'item' },
+      dedicatedItems: {
+        hasMany: {
+          type: 'item',
+          options: { queryInverse: 'dedicatedContainer' },
+        },
+      },
+      items: {
+        hasMany: { type: 'item', options: { queryInverse: 'container' } },
+      },
+      // travelContainer: { belongsTo: 'item' },
     },
     titleField: 'name',
   },

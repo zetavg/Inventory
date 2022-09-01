@@ -4,6 +4,9 @@ import Ajv, {
   KeywordCxt,
   ValidateFunction,
 } from 'ajv/dist/jtd';
+import { v4 as uuidv4 } from 'uuid';
+import EPCUtils from '@app/modules/EPCUtils';
+import { getConfigInDB } from './configUtils';
 import { Database } from './pouchdb';
 import schema, { Schema, TypeName, DataType, RelationDef } from './schema';
 
@@ -14,6 +17,21 @@ export function getAjv(): Ajv {
   if (ajv) return ajv;
 
   ajv = new Ajv({ allErrors: true });
+
+  ajv.addKeyword({
+    keyword: 'editable',
+    validate: () => true,
+  });
+
+  ajv.addKeyword({
+    keyword: 'match',
+    validate: (s: any, data: any) => {
+      if (s && data) {
+        return !!data.match(s);
+      }
+      return true;
+    },
+  });
 
   ajv.addKeyword({
     keyword: 'trimAndNotEmpty',
@@ -185,11 +203,78 @@ export async function save<T extends TypeName>(
 
   await validate(db, type, data);
 
-  // TODO: pre-process
+  // Pre-process before save
+  switch (type) {
+    case 'item': {
+      const d: DataType<'item'> = data;
+
+      if (!d.rfidTagAccessPassword) {
+        const [generatedHex] = uuidv4().split('-');
+        d.rfidTagAccessPassword = generatedHex;
+      }
+
+      if (d.itemReferenceNumber && d.collection) {
+        const config = await getConfigInDB(db);
+        const collection: any = await db
+          .get(`collection-2-${d.collection}`)
+          .catch(e => {
+            throw new Error(
+              `Cannot get collection with ID ${d.collection} to generate GIAI: ${e}`,
+            );
+          });
+        const collectionReference = collection.data.collectionReferenceNumber;
+
+        d.individualAssetReference = EPCUtils.encodeIndividualAssetReference(
+          config.epcPrefix,
+          collectionReference,
+          d.itemReferenceNumber,
+          d.serial || 0,
+          { joinBy: '.', includePrefix: false },
+        );
+        d.calculatedRfidTagEpcMemoryBankContents =
+          await calculateRfidTagEpcMemoryBankContentsForItem(db, d);
+      } else {
+        d.individualAssetReference = undefined;
+        d.calculatedRfidTagEpcMemoryBankContents = undefined;
+      }
+      break;
+    }
+  }
 
   await db.rel.save(type, data);
 
   // TODO: post-process
+}
+
+export async function calculateRfidTagEpcMemoryBankContentsForItem(
+  db: Database,
+  item: Partial<DataType<'item'>>,
+) {
+  if (!item.itemReferenceNumber) return undefined;
+  if (!item.collection) return undefined;
+
+  const config = await getConfigInDB(db);
+
+  const collection: any = await db
+    .get(`collection-2-${item.collection}`)
+    .catch(e => {
+      throw new Error(
+        `Cannot get collection with ID ${item.collection} to generate GIAI: ${e}`,
+      );
+    });
+
+  const collectionReference = collection.data.collectionReferenceNumber;
+  const fullIndividualAssetReference = EPCUtils.encodeIndividualAssetReference(
+    config.epcPrefix,
+    collectionReference,
+    item.itemReferenceNumber,
+    item.serial || 0,
+  );
+
+  return EPCUtils.encodeGIAI('hex', {
+    companyPrefix: config.epcCompanyPrefix,
+    assetReference: fullIndividualAssetReference,
+  });
 }
 
 export function validateData<T extends TypeName>(
@@ -250,6 +335,87 @@ export async function validate<T extends TypeName>(
       }
     }
   }
+
+  switch (type) {
+    case 'collection': {
+      const { collectionReferenceNumber } =
+        data as unknown as DataType<'collection'>;
+      const isRefNumberUnique = await validateCollectionReferenceNumberUnique(
+        db,
+        collectionReferenceNumber,
+        data.id,
+      );
+      if (!isRefNumberUnique) {
+        throw new Error(
+          `The collection reference number "${collectionReferenceNumber}" is already used`,
+        );
+      }
+      break;
+    }
+
+    case 'item': {
+      const item = data as unknown as DataType<'item'>;
+      const isRefNumberUnique =
+        await validateItemReferenceNumberWithSerialUnique(db, item);
+      if (!isRefNumberUnique) {
+        throw new Error(
+          `The item reference number "${
+            item.itemReferenceNumber
+          }" with serial "${
+            item.serial || 0
+          }" is already used in the same collection`,
+        );
+      }
+      break;
+    }
+  }
+}
+
+export async function validateCollectionReferenceNumberUnique(
+  db: Database,
+  collectionReferenceNumber: string,
+  id: string | undefined,
+) {
+  await db.indexesReady;
+  const data = await db.find({
+    use_index: 'index-field-collectionReferenceNumber',
+    selector: {
+      'data.collectionReferenceNumber': { $eq: collectionReferenceNumber },
+    },
+  });
+  if (data.docs.length > 1) return false;
+  if (data.docs.length <= 0) return true;
+
+  const doc = data.docs[0];
+
+  return `collection-2-${id}` === doc._id;
+}
+
+export async function validateItemReferenceNumberWithSerialUnique(
+  db: Database,
+  item: Partial<DataType<'item'>>,
+) {
+  const epcContents = await calculateRfidTagEpcMemoryBankContentsForItem(
+    db,
+    item,
+  );
+
+  if (!epcContents) return true;
+
+  await db.indexesReady;
+  const data = await db.find({
+    use_index: 'index-field-calculatedRfidTagEpcMemoryBankContents',
+    selector: {
+      'data.calculatedRfidTagEpcMemoryBankContents': { $eq: epcContents },
+    },
+  });
+
+  if (data.docs.length > 1) return false;
+  if (data.docs.length <= 0) return true;
+
+  const doc = data.docs[0];
+
+  return `item-2-${(item as any).id}` === doc._id;
 }
 
 // ==== Base Util Functions ==== //

@@ -15,14 +15,49 @@ PouchDBRN.plugin(rel);
 PouchDBRN.plugin(PouchDBAuthentication);
 PouchDBRN.plugin(SQLiteAdapter);
 
-export type Database = PouchDB.RelDatabase<DBContent>;
+export type Database = PouchDB.RelDatabase<DBContent> & {
+  indexesReady: Promise<void>;
+};
 export type AttachmentsDatabase = PouchDB.Database<AttachmentsDBContent>;
 export type LogsDatabase = PouchDB.Database<LogsDBContent>;
 
 export function getDatabase(name: string): Database {
   const db = new PouchDBRN<DBContent>(name, { adapter: 'react-native-sqlite' });
   const relDB = db.setSchema(translateSchema(schema));
-  return relDB;
+
+  return addIndexesToDB(relDB, [
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-field-collectionReferenceNumber',
+        fields: ['data.collectionReferenceNumber'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-field-calculatedRfidTagEpcMemoryBankContents',
+        fields: ['data.calculatedRfidTagEpcMemoryBankContents'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-field-actualRfidTagEpcMemoryBankContents',
+        fields: ['data.actualRfidTagEpcMemoryBankContents'],
+      },
+    }),
+  ]);
+}
+
+function addIndexesToDB(
+  db: PouchDB.RelDatabase<DBContent>,
+  indexPromises: Promise<any>[],
+): PouchDB.RelDatabase<DBContent> & {
+  indexesReady: Promise<any>;
+} {
+  const newDb: PouchDB.RelDatabase<DBContent> & {
+    indexesReady: Promise<any>;
+  } = db as any;
+  newDb.indexesReady = Promise.all(indexPromises);
+  return newDb;
 }
 
 export function getAttachmentsDatabase(name: string): AttachmentsDatabase {
