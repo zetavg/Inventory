@@ -113,10 +113,14 @@ function RelationalPouchDBTypeDataDetailScreen({
 
                   <InsetGroup>
                     {[
-                      ...Object.entries(typeDef.dataSchema.properties),
-                      // ...Object.entries(typeDef.dataSchema.optionalProperties),
+                      ...Object.entries(
+                        (typeDef.dataSchema as any).properties || {},
+                      ),
+                      ...Object.entries(
+                        (typeDef.dataSchema as any).optionalProperties || {},
+                      ),
                     ]
-                      .flatMap(([field, fieldDef]) => [
+                      .flatMap(([field, fieldDef]: [string, any]) => [
                         (() => {
                           const relation =
                             typeDef.relations &&
@@ -125,20 +129,34 @@ function RelationalPouchDBTypeDataDetailScreen({
                             relation && Object.keys(relation)[0];
 
                           switch (true) {
-                            case fieldDef.type === 'string':
+                            case [
+                              'string',
+                              'int8',
+                              'uint8',
+                              'int16',
+                              'uint16',
+                              'int32',
+                              'uint32',
+                              'float32',
+                              'float64',
+                            ].includes(fieldDef.type): {
+                              const v = (d as any)[field];
+                              const hasValue = v !== undefined && v !== null;
                               return (
                                 <InsetGroup.Item
                                   key={field}
                                   vertical2
                                   label={titleCase(field)}
+                                  disabled={!hasValue}
                                   detail={(() => {
                                     switch (relationType) {
                                       default:
-                                        return (d as any)[field];
+                                        return hasValue ? v : `(${v})`;
                                     }
                                   })()}
                                 />
                               );
+                            }
 
                             default:
                               return (

@@ -85,10 +85,16 @@ function RelationalPouchDBSaveScreen({
       >
         <InsetGroup style={commonStyles.mt16}>
           {[
-            ...Object.entries(typeDef.dataSchema.properties),
-            // ...Object.entries(typeDef.dataSchema.optionalProperties),
+            ...Object.entries((typeDef.dataSchema as any).properties || {}),
+            ...Object.entries(
+              (typeDef.dataSchema as any).optionalProperties || {},
+            ),
           ]
-            .flatMap(([field, fieldDef]) => [
+            .filter(
+              ([, fieldDef]: [string, any]) =>
+                fieldDef?.metadata?.editable !== false,
+            )
+            .flatMap(([field, fieldDef]: [string, any]) => [
               (() => {
                 const relation =
                   typeDef.relations && (typeDef.relations as any)[field];
@@ -156,6 +162,41 @@ function RelationalPouchDBSaveScreen({
                           />
                         );
                     }
+
+                  case [
+                    'int8',
+                    'uint8',
+                    'int16',
+                    'uint16',
+                    'int32',
+                    'uint32',
+                    'float32',
+                    'float64',
+                  ].includes(fieldDef.type):
+                    return (
+                      <InsetGroup.Item
+                        key={field}
+                        compactLabel
+                        label={titleCase(field)}
+                        detail={
+                          <InsetGroup.TextInput
+                            alignRight
+                            placeholder={`Enter ${field}`}
+                            value={data[field]?.toString()}
+                            onChangeText={text => {
+                              const number = parseInt(text, 10);
+                              setData(d => ({
+                                ...d,
+                                [field]: Number.isNaN(number)
+                                  ? undefined
+                                  : number,
+                              }));
+                              setHasUnsavedChanges(true);
+                            }}
+                          />
+                        }
+                      />
+                    );
 
                   default:
                     return (
