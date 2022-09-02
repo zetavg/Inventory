@@ -512,17 +512,7 @@ function RFIDSheet(
                     >
                       {Object.values(scannedData)
                         .flatMap(d => [
-                          <InsetGroup.Item
-                            key={d.epc}
-                            label={d.epc}
-                            vertical
-                            detail={[
-                              d.rssi && `RSSI: ${d.rssi}`,
-                              d.tid && `TID: ${d.tid}`,
-                            ]
-                              .filter(s => s)
-                              .join(', ')}
-                          />,
+                          <ScannedItem key={d.epc} item={d} />,
                           <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
                         ])
                         .slice(0, -1)}
@@ -588,6 +578,65 @@ function RFIDSheet(
         style={styles.sheetUpperLinearGradient}
       />
     </BottomSheetModal>
+  );
+}
+
+function ScannedItem({ item }: { item: ScanData }) {
+  const { db } = useDB();
+
+  const [loadedItem, setLoadedItem] = useState<DataType<'item'> | null>(null);
+  const loadItem = useCallback(async () => {
+    try {
+      const data = await db.find({
+        use_index: 'index-field-actualRfidTagEpcMemoryBankContents',
+        selector: {
+          'data.actualRfidTagEpcMemoryBankContents': { $eq: item.epc },
+        },
+      });
+      const doc = (data as any)?.docs && (data as any)?.docs[0];
+      if (
+        doc &&
+        typeof (doc as any)?._id === 'string' &&
+        (doc as any)?._id.startsWith('item-')
+      )
+        setLoadedItem((doc as any).data);
+    } catch (e) {
+      // TODO: Handle other error
+    }
+  }, [db, item.epc]);
+  useEffect(() => {
+    loadItem();
+  }, [loadItem]);
+
+  if (loadedItem) {
+    return (
+      <InsetGroup.Item
+        key={item.epc}
+        label={loadedItem.name}
+        vertical
+        detail={[
+          item.rssi && `RSSI: ${item.rssi}`,
+          loadedItem.individualAssetReference &&
+            `${loadedItem.individualAssetReference}`,
+        ]
+          .filter(s => s)
+          .join(' | ')}
+      />
+    );
+  }
+
+  return (
+    <InsetGroup.Item
+      key={item.epc}
+      label={item.epc}
+      vertical
+      detail={[
+        item.rssi && `RSSI: ${item.rssi}`,
+        item.tid && `TID: ${item.tid}`,
+      ]
+        .filter(s => s)
+        .join(', ')}
+    />
   );
 }
 
