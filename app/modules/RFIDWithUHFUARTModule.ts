@@ -248,6 +248,11 @@ export async function writeEpcAndLock(
     const epcWordsCount = Math.ceil(epcSize / 4);
 
     reportStatus && reportStatus('Writing data...');
+
+    await new Promise(resolve => {
+      setTimeout(resolve, 1);
+    });
+
     // Write data
     await RFIDWithUHFUARTModule.write({
       memoryBank: 'EPC',
@@ -326,6 +331,12 @@ export async function unlockAndReset(
     soundEnabled: boolean;
   },
 ) {
+  reportStatus && reportStatus('Resetting data...');
+
+  await new Promise(resolve => {
+    setTimeout(resolve, 1);
+  });
+
   /** Used to ensure that we're working with the same tag on subsequent operations */
   const randHex = crypto.randomBytes(4).toString('hex');
 
@@ -338,7 +349,6 @@ export async function unlockAndReset(
     filter,
     soundEnabled: false,
   };
-  reportStatus && reportStatus('Resetting data...');
   let isLocked = true;
 
   try {
