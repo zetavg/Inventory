@@ -10,9 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import useColors from '@app/hooks/useColors';
 import type { Optional } from '@app/utils/types';
 import Color from 'color';
+import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import commonStyles from '@app/utils/commonStyles';
 
@@ -163,6 +163,119 @@ function ElevatedButton({
   );
 }
 
+export function SecondaryButton({
+  title,
+  color,
+  style,
+  primary,
+  onLayout,
+  onPressIn,
+  onPressOut,
+  down: downProp,
+  loading,
+  disabled,
+  ...props
+}: Props & { primary?: boolean }) {
+  const [down, setDown] = useState(false);
+
+  const isDarkMode = useIsDarkMode();
+  const { contentTextColor, iosTintColor } = useColors();
+
+  const handlePressIn = useCallback(
+    (e: GestureResponderEvent) => {
+      if (typeof onPressIn === 'function') onPressIn(e);
+      setDown(true);
+    },
+    [onPressIn],
+  );
+  const handlePressOut = useCallback(
+    (e: GestureResponderEvent) => {
+      if (typeof onPressOut === 'function') onPressOut(e);
+      setDown(false);
+    },
+    [onPressOut],
+  );
+  const prevDown = useRef(false);
+  const currentDown = down || downProp || false;
+  useEffect(() => {
+    if (prevDown.current === currentDown) return;
+
+    if (currentDown) {
+      ReactNativeHapticFeedback.trigger('selection');
+    } else {
+      ReactNativeHapticFeedback.trigger('selection');
+    }
+
+    prevDown.current = currentDown;
+  }, [currentDown]);
+
+  const downBgColor = Color(contentTextColor).opaquer(-0.9).hexa();
+  const textColor = primary ? iosTintColor : Color(contentTextColor).opaquer(-0.5).hexa();
+  const barColor = Color(contentTextColor).opaquer(-0.9).hexa();
+  const backgroundColor = currentDown ? downBgColor : 'transparent';
+
+  const [height, setHeight] = useState(-100);
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      setHeight(event.nativeEvent.layout.height);
+      if (typeof onLayout === 'function') onLayout(event);
+    },
+    [onLayout],
+  );
+
+  return (
+    <TouchableWithoutFeedback
+      {...props}
+      disabled={disabled}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+    >
+      <View
+        onLayout={handleLayout}
+        style={[
+          styles.secondaryContentContainer,
+          { backgroundColor },
+          currentDown && styles.contentContainerDown,
+        ]}
+      >
+        <View
+          style={[
+            styles.secondaryBar,
+            styles.leftBar,
+            { left: height * 0.4, backgroundColor: barColor },
+            currentDown && styles.barPressed,
+          ]}
+        />
+        <View
+          style={[
+            styles.secondaryBar,
+            styles.rightBar,
+            { right: height * 0.4, backgroundColor: barColor },
+            currentDown && styles.barPressed,
+          ]}
+        />
+        <View style={commonStyles.centerChildren}>
+          {loading && (
+            <ActivityIndicator
+              color={textColor}
+              style={[styles.activityIndicator]}
+            />
+          )}
+          <Text
+            style={[
+              styles.secondaryText,
+              { color: textColor },
+              currentDown && styles.textPressed,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+      </View>
+    </TouchableWithoutFeedback>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     borderRadius: 100,
@@ -214,11 +327,25 @@ const styles = StyleSheet.create({
       height: 1,
     },
   },
+  secondaryContentContainer: {
+    borderRadius: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
   bar: {
     position: 'absolute',
     top: 12,
     bottom: 12,
     width: 4,
+    borderRadius: 4,
+  },
+  secondaryBar: {
+    position: 'absolute',
+    top: 8,
+    bottom: 8,
+    width: 2,
     borderRadius: 4,
   },
   leftBar: { left: -100 },
@@ -241,6 +368,9 @@ const styles = StyleSheet.create({
     //   width: 0,
     //   height: 0,
     // },
+  },
+  secondaryText: {
+    fontSize: 16,
   },
   textPressed: {
     // transform: [{ translateX: 0 }, { translateY: 1 }, { scale: 0.99 }],

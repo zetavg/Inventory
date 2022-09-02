@@ -19,6 +19,7 @@ import {
   getQueryInverseFromRelation,
   getTypeFromRelation,
 } from '@app/db/relationalUtils';
+import relationDataAdditionalUI from '@app/db/relationDataAdditionalUI';
 
 function RelationalPouchDBTypeDataDetailScreen({
   navigation,
@@ -73,6 +74,8 @@ function RelationalPouchDBTypeDataDetailScreen({
       ],
     );
   }, [data, db.rel, navigation, type]);
+
+  const AdditionalUI = relationDataAdditionalUI[type];
 
   return (
     <ScreenContent
@@ -259,6 +262,8 @@ function RelationalPouchDBTypeDataDetailScreen({
                       );
                     },
                   )}
+
+                  {AdditionalUI && <AdditionalUI data={d} />}
                 </>
               );
             })()

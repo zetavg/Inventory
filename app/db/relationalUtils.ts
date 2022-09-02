@@ -233,6 +233,9 @@ export async function save<T extends TypeName>(
         );
         d.calculatedRfidTagEpcMemoryBankContents =
           await calculateRfidTagEpcMemoryBankContentsForItem(db, d);
+        // TODO: Write to actual after tag write
+        d.actualRfidTagEpcMemoryBankContents =
+          d.calculatedRfidTagEpcMemoryBankContents;
       } else {
         d.individualAssetReference = undefined;
         d.calculatedRfidTagEpcMemoryBankContents = undefined;

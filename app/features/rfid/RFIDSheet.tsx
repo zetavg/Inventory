@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
   Alert,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import {
@@ -26,14 +27,20 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { SFSymbol } from 'react-native-sfsymbols';
 
 import Color from 'color';
 import commonStyles from '@app/utils/commonStyles';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
-import ElevatedButton from '@app/components/ElevatedButton';
+import Button from '@app/components/Button';
+import ElevatedButton, {
+  SecondaryButton,
+} from '@app/components/ElevatedButton';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useForwardedRef from '@app/hooks/useForwardedRef';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 
@@ -42,12 +49,28 @@ import { ConfigStoredInDB } from '@app/db/types';
 import { getConfigInDB } from '@app/db/configUtils';
 import RFIDWithUHFUARTModule, {
   ScanData,
+  writeEpcAndLock,
+  unlockAndReset as unlockAndResetEPC,
 } from '@app/modules/RFIDWithUHFUARTModule';
 import EPCUtils from '@app/modules/EPCUtils';
+import { DataType } from '@app/db/schema';
+import { getTagAccessPassword } from './utils';
 
-export type RFIDSheetOptions = {
-  functionality: 'scan' | 'locate' | 'read' | 'write';
-};
+export type RFIDSheetOptions =
+  | {
+      functionality: 'scan';
+    }
+  | {
+      functionality: 'locate';
+    }
+  | {
+      functionality: 'read';
+    }
+  | {
+      functionality: 'write';
+      epc: string;
+      tagAccessPassword?: string;
+    };
 
 type Props = {
   rfidSheetPassOptionsFnRef: React.MutableRefObject<
@@ -120,6 +143,7 @@ function RFIDSheet(
   { rfidSheetPassOptionsFnRef }: Props,
   ref: React.ForwardedRef<BottomSheetModal>,
 ) {
+  const innerRef = useForwardedRef(ref);
   // Styles //
   const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
@@ -131,6 +155,10 @@ function RFIDSheet(
 
   // const footerBottomInset = safeAreaInsets.bottom + 32;
   const [footerHeight, setFooterHeight] = useState(0);
+  const footerBottomInset = safeAreaInsets.bottom;
+  const footerLinearGradientHeight = 52;
+  const contentBottomInset =
+    footerBottomInset + footerHeight + footerLinearGradientHeight / 2;
 
   const initialSnapPoints = useMemo(() => ['CONTENT_HEIGHT'], []);
 
@@ -226,7 +254,7 @@ function RFIDSheet(
       const [f] = EPCUtils.encodeHexEPC(
         `urn:epc:tag:giai-96:0.${c.epcCompanyPrefix}.${c.epcPrefix}`,
       );
-      // setDefaultFilter(f.slice(0, 8));
+      setDefaultFilter(f.slice(0, 8));
     });
   }, [db]);
 
@@ -285,12 +313,80 @@ function RFIDSheet(
     await RFIDWithUHFUARTModule.clearScannedTags();
   }, []);
 
+  const [writeAndLockStatus, setWriteAndLockStatus] = useState('N/A');
+  const [writeAndLockWorking, setWriteAndLockWorking] = useState(false);
+  const [writeAndLockPower, setWriteAndLockPower] = useState<null | number>(8);
+  const writeAndLock = useCallback(async () => {
+    if (options?.functionality !== 'write') return;
+    if (writeAndLockWorking) return;
+    if (!config) return;
+
+    setWriteAndLockWorking(true);
+
+    const accessPassword = getTagAccessPassword(
+      config.rfidTagAccessPassword,
+      options.tagAccessPassword || '00000000',
+      config.rfidTagAccessPasswordEncoding,
+    );
+
+    console.log(accessPassword);
+
+    try {
+      await writeEpcAndLock(options.epc, accessPassword, {
+        power: writeAndLockPower || 1,
+        oldAccessPassword: '00000000',
+        soundEnabled: true,
+        reportStatus: setWriteAndLockStatus,
+      });
+    } catch (e: any) {
+      // console.warn(e);
+    } finally {
+      setWriteAndLockWorking(false);
+    }
+  }, [writeAndLockWorking, options, config, writeAndLockPower]);
+  const unlockAndReset = useCallback(async () => {
+    if (options?.functionality !== 'write') return;
+    if (writeAndLockWorking) return;
+    if (!config) return;
+
+    setWriteAndLockWorking(true);
+
+    const accessPassword = getTagAccessPassword(
+      config.rfidTagAccessPassword,
+      options.tagAccessPassword || '00000000',
+      config.rfidTagAccessPasswordEncoding,
+    );
+
+    try {
+      await unlockAndResetEPC(accessPassword, {
+        power: writeAndLockPower || 1,
+        soundEnabled: true,
+        reportStatus: setWriteAndLockStatus,
+        // filter: enableFilter
+        //   ? {
+        //       memoryBank: filterMemoryBank,
+        //       bitOffset: filterBitOffset || DEFAULTS.FILTER_BIT_OFFSET,
+        //       bitCount: filterBitCount || DEFAULTS.FILTER_BIT_COUNT,
+        //       data: filterData,
+        //     }
+        //   : undefined,
+      });
+    } catch (e: any) {
+      // console.warn(e);
+    } finally {
+      setWriteAndLockWorking(false);
+    }
+  }, [writeAndLockWorking, options, config, writeAndLockPower]);
+
   const [dCounter, setDCounter] = useState(1);
 
   // Shared Event Handlers //
   const handleActionButtonPress = useCallback(() => {
     switch (options?.functionality) {
       case 'scan': {
+        return;
+      }
+      case 'write': {
         return;
       }
       default:
@@ -302,8 +398,11 @@ function RFIDSheet(
       case 'scan': {
         return startScan();
       }
+      case 'write': {
+        return writeAndLock();
+      }
     }
-  }, [options?.functionality, startScan]);
+  }, [options?.functionality, startScan, writeAndLock]);
   const handleActionButtonPressOut = useCallback(() => {
     switch (options?.functionality) {
       case 'scan': {
@@ -313,12 +412,8 @@ function RFIDSheet(
   }, [options?.functionality, stopScan]);
 
   // Render //
-  const footerBottomInset = safeAreaInsets.bottom + 80;
-  const footerLinearGradientHeight = 52;
-  const contentBottomInset =
-    footerBottomInset + footerHeight + footerLinearGradientHeight / 2;
   const Footer = useCallback(
-    ({ animatedFooterPosition }: BottomSheetFooterProps) => {
+    ({ animatedFooterPosition, ...props }: BottomSheetFooterProps) => {
       const buttonColor = (() => {
         switch (options?.functionality) {
           case 'write':
@@ -345,6 +440,7 @@ function RFIDSheet(
 
       return (
         <BottomSheetFooter
+          {...props}
           bottomInset={footerBottomInset}
           animatedFooterPosition={animatedFooterPosition}
         >
@@ -389,26 +485,121 @@ function RFIDSheet(
             <ElevatedButton
               title={buttonLabel}
               color={buttonColor}
-              disabled={!ready}
-              loading={!ready}
               onPress={handleActionButtonPress}
               onPressIn={handleActionButtonPressIn}
               onPressOut={handleActionButtonPressOut}
+              down={(() => {
+                switch (options?.functionality) {
+                  case 'write':
+                    return writeAndLockWorking;
+                  default:
+                    return false;
+                }
+              })()}
+              disabled={(() => {
+                if (!ready) return true;
+
+                switch (options?.functionality) {
+                  default:
+                    return false;
+                }
+              })()}
+              loading={(() => {
+                if (!ready) return true;
+
+                switch (options?.functionality) {
+                  case 'write':
+                    return writeAndLockWorking;
+                  default:
+                    return false;
+                }
+              })()}
             />
+            <View
+              style={{
+                height: 100,
+                flexDirection: 'row',
+                paddingTop: safeAreaInsets.bottom / 2,
+              }}
+            >
+              <View style={{ width: 100, justifyContent: 'center' }}>
+                {(() => {
+                  switch (options?.functionality) {
+                    case 'scan':
+                      return (
+                        <SecondaryButton
+                          title="Reset"
+                          onPress={clearScannedData}
+                        />
+                      );
+                    case 'write':
+                      return (
+                        <SecondaryButton
+                          title="Wipe"
+                          onPress={unlockAndReset}
+                        />
+                      );
+                    default:
+                      return null;
+                  }
+                })()}
+              </View>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <TouchableOpacity>
+                  <View
+                    style={{
+                      opacity: 0.3,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <BluetoothIcon size={21} />
+                    <Text style={{ fontSize: 14, fontWeight: '500' }}>
+                      Built-In UHF
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View style={{ width: 100, justifyContent: 'center' }}>
+                {(() => {
+                  switch (options?.functionality) {
+                    default:
+                      return (
+                        <SecondaryButton
+                          title="Done"
+                          onPress={() => innerRef.current?.dismiss()}
+                        />
+                      );
+                  }
+                })()}
+              </View>
+            </View>
           </View>
         </BottomSheetFooter>
       );
     },
     [
+      clearScannedData,
       contentBottomInset,
       footerBottomInset,
       handleActionButtonPress,
       handleActionButtonPressIn,
       handleActionButtonPressOut,
+      innerRef,
       options?.functionality,
       ready,
       red2,
+      safeAreaInsets.bottom,
       sheetBackgroundColor,
+      unlockAndReset,
+      writeAndLockWorking,
       yellow2,
     ],
   );
@@ -450,7 +641,7 @@ function RFIDSheet(
 
   return (
     <BottomSheetModal
-      ref={ref}
+      ref={innerRef}
       // detached={true}
       // style={{ marginHorizontal: 16 }}
       // bottomInset={safeAreaInsets.bottom + 32}
@@ -469,7 +660,8 @@ function RFIDSheet(
     >
       {(() => {
         switch (options?.functionality) {
-          case 'scan':
+          case 'scan': {
+            const scannedItemsCount = Object.keys(scannedData).length;
             return (
               <BottomSheetScrollView
                 style={animatedScrollViewStyles}
@@ -483,7 +675,7 @@ function RFIDSheet(
                   ]}
                   onLayout={handleContentLayout}
                 >
-                  {Object.keys(scannedData).length <= 0 ? (
+                  {scannedItemsCount <= 0 ? (
                     <InsetGroup
                       style={[
                         {
@@ -502,7 +694,9 @@ function RFIDSheet(
                       style={{
                         backgroundColor: insetGroupBackgroundColor,
                       }}
-                      label="hi"
+                      label={`${scannedItemsCount} Item${
+                        scannedItemsCount > 1 ? 's' : ''
+                      }`}
                       labelRight={
                         <InsetGroup.GroupLabelRightButton
                           label="Clear"
@@ -521,6 +715,7 @@ function RFIDSheet(
                 </View>
               </BottomSheetScrollView>
             );
+          }
           default:
             return (
               <BottomSheetScrollView
@@ -559,9 +754,25 @@ function RFIDSheet(
                       />
                       <InsetGroup.ItemSeperator />
                       <InsetGroup.Item
+                        label="Status"
+                        detail={(() => {
+                          if (options?.functionality === 'write') {
+                            return writeAndLockStatus;
+                          }
+                          return 'null';
+                        })()}
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
                         label="Options"
                         vertical2
                         detail={JSON.stringify(options, null, 2)}
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
+                        label="Config"
+                        vertical2
+                        detail={JSON.stringify(config, null, 2)}
                       />
                     </InsetGroup>
                   ))}
@@ -636,6 +847,27 @@ function ScannedItem({ item }: { item: ScanData }) {
       ]
         .filter(s => s)
         .join(', ')}
+    />
+  );
+}
+
+function BluetoothIcon({
+  color,
+  size,
+  opacity,
+}: {
+  color?: string;
+  size?: number;
+  opacity?: number;
+}) {
+  const { contentTextColor } = useColors();
+  const c = color || contentTextColor;
+  return (
+    <Icon
+      name="bluetooth"
+      size={size || 16}
+      color={c}
+      style={{ opacity: opacity || 0.9 }}
     />
   );
 }
