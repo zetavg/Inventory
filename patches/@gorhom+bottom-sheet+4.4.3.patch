@@ -1,0 +1,40 @@
+diff --git a/node_modules/@gorhom/bottom-sheet/lib/commonjs/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js b/node_modules/@gorhom/bottom-sheet/lib/commonjs/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
+index b38709b..3d95530 100644
+--- a/node_modules/@gorhom/bottom-sheet/lib/commonjs/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
++++ b/node_modules/@gorhom/bottom-sheet/lib/commonjs/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
+@@ -43,7 +43,7 @@ const BottomSheetFooterContainerComponent = ({
+     return footerTranslateY;
+   }, [animatedKeyboardHeightInContainer, animatedContainerHeight, animatedPosition, animatedKeyboardState, animatedFooterHeight, animatedHandleHeight]); //#endregion
+ 
+-  return /*#__PURE__*/_react.default.createElement(FooterComponent, {
++  return /*#__PURE__*/ FooterComponent({
+     animatedFooterPosition: animatedFooterPosition
+   });
+ };
+diff --git a/node_modules/@gorhom/bottom-sheet/lib/module/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js b/node_modules/@gorhom/bottom-sheet/lib/module/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
+index ffb9461..4eb795a 100644
+--- a/node_modules/@gorhom/bottom-sheet/lib/module/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
++++ b/node_modules/@gorhom/bottom-sheet/lib/module/components/bottomSheetFooterContainer/BottomSheetFooterContainer.js
+@@ -29,7 +29,7 @@ const BottomSheetFooterContainerComponent = ({
+     return footerTranslateY;
+   }, [animatedKeyboardHeightInContainer, animatedContainerHeight, animatedPosition, animatedKeyboardState, animatedFooterHeight, animatedHandleHeight]); //#endregion
+ 
+-  return /*#__PURE__*/React.createElement(FooterComponent, {
++  return /*#__PURE__*/ FooterComponent({
+     animatedFooterPosition: animatedFooterPosition
+   });
+ };
+diff --git a/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetFooterContainer/BottomSheetFooterContainer.tsx b/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetFooterContainer/BottomSheetFooterContainer.tsx
+index 0ddd8e0..1e36976 100644
+--- a/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetFooterContainer/BottomSheetFooterContainer.tsx
++++ b/node_modules/@gorhom/bottom-sheet/src/components/bottomSheetFooterContainer/BottomSheetFooterContainer.tsx
+@@ -46,7 +46,8 @@ const BottomSheetFooterContainerComponent = ({
+   ]);
+   //#endregion
+ 
+-  return <FooterComponent animatedFooterPosition={animatedFooterPosition} />;
++  // return <FooterComponent animatedFooterPosition={animatedFooterPosition} />;
++  return FooterComponent({ animatedFooterPosition });
+ };
+ 
+ const BottomSheetFooterContainer = memo(BottomSheetFooterContainerComponent);
