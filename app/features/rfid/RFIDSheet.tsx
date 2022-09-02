@@ -228,7 +228,7 @@ function RFIDSheet(
       );
       // setDefaultFilter(f.slice(0, 8));
     });
-  }, [config, db]);
+  }, [db]);
 
   // Functionalities //
 
