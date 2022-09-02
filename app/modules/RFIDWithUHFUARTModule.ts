@@ -154,7 +154,10 @@ const RFIDWithUHFUARTModule = {
     );
   },
   stopScan: (): Promise<void> => {
-    (RFIDWithUHFUARTModule as any)._scanListener?.remove();
+    const currentScanListener = (RFIDWithUHFUARTModule as any)._scanListener;
+    setTimeout(() => {
+      currentScanListener?.remove();
+    }, 1000);
     return NativeRFIDWithUHFUARTModule.stopScan();
   },
   clearScannedTags: (): Promise<void> => {
