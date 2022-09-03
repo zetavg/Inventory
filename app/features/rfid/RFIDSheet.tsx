@@ -230,7 +230,7 @@ function RFIDSheet(
         if (freeRfidTimeout.current) clearTimeout(freeRfidTimeout.current);
         const timer = setTimeout(() => {
           freeRfid();
-        }, 5000);
+        }, 30000);
         freeRfidTimeout.current = timer;
       }
     },
