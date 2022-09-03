@@ -87,13 +87,11 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('EPCTDS')}
           />
-        </InsetGroup>
-
-        <InsetGroup>
+          <InsetGroup.ItemSeperator />
           <InsetGroup.Item
-            label="RFID UHF UART"
+            label="RFID UHF Module"
             arrow
-            onPress={() => navigation.push('RFIDUHFUART')}
+            onPress={() => navigation.push('RFIDUHFModule')}
           />
         </InsetGroup>
 

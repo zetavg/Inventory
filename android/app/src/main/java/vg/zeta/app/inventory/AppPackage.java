@@ -22,6 +22,7 @@ public class AppPackage implements ReactPackage {
     List<NativeModule> modules = new ArrayList<>();
 
     modules.add(new RFIDWithUHFUARTModule(reactContext));
+    modules.add(new RFIDWithUHFBLEModule(reactContext));
 
     return modules;
   }

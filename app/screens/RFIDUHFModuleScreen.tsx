@@ -20,16 +20,18 @@ import { usePersistedState } from '@app/hooks/usePersistedState';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import RFIDWithUHFUARTModule, {
-  MemoryBank,
-  ScanData,
-  writeEpcAndLock as moduleWriteAndLock,
-  unlockAndReset as moduleUnlockAndReset,
-} from '@app/modules/RFIDWithUHFUARTModule';
+import { MemoryBank, ScanData } from '@app/modules/RFIDWithUHFBaseModule';
+import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
+import RFIDWithUHFBLEModule, {
+  DeviceConnectStatus,
+  DeviceConnectStatusPayload,
+  ScanDevicesData,
+} from '@app/modules/RFIDWithUHFBLEModule';
 
 import useColors from '@app/hooks/useColors';
 import commonStyles from '@app/utils/commonStyles';
 import useScrollTo from '@app/hooks/useScrollTo';
+import useNumberInputChangeHandler from '@app/hooks/useNumberInputChangeHandler';
 
 const DEFAULTS = {
   FILTER_BIT_OFFSET: 32,
@@ -43,12 +45,324 @@ const MEMORY_BANK_SELECTOR_DATA = [
   { key: 'USER', label: 'USER' },
 ];
 
-function RFIDUHFUARTScreen({
+function RFIDUHFModuleScreen({
   navigation,
-}: StackScreenProps<StackParamList, 'RFIDUHFUART'>) {
+}: StackScreenProps<StackParamList, 'RFIDUHFModule'>) {
   const { iosTintColor } = useColors();
   const scrollViewRef = useRef<ScrollView>(null);
   const scrollTo = useScrollTo(scrollViewRef);
+
+  /////////////////////////////
+  // RFID Device Type Select //
+  /////////////////////////////
+
+  const [useBuiltInReader, setUseBuiltInReader] = useState(false);
+
+  const deviceTypeSelectUi = useMemo(
+    () => (
+      <InsetGroup label="Device Type">
+        <InsetGroup.Item
+          label="Use Built-in Reader"
+          detail={
+            <Switch
+              value={useBuiltInReader}
+              onChange={() => setUseBuiltInReader(v => !v)}
+            />
+          }
+        />
+      </InsetGroup>
+    ),
+    [useBuiltInReader],
+  );
+
+  const RFIDWithUHFModule = useBuiltInReader
+    ? RFIDWithUHFUARTModule
+    : RFIDWithUHFBLEModule;
+
+  ///////////////////////////////
+  // Search and Connect Device //
+  ///////////////////////////////
+
+  // const [uhfInitStatus, setUhfInitStatus] = useState('N/A');
+
+  const [deviceConnectionStatus, setDeviceConnectionStatus] =
+    useState<DeviceConnectStatusPayload | null>(null);
+  const receiveConnectStatusChange = useCallback(
+    (payload: DeviceConnectStatusPayload) => {
+      setDeviceConnectionStatus(payload);
+    },
+    [],
+  );
+  useEffect(() => {
+    const subscription = RFIDWithUHFBLEModule.addDeviceConnectStatusListener(
+      receiveConnectStatusChange,
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, [receiveConnectStatusChange]);
+
+  const [scanDevicesData, setScanDevicesData] = useState<
+    Record<string, ScanDevicesData>
+  >({});
+  const receiveScanDeviceData = useCallback((d: ScanDevicesData[]) => {
+    setScanDevicesData(data => ({
+      ...data,
+      ...Object.fromEntries(d.map(dd => [dd.address, dd])),
+    }));
+  }, []);
+  const scanDevices = useCallback(async () => {
+    setScanDevicesData({});
+    RFIDWithUHFBLEModule.scanDevices(true, { callback: receiveScanDeviceData });
+  }, [receiveScanDeviceData]);
+  const stopScanDevices = useCallback(async () => {
+    RFIDWithUHFBLEModule.scanDevices(false, {
+      callback: receiveScanDeviceData,
+    });
+  }, [receiveScanDeviceData]);
+  const clearScanDevicesData = useCallback(async () => {
+    setScanDevicesData({});
+  }, []);
+
+  const prevDeviceConnectionStatus = useRef<DeviceConnectStatusPayload | null>(
+    null,
+  );
+  const [prevConnectedDeviceAddress, setPrevConnectedDeviceAddress] =
+    usePersistedState<null | string>(
+      'devtools-rfid-prevConnectedDeviceAddress',
+      null,
+    );
+  useEffect(() => {
+    if (
+      deviceConnectionStatus?.status ===
+      prevDeviceConnectionStatus.current?.status
+    )
+      return;
+
+    if (
+      deviceConnectionStatus?.status === 'CONNECTED' &&
+      prevDeviceConnectionStatus.current?.status !== 'CONNECTED'
+    ) {
+      if (deviceConnectionStatus?.deviceAddress) {
+        stopScanDevices();
+        setPrevConnectedDeviceAddress(deviceConnectionStatus?.deviceAddress);
+        clearScanDevicesData();
+      }
+    }
+
+    prevDeviceConnectionStatus.current = deviceConnectionStatus;
+  }, [
+    clearScanDevicesData,
+    deviceConnectionStatus,
+    setPrevConnectedDeviceAddress,
+    stopScanDevices,
+  ]);
+  const prevConnectedDeviceAddressRef = useRef(prevConnectedDeviceAddress);
+  prevConnectedDeviceAddressRef.current = prevConnectedDeviceAddress;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (useBuiltInReader) return;
+      if (!prevConnectedDeviceAddressRef.current) return;
+      RFIDWithUHFBLEModule.connectDevice(prevConnectedDeviceAddressRef.current);
+    }, 500 /* wait for persisted state to load */);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [useBuiltInReader]);
+
+  const [beepS, setBeepS] = useState<number | null>(500);
+  const handleBeepSChangeText = useNumberInputChangeHandler(setBeepS);
+
+  const searchAndConnectDeviceUi = useMemo(
+    () => (
+      <>
+        <InsetGroup label="Connect RFID Reader">
+          <InsetGroup.Item
+            label="Status"
+            detail={deviceConnectionStatus?.status || 'N/A'}
+          />
+          <InsetGroup.ItemSeperator />
+          {deviceConnectionStatus?.deviceName && (
+            <>
+              <InsetGroup.Item
+                label="Deivce Name"
+                vertical2
+                detail={deviceConnectionStatus?.deviceName}
+              />
+              <InsetGroup.ItemSeperator />
+            </>
+          )}
+          {deviceConnectionStatus?.deviceAddress && (
+            <>
+              <InsetGroup.Item
+                label="Deivce Address"
+                vertical2
+                detail={deviceConnectionStatus?.deviceAddress}
+              />
+              <InsetGroup.ItemSeperator />
+            </>
+          )}
+          {deviceConnectionStatus?.status !== 'DISCONNECTED' && (
+            <>
+              <InsetGroup.Item
+                button
+                label="Disconnect"
+                onPress={() => RFIDWithUHFBLEModule.disconnectDevice()}
+              />
+              <InsetGroup.ItemSeperator />
+            </>
+          )}
+          {deviceConnectionStatus?.status !== 'CONNECTED' &&
+            prevConnectedDeviceAddress && (
+              <>
+                <InsetGroup.Item
+                  button
+                  label="Re-connect"
+                  onPress={() =>
+                    RFIDWithUHFBLEModule.connectDevice(
+                      prevConnectedDeviceAddress,
+                    )
+                  }
+                />
+                <InsetGroup.ItemSeperator />
+              </>
+            )}
+          <InsetGroup.Item button label="Search" onPress={scanDevices} />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Stop Search"
+            onPress={stopScanDevices}
+          />
+          <InsetGroup.ItemSeperator />
+          {Object.values(scanDevicesData).length <= 0 && (
+            <InsetGroup.Item
+              disabled
+              label={'Press "Search" to search devices'}
+            />
+          )}
+          {Object.values(scanDevicesData).length > 0 && (
+            <>
+              <InsetGroup.Item
+                button
+                label="Clear List"
+                onPress={clearScanDevicesData}
+              />
+              <InsetGroup.ItemSeperator />
+            </>
+          )}
+          {Object.values(scanDevicesData)
+            .flatMap(d => [
+              <InsetGroup.Item
+                key={d.address}
+                label={d.name || d.address}
+                vertical
+                detail={[d.address, d.rssi && `RSSI: ${d.rssi}`]
+                  .filter(s => s)
+                  .join(', ')}
+                onPress={() => RFIDWithUHFBLEModule.connectDevice(d.address)}
+              />,
+              <InsetGroup.ItemSeperator key={`s-${d.address}`} />,
+            ])
+            .slice(0, -1)}
+        </InsetGroup>
+        <InsetGroup label="Device Status">
+          <InsetGroup.Item
+            button
+            label="Get Connect Status"
+            onPress={async () => {
+              try {
+                const result =
+                  await RFIDWithUHFBLEModule.getDeviceConnectStatus();
+                Alert.alert('Result', result);
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Get Battery Level"
+            onPress={async () => {
+              try {
+                const result =
+                  await RFIDWithUHFBLEModule.getDeviceBatteryLevel();
+                Alert.alert('Result', result.toString());
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Get Temperature"
+            onPress={async () => {
+              try {
+                const result =
+                  await RFIDWithUHFBLEModule.getDeviceTemperature();
+                Alert.alert('Result', result.toString());
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Get Temperature"
+            onPress={async () => {
+              try {
+                const result =
+                  await RFIDWithUHFBLEModule.getDeviceTemperature();
+                Alert.alert('Result', result.toString());
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="Beep S"
+            detail={
+              <InsetGroup.TextInput
+                alignRight
+                placeholder="500"
+                value={beepS?.toString()}
+                onChangeText={handleBeepSChangeText}
+              />
+            }
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Trigger Beep"
+            onPress={async () => {
+              try {
+                await RFIDWithUHFBLEModule.triggerBeep(beepS || 500);
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+        </InsetGroup>
+      </>
+    ),
+    [
+      beepS,
+      clearScanDevicesData,
+      deviceConnectionStatus?.deviceAddress,
+      deviceConnectionStatus?.deviceName,
+      deviceConnectionStatus?.status,
+      handleBeepSChangeText,
+      prevConnectedDeviceAddress,
+      scanDevices,
+      scanDevicesData,
+      stopScanDevices,
+    ],
+  );
 
   /////////////////
   // Init / Free //
@@ -112,11 +426,13 @@ function RFIDUHFUARTScreen({
   );
 
   useEffect(() => {
+    if (!useBuiltInReader) return;
+
     initUhf();
     return () => {
       freeUhf();
     };
-  }, [freeUhf, initUhf]);
+  }, [freeUhf, initUhf, useBuiltInReader]);
 
   ///////////////////
   // Shared Config //
@@ -198,6 +514,21 @@ function RFIDUHFUARTScreen({
           }
         />
         <InsetGroup.ItemSeperator />
+        {/*Not useful, can't set power during scan anyway*/}
+        {/*<InsetGroup.Item
+          button
+          label="Set Power"
+          disabled={!power}
+          onPress={async () => {
+            if (!power) return;
+            try {
+              await RFIDWithUHFBLEModule.setPower(power);
+            } catch (e: any) {
+              Alert.alert('Error', e.message);
+            }
+          }}
+        />
+        <InsetGroup.ItemSeperator />*/}
         <InsetGroup.Item
           label="Sound"
           detail={<Switch value={soundEnabled} onChange={toggleSoundEnabled} />}
@@ -332,7 +663,7 @@ function RFIDUHFUARTScreen({
   const startScan = useCallback(async () => {
     try {
       setUhfScanStatus('Starting scan...');
-      await RFIDWithUHFUARTModule.startScan({
+      await RFIDWithUHFModule.startScan({
         power: power || 1,
         soundEnabled,
         callback: receiveUhfScanData,
@@ -352,6 +683,7 @@ function RFIDUHFUARTScreen({
       setUhfScanStatus(`Error: ${e?.message}`);
     }
   }, [
+    RFIDWithUHFModule,
     power,
     soundEnabled,
     receiveUhfScanData,
@@ -367,12 +699,12 @@ function RFIDUHFUARTScreen({
   const stopScan = useCallback(async () => {
     try {
       setUhfScanStatus('Stopping scan...');
-      await RFIDWithUHFUARTModule.stopScan();
+      await RFIDWithUHFModule.stopScan();
       setUhfScanStatus('Scan stopped');
     } catch (e: any) {
       setUhfScanStatus(`Error: ${e?.message}`);
     }
-  }, []);
+  }, [RFIDWithUHFModule]);
 
   const scannedDataUniqueCount = Object.keys(scannedData).length;
   const prevScannedDataUniqueCount = useRef(0);
@@ -382,8 +714,8 @@ function RFIDUHFUARTScreen({
     setScannedData({});
     setScannedDataCount(0);
     prevScannedDataUniqueCount.current = 0;
-    await RFIDWithUHFUARTModule.clearScannedTags();
-  }, []);
+    await RFIDWithUHFModule.clearScannedTags();
+  }, [RFIDWithUHFModule]);
 
   useEffect(() => {
     if (scannedDataUniqueCount > 5) return;
@@ -463,6 +795,12 @@ function RFIDUHFUARTScreen({
                 detail={Object.keys(scannedData).length.toString()}
               />
               <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                button
+                label="Clear"
+                onPress={clearScannedData}
+              />
+              <InsetGroup.ItemSeperator />
               {Object.values(scannedData)
                 .flatMap(d => [
                   <InsetGroup.Item
@@ -523,7 +861,7 @@ function RFIDUHFUARTScreen({
   const startLocate = useCallback(async () => {
     try {
       setLocateStatus('Starting locate...');
-      await RFIDWithUHFUARTModule.startLocate({
+      await RFIDWithUHFModule.startLocate({
         epc: locateEpc,
         power: power || 1,
         soundEnabled,
@@ -533,17 +871,17 @@ function RFIDUHFUARTScreen({
     } catch (e: any) {
       setLocateStatus(`Error: ${e?.message}`);
     }
-  }, [locateEpc, power, soundEnabled, receiveLocateValue]);
+  }, [RFIDWithUHFModule, locateEpc, power, soundEnabled, receiveLocateValue]);
 
   const stopLocate = useCallback(async () => {
     try {
       setLocateStatus('Stopping locate...');
-      await RFIDWithUHFUARTModule.stopScan();
+      await RFIDWithUHFModule.stopScan();
       setLocateStatus('Locate stopped');
     } catch (e: any) {
       setLocateStatus(`Error: ${e?.message}`);
     }
-  }, []);
+  }, [RFIDWithUHFModule]);
 
   const locateTagUi = useMemo(
     () => (
@@ -640,7 +978,7 @@ function RFIDUHFUARTScreen({
   );
   const read = useCallback(async () => {
     try {
-      const data = await RFIDWithUHFUARTModule.read({
+      const data = await RFIDWithUHFModule.read({
         power: readPower || 1,
         soundEnabled,
         memoryBank: readMemoryBank || 'EPC',
@@ -661,6 +999,7 @@ function RFIDUHFUARTScreen({
       setReadData('');
     }
   }, [
+    RFIDWithUHFModule,
     readPower,
     soundEnabled,
     readMemoryBank,
@@ -830,7 +1169,7 @@ function RFIDUHFUARTScreen({
   );
   const write = useCallback(async () => {
     try {
-      await RFIDWithUHFUARTModule.write({
+      await RFIDWithUHFModule.write({
         power: writePower || 1,
         soundEnabled,
         memoryBank: writeMemoryBank || 'EPC',
@@ -851,6 +1190,7 @@ function RFIDUHFUARTScreen({
       console.warn(e);
     }
   }, [
+    RFIDWithUHFModule,
     writePower,
     soundEnabled,
     writeMemoryBank,
@@ -989,7 +1329,7 @@ function RFIDUHFUARTScreen({
   }, []);
   const lock = useCallback(async () => {
     try {
-      await RFIDWithUHFUARTModule.lock({
+      await RFIDWithUHFModule.lock({
         power: lockPower || 1,
         soundEnabled,
         accessPassword: lockAccessPassword || '00000000',
@@ -1007,6 +1347,7 @@ function RFIDUHFUARTScreen({
       console.warn(e);
     }
   }, [
+    RFIDWithUHFModule,
     lockPower,
     soundEnabled,
     lockAccessPassword,
@@ -1095,7 +1436,7 @@ function RFIDUHFUARTScreen({
   }, []);
   const writeAndLock = useCallback(async () => {
     try {
-      await moduleWriteAndLock(
+      await RFIDWithUHFModule.writeEpcAndLock(
         writeAndLockData || '0000',
         writeAndLockNewAccessPassword || '12345678',
         {
@@ -1117,6 +1458,7 @@ function RFIDUHFUARTScreen({
       console.warn(e);
     }
   }, [
+    RFIDWithUHFModule,
     writeAndLockData,
     writeAndLockNewAccessPassword,
     writeAndLockPower,
@@ -1129,23 +1471,27 @@ function RFIDUHFUARTScreen({
   ]);
   const unlockAndReset = useCallback(async () => {
     try {
-      await moduleUnlockAndReset(writeAndLockNewAccessPassword || '12345678', {
-        power: writeAndLockPower || 1,
-        soundEnabled,
-        reportStatus: setWriteAndLockStatus,
-        filter: enableFilter
-          ? {
-              memoryBank: filterMemoryBank,
-              bitOffset: filterBitOffset || DEFAULTS.FILTER_BIT_OFFSET,
-              bitCount: filterBitCount || DEFAULTS.FILTER_BIT_COUNT,
-              data: filterData,
-            }
-          : undefined,
-      });
+      await RFIDWithUHFModule.resetEpcAndUnlock(
+        writeAndLockNewAccessPassword || '12345678',
+        {
+          power: writeAndLockPower || 1,
+          soundEnabled,
+          reportStatus: setWriteAndLockStatus,
+          filter: enableFilter
+            ? {
+                memoryBank: filterMemoryBank,
+                bitOffset: filterBitOffset || DEFAULTS.FILTER_BIT_OFFSET,
+                bitCount: filterBitCount || DEFAULTS.FILTER_BIT_COUNT,
+                data: filterData,
+              }
+            : undefined,
+        },
+      );
     } catch (e: any) {
       console.warn(e);
     }
   }, [
+    RFIDWithUHFModule,
     writeAndLockNewAccessPassword,
     writeAndLockPower,
     soundEnabled,
@@ -1226,10 +1572,12 @@ function RFIDUHFUARTScreen({
   );
 
   return (
-    <ScreenContent navigation={navigation} title="RFID UHF UART">
+    <ScreenContent navigation={navigation} title="RFID UHF Module">
       <ScrollView keyboardDismissMode="interactive" ref={scrollViewRef}>
         <View style={commonStyles.mt16} />
-        {initFreeUi}
+        {deviceTypeSelectUi}
+        {!useBuiltInReader && searchAndConnectDeviceUi}
+        {useBuiltInReader && initFreeUi}
         {sharedConfigUi}
         {scanTagsUi}
         {writeAndLockUi}
@@ -1242,4 +1590,4 @@ function RFIDUHFUARTScreen({
   );
 }
 
-export default RFIDUHFUARTScreen;
+export default RFIDUHFModuleScreen;

@@ -2,11 +2,15 @@ package vg.zeta.app.inventory;
 
 import static android.content.Context.AUDIO_SERVICE;
 
+import static com.facebook.react.bridge.UiThreadUtil.runOnUiThread;
+
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothDevice;
 import android.media.AudioManager;
 import android.media.SoundPool;
-import android.os.AsyncTask;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -16,88 +20,212 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.rscja.deviceapi.RFIDWithUHFUART;
+import com.rscja.deviceapi.RFIDWithUHFBLE;
 import com.rscja.deviceapi.entity.UHFTAGInfo;
+import com.rscja.deviceapi.interfaces.ConnectionStatus;
+import com.rscja.deviceapi.interfaces.ConnectionStatusCallback;
 import com.rscja.deviceapi.interfaces.IUHF;
 import com.rscja.deviceapi.interfaces.IUHFLocationCallback;
+import com.rscja.deviceapi.interfaces.ScanBTCallback;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
+public class RFIDWithUHFBLEModule extends ReactContextBaseJavaModule {
 
   ReactApplicationContext context;
-  public RFIDWithUHFUART uhfReader;
+  public RFIDWithUHFBLE uhfReader;
   public Set<String> scannedTags = new HashSet<String>();
+
+  BTStatus btStatus = new BTStatus();
+
+  private static final long DEVICE_SCAN_PERIOD = 10000; // 10 seconds
+
+//  private Handler mHandler = new Handler();
+  private boolean mScanning;
 
   private int scanRate = 10;
   private int scanEventRate = 100;
 
-  private static final String TAG = "RFIDWithUHFUARTModule";
+  private static final String TAG = "RFIDWithUHFBLE";
 
-  RFIDWithUHFUARTModule(ReactApplicationContext context) {
+  RFIDWithUHFBLEModule(ReactApplicationContext context) {
     super(context);
     this.context = context;
+    initSound();
   }
 
   @Override
   public String getName() {
-    return "RFIDWithUHFUARTModule";
+    return "RFIDWithUHFBLEModule";
   }
 
   @ReactMethod
   public void init(Promise promise) {
-    InitTask initTask = new InitTask();
-    initTask.setPromise(promise);
     try {
-      initTask.execute();
+      uhfReader = RFIDWithUHFBLE.getInstance();
+      uhfReader.init(context);
+      promise.resolve(true);
     } catch (Exception e) {
-      promise.reject(e.getMessage(), new Throwable(e.getMessage()));
+      promise.reject(e);
     }
   }
 
-  public void prepareOperation() {}
-  public void prepareStartScan() {}
-
-  public class InitTask extends AsyncTask<String, Integer, Boolean> {
-    private Promise promise;
-
-    protected void setPromise(Promise p){
-      this.promise = p;
+  public void prepareOperation() {
+    if (uhfReader == null) {
+      uhfReader = RFIDWithUHFBLE.getInstance();
+      uhfReader.init(context);
     }
 
-    @Override
-    protected void onPreExecute() {
-      super.onPreExecute();
+    uhfReader.setBeep(true);
+  }
+
+  public void prepareStartScan() {
+    if (uhfReader == null) {
+      uhfReader = RFIDWithUHFBLE.getInstance();
+      uhfReader.init(context);
     }
 
-    @Override
-    protected Boolean doInBackground(String... params) {
-      try {
-        uhfReader = RFIDWithUHFUART.getInstance();
-        initSound();
-        // uhfReader.free();
-        return uhfReader.init();
-      } catch (Exception e) {
-        promise.reject(e.getMessage(), new Throwable(e.getMessage()));
+    uhfReader.setBeep(false);
+    uhfReader.triggerBeep(100);
+  }
+
+  @ReactMethod
+  public void setPower(int p, Promise promise) {
+    try {
+      boolean result = uhfReader.setPower(p);
+      if (!result) promise.reject(new Throwable("setPower returned false"));
+    } catch (Exception e) {
+      promise.reject(e);
+    }
+  }
+
+  @ReactMethod
+  public void scanDevices(boolean enable, int scanEventRate1, Promise promise) {
+    try {
+      prepareOperation();
+      if (enable) {
+
+        // Stops scanning after a pre-defined scan period.
+//        mHandler.postDelayed(new Runnable() {
+//          @Override
+//          public void run() {
+//            mScanning = false;
+//            uhfReader.stopScanBTDevices();
+//          }
+//        }, DEVICE_SCAN_PERIOD);
+
+        mScanning = true;
+
+        uhfReader.startScanBTDevices(new ScanBTCallback() {
+          long lastEventEmittedAt = 0;
+          WritableArray arr = Arguments.createArray();
+          int scanEventRate = scanEventRate1;
+
+          @SuppressLint("MissingPermission") // FIXME
+          @Override
+          public void getDevices(final BluetoothDevice bluetoothDevice, final int rssi, byte[] bytes) {
+            if (bluetoothDevice != null) {
+              WritableMap payload = Arguments.createMap();
+              payload.putString("address", bluetoothDevice.getAddress());
+              payload.putString("name", bluetoothDevice.getName());
+              payload.putInt("rssi", rssi);
+
+              arr.pushMap(payload);
+            }
+
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime - lastEventEmittedAt > scanEventRate) {
+              getReactApplicationContext()
+                      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                      .emit("uhfDevicesScanData", arr);
+              arr = Arguments.createArray();
+              lastEventEmittedAt = currentTime;
+            }
+          }
+        });
+      } else {
+        mScanning = false;
+        uhfReader.stopScanBTDevices();
       }
-      return false;
+      promise.resolve(true);
+
+    } catch (Exception e) {
+      promise.reject(e);
     }
 
+  }
+
+  @ReactMethod
+  public void connectDevice(String deviceAddress, Promise promise) {
+    try {
+      prepareOperation();
+      uhfReader.disconnect(); // Sometimes device will not connect if we don't scan devices or disconnect first
+      uhfReader.connect(deviceAddress, btStatus);
+      promise.resolve(true);
+//      if (uhfReader.getConnectStatus() == ConnectionStatus.CONNECTING) {
+//        promise.resolve(false);
+//      } else {
+//        uhfReader.connect(deviceAddress, btStatus);
+//        promise.resolve(true);
+//      }
+    } catch (Exception e) {
+      promise.reject(e.getMessage(), e);
+    }
+  }
+
+  @ReactMethod
+  public void disconnectDevice(Promise promise) {
+    try {
+      prepareOperation();
+      uhfReader.disconnect();
+      promise.resolve(true);
+    } catch (Exception e) {
+      promise.reject(e.getMessage(), e);
+    }
+  }
+
+  class BTStatus implements ConnectionStatusCallback<Object> {
+    @SuppressLint("MissingPermission") // FIXME
     @Override
-    protected void onPostExecute(Boolean result) {
-      super.onPostExecute(result);
-      try {
-        if (result) {
-          // uhfReader.setPower(28);
-          // uhfReader.setEPCMode();
-          promise.resolve(true);
-        } else {
-          promise.reject("UHF reader init failed", new Throwable("UHF reader init failed"));
+    public void getStatus(final ConnectionStatus connectionStatus, final Object device1) {
+      BluetoothDevice device = (BluetoothDevice) device1;
+
+      if (connectionStatus == ConnectionStatus.CONNECTED) {
+        WritableMap payload = Arguments.createMap();
+
+        payload.putString("status", "CONNECTED");
+        payload.putString("deviceName", device.getName());
+        payload.putString("deviceAddress", device.getAddress());
+
+        getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("uhfDeviceConnectionStatus", payload);
+
+      } else if (connectionStatus == ConnectionStatus.DISCONNECTED) {
+        WritableMap payload = Arguments.createMap();
+
+        payload.putString("status", "DISCONNECTED");
+        if (device != null) {
+          payload.putString("deviceName", device.getName());
+          payload.putString("deviceAddress", device.getAddress());
         }
-      } catch (Exception e) {
-        promise.reject(e.getMessage(), new Throwable(e.getMessage()));
+        getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("uhfDeviceConnectionStatus", payload);
+      } else if (connectionStatus == ConnectionStatus.CONNECTING) {
+        WritableMap payload = Arguments.createMap();
+
+        payload.putString("status", "CONNECTING");
+        if (device != null) {
+          payload.putString("deviceName", device.getName());
+          payload.putString("deviceAddress", device.getAddress());
+        }
+        getReactApplicationContext()
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit("uhfDeviceConnectionStatus", payload);
       }
     }
   }
@@ -119,10 +247,57 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void isPowerOn(Promise promise) {
+  public void getDeviceConnectStatus(Promise promise) {
     try {
       prepareOperation();
-      promise.resolve(uhfReader.isPowerOn());
+      switch (uhfReader.getConnectStatus()) {
+        case CONNECTED:
+          promise.resolve("CONNECTED");
+          break;
+        case CONNECTING:
+          promise.resolve("CONNECTING");
+          break;
+        case DISCONNECTED:
+          promise.resolve("DISCONNECTED");
+          break;
+      }
+    } catch (Exception e) {
+      promise.reject(e.getMessage(), e);
+    }
+  }
+
+  @ReactMethod
+  public void getDeviceBatteryLevel(Promise promise) {
+    try {
+      prepareOperation();
+      int batteryLevel = uhfReader.getBattery();
+      WritableMap payload = Arguments.createMap();
+      payload.putInt("value", batteryLevel);
+      promise.resolve(payload);
+    } catch (Exception e) {
+      promise.reject(String.valueOf(e.getMessage()), e);
+    }
+  }
+
+  @ReactMethod
+  public void getDeviceTemperature(Promise promise) {
+    try {
+      prepareOperation();
+      int temperature = uhfReader.getTemperature();
+      WritableMap payload = Arguments.createMap();
+      payload.putInt("value", temperature);
+      promise.resolve(payload);
+    } catch (Exception e) {
+      promise.reject(String.valueOf(e.getMessage()), e);
+    }
+  }
+
+  @ReactMethod
+  public void triggerBeep(int s, Promise promise) {
+    try {
+      uhfReader.triggerBeep(s);
+      Log.i(TAG, "HI");
+      promise.resolve(true);
     } catch (Exception e) {
       promise.reject(e.getMessage(), e);
     }
@@ -165,16 +340,6 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void setPower(int p, Promise promise) {
-    try {
-      boolean result = uhfReader.setPower(p);
-      if (!result) promise.reject(new Throwable("setPower returned false"));
-    } catch (Exception e) {
-      promise.reject(e);
-    }
-  }
-
-  @ReactMethod
   public void startScan(
           int power,
           boolean enableFilter,
@@ -191,6 +356,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
     scanEventRate = eventRate;
     try {
       prepareStartScan();
+      uhfReader.setBeep(false);
       this.playSoundFlag = playSound;
       if (!uhfReader.setPower(power)) {
         promise.reject(new Throwable("setPower returned false"));
@@ -204,9 +370,9 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
         }
       } else {
         String filterDataStr = "";
-        if (!(uhfReader.setFilter(RFIDWithUHFUART.Bank_EPC, 0, 0, filterDataStr) &&
-                uhfReader.setFilter(RFIDWithUHFUART.Bank_TID, 0, 0, filterDataStr) &&
-                uhfReader.setFilter(RFIDWithUHFUART.Bank_USER, 0, 0, filterDataStr)
+        if (!(uhfReader.setFilter(RFIDWithUHFBLE.Bank_EPC, 0, 0, filterDataStr) &&
+                uhfReader.setFilter(RFIDWithUHFBLE.Bank_TID, 0, 0, filterDataStr) &&
+                uhfReader.setFilter(RFIDWithUHFBLE.Bank_USER, 0, 0, filterDataStr)
         )) {
           promise.reject(new Throwable("setFilter returned false"));
           return;
@@ -294,6 +460,8 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
         promise.reject(new Throwable("stopInventory returned false"));
         return;
       }
+
+      new android.os.Handler().postDelayed(() -> uhfReader.setBeep(true), 800);
     } catch (Exception e) {
       promise.reject(e);
     }
@@ -585,4 +753,3 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
     }
   }
 }
-
