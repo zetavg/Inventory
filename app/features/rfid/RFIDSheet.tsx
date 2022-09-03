@@ -819,6 +819,30 @@ function ScannedItem({ item }: { item: ScanData }) {
     loadItem();
   }, [loadItem]);
 
+  const [loadedItemCollection, setLoadedItemCollection] =
+    useState<DataType<'collection'> | null>(null);
+  const loadItemCollection = useCallback(async () => {
+    if (!loadedItem) return;
+
+    try {
+      const data = await db.get(`collection-2-${loadedItem.collection}`);
+      if (
+        data &&
+        typeof (data as any)?._id === 'string' &&
+        (data as any)?._id.startsWith('collection-')
+      )
+        setLoadedItemCollection((data as any).data);
+    } catch (e) {
+      // TODO: Handle other error
+    }
+  }, [db, loadedItem]);
+
+  useEffect(() => {
+    if (!loadedItem) return;
+    if (!loadedItem.collection) return;
+    loadItemCollection();
+  }, [loadItemCollection, loadedItem]);
+
   if (loadedItem) {
     return (
       <InsetGroup.Item
@@ -827,6 +851,7 @@ function ScannedItem({ item }: { item: ScanData }) {
         vertical
         detail={[
           item.rssi && `RSSI: ${item.rssi}`,
+          loadedItemCollection && loadedItemCollection.name,
           loadedItem.individualAssetReference &&
             `${loadedItem.individualAssetReference}`,
         ]
