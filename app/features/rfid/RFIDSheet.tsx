@@ -47,11 +47,8 @@ import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
 import { ConfigStoredInDB } from '@app/db/types';
 import { getConfigInDB } from '@app/db/configUtils';
-import RFIDWithUHFUARTModule, {
-  ScanData,
-  writeEpcAndLock,
-  unlockAndReset as unlockAndResetEPC,
-} from '@app/modules/RFIDWithUHFUARTModule';
+import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
+import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
 import EPCUtils from '@app/modules/EPCUtils';
 import { DataType } from '@app/db/schema';
 import { getTagAccessPassword } from './utils';
@@ -332,7 +329,7 @@ function RFIDSheet(
     console.log(accessPassword);
 
     try {
-      await writeEpcAndLock(options.epc, accessPassword, {
+      await RFIDWithUHFUARTModule.writeEpcAndLock(options.epc, accessPassword, {
         power: writeAndLockPower || 1,
         oldAccessPassword: '00000000',
         soundEnabled: true,
@@ -358,7 +355,7 @@ function RFIDSheet(
     );
 
     try {
-      await unlockAndResetEPC(accessPassword, {
+      await RFIDWithUHFUARTModule.resetEpcAndUnlock(accessPassword, {
         power: writeAndLockPower || 1,
         soundEnabled: true,
         reportStatus: setWriteAndLockStatus,
