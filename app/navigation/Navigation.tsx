@@ -296,7 +296,7 @@ function TabNavigator() {
         />
         <Tab.Screen
           name="InventoryTab"
-          children={() => <MainStack initialRouteName="DeveloperTools" />}
+          children={() => <MainStack initialRouteName="TmpInventoryTab" />}
           options={{
             title: 'Inventory',
             tabBarIcon: ({ focused, ...props }) => (

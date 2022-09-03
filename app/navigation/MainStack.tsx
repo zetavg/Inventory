@@ -10,6 +10,7 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 
 import MoreScreen from '@app/screens/MoreScreen';
+import InventoryTabScreen from '@app/screens/InventoryTabScreen';
 import SettingsScreen from '@app/screens/SettingsScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
@@ -39,6 +40,7 @@ import type { TypeName as DataTypeName } from '@app/db/schema';
 
 export type StackParamList = {
   More: undefined;
+  TmpInventoryTab: undefined;
   Settings: undefined;
   GenericTextDetails: {
     title?: string;
@@ -137,6 +139,7 @@ function MainStack({ initialRouteName }: Props) {
       screenOptions={screenOptions}
     >
       <Stack.Screen name="More" component={MoreScreen} />
+      <Stack.Screen name="TmpInventoryTab" component={InventoryTabScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen
         name="GenericTextDetails"
