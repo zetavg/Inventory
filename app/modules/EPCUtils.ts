@@ -1,7 +1,8 @@
 import epcTds from 'epc-tds';
 
 const COLLECTION_REFERENCE_REGEX = /^[0-9]{4}$/;
-const ITEM_REFERENCE_REGEX = /^[0-8]{1,8}$/;
+// TODO: Calculate this base on companyPrefix length
+const ITEM_REFERENCE_REGEX = /^[0-9]{1,7}$/;
 const MIN_PREFIX = 10;
 const MAX_PERFIX = 99;
 const MAX_SERIAL = 9999;
