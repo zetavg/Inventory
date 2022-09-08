@@ -10,7 +10,6 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 #import "BLEModel.h"
 #import "BluetoothUtil.h"
-#import "QRcodeView.h"
 
 
 @protocol FatScaleBluetoothManager <NSObject>
@@ -25,6 +24,7 @@
 //列表數據
 - (void)receiveDataWithBLEmodel:(BLEModel *)model result:(NSString *)result;
 //首頁標籤數據
+- (void)receiveScannedEpcWithRssi:(NSString *)epc withRssi:(double)rssi;
 - (void)receiveDataWithBLEDataSource:(NSMutableArray *)dataSource allCount:(NSInteger)allCount countArr:(NSMutableArray *)countArr dataSource1:(NSMutableArray *)dataSource1 countArr1:(NSMutableArray *)countArr1 dataSource2:(NSMutableArray *)dataSource2 countArr2:(NSMutableArray *)countArr2;
 
 - (void)receiveDataWithBLEDataSource:(NSMutableArray *)dataSourceEPC dataSourceTID:(NSMutableArray *)dataSourceTID dataSourceUSER:(NSMutableArray *)dataSourceUSER RSSI:(NSInteger)RSSI ;
@@ -35,7 +35,7 @@
 //
 - (void)receiveMessageWithtype:(NSString *)typeStr dataStr:(NSString *)dataStr;
 //連接外設成功
-- (void)connectPeripheralSuccess:(NSString *)nameStr;
+- (void)connectPeripheralSuccess:(CBPeripheral *)peripheral;
 //斷開外設
 -(void)disConnectPeripheral;
 //更改藍牙設備名稱成功
@@ -60,9 +60,10 @@
 
 @end
 
+
 @interface RFIDBlutoothManager : NSObject
 
-
+@property (nonatomic, strong) CBCentralManager *centralManager;
 @property (nonatomic, assign) BOOL connectDevice;
 
 + (instancetype)shareManager;
@@ -80,7 +81,7 @@
 
 @property (nonatomic,strong)NSMutableArray *countArr2;
 /** qrcodeSelType */
-@property (assign,nonatomic) selectedType QRCodeSelType;
+// @property (assign,nonatomic) selectedType QRCodeSelType;
 
 
 
@@ -166,6 +167,7 @@
 
 
 - (void)startBleScan;                // 開啓藍牙掃描
+- (void)stopBleScan;
 - (void)cancelConnectBLE;             //斷開連接
 - (void)closeBleAndDisconnect;       // 停止藍牙掃描&斷開
 
@@ -197,7 +199,7 @@
 -(void)singleSaveLabel;//單次盤存標籤
 
 -(void)continuitySaveLabelWithCount:(NSString *)count;//連續盤存標籤
--(void)StopcontinuitySaveLabel;//停止連續盤存標籤
+-(void)stopContinuitySaveLabel;//停止連續盤存標籤
 
 //password:4個字節的訪問密碼.  MMBstr:掩碼的數據區(0x00爲Reserve 0x01爲EPC，0x02表示TID，0x03表示USR). MSAstr:爲掩碼的地址。 MDLstr:爲掩碼的長度。 Mdata:爲掩碼數據。 MBstr:爲要寫的數據區(0x00爲Reserve 0x01爲EPC，0x02表示TID，0x03表示USR)  SAstr :爲要寫數據區的地址。 DLstr :爲要寫的數據長度(字爲單位)。 isfilter表示是否過濾
 -(void)readLabelMessageWithPassword:(NSString *)password MMBstr:(NSString *)MMBstr MSAstr:(NSString *)MSAstr MDLstr:(NSString *)MDLstr MDdata:(NSString *)MDdata MBstr:(NSString *)MBstr SAstr:(NSString *)SAstr DLstr:(NSString *)DLstr isfilter:(BOOL)isfilter;//讀標籤數據區   成功
@@ -234,7 +236,7 @@
 - (void)setPeripheralAddDelegate:(id<PeripheralAddDelegate>)delegate;
 - (void)bleDoScan;
 - (void)connectPeripheral:(CBPeripheral *)peripheral macAddress:(NSString *)macAddress;
-
+- (BOOL)connectPeripheralWithIdentifier:(NSString *)identifier;
 
 - (Byte )getBye8:(Byte[])data;
 - (void)sendDataToBle:(NSData *)data;

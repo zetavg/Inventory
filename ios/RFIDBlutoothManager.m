@@ -6,12 +6,13 @@
 //  Copyright © 2018年 chainway. All rights reserved.
 //
 
+#import <UIKit/UIKit.h>
 #import "RFIDBlutoothManager.h"
-#import "BSprogreUtil.h"
+// #import "BSprogreUtil.h"
 #import "AppHelper.h"
 
 
-#define kFatscaleTimeOut 5.0
+#define kFatscaleTimeOut 15.0
 
 #define serviceUUID  @"6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 #define writeUUID  @"6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -27,9 +28,9 @@
 
 #define UpdateBLE_SEND_MAX_LEN 20
 
-@interface RFIDBlutoothManager () <CBCentralManagerDelegate,CBPeripheralDelegate>
+@interface RFIDBlutoothManager () <CBCentralManagerDelegate, CBPeripheralDelegate>
 
-@property (nonatomic, strong) CBCentralManager *centralManager;
+// @property (nonatomic, strong) CBCentralManager *centralManager; // declared in .h
 @property (nonatomic, strong) NSTimer *bleScanTimer;
 @property (nonatomic, strong) CBPeripheral *peripheral;
 
@@ -38,7 +39,7 @@
 @property (nonatomic, weak) id<PeripheralAddDelegate> addDelegate;
 
 @property (nonatomic, copy) NSString *connectPeripheralCharUUID;
-
+ 
 @property (nonatomic, strong) NSMutableArray *BLEServerDatasArray;
 
 @property (nonatomic, strong) CBCharacteristic *myCharacteristic;
@@ -103,6 +104,25 @@
 - (void)bleDoScan
 {
     self.bleScanTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(startBleScan) userInfo:nil repeats:YES];
+}
+
+- (BOOL)connectPeripheralWithIdentifier:(NSString *)identifier
+{
+    NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:identifier];
+
+    NSArray *peripheralArray = [self.centralManager retrievePeripheralsWithIdentifiers:@[uuid]];
+    if ([peripheralArray count] <= 0) {
+      NSLog(@"RFIDBluetoothManager: Can't find peripheral from identifier %@", identifier);
+      return NO;
+    }
+    CBPeripheral *peripheral = peripheralArray[0];
+    if (!peripheral) {
+      NSLog(@"RFIDBluetoothManager: Can't find peripheral from identifier %@", identifier);
+      return NO;
+    }
+    
+    [self connectPeripheral: peripheral macAddress:@""];
+    return YES;
 }
 
 - (void)connectPeripheral:(CBPeripheral *)peripheral macAddress:(NSString *)macAddress
@@ -223,6 +243,7 @@
 {
      self.isSetTag = YES;
      NSData *data = [BluetoothUtil setEpcTidUserWithAddressStr:addressStr length:lengthStr EPCStr:epcStr];
+     // NSLog(@"data==%@",data);
      [self sendDataToBle:data];
 }
 //獲取標籤讀取格式
@@ -230,6 +251,7 @@
 {
      self.isGetTag = YES;
      NSData *data = [BluetoothUtil getEpcTidUser];
+     // NSLog(@"data==%@",data);
      [self sendDataToBle:data];
 }
 
@@ -287,6 +309,7 @@
 //********************************************
 - (void)handleTimer
 {
+//  NSLog(@"Handle timer");
      if(self.isFirstSendGetTAGCmd==YES){
           //如果開始盤底後，馬上停止。 那麼直接退回定時器
           self.isFirstSendGetTAGCmd=NO;
@@ -294,7 +317,7 @@
                if(self.isgetLab == NO){
                     [self.sendGetTagRequestTime invalidate];
                     self.sendGetTagRequestTime=nil;
-                   // NSLog(@"退出獲取標籤定時器!");
+//                    NSLog(@"退出獲取標籤定時器!");
                     return;
                }
              usleep(1000);
@@ -302,12 +325,12 @@
      }
 
      if (self.connectDevice ==YES && self.isgetLab==YES) {
-         // NSLog(@"獲取標籤定時器!");
+//          NSLog(@"獲取標籤定時器!");
           [self getLabMessage];
      }else{
           [self.sendGetTagRequestTime invalidate];
           self.sendGetTagRequestTime=nil;
-        //  NSLog(@"退出獲取標籤定時器!");
+//          NSLog(@"退出獲取標籤定時器!");
      }
 }
 //連續盤存標籤
@@ -321,17 +344,23 @@
 
      if (self.sendGetTagRequestTime == nil){
           self.isFirstSendGetTAGCmd=YES;
+       
           if(self.isBLE40 == YES){
-              self.sendGetTagRequestTime = [NSTimer scheduledTimerWithTimeInterval:0.08 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
+              self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.08 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
           }else{
-               self.sendGetTagRequestTime = [NSTimer scheduledTimerWithTimeInterval:0.05 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
+               self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.05 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
           }
+//       NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
+//       [runLoop addTimer:self.sendGetTagRequestTime forMode:NSRunLoopCommonModes];
+//       [runLoop addPort:[NSMachPort port] forMode:NSRunLoopCommonModes];
+//       [runLoop run];
+       [[NSRunLoop mainRunLoop] addTimer:self.sendGetTagRequestTime forMode:NSRunLoopCommonModes];
      }
 
 }
 
 //停止連續盤存標籤
--(void)StopcontinuitySaveLabel
+-(void)stopContinuitySaveLabel
 {
      NSData *data = [BluetoothUtil StopcontinuitySaveLabel];
      [self sendDataToBle:data];
@@ -340,13 +369,13 @@
 -(void)readLabelMessageWithPassword:(NSString *)password MMBstr:(NSString *)MMBstr MSAstr:(NSString *)MSAstr MDLstr:(NSString *)MDLstr MDdata:(NSString *)MDdata MBstr:(NSString *)MBstr SAstr:(NSString *)SAstr DLstr:(NSString *)DLstr isfilter:(BOOL)isfilter
 {
           NSData *data = [BluetoothUtil readLabelMessageWithPassword:password MMBstr:MMBstr MSAstr:MSAstr MDLstr:MDLstr MDdata:MDdata MBstr:MBstr SAstr:SAstr DLstr:DLstr isfilter:isfilter];
-          NSLog(@"data===%@",data);
+          // NSLog(@"data===%@",data);
           for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
                // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
                if ((i + BLE_SEND_MAX_LEN) < [data length]) {
                     NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
                     NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-                    NSLog(@"%@",subData);
+                    // NSLog(@"%@",subData);
                     [self sendDataToBle:subData];
                     //根據接收模塊的處理能力做相應延時
                     usleep(80 * 1000);
@@ -369,7 +398,7 @@
                if ((i + BLE_SEND_MAX_LEN) < [data length]) {
                     NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
                     NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-                     NSLog(@"subData==%@",subData);
+                     // NSLog(@"subData==%@",subData);
                     [self sendDataToBle:subData];
                     //根據接收模塊的處理能力做相應延時
                     usleep(80 * 1000);
@@ -377,7 +406,7 @@
                else {
                     NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
                     NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-                    NSLog(@"subData==%@",subData);
+                    // NSLog(@"subData==%@",subData);
                     [self sendDataToBle:subData];
                     usleep(80 * 1000);
                }
@@ -387,13 +416,13 @@
 -(void)lockLabelWithPassword:(NSString *)password MMBstr:(NSString *)MMBstr MSAstr:(NSString *)MSAstr MDLstr:(NSString *)MDLstr MDdata:(NSString *)MDdata ldStr:(NSString *)ldStr isfilter:(BOOL)isfilter
 {
      NSData *data=[BluetoothUtil lockLabelWithPassword:password MMBstr:MMBstr MSAstr:MSAstr MDLstr:MDLstr MDdata:MDdata ldStr:ldStr isfilter:isfilter];
-     NSLog(@"data===%@",data);
+     // NSLog(@"data===%@",data);
      for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
           // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
           if ((i + BLE_SEND_MAX_LEN) < [data length]) {
                NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
                NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-               NSLog(@"%@",subData);
+               // NSLog(@"%@",subData);
                [self sendDataToBle:subData];
                //根據接收模塊的處理能力做相應延時
                usleep(80 * 1000);
@@ -410,7 +439,153 @@
 -(void)killLabelWithPassword:(NSString *)password MMBstr:(NSString *)MMBstr MSAstr:(NSString *)MSAstr MDLstr:(NSString *)MDLstr MDdata:(NSString *)MDdata isfilter:(BOOL)isfilter
 {
      NSData *data = [BluetoothUtil killLabelWithPassword:password MMBstr:MMBstr MSAstr:MSAstr MDLstr:MDLstr MDdata:MDdata isfilter:isfilter];
-     NSLog(@"data===%@",data);
+     // NSLog(@"data===%@",data);
+     for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + BLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               // NSLog(@"%@",subData);
+               [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
+}
+//獲取標籤數據
+-(void)getLabMessage
+{
+     NSData *data = [BluetoothUtil getLabMessage];
+     [self sendDataToBle:data];
+}
+//設置密鑰
+-(void)setSM4PassWordWithmodel:(NSString *)model password:(NSString *)password originPass:(NSString *)originPass
+{
+      NSData *data = [BluetoothUtil setSM4PassWordWithmodel:model password:password originPass:originPass];
+
+     for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + BLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               // NSLog(@"%@",subData);
+                [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+                [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
+}
+//獲取密鑰
+-(void)getSM4PassWord
+{
+     NSData *data = [BluetoothUtil getSM4PassWord];
+     [self sendDataToBle:data];
+}
+//SM4數據加密
+-(void)encryptionPassWordwithmessage:(NSString *)message
+{
+     NSData *data = [BluetoothUtil encryptionPassWordwithmessage:message];
+     // NSLog(@"data===%@",data);
+     for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + BLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               // NSLog(@"%@",subData);
+               [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
+}
+//SM4數據解密
+-(void)decryptPassWordwithmessage:(NSString *)message
+{
+     NSData *data = [BluetoothUtil decryptPassWordwithmessage:message];
+     for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + BLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               // NSLog(@"%@",subData);
+               [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
+}
+//USER加密
+-(void)encryptionUSERWithaddress:(NSString *)address lengthStr:(NSString *)lengthStr dataStr:(NSString *)dataStr
+{
+     NSData *data = [BluetoothUtil encryptionUSERWithaddress:address lengthStr:lengthStr dataStr:dataStr];
+     // NSLog(@"data===%@",data);
+     for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + BLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+              NSLog(@"%@",subData);
+               [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
+}
+//USER解密
+-(void)decryptUSERWithaddress:(NSString *)address lengthStr:(NSString *)lengthStr
+{
+     NSData *data = [BluetoothUtil decryptUSERWithaddress:address lengthStr:lengthStr];
+     [self sendDataToBle:data];
+}
+//進入升級模式
+-(void)enterUpgradeMode
+{
+     NSData *data=[BluetoothUtil enterUpgradeMode];
+     [self sendDataToBle:data];
+}
+//進入升級接收數據
+-(void)enterUpgradeAcceptData
+{
+     NSData *data=[BluetoothUtil enterUpgradeAcceptData];
+     [self sendDataToBle:data];
+}
+
+//進入升級發送數據
+-(void)enterUpgradeSendtDataWith:(NSString *)dataStr
+{
+     NSData *data=[BluetoothUtil enterUpgradeSendtDataWith:dataStr];
+     // NSLog(@"data===%@",data);
      for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
           // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
           if ((i + BLE_SEND_MAX_LEN) < [data length]) {
@@ -429,51 +604,90 @@
           }
      }
 }
-//獲取標籤數據
--(void)getLabMessage
+//發送升級數據
+-(void)sendtUpgradeDataWith:(NSData *)dataStr
 {
-     dispatch_async(dispatch_get_main_queue(), ^{
-          NSData *data = [BluetoothUtil getLabMessage];
-          [self sendDataToBle:data];
-     });
+     //
+     NSData *data = dataStr;
+     // NSLog(@"data===%@",data);
+     for (int i = 0; i < [data length]; i += UpdateBLE_SEND_MAX_LEN) {
+          // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
+          if ((i + UpdateBLE_SEND_MAX_LEN) < [data length]) {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, UpdateBLE_SEND_MAX_LEN];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               NSLog(@"%@",subData);
+               [self sendDataToBle:subData];
+               //根據接收模塊的處理能力做相應延時
+               usleep(80 * 1000);
+          }
+          else {
+               NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
+               NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
+               [self sendDataToBle:subData];
+               usleep(80 * 1000);
+          }
+     }
 }
-
-
+//退出升級模式
+-(void)exitUpgradeMode
+{
+     NSData *data=[BluetoothUtil exitUpgradeMode];
+     // NSLog(@"data===%@",data);
+     [self sendDataToBle:data];
+}
 
 #pragma mark - Private Methods
 - (void)startBleScan
 {
-    if (self.centralManager.state == CBCentralManagerStatePoweredOff)
-    {
+    [self.bleScanTimer invalidate];
+    if (self.centralManager.state != CBManagerStatePoweredOn) {
         self.connectDevice = NO;
         if ([self.managerDelegate respondsToSelector:@selector(connectBluetoothFailWithMessage:)])
         {
             [self.managerDelegate connectBluetoothFailWithMessage:[self centralManagerStateDescribe:CBCentralManagerStatePoweredOff]];
         }
+      
+        self.bleScanTimer = [NSTimer timerWithTimeInterval:0.5 target:self selector:@selector(startBleScan) userInfo:nil repeats:NO];
+        [[NSRunLoop mainRunLoop] addTimer:self.bleScanTimer forMode:NSRunLoopCommonModes];
+        NSLog(@"RFIDBluetoothManager: startBleScan: state is not powered on, retry in 0.5 seconds");
+        // Timeout of retrying
+        if (!_connectTime || ![_connectTime isValid]) {
+          _connectTime = [NSTimer timerWithTimeInterval:kFatscaleTimeOut target:self selector:@selector(connectTimeroutEvent) userInfo:nil repeats:NO];
+          [[NSRunLoop mainRunLoop] addTimer:_connectTime forMode:NSRunLoopCommonModes];
+        }
         return;
     }
-    if (_connectTime == nil)
-    {
+  [_connectTime invalidate];
+//    if (_connectTime == nil)
+//    {
         //創建連接制定設備的定時器
-        _connectTime = [NSTimer scheduledTimerWithTimeInterval:kFatscaleTimeOut target:self selector:@selector(connectTimeroutEvent) userInfo:nil repeats:NO];
-    }
+        _connectTime = [NSTimer timerWithTimeInterval:kFatscaleTimeOut target:self selector:@selector(connectTimeroutEvent) userInfo:nil repeats:NO];
+  [[NSRunLoop mainRunLoop] addTimer:_connectTime forMode:NSRunLoopCommonModes];
+//    }
     self.uuidDataList=[[NSMutableArray alloc]init];
     [self.centralManager scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey : @ YES}];
 }
 - (void)connectTimeroutEvent
 {
-
+  NSLog(@"RFIDBluetoothManager: connectTimeroutEvent triggered");
     [_connectTime invalidate];
     _connectTime = nil;
     [self stopBleScan];
-    [self.centralManager stopScan];
-    [self.managerDelegate receiveDataWithBLEmodel:nil result:@"1"];
-
+  if (!self.connectDevice) {
+    if ([self.managerDelegate respondsToSelector:@selector(connectBluetoothFailWithMessage:)])
+    {
+      [self.managerDelegate connectBluetoothFailWithMessage:@"TIMEOUT"];
+    }
+  }
+//    [self.centralManager stopScan];
+//    [self.managerDelegate receiveDataWithBLEmodel:nil result:@"1"];
 }
 
 - (void)stopBleScan
 {
+    [_connectTime invalidate];
     [self.bleScanTimer invalidate];
+    [self.centralManager stopScan];
 }
 
 - (void)closeBleAndDisconnect
@@ -497,29 +711,29 @@
 
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
-    if (central.state != CBCentralManagerStatePoweredOn)
+    if (central.state != CBManagerStatePoweredOn)
     {
         if ([self.managerDelegate respondsToSelector:@selector(connectBluetoothFailWithMessage:)])
         {
-            if (central.state == CBCentralManagerStatePoweredOff)
+            if (central.state == CBManagerStatePoweredOff)
             {
                 self.connectDevice = NO;
-                [self.managerDelegate connectBluetoothFailWithMessage:[self centralManagerStateDescribe:CBCentralManagerStatePoweredOff]];
+                [self.managerDelegate connectBluetoothFailWithMessage:[self centralManagerStateDescribe:CBManagerStatePoweredOff]];
             }
         }
 
     }
 
-    switch (central.state) {
-        case CBCentralManagerStatePoweredOn:
-            NSLog(@"CBCentralManagerStatePoweredOn");
-            break;
-        case CBCentralManagerStatePoweredOff:
-            NSLog(@"藍牙斷開：CBCentralManagerStatePoweredOff");
-            break;
-        default:
-            break;
-    }
+//    switch (central.state) {
+//        case CBManagerStatePoweredOn:
+//             NSLog(@"CBManagerStatePoweredOn");
+//            break;
+//        case CBManagerStatePoweredOff:
+//             NSLog(@"CBManagerStatePoweredOff");
+//            break;
+//        default:
+//            break;
+//    }
 }
 
 #pragma mark - 掃描到設備
@@ -532,21 +746,22 @@
 
     if (advertisementData.description.length > 0)
     {
-        NSLog(@"/-------廣播數據advertisementData:%@--------",advertisementData.description);
-        NSLog(@"-------外設peripheral:%@--------/",peripheral.description);
-        NSLog(@"peripheral.services==%@",peripheral.identifier.UUIDString);
-        NSLog(@"RSSI==%@",RSSI);
+        // NSLog(@"/-------advertisementData:%@--------",advertisementData.description);
+        // NSLog(@"-------peripheral:%@--------/",peripheral.description);
+        // NSLog(@"peripheral.services==%@",peripheral.identifier.UUIDString);
+        // NSLog(@"RSSI==%@",RSSI);
     }
 
-    NSString *bindString = @"";
+//    NSString *bindString = @"";
     NSString *str = @"";
-    if (manufacturerData.length>=8) {
-        NSData *subData = [manufacturerData subdataWithRange:NSMakeRange(manufacturerData.length-8, 8)];
-        bindString = subData.description;
-        str = [self getVisiableIDUUID:bindString];
-        NSLog(@" GG == %@ == GG",str);
-
-    }
+//    if (manufacturerData.length>=8) {
+//        NSData *subData = [manufacturerData subdataWithRange:NSMakeRange(manufacturerData.length-8, 8)];
+//        bindString = subData.description;
+//        str = [self getVisiableIDUUID:bindString];
+//        // NSLog(@" GG == %@ == GG",str);
+//
+//    }
+    str = [peripheral.identifier UUIDString];
 
     NSString *typeStr=@"1";
     for (NSString *uuidStr in self.uuidDataList) {
@@ -571,16 +786,14 @@
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
     self.connectDevice = YES;
-    NSLog(@"-- 成功連接外設 --：%@",peripheral.name);
-    NSLog(@"Did connect to peripheral: %@",peripheral);
+    // NSLog(@"-- 成功連接外設 --：%@",peripheral.name);
+    // NSLog(@"Did connect to peripheral: %@",peripheral);
     peripheral.delegate = self;
     [peripheral discoverServices:nil];
     [self.centralManager stopScan];
     [self stopBleScan];
 
-    [self.managerDelegate connectPeripheralSuccess:peripheral.name];
-
-
+    [self.managerDelegate connectPeripheralSuccess:peripheral];
 }
 
 //斷開外設連接
@@ -742,6 +955,7 @@ NSInteger dataIndex=0;
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error
 {
      NSString *dataStr=[AppHelper dataToHex:characteristic.value];
+//  NSLog(@"Got peripheral data: %@", dataStr);
     //TODO NSLog(@"====>>>>>>>>characteristic.value=%@",dataStr);
      //解析按鍵
      [self parseKeyDown:characteristic.value];
@@ -788,32 +1002,32 @@ NSInteger dataIndex=0;
      }
 
      if (self.rcodeStr.length>0) {
-          NSLog(@"掃描二維碼=%@",dataStr);
-
-          [self.rcodeStr appendString:dataStr];
-          NSData *rawData=[AppHelper hexToNSData:self.rcodeStr];
-          NSData *parsedData = [self parseDataWithOriginalStr:rawData cmd:0xE5];
-
-          if (parsedData && parsedData.length > 0) {
-               //NSLog(@"掃描二維碼111111111111111 len=%d",parsedData.length);
-               //NSLog(@"掃描二維碼=%@",[AppHelper dataToHex:parsedData]);
-               Byte *bytes = (Byte *)parsedData.bytes;
-               if (bytes[0] == 0x02) {
-                    NSString *barcode = [[NSString alloc]initWithData:parsedData encoding:NSASCIIStringEncoding];
-
-                    if (self.QRCodeSelType == selectedTypeOfUTF8) {
-                         barcode = [[NSString alloc]initWithData:parsedData encoding:NSUTF8StringEncoding];
-                    } else if (self.QRCodeSelType == selectedTypeOfGB2312) {
-                         NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
-                         barcode = [[NSString alloc]initWithData:parsedData encoding:enc];
-                    }
-
-                    NSLog(@"掃描二維碼222=%@",barcode);
-                    self.isCodeLab=NO;
-                    self.rcodeStr=[[NSMutableString alloc]init];
-                    [self.managerDelegate receiveMessageWithtype:@"e55" dataStr:barcode];
-               }
-          }
+//          NSLog(@"掃描二維碼=%@",dataStr);
+//
+//          [self.rcodeStr appendString:dataStr];
+//          NSData *rawData=[AppHelper hexToNSData:self.rcodeStr];
+//          NSData *parsedData = [self parseDataWithOriginalStr:rawData cmd:0xE5];
+//
+//          if (parsedData && parsedData.length > 0) {
+//               //NSLog(@"掃描二維碼111111111111111 len=%d",parsedData.length);
+//               //NSLog(@"掃描二維碼=%@",[AppHelper dataToHex:parsedData]);
+//               Byte *bytes = (Byte *)parsedData.bytes;
+//               if (bytes[0] == 0x02) {
+//                    NSString *barcode = [[NSString alloc]initWithData:parsedData encoding:NSASCIIStringEncoding];
+//
+//                    if (self.QRCodeSelType == selectedTypeOfUTF8) {
+//                         barcode = [[NSString alloc]initWithData:parsedData encoding:NSUTF8StringEncoding];
+//                    } else if (self.QRCodeSelType == selectedTypeOfGB2312) {
+//                         NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                         barcode = [[NSString alloc]initWithData:parsedData encoding:enc];
+//                    }
+//
+//                    NSLog(@"掃描二維碼222=%@",barcode);
+//                    self.isCodeLab=NO;
+//                    self.rcodeStr=[[NSMutableString alloc]init];
+//                    [self.managerDelegate receiveMessageWithtype:@"e55" dataStr:barcode];
+//               }
+//          }
           /*
           //二維碼
           [self.rcodeStr appendString:dataStr];
@@ -855,6 +1069,7 @@ NSInteger dataIndex=0;
      }
 
      if (self.isgetLab==NO) {
+       NSLog(@"Not isgetLab");
           int i=0;
           //不是獲取標籤的
           if ([typeStr isEqualToString:@"01"]) {
@@ -1097,33 +1312,33 @@ NSInteger dataIndex=0;
                }
 
                if (self.isCodeLab) {
-                    NSLog(@"掃描二維碼=%@",dataStr);
-                    NSData *rawData=[AppHelper hexToNSData:dataStr];
-                    NSData *parsedData = [self parseDataWithOriginalStr:rawData cmd:0xE5];
-
-                    if (parsedData && parsedData.length > 0) {
-                         //NSLog(@"掃描二維碼111111111111111 len=%d",parsedData.length);
-                         //NSLog(@"掃描二維碼=%@",[AppHelper dataToHex:parsedData]);
-                         Byte *bytes = (Byte *)parsedData.bytes;
-                         if (bytes[0] == 0x02) {
-                              NSString *barcode = [[NSString alloc]initWithData:parsedData encoding:NSASCIIStringEncoding];
-
-                              if (self.QRCodeSelType == selectedTypeOfUTF8) {
-                                   barcode = [[NSString alloc]initWithData:parsedData encoding:NSUTF8StringEncoding];
-                              } else if (self.QRCodeSelType == selectedTypeOfGB2312) {
-                                   NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
-                                   barcode = [[NSString alloc]initWithData:parsedData encoding:enc];
-                              }
-
-                              NSLog(@"掃描二維碼222=%@",barcode);
-                              self.isCodeLab=NO;
-                              self.rcodeStr=[[NSMutableString alloc]init];
-                              [self.managerDelegate receiveMessageWithtype:@"e55" dataStr:barcode];
-                         }
-                    }else {
-                         self.rcodeStr=[[NSMutableString alloc]init];
-                         [self.rcodeStr appendString:dataStr];
-                    }
+//                    NSLog(@"掃描二維碼=%@",dataStr);
+//                    NSData *rawData=[AppHelper hexToNSData:dataStr];
+//                    NSData *parsedData = [self parseDataWithOriginalStr:rawData cmd:0xE5];
+//
+//                    if (parsedData && parsedData.length > 0) {
+//                         //NSLog(@"掃描二維碼111111111111111 len=%d",parsedData.length);
+//                         //NSLog(@"掃描二維碼=%@",[AppHelper dataToHex:parsedData]);
+//                         Byte *bytes = (Byte *)parsedData.bytes;
+//                         if (bytes[0] == 0x02) {
+//                              NSString *barcode = [[NSString alloc]initWithData:parsedData encoding:NSASCIIStringEncoding];
+//
+//                              if (self.QRCodeSelType == selectedTypeOfUTF8) {
+//                                   barcode = [[NSString alloc]initWithData:parsedData encoding:NSUTF8StringEncoding];
+//                              } else if (self.QRCodeSelType == selectedTypeOfGB2312) {
+//                                   NSStringEncoding enc = CFStringConvertEncodingToNSStringEncoding(kCFStringEncodingGB_18030_2000);
+//                                   barcode = [[NSString alloc]initWithData:parsedData encoding:enc];
+//                              }
+//
+//                              NSLog(@"掃描二維碼222=%@",barcode);
+//                              self.isCodeLab=NO;
+//                              self.rcodeStr=[[NSMutableString alloc]init];
+//                              [self.managerDelegate receiveMessageWithtype:@"e55" dataStr:barcode];
+//                         }
+//                    }else {
+//                         self.rcodeStr=[[NSMutableString alloc]init];
+//                         [self.rcodeStr appendString:dataStr];
+//                    }
 
                     //掃描二維碼
                     /*
@@ -1399,83 +1614,91 @@ NSInteger dataIndex=0;
 
 
           if(isEPCAndTidUser == YES){
-                //*************** EPC  and tid  user **************
-               self.tagTypeStr = @"2";
-               NSInteger userAndRssiLen= allData.length-(uiiLen*2+tidLen*2);
-               userAndRssiLen= (userAndRssiLen%2!=0)? userAndRssiLen-1: userAndRssiLen;//有可能數據包含一個字節的天線號，所以這裏做特殊處理
-               NSString * newUserAndRssiData= [allData substringWithRange:NSMakeRange(uiiLen*2+tidLen*2,userAndRssiLen)];
-               NSString * newUserData= [newUserAndRssiData substringWithRange:NSMakeRange(0,newUserAndRssiData.length - rssiLen*2)];
-               isHave = NO;
-               for (NSInteger j = 0 ; j < self.dataSource2.count; j ++) {
-                    NSString *oldUserAndRssiData = self.dataSource2[j];
-                    NSString *oldUser= [oldUserAndRssiData substringWithRange:NSMakeRange(0,oldUserAndRssiData.length-rssiLen*2)];
-
-                    if ([newUserData isEqualToString:oldUser]) {
-                         [self.dataSource2 replaceObjectAtIndex:j withObject:newUserAndRssiData];
-                         isHave = YES;
-                         self.allCount ++;
-                         NSString *countStr=self.countArr2[j];
-                         [self.countArr2 replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
-                         break;
-                    }
-               }
-               if (!self.dataSource2 || self.dataSource2.count == 0 || !isHave) {
-                    [self.dataSource2 addObject:newUserAndRssiData];
-                    [self.countArr2 addObject:@"1"];
-                    NSString * EpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
-                    [self.countArr addObject:@"1"];
-                    [self.dataSource addObject:EpcData];
-                    NSString * TidData= [allData substringWithRange:NSMakeRange(uiiLen*2,tidLen*2 )];
-                    [self.countArr1 addObject:@"1"];
-                    [self.dataSource1 addObject:TidData];
-               }
+            NSLog(@"RFIDBluetoothManager: EPCAndTidUser is not supported");
+//                //*************** EPC  and tid  user **************
+//               self.tagTypeStr = @"2";
+//               NSInteger userAndRssiLen= allData.length-(uiiLen*2+tidLen*2);
+//               userAndRssiLen= (userAndRssiLen%2!=0)? userAndRssiLen-1: userAndRssiLen;//有可能數據包含一個字節的天線號，所以這裏做特殊處理
+//               NSString * newUserAndRssiData= [allData substringWithRange:NSMakeRange(uiiLen*2+tidLen*2,userAndRssiLen)];
+//               NSString * newUserData= [newUserAndRssiData substringWithRange:NSMakeRange(0,newUserAndRssiData.length - rssiLen*2)];
+//               isHave = NO;
+//               for (NSInteger j = 0 ; j < self.dataSource2.count; j ++) {
+//                    NSString *oldUserAndRssiData = self.dataSource2[j];
+//                    NSString *oldUser= [oldUserAndRssiData substringWithRange:NSMakeRange(0,oldUserAndRssiData.length-rssiLen*2)];
+//
+//                    if ([newUserData isEqualToString:oldUser]) {
+//                         [self.dataSource2 replaceObjectAtIndex:j withObject:newUserAndRssiData];
+//                         isHave = YES;
+//                         self.allCount ++;
+//                         NSString *countStr=self.countArr2[j];
+//                         [self.countArr2 replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
+//                         break;
+//                    }
+//               }
+//               if (!self.dataSource2 || self.dataSource2.count == 0 || !isHave) {
+//                    [self.dataSource2 addObject:newUserAndRssiData];
+//                    [self.countArr2 addObject:@"1"];
+//                    NSString * EpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
+//                    [self.countArr addObject:@"1"];
+//                    [self.dataSource addObject:EpcData];
+//                    NSString * TidData= [allData substringWithRange:NSMakeRange(uiiLen*2,tidLen*2 )];
+//                    [self.countArr1 addObject:@"1"];
+//                    [self.dataSource1 addObject:TidData];
+//               }
           }else if(isEPCAndTid == YES){
+            NSLog(@"RFIDBluetoothManager: EPCAndTid is not supported");
                  //*************** EPC  and tid   **************
-               self.tagTypeStr = @"1";
-               isHave = NO;
-               NSString * newTidData= [allData substringWithRange:NSMakeRange(uiiLen*2,tidLen*2 )];
-               NSString * tidAndRssiData= [allData substringWithRange:NSMakeRange(uiiLen*2, tidLen*2+rssiLen*2)];
-               for (NSInteger jTid = 0 ; jTid < self.dataSource1.count; jTid ++) {
-                    NSString *oldTid = self.dataSource1[jTid];
-                    oldTid= [oldTid substringWithRange:NSMakeRange(0,oldTid.length-rssiLen*2)];
-                    if ([oldTid isEqualToString:newTidData]) {
-                         [self.dataSource1 replaceObjectAtIndex:jTid withObject:tidAndRssiData];
-                         isHave = YES;
-                         self.allCount ++;
-                         NSString *countStr=self.countArr1[jTid];
-                         [self.countArr1 replaceObjectAtIndex:jTid withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
-                         break;
-                    }
-               }
-               if (!self.dataSource1 || self.dataSource1.count == 0 || !isHave) {
-                    [self.dataSource1 addObject:tidAndRssiData];
-                    [self.countArr1 addObject:@"1"];
-                    NSString * EpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
-                    [self.countArr addObject:@"1"];
-                    [self.dataSource addObject:EpcData];
-               }
+//               self.tagTypeStr = @"1";
+//               isHave = NO;
+//               NSString * newTidData= [allData substringWithRange:NSMakeRange(uiiLen*2,tidLen*2 )];
+//               NSString * tidAndRssiData= [allData substringWithRange:NSMakeRange(uiiLen*2, tidLen*2+rssiLen*2)];
+//               for (NSInteger jTid = 0 ; jTid < self.dataSource1.count; jTid ++) {
+//                    NSString *oldTid = self.dataSource1[jTid];
+//                    oldTid= [oldTid substringWithRange:NSMakeRange(0,oldTid.length-rssiLen*2)];
+//                    if ([oldTid isEqualToString:newTidData]) {
+//                         [self.dataSource1 replaceObjectAtIndex:jTid withObject:tidAndRssiData];
+//                         isHave = YES;
+//                         self.allCount ++;
+//                         NSString *countStr=self.countArr1[jTid];
+//                         [self.countArr1 replaceObjectAtIndex:jTid withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
+//                         break;
+//                    }
+//               }
+//               if (!self.dataSource1 || self.dataSource1.count == 0 || !isHave) {
+//                    [self.dataSource1 addObject:tidAndRssiData];
+//                    [self.countArr1 addObject:@"1"];
+//                    NSString * EpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
+//                    [self.countArr addObject:@"1"];
+//                    [self.dataSource addObject:EpcData];
+//               }
           }else{
                  //*************** EPC    **************
                NSString * newEpcData= [allData substringWithRange:NSMakeRange(4, epclen*2)];
                NSString * epcAndRssiData= [allData substringWithRange:NSMakeRange(4, epclen*2+rssiLen*2)];
-               for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
-                    NSString * oldEPC = self.dataSource[j];
-                     oldEPC= [oldEPC substringWithRange:NSMakeRange(0,oldEPC.length-rssiLen*2 )];
-                    if ([oldEPC isEqualToString:newEpcData]) {
-                         isHave = YES;
-                         self.allCount ++;
-                         NSString *countStr=self.countArr[j];
-                         [self.countArr replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
-                         break;
-                    }
-               }
-               if (!self.dataSource || self.dataSource.count == 0 || !isHave) {
-                    [self.dataSource addObject:epcAndRssiData];
-                    [self.countArr addObject:@"1"];
-               }
+               NSString *rssiStr = [epcAndRssiData substringFromIndex:epcAndRssiData.length - 4];
+               NSInteger numOfRssiStr = [AppHelper getDecimalByBinary:[AppHelper getBinaryByHex:rssiStr]];
+               double rssi = (65535 - numOfRssiStr) / 10.0;
+                // Here
+//               NSLog(@"-- EPC: %@, rssi: %f", newEpcData, rssi);
+               [self.managerDelegate receiveScannedEpcWithRssi:newEpcData withRssi:rssi];
+//               for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
+//                    NSString * oldEPC = self.dataSource[j];
+//                     oldEPC= [oldEPC substringWithRange:NSMakeRange(0,oldEPC.length-rssiLen*2 )];
+//                    if ([oldEPC isEqualToString:newEpcData]) {
+//                         isHave = YES;
+//                         self.allCount ++;
+//                         NSString *countStr=self.countArr[j];
+//                         [self.countArr replaceObjectAtIndex:j withObject:[NSString stringWithFormat:@"%ld",countStr.integerValue + 1]];
+//                         break;
+//                    }
+//               }
+//               if (!self.dataSource || self.dataSource.count == 0 || !isHave) {
+//                    [self.dataSource addObject:epcAndRssiData];
+//                    [self.countArr addObject:@"1"];
+//               }
           }
 
-          [self.managerDelegate receiveDataWithBLEDataSource:self.dataSource allCount:self.allCount countArr:self.countArr dataSource1:self.dataSource1 countArr1:self.countArr1 dataSource2:self.dataSource2 countArr2:self.countArr2];
+//          [self.managerDelegate receiveDataWithBLEDataSource:self.dataSource allCount:self.allCount countArr:self.countArr dataSource1:self.dataSource1 countArr1:self.countArr1 dataSource2:self.dataSource2 countArr2:self.countArr2];
       }
 }
 

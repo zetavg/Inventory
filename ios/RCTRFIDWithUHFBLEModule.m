@@ -66,6 +66,9 @@ RCT_EXPORT_METHOD(scanDevices:
     self->searchForConnectToIdentifier = nil;
     self->scanDevicesEventRate = eventRate;
     self->lastScanDevicesEventEmittedAt = CACurrentMediaTime() * 1000;
+    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
+    //    dispatch_async(dispatch_get_main_queue(), ^{
+    //    });
     [[RFIDBlutoothManager shareManager] startBleScan];
     NSLog(@"RCTRFIDWithUHFBLEModule: startBleScan called on RFIDBlutoothManager");
     resolve(@(YES));
@@ -82,6 +85,10 @@ RCT_EXPORT_METHOD(connectDevice:
   @try {
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
     self->searchForConnectToIdentifier = identifier;
+    
+    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
+    //    dispatch_async(dispatch_get_main_queue(), ^{
+    //    });
     [[RFIDBlutoothManager shareManager] startBleScan];
 //    if (![RFIDBlutoothManager shareManager].connectDevice) {
 //      // Just to poke centralManager so that it can report status correctly
@@ -101,6 +108,10 @@ RCT_EXPORT_METHOD(disconnectDevice:
 {
   @try {
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    
+    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
+    //    dispatch_async(dispatch_get_main_queue(), ^{
+    //    });
     [[RFIDBlutoothManager shareManager] closeBleAndDisconnect];
     resolve(@(YES));
   } @catch (NSException *exception) {
@@ -173,10 +184,37 @@ RCT_EXPORT_METHOD(startScan:
                   (RCTPromiseRejectBlock)reject)
 {
   @try {
+    self->scanTagsEventRate = eventRate;
+    self->lastScanTagsEventEmittedAt = CACurrentMediaTime() * 1000;
+    
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
     [[RFIDBlutoothManager shareManager] setLaunchPowerWithstatus:@"1" antenna:@"1" readStr:[power stringValue] writeStr:[power stringValue]];
-    usleep(300);
+    if (enableFilter) {
+      [[RFIDBlutoothManager shareManager] setFilterWithBank:[memoryBank intValue] ptr:[filterBitOffset intValue] cnt:[filterBitCount intValue] data:filterData];
+    } else {
+      [[RFIDBlutoothManager shareManager] setFilterWithBank:1 ptr:32 cnt:0 data:@"00"];
+    }
+    
+    [RFIDBlutoothManager shareManager].isSupportRssi = YES;
+    usleep(300 * 1000);
+
+    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
+    //    dispatch_async(dispatch_get_main_queue(), ^{
+    //    });
+    [RFIDBlutoothManager shareManager].isgetLab=YES;
     [[RFIDBlutoothManager shareManager] continuitySaveLabelWithCount:@"10000"];
+    resolve(@(true));
+  } @catch (NSException *exception) {
+    reject(exception.name, exception.reason, nil);
+  }
+}
+
+RCT_EXPORT_METHOD(getLabMessage:
+                  (RCTPromiseResolveBlock)resolve:
+                  (RCTPromiseRejectBlock)reject)
+{
+  @try {
+    [[RFIDBlutoothManager shareManager] getLabMessage];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -189,11 +227,30 @@ RCT_EXPORT_METHOD(stopScan:
 {
   @try {
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    
+    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
+    //    dispatch_async(dispatch_get_main_queue(), ^{
+    //    });
+    [RFIDBlutoothManager shareManager].isgetLab=NO;
     [[RFIDBlutoothManager shareManager] stopContinuitySaveLabel];
-    resolve(@(true));
+    
+    // Need to let the last coming data to emit
+    NSTimer *endStopScanTimer = [NSTimer timerWithTimeInterval:0.5 target:self selector:@selector(endStopScan:) userInfo:@{@"resolve": resolve} repeats:NO];
+    [[NSRunLoop mainRunLoop] addTimer:endStopScanTimer forMode:NSRunLoopCommonModes];
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
   }
+}
+
+- (void) endStopScan:(NSTimer *)timer
+{
+  if (!self->scanTagsData) return;
+
+  [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
+  [self->scanTagsData removeAllObjects];
+  
+  RCTPromiseResolveBlock resolve = [[timer userInfo] objectForKey:@"resolve"];
+  resolve(@(true));
 }
 
 #pragma mark - FatScaleBluetoothManager Delegates
@@ -241,8 +298,33 @@ RCT_EXPORT_METHOD(stopScan:
   [self sendEventWithName:@"uhfDeviceConnectionStatus" body:jsData];
 }
 
+- (void)connectBluetoothFailWithMessage:(NSString *)msg
+{
+  NSMutableDictionary *jsData = [NSMutableDictionary dictionary];
+  [jsData setObject:@"DISCONNECTED" forKey: @"status"];
+  [self sendEventWithName:@"uhfDeviceConnectionStatus" body:jsData];
+}
+
+- (void)receiveScannedEpcWithRssi:(NSString *)epc withRssi:(double)rssi
+{
+  NSLog(@"receiveScannedEpcWithRssi %f - %@", rssi, epc);
+  NSMutableDictionary *jsData = [NSMutableDictionary dictionary];
+  [jsData setObject:epc forKey: @"epc"];
+  [jsData setObject:@(rssi) forKey: @"rssi"];
+  
+  if (!self->scanTagsData) self->scanTagsData = [NSMutableArray array];
+  [self->scanTagsData addObject:jsData];
+
+  long currentTime = CACurrentMediaTime() * 1000;
+  if (currentTime - self->lastScanTagsEventEmittedAt > self->scanTagsEventRate) {
+    [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
+    [self->scanTagsData removeAllObjects];
+    self->lastScanTagsEventEmittedAt = currentTime;
+  }
+}
+
 - (void)receiveDataWithBLEDataSource:(NSMutableArray *)dataSource allCount:(NSInteger)allCount countArr:(NSMutableArray *)countArr dataSource1:(NSMutableArray *)dataSource1 countArr1:(NSMutableArray *)countArr1 dataSource2:(NSMutableArray *)dataSource2 countArr2:(NSMutableArray *)countArr2 {
-  NSLog(@"RCTRFIDWithUHFBLEModule: receiveDataWithBLEDataSource: %@, %ld, %@, %@, %@, %@, %@", dataSource, (long)allCount, countArr, dataSource1, countArr1, dataSource2, countArr2);
+//  NSLog(@"RCTRFIDWithUHFBLEModule: receiveDataWithBLEDataSource: %@, %ld, %@, %@, %@, %@, %@", dataSource, (long)allCount, countArr, dataSource1, countArr1, dataSource2, countArr2);
 }
 
 - (void)receiveMessageWithtype:(NSString *)typeStr dataStr:(NSString *)dataStr {

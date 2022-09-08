@@ -1,10 +1,17 @@
 import {
   NativeModules,
   DeviceEventEmitter,
+  NativeEventEmitter,
   EmitterSubscription,
+  Platform,
 } from 'react-native';
 import RFIDWithUHFBaseModule from './RFIDWithUHFBaseModule';
 const { RFIDWithUHFBLEModule: NativeRFIDWithUHFBLEModule } = NativeModules;
+
+const eventEmitter =
+  Platform.OS === 'ios'
+    ? new NativeEventEmitter(NativeRFIDWithUHFBLEModule)
+    : DeviceEventEmitter;
 
 export type DeviceConnectStatus = 'CONNECTED' | 'CONNECTING' | 'DISCONNECTED';
 
@@ -32,7 +39,8 @@ const RFIDWithUHFBLEModule = {
   _scanDevicesListener: null as any,
   scanDevices(enable: boolean, options: ScanDevicesOptions): Promise<void> {
     this._scanDevicesListener?.remove();
-    this._scanDevicesListener = DeviceEventEmitter.addListener(
+
+    this._scanDevicesListener = eventEmitter.addListener(
       'uhfDevicesScanData',
       d => {
         options.callback(d);
@@ -54,10 +62,7 @@ const RFIDWithUHFBLEModule = {
   addDeviceConnectStatusListener(
     callback: (payload: DeviceConnectStatusPayload) => void,
   ): EmitterSubscription {
-    return DeviceEventEmitter.addListener(
-      'uhfDeviceConnectionStatus',
-      callback,
-    );
+    return eventEmitter.addListener('uhfDeviceConnectionStatus', callback);
   },
   connectDevice(address: string): Promise<void> {
     return NativeRFIDWithUHFBLEModule.connectDevice(address);

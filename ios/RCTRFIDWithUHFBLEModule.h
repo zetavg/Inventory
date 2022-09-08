@@ -10,6 +10,10 @@
   double scanDevicesEventRate;
   double lastScanDevicesEventEmittedAt;
   NSString *searchForConnectToIdentifier;
+
+  NSMutableArray *scanTagsData;
+  double scanTagsEventRate;
+  double lastScanTagsEventEmittedAt;
 }
 
 @property (nonatomic, strong) NSTimer *untilPowerOnTimer;

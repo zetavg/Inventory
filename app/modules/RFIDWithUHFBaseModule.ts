@@ -145,6 +145,17 @@ const RFIDWithUHFBaseModule = {
       'uhfScanData',
       options.callback,
     );
+    // if (Platform.OS === 'ios') {
+    //   (this as any).startGetLabMessageTimer = setTimeout(() => {
+    //     (this as any).getLabMessageTimer = setInterval(async () => {
+    //       try {
+    //         await this.NativeModule.getLabMessage();
+    //       } catch (e) {
+    //         console.warn(e);
+    //       }
+    //     }, 80);
+    //   }, 500);
+    // }
     return this.NativeModule.startScan(
       options.power,
       !!options.filter,
@@ -162,6 +173,12 @@ const RFIDWithUHFBaseModule = {
     setTimeout(() => {
       currentScanListener?.remove();
     }, 1000);
+
+    // if (Platform.OS === 'ios') {
+    //   clearTimeout((this as any).startGetLabMessageTimer);
+    //   clearInterval((this as any).getLabMessageTimer);
+    // }
+
     return this.NativeModule.stopScan();
   },
   clearScannedTags(): Promise<void> {
