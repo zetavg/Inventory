@@ -39,7 +39,7 @@
 @property (nonatomic, weak) id<PeripheralAddDelegate> addDelegate;
 
 @property (nonatomic, copy) NSString *connectPeripheralCharUUID;
- 
+
 @property (nonatomic, strong) NSMutableArray *BLEServerDatasArray;
 
 @property (nonatomic, strong) CBCharacteristic *myCharacteristic;
@@ -120,7 +120,7 @@
       NSLog(@"RFIDBluetoothManager: Can't find peripheral from identifier %@", identifier);
       return NO;
     }
-    
+
     [self connectPeripheral: peripheral macAddress:@""];
     return YES;
 }
@@ -344,7 +344,7 @@
 
      if (self.sendGetTagRequestTime == nil){
           self.isFirstSendGetTAGCmd=YES;
-       
+
           if(self.isBLE40 == YES){
               self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.08 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
           }else{
@@ -368,6 +368,7 @@
 //讀標籤數據區
 -(void)readLabelMessageWithPassword:(NSString *)password MMBstr:(NSString *)MMBstr MSAstr:(NSString *)MSAstr MDLstr:(NSString *)MDLstr MDdata:(NSString *)MDdata MBstr:(NSString *)MBstr SAstr:(NSString *)SAstr DLstr:(NSString *)DLstr isfilter:(BOOL)isfilter
 {
+          // NSLog(@"readLabelMessageWithPassword: %@, %@, %@, %@, %@, %@, %@, %@, %d", password, MMBstr, MSAstr, MDLstr, MDdata, MBstr, SAstr, DLstr, isfilter);
           NSData *data = [BluetoothUtil readLabelMessageWithPassword:password MMBstr:MMBstr MSAstr:MSAstr MDLstr:MDLstr MDdata:MDdata MBstr:MBstr SAstr:SAstr DLstr:DLstr isfilter:isfilter];
           // NSLog(@"data===%@",data);
           for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
@@ -393,12 +394,13 @@
 {
           NSData *data = [BluetoothUtil writeLabelMessageWithPassword:password MMBstr:MMBstr MSAstr:MSAstr MDLstr:MDLstr MDdata:MDdata MBstr:MBstr SAstr:SAstr DLstr:DLstr writeData:writeData isfilter:isfilter];
 
+          // NSLog(@"Write NSData: %@", data);
           for (int i = 0; i < [data length]; i += BLE_SEND_MAX_LEN) {
                // 預加 最大包長度，如果依然小於總數據長度，可以取最大包數據大小
                if ((i + BLE_SEND_MAX_LEN) < [data length]) {
                     NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, BLE_SEND_MAX_LEN];
                     NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-                     // NSLog(@"subData==%@",subData);
+//                      NSLog(@"1 subData == %@",subData);
                     [self sendDataToBle:subData];
                     //根據接收模塊的處理能力做相應延時
                     usleep(80 * 1000);
@@ -406,7 +408,7 @@
                else {
                     NSString *rangeStr = [NSString stringWithFormat:@"%i,%i", i, (int)([data length] - i)];
                     NSData *subData = [data subdataWithRange:NSRangeFromString(rangeStr)];
-                    // NSLog(@"subData==%@",subData);
+//                     NSLog(@"2 subData == %@",subData);
                     [self sendDataToBle:subData];
                     usleep(80 * 1000);
                }
@@ -646,7 +648,7 @@
         {
             [self.managerDelegate connectBluetoothFailWithMessage:[self centralManagerStateDescribe:CBCentralManagerStatePoweredOff]];
         }
-      
+
         self.bleScanTimer = [NSTimer timerWithTimeInterval:0.5 target:self selector:@selector(startBleScan) userInfo:nil repeats:NO];
         [[NSRunLoop mainRunLoop] addTimer:self.bleScanTimer forMode:NSRunLoopCommonModes];
         NSLog(@"RFIDBluetoothManager: startBleScan: state is not powered on, retry in 0.5 seconds");
@@ -993,6 +995,7 @@ NSInteger dataIndex=0;
      if (self.readStr.length>0) {
           //讀標籤
           [self.readStr appendString:dataStr];
+       NSLog(@"RFIDBluetoothManager: [self.readStr appendString:dataStr];, dataStr.length = %lu", (unsigned long)dataStr.length);
           if (dataStr.length<40) {
                NSString *aa=[NSString stringWithFormat:@"%@",self.readStr];
                NSString *valueStr=[aa substringWithRange:NSMakeRange(18, aa.length-18-6)];
@@ -1069,8 +1072,8 @@ NSInteger dataIndex=0;
      }
 
      if (self.isgetLab==NO) {
-       NSLog(@"Not isgetLab");
-          int i=0;
+          NSLog(@"RFIDBluetoothManager: received data (!getLab) type: %@, data: %@", typeStr, dataStr);
+//          int i=0;
           //不是獲取標籤的
           if ([typeStr isEqualToString:@"01"]) {
                //獲取硬件版本號
@@ -1201,11 +1204,15 @@ NSInteger dataIndex=0;
                }
           } else if ([typeStr isEqualToString:@"85"]) {
                //讀標籤
+            // NSLog(@"RFIDBluetoothManager: 85, dataStr.length = %lu", (unsigned long)dataStr.length);
                if (dataStr.length<40) {
                     if (dataStr.length > 24) {
                          NSString *strr=[dataStr substringWithRange:NSMakeRange(18, dataStr.length-18-6)];
                          [self.managerDelegate receiveMessageWithtype:@"85" dataStr:strr];
+                    } else {
+                      NSLog(@"RFIDBluetoothManager: 85, possible fail: %@", dataStr);
                     }
+
                }
                else
                {
@@ -1220,6 +1227,8 @@ NSInteger dataIndex=0;
                               self.readStr=[[NSMutableString alloc]init];
                               [self.readStr appendString:dataStr];
                          }
+                    } else {
+                      NSLog(@"RFIDBluetoothManager: 85, possible fail: %@", dataStr);
                     }
                }
 
@@ -1679,9 +1688,9 @@ NSInteger dataIndex=0;
                NSInteger numOfRssiStr = [AppHelper getDecimalByBinary:[AppHelper getBinaryByHex:rssiStr]];
                double rssi = (65535 - numOfRssiStr) / 10.0;
                 // Here
-            
+
 //            [self playSound:1];
-          
+
 //               NSLog(@"-- EPC: %@, rssi: %f", newEpcData, rssi);
                [self.managerDelegate receiveScannedEpcWithRssi:newEpcData withRssi:rssi];
 //               for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
@@ -2274,7 +2283,7 @@ NSInteger dataIndex=0;
 - (void)initSoundIfNeeded
 {
   if (self->soundInitialized) return;
-  
+
   NSLog(@"RFIDBluetoothManager: initSound");
   NSString *soundFile1 = [[NSBundle mainBundle] pathForResource:@"beep" ofType:@"mp3"];
   NSError *error1;
@@ -2282,7 +2291,7 @@ NSInteger dataIndex=0;
     self->player1[player1i] = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:soundFile1] error:&error1];
     self->player1[player1i].numberOfLoops = 1;
   }
-  
+
   NSString *soundFile2 = [[NSBundle mainBundle] pathForResource:@"beep_slight" ofType:@"mp3"];
   NSError *error2;
   for (player2i = 0; player2i < SOUND_I; player2i++) {
@@ -2296,7 +2305,7 @@ NSInteger dataIndex=0;
     self->player3[player3i] = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:soundFile3] error:&error3];
     self->player3[player3i].numberOfLoops = 1;
   }
-  
+
   self->soundInitialized = YES;
 }
 
