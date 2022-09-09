@@ -1,3 +1,5 @@
+#import <AudioToolbox/AudioToolbox.h>
+
 #import "RCTRFIDWithUHFBLEModule.h"
 
 #import "RFIDBlutoothManager.h"
@@ -90,6 +92,7 @@ RCT_EXPORT_METHOD(connectDevice:
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //    });
     [[RFIDBlutoothManager shareManager] startBleScan];
+    [[RFIDBlutoothManager shareManager] initSoundIfNeeded];
 //    if (![RFIDBlutoothManager shareManager].connectDevice) {
 //      // Just to poke centralManager so that it can report status correctly
 //      [[RFIDBlutoothManager shareManager].centralManager scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey : @ YES}];
@@ -189,6 +192,11 @@ RCT_EXPORT_METHOD(startScan:
     
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
     [[RFIDBlutoothManager shareManager] setLaunchPowerWithstatus:@"1" antenna:@"1" readStr:[power stringValue] writeStr:[power stringValue]];
+    usleep(80 * 1000);
+    if (!scannedEpcs) scannedEpcs = [[NSMutableSet alloc] init];
+    [[RFIDBlutoothManager shareManager] setCloseBuzzer];
+    usleep(80 * 1000);
+    self->soundEnabled = soundEnabled;
     if (enableFilter) {
       [[RFIDBlutoothManager shareManager] setFilterWithBank:[memoryBank intValue] ptr:[filterBitOffset intValue] cnt:[filterBitCount intValue] data:filterData];
     } else {
@@ -196,7 +204,7 @@ RCT_EXPORT_METHOD(startScan:
     }
     
     [RFIDBlutoothManager shareManager].isSupportRssi = YES;
-    usleep(300 * 1000);
+    usleep(120 * 1000);
 
     // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
     //    dispatch_async(dispatch_get_main_queue(), ^{
@@ -235,7 +243,7 @@ RCT_EXPORT_METHOD(stopScan:
     [[RFIDBlutoothManager shareManager] stopContinuitySaveLabel];
     
     // Need to let the last coming data to emit
-    NSTimer *endStopScanTimer = [NSTimer timerWithTimeInterval:0.5 target:self selector:@selector(endStopScan:) userInfo:@{@"resolve": resolve} repeats:NO];
+    NSTimer *endStopScanTimer = [NSTimer timerWithTimeInterval:0.2 target:self selector:@selector(endStopScan:) userInfo:@{@"resolve": resolve} repeats:NO];
     [[NSRunLoop mainRunLoop] addTimer:endStopScanTimer forMode:NSRunLoopCommonModes];
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -244,13 +252,43 @@ RCT_EXPORT_METHOD(stopScan:
 
 - (void) endStopScan:(NSTimer *)timer
 {
-  if (!self->scanTagsData) return;
+  [[RFIDBlutoothManager shareManager] setOpenBuzzer];
 
-  [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
-  [self->scanTagsData removeAllObjects];
+  if (self->scanTagsData) {
+    [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
+    [self->scanTagsData removeAllObjects];
+  }
   
   RCTPromiseResolveBlock resolve = [[timer userInfo] objectForKey:@"resolve"];
   resolve(@(true));
+}
+
+RCT_EXPORT_METHOD(clearScannedTags:
+                  (RCTPromiseResolveBlock)resolve:
+                  (RCTPromiseRejectBlock)reject)
+{
+  @try {
+    [self->scannedEpcs removeAllObjects];
+    NSLog(@"removeAllObjects");
+    resolve(@(true));
+  } @catch (NSException *exception) {
+    reject(exception.name, exception.reason, nil);
+  }
+}
+
+#pragma mark - Sound
+
+RCT_EXPORT_METHOD(playSound:
+                  (int)soundId:
+                  (RCTPromiseResolveBlock)resolve:
+                  (RCTPromiseRejectBlock)reject)
+{
+  @try {
+    [[RFIDBlutoothManager shareManager] playSound:soundId];
+    resolve(@(true));
+  } @catch (NSException *exception) {
+    reject(exception.name, exception.reason, nil);
+  }
 }
 
 #pragma mark - FatScaleBluetoothManager Delegates
@@ -307,13 +345,22 @@ RCT_EXPORT_METHOD(stopScan:
 
 - (void)receiveScannedEpcWithRssi:(NSString *)epc withRssi:(double)rssi
 {
-  NSLog(@"receiveScannedEpcWithRssi %f - %@", rssi, epc);
+//  NSLog(@"receiveScannedEpcWithRssi %f - %@", rssi, epc);
   NSMutableDictionary *jsData = [NSMutableDictionary dictionary];
   [jsData setObject:epc forKey: @"epc"];
   [jsData setObject:@(rssi) forKey: @"rssi"];
   
   if (!self->scanTagsData) self->scanTagsData = [NSMutableArray array];
   [self->scanTagsData addObject:jsData];
+  
+  if (self->soundEnabled) {
+    if ([self->scannedEpcs containsObject:epc]) {
+      [[RFIDBlutoothManager shareManager] playSound:2];
+    } else {
+      [[RFIDBlutoothManager shareManager] playSound:1];
+    }
+  }
+  [self->scannedEpcs addObject:epc];
 
   long currentTime = CACurrentMediaTime() * 1000;
   if (currentTime - self->lastScanTagsEventEmittedAt > self->scanTagsEventRate) {

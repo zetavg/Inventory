@@ -8,9 +8,12 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
+#import <AudioToolbox/AudioToolbox.h>
+#import <AVFoundation/AVFoundation.h>
 #import "BLEModel.h"
 #import "BluetoothUtil.h"
 
+#define SOUND_I 24
 
 @protocol FatScaleBluetoothManager <NSObject>
 
@@ -61,7 +64,15 @@
 @end
 
 
-@interface RFIDBlutoothManager : NSObject
+@interface RFIDBlutoothManager : NSObject {
+  BOOL soundInitialized;
+  AVAudioPlayer* player1[SOUND_I];
+  AVAudioPlayer* player2[SOUND_I];
+  AVAudioPlayer* player3[SOUND_I];
+  int player1i;
+  int player2i;
+  int player3i;
+}
 
 @property (nonatomic, strong) CBCentralManager *centralManager;
 @property (nonatomic, assign) BOOL connectDevice;
@@ -251,5 +262,8 @@
 - (void)clearCacheTag;
 - (void)parseKeyDown:(NSData *) data;
 //- (NSData *)setFilterSendDataWithUfBank:(char)ufBank ufPtr:(int)ufPtr dataLen:(int)datalen hexDataBuf:(NSString *)hexDatabuf;
+
+- (void)initSoundIfNeeded;
+- (void)playSound:(int)soundId;
 
 @end

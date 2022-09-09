@@ -1679,6 +1679,9 @@ NSInteger dataIndex=0;
                NSInteger numOfRssiStr = [AppHelper getDecimalByBinary:[AppHelper getBinaryByHex:rssiStr]];
                double rssi = (65535 - numOfRssiStr) / 10.0;
                 // Here
+            
+//            [self playSound:1];
+          
 //               NSLog(@"-- EPC: %@, rssi: %f", newEpcData, rssi);
                [self.managerDelegate receiveScannedEpcWithRssi:newEpcData withRssi:rssi];
 //               for (NSInteger j = 0 ; j < self.dataSource.count; j ++) {
@@ -2268,5 +2271,72 @@ NSInteger dataIndex=0;
 
 }
 
+- (void)initSoundIfNeeded
+{
+  if (self->soundInitialized) return;
+  
+  NSLog(@"RFIDBluetoothManager: initSound");
+  NSString *soundFile1 = [[NSBundle mainBundle] pathForResource:@"beep" ofType:@"mp3"];
+  NSError *error1;
+  for (player1i = 0; player1i < SOUND_I; player1i++) {
+    self->player1[player1i] = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:soundFile1] error:&error1];
+    self->player1[player1i].numberOfLoops = 1;
+  }
+  
+  NSString *soundFile2 = [[NSBundle mainBundle] pathForResource:@"beep_slight" ofType:@"mp3"];
+  NSError *error2;
+  for (player2i = 0; player2i < SOUND_I; player2i++) {
+    self->player2[player2i] = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:soundFile2] error:&error2];
+    self->player2[player2i].numberOfLoops = 1;
+  }
+
+  NSString *soundFile3 = [[NSBundle mainBundle] pathForResource:@"serror" ofType:@"mp3"];
+  NSError *error3;
+  for (player3i = 0; player3i < SOUND_I; player3i++) {
+    self->player3[player3i] = [[AVAudioPlayer alloc] initWithContentsOfURL:[NSURL fileURLWithPath:soundFile3] error:&error3];
+    self->player3[player3i].numberOfLoops = 1;
+  }
+  
+  self->soundInitialized = YES;
+}
+
+- (void)playSound:(int)soundId
+{
+  [self initSoundIfNeeded];
+//  NSLog(@"playSound: %d", soundId);
+  if (soundId == 1) {
+    if (self->player1i >= SOUND_I) self->player1i = 0;
+    int pi = player1i;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+      @try {
+        AVAudioPlayer* player = self->player1[pi >= SOUND_I ? 0 : pi];
+        if (player) [player play];
+      } @catch (NSException *exception) {}
+    });
+    self->player1i++;
+  }
+  if (soundId == 2) {
+    if (self->player2i >= SOUND_I) self->player2i = 0;
+    int pi = player2i;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+      @try {
+        AVAudioPlayer* player = self->player2[pi >= SOUND_I ? 0 : pi];
+        if (player) [player play];
+      } @catch (NSException *exception) {}
+    });
+    self->player2i++;
+  }
+  if (soundId == 3) {
+    if (self->player3i >= SOUND_I) self->player3i = 0;
+    int pi = player3i;
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+      @try {
+        AVAudioPlayer* player = self->player3[pi >= SOUND_I ? 0 : pi];
+        if (player) [player play];
+      } @catch (NSException *exception) {}
+    });
+    self->player3i++;
+  }
+}
 
 @end

@@ -1571,6 +1571,29 @@ function RFIDUHFModuleScreen({
     ],
   );
 
+  ///////////
+  // Sound //
+  ///////////
+
+  const soundUi = useMemo(
+    () => (
+      <InsetGroup label="Sound">
+        <InsetGroup.Item
+          button
+          label="Play Success Sound"
+          onPress={() => RFIDWithUHFModule.playSound('success')}
+        />
+        <InsetGroup.ItemSeperator />
+        <InsetGroup.Item
+          button
+          label="Play Error Sound"
+          onPress={() => RFIDWithUHFModule.playSound('error')}
+        />
+      </InsetGroup>
+    ),
+    [RFIDWithUHFModule],
+  );
+
   return (
     <ScreenContent navigation={navigation} title="RFID UHF Module">
       <ScrollView keyboardDismissMode="interactive" ref={scrollViewRef}>
@@ -1585,6 +1608,7 @@ function RFIDUHFModuleScreen({
         {readTagUi}
         {writeTagUi}
         {lockTagUi}
+        {soundUi}
       </ScrollView>
     </ScreenContent>
   );

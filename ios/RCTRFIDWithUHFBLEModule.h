@@ -1,5 +1,6 @@
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
+#import <AudioToolbox/AudioToolbox.h>
 #import "RFIDBlutoothManager.h"
 
 @interface RCTRFIDWithUHFBLEModule : RCTEventEmitter <RCTBridgeModule, FatScaleBluetoothManager> {
@@ -14,6 +15,9 @@
   NSMutableArray *scanTagsData;
   double scanTagsEventRate;
   double lastScanTagsEventEmittedAt;
+  
+  NSMutableSet *scannedEpcs;
+  BOOL soundEnabled;
 }
 
 @property (nonatomic, strong) NSTimer *untilPowerOnTimer;
