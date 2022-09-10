@@ -8,17 +8,17 @@ import React, {
 import {
   StyleSheet,
   View,
-  useWindowDimensions,
   Alert,
   Platform,
   TouchableOpacity,
+  GestureResponderEvent,
+  ActivityIndicator,
+  Switch,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import LinearGradient from 'react-native-linear-gradient';
-import {
-  useAnimatedStyle,
-  useDerivedValue,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Modal from 'react-native-modal';
+
 import {
   BottomSheetBackdrop,
   BottomSheetFooter,
@@ -28,13 +28,11 @@ import {
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SFSymbol } from 'react-native-sfsymbols';
 
 import Color from 'color';
 import commonStyles from '@app/utils/commonStyles';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
-import Button from '@app/components/Button';
 import ElevatedButton, {
   SecondaryButton,
 } from '@app/components/ElevatedButton';
@@ -51,7 +49,10 @@ import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
 import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
 import EPCUtils from '@app/modules/EPCUtils';
 import { DataType } from '@app/db/schema';
+
 import { getTagAccessPassword } from './utils';
+import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
+import { usePersistedState } from '@app/hooks/usePersistedState';
 
 export type RFIDSheetOptions =
   | {
@@ -75,65 +76,11 @@ type Props = {
   >;
 };
 
-const useBottomSheetDynamicSnapPoints = (
-  initialSnapPoints: Array<string | number>,
-) => {
-  const windowDimensions = useWindowDimensions();
-  const safeAreaInsets = useSafeAreaInsets();
-  const maxHeight =
-    windowDimensions.height - safeAreaInsets.top - safeAreaInsets.bottom - 8;
-
-  // variables
-  const animatedContentHeight = useSharedValue(0);
-  const animatedHandleHeight = useSharedValue(-999);
-  const animatedSnapPoints = useDerivedValue(() => {
-    if (
-      animatedHandleHeight.value === -999 ||
-      animatedContentHeight.value === 0
-    ) {
-      return initialSnapPoints.map(() => -999);
-    }
-    let contentWithHandleHeight =
-      animatedContentHeight.value + animatedHandleHeight.value;
-
-    if (contentWithHandleHeight > maxHeight)
-      contentWithHandleHeight = maxHeight;
-
-    return initialSnapPoints.map(snapPoint =>
-      snapPoint === 'CONTENT_HEIGHT' ? contentWithHandleHeight : snapPoint,
-    );
-  }, [maxHeight]);
-  const animatedScrollViewStyles = useAnimatedStyle(() => {
-    let contentWithHandleHeight =
-      animatedContentHeight.value + animatedHandleHeight.value;
-
-    if (contentWithHandleHeight > maxHeight)
-      contentWithHandleHeight = maxHeight;
-
-    return {
-      height: contentWithHandleHeight,
-    };
-  });
-
-  // callbacks
-  const handleContentLayout = useCallback(
-    ({
-      nativeEvent: {
-        layout: { height },
-      },
-    }: any) => {
-      animatedContentHeight.value = height;
-    },
-    [animatedContentHeight],
-  );
-
-  return {
-    animatedSnapPoints,
-    animatedHandleHeight,
-    animatedContentHeight,
-    animatedScrollViewStyles,
-    handleContentLayout,
-  };
+const ACTION_BUTTON_PRESS_RETENTION_OFFSET = {
+  top: 512,
+  bottom: 64,
+  left: 32,
+  right: 32,
 };
 
 function RFIDSheet(
@@ -141,21 +88,28 @@ function RFIDSheet(
   ref: React.ForwardedRef<BottomSheetModal>,
 ) {
   const innerRef = useForwardedRef(ref);
-  // Styles //
+  // #region Styles //
   const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
-  const { sheetBackgroundColor, yellow2, red2, blue2 } = useColors();
+  const {
+    sheetBackgroundColor,
+    contentSecondaryTextColor,
+    green2,
+    yellow2,
+    orange2,
+    red2,
+    blue2,
+  } = useColors();
   const insetGroupBackgroundColor = useMemo(
     () => Color(sheetBackgroundColor).lighten(0.5).hexa(),
     [sheetBackgroundColor],
   );
 
-  // const footerBottomInset = safeAreaInsets.bottom + 32;
   const [footerHeight, setFooterHeight] = useState(0);
   const footerBottomInset = safeAreaInsets.bottom;
-  const footerLinearGradientHeight = 52;
+  const footerLinearGradientHeight = 32;
   const contentBottomInset =
-    footerBottomInset + footerHeight + footerLinearGradientHeight / 2;
+    footerBottomInset + footerHeight + footerLinearGradientHeight / 10;
 
   const initialSnapPoints = useMemo(() => ['CONTENT_HEIGHT'], []);
 
@@ -170,12 +124,16 @@ function RFIDSheet(
   // Options Processing //
   const [options, setOptions] = useState<RFIDSheetOptions | null>(null);
   const handlePassedOptions = useCallback((opts: RFIDSheetOptions) => {
-    // console.warn(`Got opts: ${JSON.stringify(opts)}`);
     setOptions(opts);
   }, []);
   rfidSheetPassOptionsFnRef.current = handlePassedOptions;
 
   // RFID Device Power Control //
+  const [useBuiltinReader, setUseBuiltinReader] = usePersistedState(
+    'RFIDSheet-useBuiltinReader',
+    false,
+  );
+
   const [rfidReady, setRfidReady] = useState(false);
   const ready = rfidReady;
 
@@ -210,7 +168,7 @@ function RFIDSheet(
   const freeRfid = useCallback(() => {
     rfidLastFreedAt.current = Date.now();
     setRfidReady(false);
-    console.warn('RFID: Freeing device...');
+    // console.warn('RFID: Freeing device...');
     try {
       RFIDWithUHFUARTModule.free();
     } catch (e) {
@@ -240,8 +198,9 @@ function RFIDSheet(
   const handleDismiss = useCallback(() => {
     //   console.warn('Dismiss');
   }, []);
+  // #endregion //
 
-  // Configs from DB //
+  // #region Configs from DB //
   const { db } = useDB();
   const [config, setConfig] = useState<ConfigStoredInDB | null>(null);
   const [defaultFilter, setDefaultFilter] = useState<string | null>(null);
@@ -254,8 +213,11 @@ function RFIDSheet(
       setDefaultFilter(f.slice(0, 8));
     });
   }, [db]);
+  // #endregion //
 
-  // Functionalities //
+  // #region Functionalities //
+
+  const [power, setPower] = useState(20);
 
   const [scanStatus, setScanStatus] = useState('N/A');
   const [scannedData, setScannedData] = useState<Record<string, ScanData>>({});
@@ -376,8 +338,10 @@ function RFIDSheet(
   }, [writeAndLockWorking, options, config, writeAndLockPower]);
 
   const [dCounter, setDCounter] = useState(1);
+  // #endregion //
 
-  // Shared Event Handlers //
+  // #region Shared Event Handlers //
+  const [actionButtonPressedIn, setActionButtonPressedIn] = useState(false);
   const handleActionButtonPress = useCallback(() => {
     switch (options?.functionality) {
       case 'scan': {
@@ -391,6 +355,7 @@ function RFIDSheet(
     }
   }, [options?.functionality]);
   const handleActionButtonPressIn = useCallback(() => {
+    setActionButtonPressedIn(true);
     switch (options?.functionality) {
       case 'scan': {
         return startScan();
@@ -401,14 +366,18 @@ function RFIDSheet(
     }
   }, [options?.functionality, startScan, writeAndLock]);
   const handleActionButtonPressOut = useCallback(() => {
+    setActionButtonPressedIn(false);
     switch (options?.functionality) {
       case 'scan': {
         return stopScan();
       }
     }
   }, [options?.functionality, stopScan]);
+  // #endregion //
 
-  // Render //
+  // #region Render //
+  const [showReaderControls, setShowReaderControls] = useState(false);
+  const [showReaderSetup, setShowReaderSetup] = useState(false);
   const Footer = useCallback(
     ({ animatedFooterPosition, ...props }: BottomSheetFooterProps) => {
       const buttonColor = (() => {
@@ -479,47 +448,77 @@ function RFIDSheet(
             }}
             style={styles.sheetFooterContainer}
           >
-            <ElevatedButton
-              title={buttonLabel}
-              color={buttonColor}
-              onPress={handleActionButtonPress}
-              onPressIn={handleActionButtonPressIn}
-              onPressOut={handleActionButtonPressOut}
-              down={(() => {
-                switch (options?.functionality) {
-                  case 'write':
-                    return writeAndLockWorking;
-                  default:
-                    return false;
-                }
-              })()}
-              disabled={(() => {
-                if (!ready) return true;
-
-                switch (options?.functionality) {
-                  default:
-                    return false;
-                }
-              })()}
-              loading={(() => {
-                if (!ready) return true;
-
-                switch (options?.functionality) {
-                  case 'write':
-                    return writeAndLockWorking;
-                  default:
-                    return false;
-                }
-              })()}
-            />
             <View
-              style={{
-                height: 100,
-                flexDirection: 'row',
-                paddingTop: safeAreaInsets.bottom / 2,
-              }}
+              style={styles.actionButtonAndStatusTextContainer}
+              // onStartShouldSetResponder={() => true}
+              // onMoveShouldSetResponder={() => true}
+              // onResponderReject={() => {
+              //   console.warn('reject');
+              // }}
+              // onResponderGrant={() => {
+              //   console.warn('grant');
+              // }}
+              // onResponderMove={() => {
+              //   console.warn('move');
+              // }}
+              // onResponderRelease={() => {
+              //   console.warn('release');
+              // }}
+              // onResponderTerminationRequest={() => false}
+              // onResponderTerminate={() => {
+              //   console.warn('onResponderTerminate');
+              // }}
             >
-              <View style={{ width: 100, justifyContent: 'center' }}>
+              <Text style={styles.actionButtonStatusText} numberOfLines={1}>
+                Status text here. Status text here. Status text here. Status
+                text here. Status text here. Status text here. Status text here.
+                Status text here. Status text here. Status text here. Status
+                text here. Status text here. Status text here. Status text here.
+                Status text here. Status text here. Status text here. Status
+                text here.
+              </Text>
+              <ElevatedButton
+                title={buttonLabel}
+                color={buttonColor}
+                pressRetentionOffset={ACTION_BUTTON_PRESS_RETENTION_OFFSET}
+                onPress={handleActionButtonPress}
+                onPressIn={handleActionButtonPressIn}
+                onPressOut={handleActionButtonPressOut}
+                down={(() => {
+                  switch (options?.functionality) {
+                    case 'write':
+                      return writeAndLockWorking;
+                    default:
+                      return false;
+                  }
+                })()}
+                disabled={(() => {
+                  if (!ready) return true;
+
+                  switch (options?.functionality) {
+                    default:
+                      return false;
+                  }
+                })()}
+                loading={(() => {
+                  if (!ready) return true;
+
+                  switch (options?.functionality) {
+                    case 'write':
+                      return writeAndLockWorking;
+                    default:
+                      return false;
+                  }
+                })()}
+              />
+            </View>
+            <View
+              style={[
+                styles.moreControlsContainer,
+                { paddingTop: safeAreaInsets.bottom / 2 },
+              ]}
+            >
+              <View style={styles.secondaryButtonContainer}>
                 {(() => {
                   switch (options?.functionality) {
                     case 'scan':
@@ -541,30 +540,34 @@ function RFIDSheet(
                   }
                 })()}
               </View>
-              <View
-                style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <TouchableOpacity>
-                  <View
-                    style={{
-                      opacity: 0.3,
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <BluetoothIcon size={21} />
-                    <Text style={{ fontSize: 14, fontWeight: '500' }}>
+              <View style={styles.readerDeviceContainer}>
+                <TouchableOpacity onPress={() => setShowReaderControls(true)}>
+                  <View style={styles.readerDeviceNameContainer}>
+                    <ReaderIcon size={20} />
+                    <Text style={styles.readerDeviceNameText}>
+                      {' '}
                       Built-In UHF
+                    </Text>
+                  </View>
+                  <View style={styles.readerStatusContainer}>
+                    <BatteryIcon percentage={80} size={18} />
+                    <Text style={styles.readerStatusText}>
+                      {' '}
+                      80%
+                      {'  '}
+                    </Text>
+                    <DbmPowerIcon size={18} />
+                    <Text style={styles.readerStatusText}>
+                      {' '}
+                      {power}
+                      <Text style={commonStyles.fs8}> </Text>
+                      dBm
+                      {/* */}
                     </Text>
                   </View>
                 </TouchableOpacity>
               </View>
-              <View style={{ width: 100, justifyContent: 'center' }}>
+              <View style={styles.secondaryButtonContainer}>
                 {(() => {
                   switch (options?.functionality) {
                     default:
@@ -591,6 +594,7 @@ function RFIDSheet(
       handleActionButtonPressOut,
       innerRef,
       options?.functionality,
+      power,
       ready,
       red2,
       safeAreaInsets.bottom,
@@ -637,156 +641,280 @@ function RFIDSheet(
   );
 
   return (
-    <BottomSheetModal
-      ref={innerRef}
-      // detached={true}
-      // style={{ marginHorizontal: 16 }}
-      // bottomInset={safeAreaInsets.bottom + 32}
-      index={initialSnapPoints.length - 1}
-      enablePanDownToClose
-      backgroundStyle={{ backgroundColor: sheetBackgroundColor }}
-      handleComponent={renderHandle}
-      backdropComponent={renderBackdrop}
-      footerComponent={Footer}
-      snapPoints={animatedSnapPoints}
-      handleHeight={animatedHandleHeight}
-      contentHeight={animatedContentHeight}
-      style={[styles.modal, isDarkMode && styles.modalDarkMode]}
-      onChange={handleChange}
-      onDismiss={handleDismiss}
-    >
-      {(() => {
-        switch (options?.functionality) {
-          case 'scan': {
-            const scannedItemsCount = Object.keys(scannedData).length;
-            return (
-              <BottomSheetScrollView
-                style={animatedScrollViewStyles}
-                // contentInset={{ bottom: contentBottomInset }}
-              >
-                <View
-                  style={[
-                    commonStyles.flex1,
-                    commonStyles.pt16,
-                    { paddingBottom: contentBottomInset },
-                  ]}
-                  onLayout={handleContentLayout}
+    <>
+      <BottomSheetModal
+        ref={innerRef}
+        enableContentPanningGesture={!actionButtonPressedIn}
+        // detached={true}
+        // style={{ marginHorizontal: 16 }}
+        // bottomInset={safeAreaInsets.bottom + 32}
+        index={initialSnapPoints.length - 1}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: sheetBackgroundColor }}
+        handleComponent={renderHandle}
+        backdropComponent={renderBackdrop}
+        footerComponent={Footer}
+        snapPoints={animatedSnapPoints}
+        handleHeight={animatedHandleHeight}
+        contentHeight={animatedContentHeight}
+        style={[styles.modal, isDarkMode && styles.modalDarkMode]}
+        onChange={handleChange}
+        onDismiss={handleDismiss}
+      >
+        {(() => {
+          switch (options?.functionality) {
+            case 'scan': {
+              const scannedItemsCount = Object.keys(scannedData).length;
+              return (
+                <BottomSheetScrollView
+                  style={animatedScrollViewStyles}
+                  // contentInset={{ bottom: contentBottomInset }}
                 >
-                  {scannedItemsCount <= 0 ? (
-                    <InsetGroup
-                      style={[
-                        {
+                  <View
+                    style={[
+                      commonStyles.flex1,
+                      commonStyles.pt16,
+                      { paddingBottom: contentBottomInset },
+                    ]}
+                    onLayout={handleContentLayout}
+                  >
+                    {scannedItemsCount <= 0 ? (
+                      <InsetGroup
+                        style={[
+                          {
+                            backgroundColor: insetGroupBackgroundColor,
+                          },
+                          commonStyles.centerChildren,
+                          commonStyles.ph16,
+                          commonStyles.pv40,
+                        ]}
+                      >
+                        <Text>No Data</Text>
+                        <Text>{scanStatus}</Text>
+                      </InsetGroup>
+                    ) : (
+                      <InsetGroup
+                        style={{
                           backgroundColor: insetGroupBackgroundColor,
-                        },
-                        commonStyles.centerChildren,
-                        commonStyles.ph16,
-                        commonStyles.pv40,
-                      ]}
-                    >
-                      <Text>No Data</Text>
-                      <Text>{scanStatus}</Text>
-                    </InsetGroup>
-                  ) : (
-                    <InsetGroup
-                      style={{
-                        backgroundColor: insetGroupBackgroundColor,
-                      }}
-                      label={`${scannedItemsCount} Item${
-                        scannedItemsCount > 1 ? 's' : ''
-                      }`}
-                      labelRight={
-                        <InsetGroup.GroupLabelRightButton
-                          label="Clear"
-                          onPress={clearScannedData}
+                        }}
+                        label={`${scannedItemsCount} Item${
+                          scannedItemsCount > 1 ? 's' : ''
+                        }`}
+                        labelRight={
+                          <InsetGroup.GroupLabelRightButton
+                            label="Clear"
+                            onPress={clearScannedData}
+                          />
+                        }
+                      >
+                        {Object.values(scannedData)
+                          .flatMap(d => [
+                            <ScannedItem key={d.epc} item={d} />,
+                            <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
+                          ])
+                          .slice(0, -1)}
+                      </InsetGroup>
+                    )}
+                  </View>
+                </BottomSheetScrollView>
+              );
+            }
+            default:
+              return (
+                <BottomSheetScrollView
+                  style={animatedScrollViewStyles}
+                  // contentInset={{ bottom: contentBottomInset }}
+                >
+                  <View
+                    style={[
+                      commonStyles.flex1,
+                      commonStyles.pt16,
+                      { paddingBottom: contentBottomInset },
+                    ]}
+                    onLayout={handleContentLayout}
+                  >
+                    {Array.from(new Array(dCounter)).map((_, i) => (
+                      <InsetGroup
+                        key={i}
+                        label="Info"
+                        style={{
+                          backgroundColor: insetGroupBackgroundColor,
+                        }}
+                      >
+                        <InsetGroup.Item
+                          label="RFID Status"
+                          detail={rfidReady ? 'Ready' : 'Not Ready'}
                         />
-                      }
-                    >
-                      {Object.values(scannedData)
-                        .flatMap(d => [
-                          <ScannedItem key={d.epc} item={d} />,
-                          <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
-                        ])
-                        .slice(0, -1)}
-                    </InsetGroup>
-                  )}
-                </View>
-              </BottomSheetScrollView>
+                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Config Ready"
+                          detail={config ? 'Yes' : 'No'}
+                        />
+                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Default Filter"
+                          detail={defaultFilter}
+                        />
+                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Status"
+                          detail={(() => {
+                            if (options?.functionality === 'write') {
+                              return writeAndLockStatus;
+                            }
+                            return 'null';
+                          })()}
+                        />
+                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Options"
+                          vertical2
+                          detail={JSON.stringify(options, null, 2)}
+                        />
+                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Config"
+                          vertical2
+                          detail={JSON.stringify(config, null, 2)}
+                        />
+                      </InsetGroup>
+                    ))}
+                  </View>
+                </BottomSheetScrollView>
+              );
+          }
+        })()}
+        <LinearGradient
+          colors={[
+            sheetBackgroundColor,
+            Color(sheetBackgroundColor).opaquer(-1).hexa(),
+          ]}
+          style={styles.sheetUpperLinearGradient}
+        />
+      </BottomSheetModal>
+
+      <Modal
+        isVisible={showReaderControls}
+        onBackdropPress={() => setShowReaderControls(false)}
+      >
+        {(() => {
+          if (showReaderSetup) {
+            return (
+              <View
+                style={[
+                  styles.modal,
+                  { backgroundColor: sheetBackgroundColor },
+                ]}
+              >
+                <InsetGroup style={commonStyles.mt32}>
+                  <InsetGroup.Item
+                    button
+                    label="Back"
+                    onPress={() => setShowReaderSetup(false)}
+                  />
+                </InsetGroup>
+                <InsetGroup label="Paired Device">
+                  <InsetGroup.Item label="Name" detail="Chainway R5" />
+                  <InsetGroup.ItemSeperator />
+                  <InsetGroup.Item
+                    label="ID"
+                    detail="XX:XX:XX:XX:XX:XX:XX:XX"
+                  />
+                </InsetGroup>
+                <InsetGroup label="Connect to New Device">
+                  <InsetGroup.Item button label="Search" />
+                </InsetGroup>
+              </View>
             );
           }
-          default:
-            return (
-              <BottomSheetScrollView
-                style={animatedScrollViewStyles}
-                // contentInset={{ bottom: contentBottomInset }}
+
+          return (
+            <View
+              style={[styles.modal, { backgroundColor: sheetBackgroundColor }]}
+            >
+              <InsetGroup
+                label="Device"
+                labelContainerStyle={commonStyles.mt32}
               >
-                <View
-                  style={[
-                    commonStyles.flex1,
-                    commonStyles.pt16,
-                    { paddingBottom: contentBottomInset },
-                  ]}
-                  onLayout={handleContentLayout}
+                <InsetGroup.Item
+                  label="Use Built-In UHF"
+                  detail={
+                    <Switch
+                      value={useBuiltinReader}
+                      onChange={() => setUseBuiltinReader(v => !v)}
+                    />
+                  }
+                />
+                <InsetGroup.ItemSeperator />
+                {(() => {
+                  if (useBuiltinReader) {
+                    return (
+                      <>
+                        <InsetGroup.Item label="Status" detail={'On'} />
+                        <InsetGroup.ItemSeperator />
+                      </>
+                    );
+                  }
+
+                  return (
+                    <>
+                      <InsetGroup.Item
+                        label="Device Name"
+                        detail="Chainway R5"
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
+                        label="Device ID"
+                        detail="XX:XX:XX:XX:XX:XX:XX:XX"
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item label="Status" detail={'Connected'} />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
+                        button
+                        label="Setup"
+                        onPress={() => {
+                          setShowReaderSetup(true);
+                        }}
+                      />
+                    </>
+                  );
+                })()}
+              </InsetGroup>
+              <InsetGroup
+                label="Power"
+                style={[
+                  commonStyles.row,
+                  commonStyles.centerChildren,
+                  commonStyles.p8,
+                  commonStyles.ph16,
+                ]}
+              >
+                <Slider
+                  style={commonStyles.flex1}
+                  minimumValue={5}
+                  maximumValue={30}
+                  step={1}
+                  value={power}
+                  onValueChange={v => setPower(v)}
+                />
+                <Text
+                  style={{
+                    color: contentSecondaryTextColor,
+                    fontSize: InsetGroup.FONT_SIZE,
+                  }}
                 >
-                  {Array.from(new Array(dCounter)).map((_, i) => (
-                    <InsetGroup
-                      key={i}
-                      label="Info"
-                      style={{
-                        backgroundColor: insetGroupBackgroundColor,
-                      }}
-                    >
-                      <InsetGroup.Item
-                        label="RFID Status"
-                        detail={rfidReady ? 'Ready' : 'Not Ready'}
-                      />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item
-                        label="Config Ready"
-                        detail={config ? 'Yes' : 'No'}
-                      />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item
-                        label="Default Filter"
-                        detail={defaultFilter}
-                      />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item
-                        label="Status"
-                        detail={(() => {
-                          if (options?.functionality === 'write') {
-                            return writeAndLockStatus;
-                          }
-                          return 'null';
-                        })()}
-                      />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item
-                        label="Options"
-                        vertical2
-                        detail={JSON.stringify(options, null, 2)}
-                      />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item
-                        label="Config"
-                        vertical2
-                        detail={JSON.stringify(config, null, 2)}
-                      />
-                    </InsetGroup>
-                  ))}
-                </View>
-              </BottomSheetScrollView>
-            );
-        }
-      })()}
-      <LinearGradient
-        colors={[
-          sheetBackgroundColor,
-          Color(sheetBackgroundColor).opaquer(-1).hexa(),
-        ]}
-        style={styles.sheetUpperLinearGradient}
-      />
-    </BottomSheetModal>
+                  {'  '}
+                  {power} dBm
+                </Text>
+              </InsetGroup>
+            </View>
+          );
+        })()}
+      </Modal>
+    </>
   );
+  // #endregion //
 }
 
 function ScannedItem({ item }: { item: ScanData }) {
@@ -873,7 +1001,69 @@ function ScannedItem({ item }: { item: ScanData }) {
   );
 }
 
-function BluetoothIcon({
+function ReaderIcon({
+  color,
+  size,
+  opacity,
+  isBluetooth,
+  loading,
+}: {
+  color?: string;
+  size?: number;
+  opacity?: number;
+  isBluetooth?: boolean;
+  loading?: boolean;
+}) {
+  const { contentTextColor } = useColors();
+  const c = color || contentTextColor;
+
+  if (loading) {
+    return <ActivityIndicator color={c} size={size} />;
+  }
+
+  return (
+    <Icon
+      name={isBluetooth ? 'bluetooth' : 'cellphone-wireless'}
+      size={size || 16}
+      color={c}
+      style={{ opacity: opacity || 0.9 }}
+    />
+  );
+}
+
+function BatteryIcon({
+  color,
+  size,
+  opacity,
+  percentage,
+}: {
+  color?: string;
+  size?: number;
+  opacity?: number;
+  percentage?: number;
+}) {
+  const { contentTextColor } = useColors();
+  const c = color || contentTextColor;
+  const p = percentage ? Math.ceil(percentage / 10.0 - 0.5) : -10;
+  let iconName = 'battery';
+  if (p > -10 && p < 10) {
+    if (p < 1) {
+      iconName = 'battery-10';
+    } else {
+      iconName = `battery-${p}0`;
+    }
+  }
+  return (
+    <Icon
+      name={iconName}
+      size={size || 16}
+      color={c}
+      style={{ opacity: opacity || 0.9, transform: [{ rotate: '-90deg' }] }}
+    />
+  );
+}
+
+function DbmPowerIcon({
   color,
   size,
   opacity,
@@ -881,12 +1071,14 @@ function BluetoothIcon({
   color?: string;
   size?: number;
   opacity?: number;
+  percentage?: number;
 }) {
   const { contentTextColor } = useColors();
   const c = color || contentTextColor;
+
   return (
     <Icon
-      name="bluetooth"
+      name="access-point"
       size={size || 16}
       color={c}
       style={{ opacity: opacity || 0.9 }}
@@ -942,6 +1134,48 @@ const styles = StyleSheet.create({
   },
   sheetFooterContainer: {
     paddingHorizontal: 16,
+  },
+  actionButtonAndStatusTextContainer: {
+    alignItems: 'stretch',
+  },
+  actionButtonStatusText: {
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    marginTop: -8,
+    opacity: 0.4,
+    fontSize: 12.8,
+  },
+  powerSliderContainer: {
+    alignItems: 'center',
+  },
+  moreControlsContainer: {
+    marginHorizontal: -4,
+    height: 100,
+    flexDirection: 'row',
+  },
+  secondaryButtonContainer: { width: 100, justifyContent: 'center' },
+  readerDeviceContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  readerDeviceNameContainer: {
+    opacity: 0.3,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  readerDeviceNameText: { fontSize: 14, fontWeight: '500' },
+  readerStatusContainer: {
+    opacity: 0.2,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  readerStatusText: { fontSize: 12, fontWeight: '400' },
+  modal: {
+    borderRadius: 8,
   },
 });
 
