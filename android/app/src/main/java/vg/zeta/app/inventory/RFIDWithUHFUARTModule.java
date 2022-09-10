@@ -51,6 +51,8 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
     InitTask initTask = new InitTask();
     initTask.setPromise(promise);
     try {
+      if (uhfReader == null) uhfReader = RFIDWithUHFUART.getInstance();
+      initSound();
       initTask.execute();
     } catch (Exception e) {
       promise.reject(e.getMessage(), new Throwable(e.getMessage()));
@@ -75,8 +77,6 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
     @Override
     protected Boolean doInBackground(String... params) {
       try {
-        uhfReader = RFIDWithUHFUART.getInstance();
-        initSound();
         // uhfReader.free();
         return uhfReader.init();
       } catch (Exception e) {
@@ -105,6 +105,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void free(Promise promise) {
     try {
+      if (uhfReader == null) uhfReader = RFIDWithUHFUART.getInstance();
       prepareOperation();
       boolean result = uhfReader.free();
       if (result) {
@@ -121,6 +122,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
   @ReactMethod
   public void isPowerOn(Promise promise) {
     try {
+      if (uhfReader == null) uhfReader = RFIDWithUHFUART.getInstance();
       prepareOperation();
       promise.resolve(uhfReader.isPowerOn());
     } catch (Exception e) {

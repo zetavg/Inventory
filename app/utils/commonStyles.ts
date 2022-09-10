@@ -180,6 +180,9 @@ const commonStyles = StyleSheet.create({
   fs4: {
     fontSize: 4,
   },
+  tac: {
+    textAlign: 'center',
+  },
 });
 
 export default commonStyles;

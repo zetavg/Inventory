@@ -8,13 +8,15 @@ import React, {
 import {
   StyleSheet,
   View,
-  Alert,
-  Platform,
   TouchableOpacity,
-  GestureResponderEvent,
   ActivityIndicator,
   Switch,
+  ScrollView,
+  useWindowDimensions,
+  TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
+import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import Slider from '@react-native-community/slider';
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
@@ -53,6 +55,10 @@ import { DataType } from '@app/db/schema';
 import { getTagAccessPassword } from './utils';
 import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
 import { usePersistedState } from '@app/hooks/usePersistedState';
+import RFIDWithUHFBLEModule, {
+  DeviceConnectStatusPayload,
+  ScanDevicesData,
+} from '@app/modules/RFIDWithUHFBLEModule';
 
 export type RFIDSheetOptions =
   | {
@@ -89,6 +95,7 @@ function RFIDSheet(
 ) {
   const innerRef = useForwardedRef(ref);
   // #region Styles //
+  const windowDimensions = useWindowDimensions();
   const safeAreaInsets = useSafeAreaInsets();
   const isDarkMode = useIsDarkMode();
   const {
@@ -120,84 +127,250 @@ function RFIDSheet(
     animatedScrollViewStyles,
     handleContentLayout,
   } = useBottomSheetDynamicSnapPoints(initialSnapPoints);
+  // #endregion //
 
-  // Options Processing //
+  // #region Options Processing //
   const [options, setOptions] = useState<RFIDSheetOptions | null>(null);
   const handlePassedOptions = useCallback((opts: RFIDSheetOptions) => {
     setOptions(opts);
   }, []);
   rfidSheetPassOptionsFnRef.current = handlePassedOptions;
+  // #endregion //
 
-  // RFID Device Power Control //
+  // #region Sheet Open/Close Handlers //
+  const [sheetOpened, setSheetOpened] = useState(false);
+  const [devShowDetailsCounter, setDevShowDetailsCounter] = useState(0);
+  const handleChange = useCallback((index: number) => {
+    if (index >= 0) {
+      setSheetOpened(true);
+    }
+
+    if (index < 0) {
+      setSheetOpened(false);
+      setDevShowDetailsCounter(0);
+    }
+  }, []);
+
+  const handleDismiss = useCallback(() => {
+    //   console.warn('Dismiss');
+  }, []);
+  // #endregion //
+
+  // #region RFID Device Connect & Power Control //
+
   const [useBuiltinReader, setUseBuiltinReader] = usePersistedState(
     'RFIDSheet-useBuiltinReader',
     false,
   );
 
-  const [rfidReady, setRfidReady] = useState(false);
-  const ready = rfidReady;
+  const [isWorking, setIsWorking] = useState(false);
 
+  // Built-in Reader
+
+  const [builtinReaderPowerOn, setBuiltinReaderPowerOn] = useState(false);
+  const [builtinReaderAutoFree, setBuiltinReaderAutoFree] = useState(true);
+  const [builtinReaderAutoFreeTimeout, setBuiltinReaderAutoFreeTimeout] =
+    useState(180);
   const rfidLastFreedAt = useRef(0);
-  const initRfid = useCallback(async () => {
-    const lastFreedBefore = Date.now() - rfidLastFreedAt.current;
-    if (lastFreedBefore < 5000) {
-      console.warn(
-        `RFID: Device is recently freed, wait ${
-          5000 - lastFreedBefore
-        } to init...`,
-      );
-      await new Promise(resolve => setTimeout(resolve, 5000 - lastFreedBefore));
+  const initBuiltinRfid = useCallback(async () => {
+    if (await RFIDWithUHFUARTModule.isPowerOn()) {
+      setBuiltinReaderPowerOn(true);
+      return;
     }
 
-    if (Platform.OS === 'ios') {
-      setRfidReady(true);
-      return;
+    const lastFreedBefore = Date.now() - rfidLastFreedAt.current;
+    if (lastFreedBefore < 5000) {
+      // console.warn(
+      //   `RFID: Device is recently freed, wait ${
+      //     5000 - lastFreedBefore
+      //   } to init...`,
+      // );
+      await new Promise(resolve => setTimeout(resolve, 5000 - lastFreedBefore));
     }
 
     try {
       await RFIDWithUHFUARTModule.init();
-      setRfidReady(true);
+      setBuiltinReaderPowerOn(await RFIDWithUHFUARTModule.isPowerOn());
     } catch (e: any) {
-      if (await RFIDWithUHFUARTModule.isPowerOn()) {
-        setRfidReady(true);
-      } else {
-        Alert.alert('Cannot init RFID', e.message);
-      }
+      setBuiltinReaderPowerOn(await RFIDWithUHFUARTModule.isPowerOn());
     }
   }, []);
-  const freeRfid = useCallback(() => {
+  const freeBuiltinRfid = useCallback(async () => {
     rfidLastFreedAt.current = Date.now();
-    setRfidReady(false);
-    // console.warn('RFID: Freeing device...');
+    setBuiltinReaderPowerOn(false);
     try {
+      // console.warn('freeBuiltinRfid');
       RFIDWithUHFUARTModule.free();
     } catch (e) {
       // TODO: Log error
+      Alert.alert('RFID Device Error', 'Failed to free built-in RFID reader');
     }
   }, []);
 
-  const freeRfidTimeout = useRef<NodeJS.Timeout | null>(null);
-  const handleChange = useCallback(
-    (index: number) => {
-      if (index >= 0) {
-        if (freeRfidTimeout.current) clearTimeout(freeRfidTimeout.current);
-        if (!rfidReady) initRfid();
-      }
-
-      if (index < 0) {
-        if (freeRfidTimeout.current) clearTimeout(freeRfidTimeout.current);
+  const freeBuiltinRfidTimer = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (sheetOpened) {
+      if (!useBuiltinReader) return;
+      if (freeBuiltinRfidTimer.current)
+        clearTimeout(freeBuiltinRfidTimer.current);
+      initBuiltinRfid();
+    } else {
+      if (freeBuiltinRfidTimer.current)
+        clearTimeout(freeBuiltinRfidTimer.current);
+      if (builtinReaderAutoFree) {
         const timer = setTimeout(() => {
-          freeRfid();
-        }, 30000);
-        freeRfidTimeout.current = timer;
+          freeBuiltinRfid();
+        }, builtinReaderAutoFreeTimeout * 1000);
+        freeBuiltinRfidTimer.current = timer;
       }
+    }
+  }, [
+    builtinReaderAutoFree,
+    builtinReaderAutoFreeTimeout,
+    freeBuiltinRfid,
+    initBuiltinRfid,
+    sheetOpened,
+    useBuiltinReader,
+  ]);
+
+  // BLE Reader
+
+  const [scanBleDevicesData, setScanBleDevicesData] = useState<
+    Record<string, ScanDevicesData>
+  >({});
+  const receiveScanDeviceData = useCallback((d: ScanDevicesData[]) => {
+    setScanBleDevicesData(data => ({
+      ...data,
+      ...Object.fromEntries(d.map(dd => [dd.address, dd])),
+    }));
+  }, []);
+  const scanBleDevices = useCallback(async () => {
+    setScanBleDevicesData({});
+    RFIDWithUHFBLEModule.scanDevices(true, { callback: receiveScanDeviceData });
+  }, [receiveScanDeviceData]);
+  const stopScanBleDevices = useCallback(async () => {
+    RFIDWithUHFBLEModule.scanDevices(false, {
+      callback: receiveScanDeviceData,
+    });
+  }, [receiveScanDeviceData]);
+  const clearScanDevicesData = useCallback(async () => {
+    setScanBleDevicesData({});
+  }, []);
+
+  const [pairedBleDeviceAddress, setPairedBleDeviceAddress] = usePersistedState<
+    null | string
+  >('RFIDSheet-pairedBleDeviceAddress', null);
+  const [pairedBleDeviceName, setPairedBleDeviceName] = usePersistedState<
+    null | string
+  >('RFIDSheet-pairedBleDeviceName', null);
+
+  const pairDevice = useCallback(
+    (d: ScanDevicesData) => {
+      clearScanDevicesData();
+      setPairedBleDeviceAddress(d.address);
+      setPairedBleDeviceName(d.name || d.address);
+      setBleDeviceConnectionStatus(null);
+      setShowReaderSetup(false);
     },
-    [freeRfid, initRfid, rfidReady],
+    [clearScanDevicesData, setPairedBleDeviceAddress, setPairedBleDeviceName],
   );
 
-  const handleDismiss = useCallback(() => {
-    //   console.warn('Dismiss');
-  }, []);
+  const [bleDeviceConnectionStatus, setBleDeviceConnectionStatus] =
+    useState<DeviceConnectStatusPayload | null>(null);
+  const prevBleDeviceConnectionStatus =
+    useRef<DeviceConnectStatusPayload | null>(null);
+  const [bleDeviceBatteryLevel, setBleDeviceBatteryLevel] = useState<
+    null | number
+  >(null);
+  const receiveConnectStatusChange = useCallback(
+    (payload: DeviceConnectStatusPayload) => {
+      setBleDeviceConnectionStatus(payload);
+      if (
+        prevBleDeviceConnectionStatus.current?.status !== 'CONNECTED' &&
+        payload.status === 'CONNECTED'
+      ) {
+        setBleDeviceBatteryLevel(null);
+      }
+    },
+    [],
+  );
+  useEffect(() => {
+    const subscription = RFIDWithUHFBLEModule.addDeviceConnectStatusListener(
+      receiveConnectStatusChange,
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, [receiveConnectStatusChange]);
+
+  // Automatically connect device
+  useEffect(() => {
+    if (!sheetOpened || useBuiltinReader) return;
+    if (bleDeviceConnectionStatus?.status === 'CONNECTED') return;
+
+    const tryToConnect = () => {
+      if (!pairedBleDeviceAddress) {
+        setShowReaderControls(true);
+      } else {
+        RFIDWithUHFBLEModule.connectDevice(pairedBleDeviceAddress);
+      }
+    };
+    const timer = setTimeout(tryToConnect, 300);
+    const interval = setInterval(tryToConnect, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [
+    pairedBleDeviceAddress,
+    useBuiltinReader,
+    bleDeviceConnectionStatus?.status,
+    sheetOpened,
+  ]);
+
+  useEffect(() => {
+    if (!sheetOpened || useBuiltinReader) return;
+    if (bleDeviceConnectionStatus?.status !== 'CONNECTED') return;
+    if (isWorking) return;
+
+    const timer = setTimeout(() => {
+      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(v =>
+        setBleDeviceBatteryLevel(v),
+      );
+    }, 800);
+
+    const interval = setInterval(() => {
+      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(v =>
+        setBleDeviceBatteryLevel(v),
+      );
+    }, 10000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [
+    useBuiltinReader,
+    bleDeviceConnectionStatus?.status,
+    sheetOpened,
+    isWorking,
+  ]);
+
+  // General
+
+  const rfidReaderDeviceReady = (() => {
+    if (useBuiltinReader) {
+      return builtinReaderPowerOn;
+    }
+
+    return bleDeviceConnectionStatus?.status === 'CONNECTED';
+  })();
+
+  const RFIDModule = useMemo(() => {
+    if (useBuiltinReader) return RFIDWithUHFUARTModule;
+    return RFIDWithUHFBLEModule;
+  }, [useBuiltinReader]);
   // #endregion //
 
   // #region Configs from DB //
@@ -219,7 +392,18 @@ function RFIDSheet(
 
   const [power, setPower] = useState(20);
 
-  const [scanStatus, setScanStatus] = useState('N/A');
+  useEffect(() => {
+    switch (options?.functionality) {
+      case 'scan':
+      case 'locate':
+        return setPower(useBuiltinReader ? 28 : 20);
+      case 'write':
+      default:
+        return setPower(8);
+    }
+  }, [options?.functionality, useBuiltinReader]);
+
+  const [scanStatus, setScanStatus] = useState('');
   const [scannedData, setScannedData] = useState<Record<string, ScanData>>({});
   const [scannedDataCount, setScannedDataCount] = useState(0);
 
@@ -234,9 +418,10 @@ function RFIDSheet(
   const startScan = useCallback(async () => {
     const filterData = defaultFilter;
     try {
-      setScanStatus('Starting scan...');
-      await RFIDWithUHFUARTModule.startScan({
-        power: 28,
+      setIsWorking(true);
+      setScanStatus('Scan starting...');
+      await RFIDModule.startScan({
+        power,
         soundEnabled: true,
         callback: receiveScanData,
         scanRate: 30,
@@ -250,37 +435,36 @@ function RFIDSheet(
             }
           : undefined,
       });
-      setScanStatus('Scanning');
+      setScanStatus('Scanning...');
     } catch (e: any) {
       setScanStatus(`Error: ${e?.message}`);
+      setIsWorking(false);
     }
-  }, [defaultFilter, receiveScanData]);
+  }, [RFIDModule, defaultFilter, power, receiveScanData]);
 
   const stopScan = useCallback(async () => {
     try {
-      setScanStatus('Stopping scan...');
-      await RFIDWithUHFUARTModule.stopScan();
-      setScanStatus('Scan stopped');
+      setScanStatus('Stopping...');
+      await RFIDModule.stopScan();
+      setScanStatus('');
+      setIsWorking(false);
     } catch (e: any) {
       setScanStatus(`Error: ${e?.message}`);
     }
-  }, []);
+  }, [RFIDModule]);
 
   const clearScannedData = useCallback(async () => {
     setScannedData({});
     setScannedDataCount(0);
-    await RFIDWithUHFUARTModule.clearScannedTags();
-  }, []);
+    await RFIDModule.clearScannedTags();
+  }, [RFIDModule]);
 
-  const [writeAndLockStatus, setWriteAndLockStatus] = useState('N/A');
-  const [writeAndLockWorking, setWriteAndLockWorking] = useState(false);
-  const [writeAndLockPower, setWriteAndLockPower] = useState<null | number>(8);
+  const clearWriteAndLockStatusTimer = useRef<NodeJS.Timeout | null>(null);
+  const [writeAndLockStatus, setWriteAndLockStatus] = useState('');
   const writeAndLock = useCallback(async () => {
     if (options?.functionality !== 'write') return;
-    if (writeAndLockWorking) return;
+    if (isWorking) return;
     if (!config) return;
-
-    setWriteAndLockWorking(true);
 
     const accessPassword = getTagAccessPassword(
       config.rfidTagAccessPassword,
@@ -288,11 +472,12 @@ function RFIDSheet(
       config.rfidTagAccessPasswordEncoding,
     );
 
-    console.log(accessPassword);
-
     try {
-      await RFIDWithUHFUARTModule.writeEpcAndLock(options.epc, accessPassword, {
-        power: writeAndLockPower || 1,
+      if (clearWriteAndLockStatusTimer.current)
+        clearTimeout(clearWriteAndLockStatusTimer.current);
+      setIsWorking(true);
+      await RFIDModule.writeEpcAndLock(options.epc, accessPassword, {
+        power,
         oldAccessPassword: '00000000',
         soundEnabled: true,
         reportStatus: setWriteAndLockStatus,
@@ -300,15 +485,18 @@ function RFIDSheet(
     } catch (e: any) {
       // console.warn(e);
     } finally {
-      setWriteAndLockWorking(false);
+      setIsWorking(false);
+      clearWriteAndLockStatusTimer.current = setTimeout(
+        () => setWriteAndLockStatus(''),
+        3000,
+      );
     }
-  }, [writeAndLockWorking, options, config, writeAndLockPower]);
+  }, [options, isWorking, config, RFIDModule, power]);
+
   const unlockAndReset = useCallback(async () => {
     if (options?.functionality !== 'write') return;
-    if (writeAndLockWorking) return;
+    if (isWorking) return;
     if (!config) return;
-
-    setWriteAndLockWorking(true);
 
     const accessPassword = getTagAccessPassword(
       config.rfidTagAccessPassword,
@@ -317,8 +505,11 @@ function RFIDSheet(
     );
 
     try {
-      await RFIDWithUHFUARTModule.resetEpcAndUnlock(accessPassword, {
-        power: writeAndLockPower || 1,
+      if (clearWriteAndLockStatusTimer.current)
+        clearTimeout(clearWriteAndLockStatusTimer.current);
+      setIsWorking(true);
+      await RFIDModule.resetEpcAndUnlock(accessPassword, {
+        power,
         soundEnabled: true,
         reportStatus: setWriteAndLockStatus,
         // filter: enableFilter
@@ -333,9 +524,13 @@ function RFIDSheet(
     } catch (e: any) {
       // console.warn(e);
     } finally {
-      setWriteAndLockWorking(false);
+      setIsWorking(false);
+      clearWriteAndLockStatusTimer.current = setTimeout(
+        () => setWriteAndLockStatus(''),
+        3000,
+      );
     }
-  }, [writeAndLockWorking, options, config, writeAndLockPower]);
+  }, [options, config, RFIDModule, power, isWorking]);
 
   const [dCounter, setDCounter] = useState(1);
   // #endregion //
@@ -448,34 +643,16 @@ function RFIDSheet(
             }}
             style={styles.sheetFooterContainer}
           >
-            <View
-              style={styles.actionButtonAndStatusTextContainer}
-              // onStartShouldSetResponder={() => true}
-              // onMoveShouldSetResponder={() => true}
-              // onResponderReject={() => {
-              //   console.warn('reject');
-              // }}
-              // onResponderGrant={() => {
-              //   console.warn('grant');
-              // }}
-              // onResponderMove={() => {
-              //   console.warn('move');
-              // }}
-              // onResponderRelease={() => {
-              //   console.warn('release');
-              // }}
-              // onResponderTerminationRequest={() => false}
-              // onResponderTerminate={() => {
-              //   console.warn('onResponderTerminate');
-              // }}
-            >
+            <View style={styles.actionButtonAndStatusTextContainer}>
               <Text style={styles.actionButtonStatusText} numberOfLines={1}>
-                Status text here. Status text here. Status text here. Status
-                text here. Status text here. Status text here. Status text here.
-                Status text here. Status text here. Status text here. Status
-                text here. Status text here. Status text here. Status text here.
-                Status text here. Status text here. Status text here. Status
-                text here.
+                {(() => {
+                  switch (options?.functionality) {
+                    case 'scan':
+                      return scanStatus;
+                    case 'write':
+                      return writeAndLockStatus;
+                  }
+                })() || '  '}
               </Text>
               <ElevatedButton
                 title={buttonLabel}
@@ -487,13 +664,13 @@ function RFIDSheet(
                 down={(() => {
                   switch (options?.functionality) {
                     case 'write':
-                      return writeAndLockWorking;
+                      return isWorking;
                     default:
                       return false;
                   }
                 })()}
                 disabled={(() => {
-                  if (!ready) return true;
+                  if (!rfidReaderDeviceReady) return true;
 
                   switch (options?.functionality) {
                     default:
@@ -501,11 +678,9 @@ function RFIDSheet(
                   }
                 })()}
                 loading={(() => {
-                  if (!ready) return true;
-
                   switch (options?.functionality) {
                     case 'write':
-                      return writeAndLockWorking;
+                      return isWorking;
                     default:
                       return false;
                   }
@@ -543,19 +718,34 @@ function RFIDSheet(
               <View style={styles.readerDeviceContainer}>
                 <TouchableOpacity onPress={() => setShowReaderControls(true)}>
                   <View style={styles.readerDeviceNameContainer}>
-                    <ReaderIcon size={20} />
+                    <ReaderIcon
+                      size={20}
+                      loading={!rfidReaderDeviceReady}
+                      isBluetooth={!useBuiltinReader}
+                    />
                     <Text style={styles.readerDeviceNameText}>
                       {' '}
-                      Built-In UHF
+                      {(() => {
+                        if (useBuiltinReader) return 'Built-In UHF';
+                        return pairedBleDeviceName || 'Not Configured';
+                      })()}
                     </Text>
                   </View>
                   <View style={styles.readerStatusContainer}>
-                    <BatteryIcon percentage={80} size={18} />
-                    <Text style={styles.readerStatusText}>
-                      {' '}
-                      80%
-                      {'  '}
-                    </Text>
+                    {!useBuiltinReader &&
+                      rfidReaderDeviceReady &&
+                      bleDeviceBatteryLevel !== null && (
+                        <>
+                          <BatteryIcon
+                            percentage={bleDeviceBatteryLevel}
+                            size={18}
+                          />
+                          <Text style={styles.readerStatusText}>
+                            {' '}
+                            {bleDeviceBatteryLevel}%{'  '}
+                          </Text>
+                        </>
+                      )}
                     <DbmPowerIcon size={18} />
                     <Text style={styles.readerStatusText}>
                       {' '}
@@ -586,22 +776,27 @@ function RFIDSheet(
       );
     },
     [
-      clearScannedData,
-      contentBottomInset,
       footerBottomInset,
+      contentBottomInset,
+      sheetBackgroundColor,
       handleActionButtonPress,
       handleActionButtonPressIn,
       handleActionButtonPressOut,
-      innerRef,
-      options?.functionality,
-      power,
-      ready,
-      red2,
       safeAreaInsets.bottom,
-      sheetBackgroundColor,
-      unlockAndReset,
-      writeAndLockWorking,
+      rfidReaderDeviceReady,
+      useBuiltinReader,
+      bleDeviceBatteryLevel,
+      power,
+      options?.functionality,
+      red2,
       yellow2,
+      scanStatus,
+      writeAndLockStatus,
+      isWorking,
+      clearScannedData,
+      unlockAndReset,
+      pairedBleDeviceName,
+      innerRef,
     ],
   );
 
@@ -689,8 +884,11 @@ function RFIDSheet(
                           commonStyles.pv40,
                         ]}
                       >
-                        <Text>No Data</Text>
-                        <Text>{scanStatus}</Text>
+                        <Text
+                          style={[commonStyles.opacity05, commonStyles.tac]}
+                        >
+                          Press and hold the Scan button to start scanning
+                        </Text>
                       </InsetGroup>
                     ) : (
                       <InsetGroup
@@ -719,6 +917,85 @@ function RFIDSheet(
                 </BottomSheetScrollView>
               );
             }
+            case 'write': {
+              return (
+                <BottomSheetScrollView
+                  style={animatedScrollViewStyles}
+                  // contentInset={{ bottom: contentBottomInset }}
+                >
+                  <View
+                    style={[
+                      commonStyles.flex1,
+                      commonStyles.pt16,
+                      { paddingBottom: contentBottomInset },
+                    ]}
+                    onLayout={handleContentLayout}
+                  >
+                    <InsetGroup
+                      // label="Write Data"
+                      footerLabel={
+                        'Hold the RFID tag near the reader and press "Write" to write and lock it. To reset and unlock a written tag, press "Wipe".'
+                      }
+                      style={{
+                        backgroundColor: insetGroupBackgroundColor,
+                      }}
+                    >
+                      <TouchableWithoutFeedback
+                        onPress={() => setDevShowDetailsCounter(v => v + 1)}
+                      >
+                        <InsetGroup.Item
+                          vertical2
+                          label="EPC"
+                          detailAsText
+                          detail={
+                            <AutoSizeText
+                              fontSize={InsetGroup.FONT_SIZE}
+                              mode={ResizeTextMode.max_lines}
+                              numberOfLines={1}
+                            >
+                              {(() => {
+                                try {
+                                  const [epc] = EPCUtils.decodeHexEPC(
+                                    options.epc,
+                                  );
+                                  return epc;
+                                } catch (e) {
+                                  return options.epc;
+                                }
+                              })()}
+                            </AutoSizeText>
+                          }
+                        />
+                      </TouchableWithoutFeedback>
+                      {devShowDetailsCounter > 10 && (
+                        <>
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            vertical2
+                            label="Raw EPC"
+                            detail={options.epc}
+                          />
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            vertical2
+                            label="Access Password"
+                            detail={
+                              config
+                                ? getTagAccessPassword(
+                                    config.rfidTagAccessPassword,
+                                    options.tagAccessPassword || '00000000',
+                                    config.rfidTagAccessPasswordEncoding,
+                                  )
+                                : 'Config Not Ready'
+                            }
+                          />
+                        </>
+                      )}
+                    </InsetGroup>
+                  </View>
+                </BottomSheetScrollView>
+              );
+            }
             default:
               return (
                 <BottomSheetScrollView
@@ -743,7 +1020,7 @@ function RFIDSheet(
                       >
                         <InsetGroup.Item
                           label="RFID Status"
-                          detail={rfidReady ? 'Ready' : 'Not Ready'}
+                          detail={rfidReaderDeviceReady ? 'Ready' : 'Not Ready'}
                         />
                         <InsetGroup.ItemSeperator />
                         <InsetGroup.Item
@@ -759,9 +1036,9 @@ function RFIDSheet(
                         <InsetGroup.Item
                           label="Status"
                           detail={(() => {
-                            if (options?.functionality === 'write') {
-                              return writeAndLockStatus;
-                            }
+                            // if (options?.functionality === 'write') {
+                            //   return writeAndLockStatus;
+                            // }
                             return 'null';
                           })()}
                         />
@@ -800,41 +1077,108 @@ function RFIDSheet(
         {(() => {
           if (showReaderSetup) {
             return (
-              <View
+              <ScrollView
                 style={[
-                  styles.modal,
-                  { backgroundColor: sheetBackgroundColor },
+                  styles.controlsModelContent,
+                  {
+                    backgroundColor: sheetBackgroundColor,
+                    maxHeight:
+                      (windowDimensions.height -
+                        safeAreaInsets.top -
+                        safeAreaInsets.bottom) *
+                      0.8,
+                  },
                 ]}
               >
-                <InsetGroup style={commonStyles.mt32}>
+                <InsetGroup
+                  style={[
+                    commonStyles.mt32,
+                    {
+                      backgroundColor: insetGroupBackgroundColor,
+                    },
+                  ]}
+                >
                   <InsetGroup.Item
                     button
                     label="Back"
                     onPress={() => setShowReaderSetup(false)}
                   />
                 </InsetGroup>
-                <InsetGroup label="Paired Device">
-                  <InsetGroup.Item label="Name" detail="Chainway R5" />
-                  <InsetGroup.ItemSeperator />
+                {pairedBleDeviceAddress && (
+                  <InsetGroup
+                    label="Paired Device"
+                    style={{ backgroundColor: insetGroupBackgroundColor }}
+                  >
+                    <InsetGroup.Item
+                      label="Name"
+                      detail={pairedBleDeviceName}
+                    />
+                    <InsetGroup.ItemSeperator />
+                    <InsetGroup.Item
+                      label="ID"
+                      detail={pairedBleDeviceAddress}
+                    />
+                  </InsetGroup>
+                )}
+
+                <InsetGroup
+                  label="Connect to New Device"
+                  style={{ backgroundColor: insetGroupBackgroundColor }}
+                >
                   <InsetGroup.Item
-                    label="ID"
-                    detail="XX:XX:XX:XX:XX:XX:XX:XX"
+                    button
+                    label="Search"
+                    onPress={scanBleDevices}
                   />
+                  <InsetGroup.ItemSeperator />
+                  {Object.values(scanBleDevicesData).length <= 0 && (
+                    <InsetGroup.Item
+                      disabled
+                      label={'Press "Search" to search devices'}
+                    />
+                  )}
+                  {/*{Object.values(scanBleDevicesData).length > 0 && (
+                    <>
+                      <InsetGroup.Item
+                        button
+                        label="Clear List"
+                        onPress={clearScanDevicesData}
+                      />
+                      <InsetGroup.ItemSeperator />
+                    </>
+                  )}*/}
+                  {Object.values(scanBleDevicesData)
+                    .flatMap(d => [
+                      <InsetGroup.Item
+                        key={d.address}
+                        label={d.name || d.address}
+                        vertical
+                        detail={[d.address, d.rssi && `RSSI: ${d.rssi}`]
+                          .filter(s => s)
+                          .join(', ')}
+                        onPress={() => pairDevice(d)}
+                      />,
+                      <InsetGroup.ItemSeperator key={`s-${d.address}`} />,
+                    ])
+                    .slice(0, -1)}
                 </InsetGroup>
-                <InsetGroup label="Connect to New Device">
-                  <InsetGroup.Item button label="Search" />
-                </InsetGroup>
-              </View>
+              </ScrollView>
             );
           }
 
           return (
             <View
-              style={[styles.modal, { backgroundColor: sheetBackgroundColor }]}
+              style={[
+                styles.controlsModelContent,
+                { backgroundColor: sheetBackgroundColor },
+              ]}
             >
               <InsetGroup
                 label="Device"
                 labelContainerStyle={commonStyles.mt32}
+                style={{
+                  backgroundColor: insetGroupBackgroundColor,
+                }}
               >
                 <InsetGroup.Item
                   label="Use Built-In UHF"
@@ -845,30 +1189,49 @@ function RFIDSheet(
                     />
                   }
                 />
-                <InsetGroup.ItemSeperator />
                 {(() => {
                   if (useBuiltinReader) {
                     return (
                       <>
-                        <InsetGroup.Item label="Status" detail={'On'} />
                         <InsetGroup.ItemSeperator />
+                        <InsetGroup.Item
+                          label="Status"
+                          detail={builtinReaderPowerOn ? 'On' : 'Off'}
+                        />
                       </>
                     );
                   }
 
                   return (
                     <>
-                      <InsetGroup.Item
-                        label="Device Name"
-                        detail="Chainway R5"
-                      />
+                      {pairedBleDeviceAddress && (
+                        <>
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            label="Device Name"
+                            detail={pairedBleDeviceName}
+                          />
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            label="Device ID"
+                            detail={pairedBleDeviceAddress}
+                          />
+                        </>
+                      )}
                       <InsetGroup.ItemSeperator />
                       <InsetGroup.Item
-                        label="Device ID"
-                        detail="XX:XX:XX:XX:XX:XX:XX:XX"
+                        label="Status"
+                        detail={(() => {
+                          if (!pairedBleDeviceAddress) return 'Not Configured';
+                          if (bleDeviceConnectionStatus?.status === 'CONNECTED')
+                            return 'Connected';
+                          if (
+                            bleDeviceConnectionStatus?.status === 'CONNECTING'
+                          )
+                            return 'Connecting';
+                          return 'Not Connected';
+                        })()}
                       />
-                      <InsetGroup.ItemSeperator />
-                      <InsetGroup.Item label="Status" detail={'Connected'} />
                       <InsetGroup.ItemSeperator />
                       <InsetGroup.Item
                         button
@@ -881,6 +1244,37 @@ function RFIDSheet(
                   );
                 })()}
               </InsetGroup>
+              {useBuiltinReader && (
+                <InsetGroup
+                  label="Auto Free"
+                  footerLabel="If enabled, the built-in RFID module will automatically power off while not being used."
+                  style={{ backgroundColor: insetGroupBackgroundColor }}
+                >
+                  <InsetGroup.Item
+                    label="Enabled"
+                    detail={
+                      <Switch
+                        value={builtinReaderAutoFree}
+                        onChange={() => setBuiltinReaderAutoFree(v => !v)}
+                      />
+                    }
+                  />
+                  <InsetGroup.ItemSeperator />
+                  <InsetGroup.Item
+                    label="Timeout"
+                    detail={`${builtinReaderAutoFreeTimeout}s`}
+                  >
+                    <Slider
+                      style={[commonStyles.flex1]}
+                      minimumValue={3}
+                      maximumValue={300}
+                      step={1}
+                      value={builtinReaderAutoFreeTimeout}
+                      onValueChange={v => setBuiltinReaderAutoFreeTimeout(v)}
+                    />
+                  </InsetGroup.Item>
+                </InsetGroup>
+              )}
               <InsetGroup
                 label="Power"
                 style={[
@@ -888,6 +1282,9 @@ function RFIDSheet(
                   commonStyles.centerChildren,
                   commonStyles.p8,
                   commonStyles.ph16,
+                  {
+                    backgroundColor: insetGroupBackgroundColor,
+                  },
                 ]}
               >
                 <Slider
@@ -1139,10 +1536,11 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   actionButtonStatusText: {
-    paddingHorizontal: 16,
     marginBottom: 8,
     marginTop: -8,
     opacity: 0.4,
+    paddingHorizontal: 16,
+    textAlign: 'center',
     fontSize: 12.8,
   },
   powerSliderContainer: {
@@ -1174,7 +1572,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   readerStatusText: { fontSize: 12, fontWeight: '400' },
-  modal: {
+  controlsModelContent: {
     borderRadius: 8,
   },
 });

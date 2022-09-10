@@ -56,6 +56,7 @@
     "pouchdb-react-native": "^7.0.0-beta-1",
     "react": "18.1.0",
     "react-native": "0.70.0-rc.4",
+    "react-native-auto-size-text": "^1.1.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.6.0",
     "react-native-get-random-values": "^1.8.0",
