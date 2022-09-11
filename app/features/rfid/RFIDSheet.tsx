@@ -1859,7 +1859,10 @@ function ReaderIcon({
       name={isBluetooth ? 'bluetooth' : 'cellphone-wireless'}
       size={size || 16}
       color={c}
-      style={{ opacity: opacity || 0.9 }}
+      style={[
+        { opacity: opacity || 0.9 },
+        isBluetooth ? { marginHorizontal: -2 } : { marginHorizontal: 1 },
+      ]}
     />
   );
 }
