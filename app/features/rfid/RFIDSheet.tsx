@@ -63,17 +63,18 @@ import RFIDWithUHFBLEModule, {
 export type RFIDSheetOptions =
   | {
       functionality: 'scan';
+      useDefaultFilter?: boolean;
     }
   | {
       functionality: 'locate';
-      epc: string;
+      epc?: string;
     }
   | {
       functionality: 'read';
     }
   | {
       functionality: 'write';
-      epc: string;
+      epc?: string;
       tagAccessPassword?: string;
     };
 
@@ -407,6 +408,37 @@ function RFIDSheet(
   const [scanStatus, setScanStatus] = useState('');
   const [scannedData, setScannedData] = useState<Record<string, ScanData>>({});
   const [scannedDataCount, setScannedDataCount] = useState(0);
+  // Will be used if useDefaultFilter is not specified in options
+  const [useDefaultFilterFallback, setUseDefaultFilterFallback] =
+    useState(true);
+  const [enableScanFilter, setEnableScanFilter] = usePersistedState(
+    'RFIDSheet-enableScanFilter',
+    false,
+  );
+  const [scanFilterBitOffset, setScanFilterBitOffset] = usePersistedState<
+    null | number
+  >('RFIDSheet-scanFilterBitOffset', null);
+  const [scanFilterBitCount, setScanFilterBitCount] = usePersistedState<
+    null | number
+  >('RFIDSheet-scanFilterBitCount', null);
+  const [scanFilterData, setScanFilterData] = usePersistedState(
+    'RFIDSheet-rfid-scanFilterData',
+    '',
+  );
+  const handleChangeScanFilterBitOffsetText = useCallback(
+    (text: string) => {
+      const number = parseInt(text, 10);
+      setScanFilterBitOffset(Number.isNaN(number) ? null : number);
+    },
+    [setScanFilterBitOffset],
+  );
+  const handleChangeScanFilterBitCountText = useCallback(
+    (text: string) => {
+      const number = parseInt(text, 10);
+      setScanFilterBitCount(Number.isNaN(number) ? null : number);
+    },
+    [setScanFilterBitCount],
+  );
 
   const receiveScanData = useCallback((d: ScanData[]) => {
     setScannedData(data => ({
@@ -417,7 +449,28 @@ function RFIDSheet(
   }, []);
 
   const startScan = useCallback(async () => {
-    const filterData = defaultFilter;
+    if (options?.functionality !== 'scan') return;
+
+    const useDefaultFilter =
+      options?.useDefaultFilter !== undefined
+        ? options?.useDefaultFilter
+        : useDefaultFilterFallback;
+
+    const filterOption = useDefaultFilter
+      ? {
+          memoryBank: 'EPC' as const,
+          bitOffset: 32,
+          bitCount: (defaultFilter?.length || 0) * 4,
+          data: defaultFilter || '',
+        }
+      : enableScanFilter
+      ? {
+          memoryBank: 'EPC' as const,
+          bitOffset: scanFilterBitOffset || 32,
+          bitCount: scanFilterBitCount || 16,
+          data: scanFilterData || '0000',
+        }
+      : undefined;
     try {
       setIsWorking(true);
       setScanStatus('Scan starting...');
@@ -427,21 +480,25 @@ function RFIDSheet(
         callback: receiveScanData,
         scanRate: 30,
         eventRate: 250,
-        filter: filterData
-          ? {
-              memoryBank: 'EPC',
-              bitOffset: 32,
-              bitCount: (filterData?.length || 0) * 4,
-              data: filterData,
-            }
-          : undefined,
+        filter: filterOption,
       });
       setScanStatus('Scanning...');
     } catch (e: any) {
       setScanStatus(`Error: ${e?.message}`);
       setIsWorking(false);
     }
-  }, [RFIDModule, defaultFilter, power, receiveScanData]);
+  }, [
+    RFIDModule,
+    defaultFilter,
+    options,
+    useDefaultFilterFallback,
+    enableScanFilter,
+    scanFilterBitOffset,
+    scanFilterBitCount,
+    scanFilterData,
+    power,
+    receiveScanData,
+  ]);
 
   const stopScan = useCallback(async () => {
     try {
@@ -461,16 +518,22 @@ function RFIDSheet(
   }, [RFIDModule]);
 
   const [locateReaderSoundEnabled, setLocateReaderSoundEnabled] =
-    useState(true);
+    usePersistedState('RFIDSheet-locateReaderSoundEnabled', true);
   const [locateStatus, setLocateStatus] = useState('');
   const [locateRssi, setLocateRssi] = useState<number | null>(null);
+  // Will be used if EPC is not set in options.
+  const [locateFallbackEpc, setLocateFallbackEpc] = usePersistedState(
+    'RFIDSheet-locateFallbackEpc',
+    '',
+  );
 
   const clearLocateRssiTimer = useRef<NodeJS.Timeout | null>(null);
   const receiveLocateData = useCallback(
     (d: ScanData[]) => {
       if (options?.functionality !== 'locate') return;
+      const locateEpc = options?.epc || locateFallbackEpc;
 
-      const filteredD = d.filter(({ epc }) => epc === options?.epc);
+      const filteredD = d.filter(({ epc }) => epc?.startsWith(locateEpc));
       const lastD = filteredD[filteredD.length - 1];
       if (!lastD) return;
 
@@ -481,7 +544,7 @@ function RFIDSheet(
         setLocateRssi(null);
       }, 1000);
     },
-    [options],
+    [options, locateFallbackEpc],
   );
 
   const startLocate = useCallback(async () => {
@@ -489,17 +552,18 @@ function RFIDSheet(
     try {
       setIsWorking(true);
       setLocateStatus('Starting...');
+      const epc = options?.epc || locateFallbackEpc;
       await RFIDModule.startScan({
         power,
         soundEnabled: true,
         callback: receiveLocateData,
-        scanRate: 30,
-        eventRate: 250,
+        scanRate: 12,
+        eventRate: 80,
         filter: {
           memoryBank: 'EPC',
           bitOffset: 32,
-          bitCount: (options?.epc.length || 0) * 4,
-          data: options?.epc,
+          bitCount: (epc.length || 0) * 4,
+          data: epc,
         },
         isLocate: true,
         enableReaderSound: locateReaderSoundEnabled,
@@ -509,7 +573,14 @@ function RFIDSheet(
       setLocateStatus(`Error: ${e?.message}`);
       setIsWorking(false);
     }
-  }, [RFIDModule, locateReaderSoundEnabled, options, power, receiveLocateData]);
+  }, [
+    RFIDModule,
+    locateReaderSoundEnabled,
+    options,
+    locateFallbackEpc,
+    power,
+    receiveLocateData,
+  ]);
 
   const stopLocate = useCallback(async () => {
     try {
@@ -524,22 +595,32 @@ function RFIDSheet(
 
   const clearWriteAndLockStatusTimer = useRef<NodeJS.Timeout | null>(null);
   const [writeAndLockStatus, setWriteAndLockStatus] = useState('');
+  // Will be used if EPC is not set in options.
+  const [writeAndLockFallbackEpc, setWriteAndLockFallbackEpc] =
+    usePersistedState('RFIDSheet-writeAndLockFallbackEpc', '');
+  const [
+    writeAndLockFallbackAccessPassword,
+    setWriteAndLockFallbackAccessPassword,
+  ] = usePersistedState('RFIDSheet-writeAndLockFallbackAccessPassword', '');
   const writeAndLock = useCallback(async () => {
     if (options?.functionality !== 'write') return;
     if (isWorking) return;
     if (!config) return;
 
-    const accessPassword = getTagAccessPassword(
-      config.rfidTagAccessPassword,
-      options.tagAccessPassword || '00000000',
-      config.rfidTagAccessPasswordEncoding,
-    );
+    const epc = options.epc || writeAndLockFallbackEpc;
+    const accessPassword = options.epc
+      ? getTagAccessPassword(
+          config.rfidTagAccessPassword,
+          options.tagAccessPassword || '00000000',
+          config.rfidTagAccessPasswordEncoding,
+        )
+      : writeAndLockFallbackAccessPassword;
 
     try {
       if (clearWriteAndLockStatusTimer.current)
         clearTimeout(clearWriteAndLockStatusTimer.current);
       setIsWorking(true);
-      await RFIDModule.writeEpcAndLock(options.epc, accessPassword, {
+      await RFIDModule.writeEpcAndLock(epc, accessPassword, {
         power,
         oldAccessPassword: '00000000',
         soundEnabled: true,
@@ -554,18 +635,28 @@ function RFIDSheet(
         3000,
       );
     }
-  }, [options, isWorking, config, RFIDModule, power]);
+  }, [
+    options,
+    writeAndLockFallbackEpc,
+    writeAndLockFallbackAccessPassword,
+    isWorking,
+    config,
+    RFIDModule,
+    power,
+  ]);
 
   const unlockAndReset = useCallback(async () => {
     if (options?.functionality !== 'write') return;
     if (isWorking) return;
     if (!config) return;
 
-    const accessPassword = getTagAccessPassword(
-      config.rfidTagAccessPassword,
-      options.tagAccessPassword || '00000000',
-      config.rfidTagAccessPasswordEncoding,
-    );
+    const accessPassword = options.epc
+      ? getTagAccessPassword(
+          config.rfidTagAccessPassword,
+          options.tagAccessPassword || '00000000',
+          config.rfidTagAccessPasswordEncoding,
+        )
+      : writeAndLockFallbackAccessPassword;
 
     try {
       if (clearWriteAndLockStatusTimer.current)
@@ -593,7 +684,14 @@ function RFIDSheet(
         3000,
       );
     }
-  }, [options, config, RFIDModule, power, isWorking]);
+  }, [
+    options,
+    writeAndLockFallbackAccessPassword,
+    config,
+    RFIDModule,
+    power,
+    isWorking,
+  ]);
 
   const [dCounter, setDCounter] = useState(1);
   // #endregion //
@@ -941,6 +1039,7 @@ function RFIDSheet(
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
+                  automaticallyAdjustKeyboardInsets
                   // contentInset={{ bottom: contentBottomInset }}
                 >
                   <View
@@ -976,12 +1075,12 @@ function RFIDSheet(
                         label={`${scannedItemsCount} Item${
                           scannedItemsCount > 1 ? 's' : ''
                         }`}
-                        labelRight={
-                          <InsetGroup.GroupLabelRightButton
-                            label="Clear"
-                            onPress={clearScannedData}
-                          />
-                        }
+                        // labelRight={
+                        //   <InsetGroup.GroupLabelRightButton
+                        //     label="Clear"
+                        //     onPress={clearScannedData}
+                        //   />
+                        // }
                       >
                         {Object.values(scannedData)
                           .flatMap(d => [
@@ -989,6 +1088,90 @@ function RFIDSheet(
                             <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
                           ])
                           .slice(0, -1)}
+                      </InsetGroup>
+                    )}
+                    {options?.useDefaultFilter === undefined && (
+                      <InsetGroup
+                        label="Scan Settings"
+                        style={{
+                          backgroundColor: insetGroupBackgroundColor,
+                        }}
+                      >
+                        <InsetGroup.Item
+                          label="Use Default Filter"
+                          detail={
+                            <Switch
+                              value={useDefaultFilterFallback}
+                              onChange={() =>
+                                setUseDefaultFilterFallback(v => !v)
+                              }
+                            />
+                          }
+                        />
+                        {!useDefaultFilterFallback && (
+                          <>
+                            <InsetGroup.ItemSeperator />
+                            <InsetGroup.Item
+                              label="Enable Custom Filter"
+                              detail={
+                                <Switch
+                                  value={enableScanFilter}
+                                  onChange={() => setEnableScanFilter(v => !v)}
+                                />
+                              }
+                            />
+                            {enableScanFilter && (
+                              <>
+                                <InsetGroup.ItemSeperator />
+                                <InsetGroup.Item
+                                  label="Filter Bit Offset (ptr)"
+                                  detail={
+                                    <InsetGroup.TextInput
+                                      alignRight
+                                      keyboardType="number-pad"
+                                      placeholder="32"
+                                      value={scanFilterBitOffset?.toString()}
+                                      onChangeText={
+                                        handleChangeScanFilterBitOffsetText
+                                      }
+                                    />
+                                  }
+                                />
+                                <InsetGroup.ItemSeperator />
+                                <InsetGroup.Item
+                                  label="Filter Bit Count (len)"
+                                  detail={
+                                    <InsetGroup.TextInput
+                                      alignRight
+                                      keyboardType="number-pad"
+                                      placeholder="16"
+                                      value={scanFilterBitCount?.toString()}
+                                      onChangeText={
+                                        handleChangeScanFilterBitCountText
+                                      }
+                                    />
+                                  }
+                                />
+                                <InsetGroup.ItemSeperator />
+                                <InsetGroup.Item
+                                  label="Filter Data"
+                                  vertical2
+                                  detail={
+                                    <InsetGroup.TextInput
+                                      placeholder="0000"
+                                      autoCapitalize="characters"
+                                      autoCorrect={false}
+                                      clearButtonMode="while-editing"
+                                      returnKeyType="done"
+                                      value={scanFilterData}
+                                      onChangeText={setScanFilterData}
+                                    />
+                                  }
+                                />
+                              </>
+                            )}
+                          </>
+                        )}
                       </InsetGroup>
                     )}
                   </View>
@@ -999,6 +1182,7 @@ function RFIDSheet(
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
+                  automaticallyAdjustKeyboardInsets
                   // contentInset={{ bottom: contentBottomInset }}
                 >
                   <View
@@ -1018,9 +1202,130 @@ function RFIDSheet(
                         backgroundColor: insetGroupBackgroundColor,
                       }}
                     >
-                      <TouchableWithoutFeedback
-                        onPress={() => setDevShowDetailsCounter(v => v + 1)}
-                      >
+                      {options?.epc ? (
+                        <>
+                          <TouchableWithoutFeedback
+                            onPress={() => setDevShowDetailsCounter(v => v + 1)}
+                          >
+                            <InsetGroup.Item
+                              vertical2
+                              label="EPC"
+                              detailAsText
+                              detail={
+                                <AutoSizeText
+                                  fontSize={InsetGroup.FONT_SIZE}
+                                  mode={ResizeTextMode.max_lines}
+                                  numberOfLines={1}
+                                >
+                                  {(() => {
+                                    try {
+                                      const [epc] = EPCUtils.decodeHexEPC(
+                                        options.epc,
+                                      );
+                                      return epc;
+                                    } catch (e) {
+                                      return options.epc;
+                                    }
+                                  })()}
+                                </AutoSizeText>
+                              }
+                            />
+                          </TouchableWithoutFeedback>
+                          {devShowDetailsCounter > 10 && (
+                            <>
+                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.Item
+                                vertical2
+                                label="Raw EPC"
+                                detail={options.epc}
+                              />
+                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.Item
+                                vertical2
+                                label="Access Password"
+                                detail={
+                                  config
+                                    ? getTagAccessPassword(
+                                        config.rfidTagAccessPassword,
+                                        options.tagAccessPassword || '00000000',
+                                        config.rfidTagAccessPasswordEncoding,
+                                      )
+                                    : 'Config Not Ready'
+                                }
+                              />
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <InsetGroup.Item
+                            vertical2
+                            label="EPC (Hex)"
+                            detail={
+                              <InsetGroup.TextInput
+                                autoFocus={!writeAndLockFallbackEpc}
+                                placeholder="Enter EPC Hex"
+                                autoCapitalize="characters"
+                                autoCorrect={false}
+                                clearButtonMode="while-editing"
+                                returnKeyType="done"
+                                value={writeAndLockFallbackEpc}
+                                onChangeText={v =>
+                                  setWriteAndLockFallbackEpc(v)
+                                }
+                              />
+                            }
+                          />
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            vertical2
+                            label="Access Password (Hex)"
+                            detail={
+                              <InsetGroup.TextInput
+                                autoFocus={
+                                  !!writeAndLockFallbackEpc &&
+                                  !writeAndLockFallbackAccessPassword
+                                }
+                                placeholder="Enter access password (8 digits)"
+                                autoCapitalize="characters"
+                                autoCorrect={false}
+                                clearButtonMode="while-editing"
+                                returnKeyType="done"
+                                value={writeAndLockFallbackAccessPassword}
+                                onChangeText={v =>
+                                  setWriteAndLockFallbackAccessPassword(v)
+                                }
+                              />
+                            }
+                          />
+                        </>
+                      )}
+                    </InsetGroup>
+                  </View>
+                </BottomSheetScrollView>
+              );
+            }
+            case 'locate': {
+              return (
+                <BottomSheetScrollView
+                  style={animatedScrollViewStyles}
+                  automaticallyAdjustKeyboardInsets
+                  // contentInset={{ bottom: contentBottomInset }}
+                >
+                  <View
+                    style={[
+                      commonStyles.flex1,
+                      commonStyles.pt16,
+                      { paddingBottom: contentBottomInset },
+                    ]}
+                    onLayout={handleContentLayout}
+                  >
+                    <InsetGroup
+                      style={{
+                        backgroundColor: insetGroupBackgroundColor,
+                      }}
+                    >
+                      {options?.epc ? (
                         <InsetGroup.Item
                           vertical2
                           label="EPC"
@@ -1044,52 +1349,26 @@ function RFIDSheet(
                             </AutoSizeText>
                           }
                         />
-                      </TouchableWithoutFeedback>
-                      {devShowDetailsCounter > 10 && (
-                        <>
-                          <InsetGroup.ItemSeperator />
-                          <InsetGroup.Item
-                            vertical2
-                            label="Raw EPC"
-                            detail={options.epc}
-                          />
-                          <InsetGroup.ItemSeperator />
-                          <InsetGroup.Item
-                            vertical2
-                            label="Access Password"
-                            detail={
-                              config
-                                ? getTagAccessPassword(
-                                    config.rfidTagAccessPassword,
-                                    options.tagAccessPassword || '00000000',
-                                    config.rfidTagAccessPasswordEncoding,
-                                  )
-                                : 'Config Not Ready'
-                            }
-                          />
-                        </>
+                      ) : (
+                        <InsetGroup.Item
+                          vertical2
+                          label="EPC (Hex)"
+                          detail={
+                            <InsetGroup.TextInput
+                              autoFocus={!locateFallbackEpc}
+                              placeholder="Enter EPC Hex"
+                              autoCapitalize="characters"
+                              autoCorrect={false}
+                              clearButtonMode="while-editing"
+                              returnKeyType="done"
+                              value={locateFallbackEpc}
+                              onChangeText={v => setLocateFallbackEpc(v)}
+                            />
+                          }
+                        />
                       )}
                     </InsetGroup>
-                  </View>
-                </BottomSheetScrollView>
-              );
-            }
-            case 'locate': {
-              return (
-                <BottomSheetScrollView
-                  style={animatedScrollViewStyles}
-                  // contentInset={{ bottom: contentBottomInset }}
-                >
-                  <View
-                    style={[
-                      commonStyles.flex1,
-                      commonStyles.pt16,
-                      { paddingBottom: contentBottomInset },
-                    ]}
-                    onLayout={handleContentLayout}
-                  >
                     <InsetGroup
-                      // label="Write Data"
                       footerLabel={
                         'Press and hold the "Search" button, move the RFID reader slowly and observe the change of RSSI to locate a tag.'
                       }
@@ -1097,30 +1376,6 @@ function RFIDSheet(
                         backgroundColor: insetGroupBackgroundColor,
                       }}
                     >
-                      <InsetGroup.Item
-                        vertical2
-                        label="EPC"
-                        detailAsText
-                        detail={
-                          <AutoSizeText
-                            fontSize={InsetGroup.FONT_SIZE}
-                            mode={ResizeTextMode.max_lines}
-                            numberOfLines={1}
-                          >
-                            {(() => {
-                              try {
-                                const [epc] = EPCUtils.decodeHexEPC(
-                                  options.epc,
-                                );
-                                return epc;
-                              } catch (e) {
-                                return options.epc;
-                              }
-                            })()}
-                          </AutoSizeText>
-                        }
-                      />
-                      <InsetGroup.ItemSeperator />
                       <InsetGroup.Item
                         vertical2
                         label="RSSI"
@@ -1135,22 +1390,6 @@ function RFIDSheet(
                           </Text>
                         }
                       />
-                      {!useBuiltinReader && (
-                        <>
-                          <InsetGroup.ItemSeperator />
-                          <InsetGroup.Item
-                            label="Enable Reader Beep"
-                            detail={
-                              <Switch
-                                value={locateReaderSoundEnabled}
-                                onChange={() =>
-                                  setLocateReaderSoundEnabled(v => !v)
-                                }
-                              />
-                            }
-                          />
-                        </>
-                      )}
                     </InsetGroup>
                   </View>
                 </BottomSheetScrollView>
@@ -1395,10 +1634,22 @@ function RFIDSheet(
                       <InsetGroup.ItemSeperator />
                       <InsetGroup.Item
                         button
-                        label="Setup"
+                        label="Setup Device Connection"
                         onPress={() => {
                           setShowReaderSetup(true);
                         }}
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
+                        label="Beep while locating"
+                        detail={
+                          <Switch
+                            value={locateReaderSoundEnabled}
+                            onChange={() =>
+                              setLocateReaderSoundEnabled(v => !v)
+                            }
+                          />
+                        }
                       />
                     </>
                   );
