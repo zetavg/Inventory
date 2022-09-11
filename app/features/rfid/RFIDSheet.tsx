@@ -504,7 +504,7 @@ function RFIDSheet(
         isLocate: true,
         enableReaderSound: locateReaderSoundEnabled,
       });
-      setLocateStatus('Locating...');
+      setLocateStatus('Signals broadcasting, move around to locate');
     } catch (e: any) {
       setLocateStatus(`Error: ${e?.message}`);
       setIsWorking(false);
@@ -667,7 +667,7 @@ function RFIDSheet(
             return 'Scan';
 
           case 'locate':
-            return 'Start';
+            return 'Search';
 
           default:
             return 'Go';
@@ -1091,7 +1091,7 @@ function RFIDSheet(
                     <InsetGroup
                       // label="Write Data"
                       footerLabel={
-                        'Press and hold the "Start" button, move the RFID reader slowly and observe the change of RSSI to locate a tag.'
+                        'Press and hold the "Search" button, move the RFID reader slowly and observe the change of RSSI to locate a tag.'
                       }
                       style={{
                         backgroundColor: insetGroupBackgroundColor,
