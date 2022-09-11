@@ -2309,7 +2309,7 @@ NSInteger dataIndex=0;
   self->soundInitialized = YES;
 }
 
-- (void)playSound:(int)soundId
+- (void)playSound:(int)soundId withVolume:(float)volume
 {
   [self initSoundIfNeeded];
 //  NSLog(@"playSound: %d", soundId);
@@ -2319,7 +2319,10 @@ NSInteger dataIndex=0;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
       @try {
         AVAudioPlayer* player = self->player1[pi >= SOUND_I ? 0 : pi];
-        if (player) [player play];
+        if (player) {
+          player.volume = volume;
+          [player play];
+        }
       } @catch (NSException *exception) {}
     });
     self->player1i++;
@@ -2330,7 +2333,10 @@ NSInteger dataIndex=0;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
       @try {
         AVAudioPlayer* player = self->player2[pi >= SOUND_I ? 0 : pi];
-        if (player) [player play];
+        if (player) {
+          player.volume = volume;
+          [player play];
+        }
       } @catch (NSException *exception) {}
     });
     self->player2i++;
@@ -2341,7 +2347,10 @@ NSInteger dataIndex=0;
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
       @try {
         AVAudioPlayer* player = self->player3[pi >= SOUND_I ? 0 : pi];
-        if (player) [player play];
+        if (player) {
+          player.volume = volume;
+          [player play];
+        }
       } @catch (NSException *exception) {}
     });
     self->player3i++;

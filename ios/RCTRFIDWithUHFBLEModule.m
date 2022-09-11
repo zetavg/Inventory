@@ -182,7 +182,9 @@ RCT_EXPORT_METHOD(startScan:
                   (NSString*_Nonnull)filterData:
                   (double)scanRate:
                   (double)eventRate:
+                  (BOOL)isLocate:
                   (BOOL)soundEnabled:
+                  (BOOL)enableReaderSound:
                   (RCTPromiseResolveBlock)resolve:
                   (RCTPromiseRejectBlock)reject)
 {
@@ -194,8 +196,11 @@ RCT_EXPORT_METHOD(startScan:
     [[RFIDBlutoothManager shareManager] setLaunchPowerWithstatus:@"1" antenna:@"1" readStr:[power stringValue] writeStr:[power stringValue]];
     usleep(80 * 1000);
     if (!scannedEpcs) scannedEpcs = [[NSMutableSet alloc] init];
-    [[RFIDBlutoothManager shareManager] setCloseBuzzer];
-    usleep(80 * 1000);
+    if (!enableReaderSound) {
+      [[RFIDBlutoothManager shareManager] setCloseBuzzer];
+      usleep(80 * 1000);
+    }
+    self->scanIsLocate = isLocate;
     self->soundEnabled = soundEnabled;
     if (enableFilter) {
       [[RFIDBlutoothManager shareManager]
@@ -300,7 +305,7 @@ RCT_EXPORT_METHOD(read:
 {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3];
+      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
@@ -345,7 +350,7 @@ RCT_EXPORT_METHOD(read:
   isWaitingRead = NO;
   NSLog(@"RCTRFIDWithUHFBLEModule: Read timeout");
   if (readTimeoutTimer) [readTimeoutTimer invalidate];
-  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3];
+  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
   if (readRejectFns) {
     for (RCTPromiseRejectBlock reject in readRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -376,7 +381,7 @@ RCT_EXPORT_METHOD(write:
 {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3];
+      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
@@ -421,7 +426,7 @@ RCT_EXPORT_METHOD(write:
   isWaitingWrite = NO;
   NSLog(@"RCTRFIDWithUHFBLEModule: Write timeout");
   if (writeTimeoutTimer) [writeTimeoutTimer invalidate];
-  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3];
+  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
   if (writeRejectFns) {
     for (RCTPromiseRejectBlock reject in writeRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -449,7 +454,7 @@ RCT_EXPORT_METHOD(lock:
 {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3];
+      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
@@ -491,7 +496,7 @@ RCT_EXPORT_METHOD(lock:
   isWaitingLock = NO;
   NSLog(@"RCTRFIDWithUHFBLEModule: Lock timeout");
   if (lockTimeoutTimer) [lockTimeoutTimer invalidate];
-  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3];
+  if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
   if (lockRejectFns) {
     for (RCTPromiseRejectBlock reject in lockRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -512,7 +517,7 @@ RCT_EXPORT_METHOD(playSound:
                   (RCTPromiseRejectBlock)reject)
 {
   @try {
-    [[RFIDBlutoothManager shareManager] playSound:soundId];
+    [[RFIDBlutoothManager shareManager] playSound:soundId withVolume:1];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -583,9 +588,10 @@ RCT_EXPORT_METHOD(playSound:
   [self sendEventWithName:@"uhfDeviceConnectionStatus" body:jsData];
 }
 
-- (void)receiveScannedEpcWithRssi:(NSString *)epc withRssi:(double)rssi
+- (void)receiveScannedEpcWithRssi:(NSString *)epc withRssi:(double)nRssi
 {
 //  NSLog(@"receiveScannedEpcWithRssi %f - %@", rssi, epc);
+  double rssi = -nRssi;
   NSMutableDictionary *jsData = [NSMutableDictionary dictionary];
   [jsData setObject:[epc uppercaseString] forKey: @"epc"];
   [jsData setObject:@(rssi) forKey: @"rssi"];
@@ -594,13 +600,18 @@ RCT_EXPORT_METHOD(playSound:
   [self->scanTagsData addObject:jsData];
 
   if (self->soundEnabled) {
-    if ([self->scannedEpcs containsObject:epc]) {
-      [[RFIDBlutoothManager shareManager] playSound:2];
+    if (self->scanIsLocate) {
+      float maxVolume = 10;
+      [[RFIDBlutoothManager shareManager] playSound:2 withVolume:1 + MIN(maxVolume, MAX(0, (80 + rssi) * (maxVolume / (80 - 30))))];
     } else {
-      [[RFIDBlutoothManager shareManager] playSound:1];
+      if ([self->scannedEpcs containsObject:epc]) {
+        [[RFIDBlutoothManager shareManager] playSound:2 withVolume:1];
+      } else {
+        [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
+      }
     }
   }
-  [self->scannedEpcs addObject:epc];
+  if (!scanIsLocate) [self->scannedEpcs addObject:epc];
 
   long currentTime = CACurrentMediaTime() * 1000;
   if (currentTime - self->lastScanTagsEventEmittedAt > self->scanTagsEventRate) {
@@ -636,7 +647,7 @@ RCT_EXPORT_METHOD(playSound:
     // Read Tag
     isWaitingRead = NO;
     NSLog(@"RCTRFIDWithUHFBLEModule: Read success");
-    if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1];
+    if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
     if (readTimeoutTimer) [readTimeoutTimer invalidate];
     if (readResolveFns) {
       for (RCTPromiseResolveBlock resolve in readResolveFns) {
@@ -653,7 +664,7 @@ RCT_EXPORT_METHOD(playSound:
     isWaitingWrite = NO;
     if ([dataStr isEqualToString:@"Successful tag writing"]) {
       NSLog(@"RCTRFIDWithUHFBLEModule: Write success");
-      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1];
+      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
       if (writeTimeoutTimer) [writeTimeoutTimer invalidate];
       if (writeResolveFns) {
         for (RCTPromiseResolveBlock resolve in writeResolveFns) {
@@ -666,7 +677,7 @@ RCT_EXPORT_METHOD(playSound:
       }
     } else {
       NSLog(@"RCTRFIDWithUHFBLEModule: Write failed");
-      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3];
+      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
       if (writeTimeoutTimer) [writeTimeoutTimer invalidate];
       if (writeResolveFns) {
         [writeResolveFns removeAllObjects];
@@ -684,7 +695,7 @@ RCT_EXPORT_METHOD(playSound:
     isWaitingLock = NO;
     if ([dataStr isEqualToString:@"Lock label successful"]) {
       NSLog(@"RCTRFIDWithUHFBLEModule: Lock success");
-      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1];
+      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
       if (lockTimeoutTimer) [lockTimeoutTimer invalidate];
       if (lockResolveFns) {
         NSLog(@"res count %lu", (unsigned long)[lockRejectFns count]);
@@ -699,7 +710,7 @@ RCT_EXPORT_METHOD(playSound:
       }
     } else {
       NSLog(@"RCTRFIDWithUHFBLEModule: Lock failed");
-      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3];
+      if (self->soundEnabled) [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
       if (lockTimeoutTimer) [lockTimeoutTimer invalidate];
       if (lockResolveFns) {
         [lockResolveFns removeAllObjects];

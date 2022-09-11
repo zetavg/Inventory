@@ -164,6 +164,9 @@ const commonStyles = StyleSheet.create({
   opacity05: {
     opacity: 0.5,
   },
+  opacity02: {
+    opacity: 0.2,
+  },
   centerChildren: {
     justifyContent: 'center',
     alignItems: 'center',

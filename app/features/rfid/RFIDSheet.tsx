@@ -66,6 +66,7 @@ export type RFIDSheetOptions =
     }
   | {
       functionality: 'locate';
+      epc: string;
     }
   | {
       functionality: 'read';
@@ -394,8 +395,9 @@ function RFIDSheet(
   useEffect(() => {
     switch (options?.functionality) {
       case 'scan':
-      case 'locate':
         return setPower(useBuiltinReader ? 28 : 20);
+      case 'locate':
+        return setPower(28);
       case 'write':
       default:
         return setPower(8);
@@ -456,6 +458,68 @@ function RFIDSheet(
     setScannedData({});
     setScannedDataCount(0);
     await RFIDModule.clearScannedTags();
+  }, [RFIDModule]);
+
+  const [locateReaderSoundEnabled, setLocateReaderSoundEnabled] =
+    useState(true);
+  const [locateStatus, setLocateStatus] = useState('');
+  const [locateRssi, setLocateRssi] = useState<number | null>(null);
+
+  const clearLocateRssiTimer = useRef<NodeJS.Timeout | null>(null);
+  const receiveLocateData = useCallback(
+    (d: ScanData[]) => {
+      if (options?.functionality !== 'locate') return;
+
+      const filteredD = d.filter(({ epc }) => epc === options?.epc);
+      const lastD = filteredD[filteredD.length - 1];
+      if (!lastD) return;
+
+      if (clearLocateRssiTimer.current)
+        clearTimeout(clearLocateRssiTimer.current);
+      setLocateRssi(lastD.rssi);
+      clearLocateRssiTimer.current = setTimeout(() => {
+        setLocateRssi(null);
+      }, 1000);
+    },
+    [options],
+  );
+
+  const startLocate = useCallback(async () => {
+    if (options?.functionality !== 'locate') return;
+    try {
+      setIsWorking(true);
+      setLocateStatus('Starting...');
+      await RFIDModule.startScan({
+        power,
+        soundEnabled: true,
+        callback: receiveLocateData,
+        scanRate: 30,
+        eventRate: 250,
+        filter: {
+          memoryBank: 'EPC',
+          bitOffset: 32,
+          bitCount: (options?.epc.length || 0) * 4,
+          data: options?.epc,
+        },
+        isLocate: true,
+        enableReaderSound: locateReaderSoundEnabled,
+      });
+      setLocateStatus('Locating...');
+    } catch (e: any) {
+      setLocateStatus(`Error: ${e?.message}`);
+      setIsWorking(false);
+    }
+  }, [RFIDModule, locateReaderSoundEnabled, options, power, receiveLocateData]);
+
+  const stopLocate = useCallback(async () => {
+    try {
+      setLocateStatus('Stopping...');
+      await RFIDModule.stopScan();
+      setLocateStatus('');
+      setIsWorking(false);
+    } catch (e: any) {
+      setLocateStatus(`Error: ${e?.message}`);
+    }
   }, [RFIDModule]);
 
   const clearWriteAndLockStatusTimer = useRef<NodeJS.Timeout | null>(null);
@@ -544,6 +608,9 @@ function RFIDSheet(
       case 'write': {
         return;
       }
+      case 'locate': {
+        return;
+      }
       default:
         setDCounter(v => (v >= 4 ? 1 : v + 1));
     }
@@ -554,19 +621,25 @@ function RFIDSheet(
       case 'scan': {
         return startScan();
       }
+      case 'locate': {
+        return startLocate();
+      }
       case 'write': {
         return writeAndLock();
       }
     }
-  }, [options?.functionality, startScan, writeAndLock]);
+  }, [options?.functionality, startLocate, startScan, writeAndLock]);
   const handleActionButtonPressOut = useCallback(() => {
     setActionButtonPressedIn(false);
     switch (options?.functionality) {
       case 'scan': {
         return stopScan();
       }
+      case 'locate': {
+        return stopLocate();
+      }
     }
-  }, [options?.functionality, stopScan]);
+  }, [options?.functionality, stopLocate, stopScan]);
   // #endregion //
 
   // #region Render //
@@ -592,6 +665,9 @@ function RFIDSheet(
 
           case 'scan':
             return 'Scan';
+
+          case 'locate':
+            return 'Start';
 
           default:
             return 'Go';
@@ -648,6 +724,8 @@ function RFIDSheet(
                   switch (options?.functionality) {
                     case 'scan':
                       return scanStatus;
+                    case 'locate':
+                      return locateStatus;
                     case 'write':
                       return writeAndLockStatus;
                   }
@@ -790,6 +868,7 @@ function RFIDSheet(
       red2,
       yellow2,
       scanStatus,
+      locateStatus,
       writeAndLockStatus,
       isWorking,
       clearScannedData,
@@ -986,6 +1065,88 @@ function RFIDSheet(
                                     config.rfidTagAccessPasswordEncoding,
                                   )
                                 : 'Config Not Ready'
+                            }
+                          />
+                        </>
+                      )}
+                    </InsetGroup>
+                  </View>
+                </BottomSheetScrollView>
+              );
+            }
+            case 'locate': {
+              return (
+                <BottomSheetScrollView
+                  style={animatedScrollViewStyles}
+                  // contentInset={{ bottom: contentBottomInset }}
+                >
+                  <View
+                    style={[
+                      commonStyles.flex1,
+                      commonStyles.pt16,
+                      { paddingBottom: contentBottomInset },
+                    ]}
+                    onLayout={handleContentLayout}
+                  >
+                    <InsetGroup
+                      // label="Write Data"
+                      footerLabel={
+                        'Press and hold the "Start" button, move the RFID reader slowly and observe the change of RSSI to locate a tag.'
+                      }
+                      style={{
+                        backgroundColor: insetGroupBackgroundColor,
+                      }}
+                    >
+                      <InsetGroup.Item
+                        vertical2
+                        label="EPC"
+                        detailAsText
+                        detail={
+                          <AutoSizeText
+                            fontSize={InsetGroup.FONT_SIZE}
+                            mode={ResizeTextMode.max_lines}
+                            numberOfLines={1}
+                          >
+                            {(() => {
+                              try {
+                                const [epc] = EPCUtils.decodeHexEPC(
+                                  options.epc,
+                                );
+                                return epc;
+                              } catch (e) {
+                                return options.epc;
+                              }
+                            })()}
+                          </AutoSizeText>
+                        }
+                      />
+                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.Item
+                        vertical2
+                        label="RSSI"
+                        detailAsText
+                        detail={
+                          <Text
+                            style={
+                              locateRssi === null && commonStyles.opacity02
+                            }
+                          >
+                            {locateRssi || 'No Signal'}
+                          </Text>
+                        }
+                      />
+                      {!useBuiltinReader && (
+                        <>
+                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.Item
+                            label="Enable Reader Beep"
+                            detail={
+                              <Switch
+                                value={locateReaderSoundEnabled}
+                                onChange={() =>
+                                  setLocateReaderSoundEnabled(v => !v)
+                                }
+                              />
                             }
                           />
                         </>

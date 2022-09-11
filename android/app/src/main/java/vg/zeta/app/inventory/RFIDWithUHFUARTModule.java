@@ -33,6 +33,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
 
   private int scanRate = 10;
   private int scanEventRate = 100;
+  private boolean scanIsLocate;
 
   private static final String TAG = "RFIDWithUHFUARTModule";
 
@@ -186,11 +187,14 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
           String filterData,
           int rate,
           int eventRate,
+          boolean isLocate,
           boolean playSound,
+          boolean enableReaderSound,
           Promise promise
   ) {
     scanRate = rate;
     scanEventRate = eventRate;
+    scanIsLocate = isLocate;
     try {
       prepareStartScan();
       this.playSoundFlag = playSound;
@@ -252,14 +256,18 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
           String epc = tagData.getEPC();
 
           if (playSoundFlag) {
-            if (scannedTags.contains(epc)) {
+            if (scanIsLocate) {
               playSound(2);
             } else {
-              playSound(1);
+              if (scannedTags.contains(epc)) {
+                playSound(2);
+              } else {
+                playSound(1);
+              }
             }
           }
 
-          scannedTags.add(epc);
+          if (!scanIsLocate) scannedTags.add(epc);
 
           try {
             Thread.sleep(scanRate);

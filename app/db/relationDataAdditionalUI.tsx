@@ -14,19 +14,33 @@ export const relationDataAdditionalUI: {
     if (!calculatedRfidTagEpcMemoryBankContents) return null;
 
     return (
-      <InsetGroup>
-        <InsetGroup.Item
-          button
-          label="Write RFID Tag"
-          onPress={() =>
-            openRfidSheet({
-              functionality: 'write',
-              epc: calculatedRfidTagEpcMemoryBankContents,
-              tagAccessPassword: item.rfidTagAccessPassword,
-            })
-          }
-        />
-      </InsetGroup>
+      <>
+        <InsetGroup>
+          <InsetGroup.Item
+            button
+            label="Locate (by RFID tag)"
+            onPress={() =>
+              openRfidSheet({
+                functionality: 'locate',
+                epc: calculatedRfidTagEpcMemoryBankContents,
+              })
+            }
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            button
+            label="Write RFID Tag"
+            onPress={() =>
+              openRfidSheet({
+                functionality: 'write',
+                epc: calculatedRfidTagEpcMemoryBankContents,
+                tagAccessPassword: item.rfidTagAccessPassword,
+              })
+            }
+          />
+        </InsetGroup>
+      </>
     );
   },
 };

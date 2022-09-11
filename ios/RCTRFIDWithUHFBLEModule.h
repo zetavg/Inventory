@@ -33,6 +33,8 @@
 
   NSMutableSet *scannedEpcs;
   BOOL soundEnabled;
+  
+  BOOL scanIsLocate;
 }
 
 @property (nonatomic, strong) NSTimer *untilPowerOnTimer;

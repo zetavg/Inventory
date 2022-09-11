@@ -264,6 +264,6 @@
 //- (NSData *)setFilterSendDataWithUfBank:(char)ufBank ufPtr:(int)ufPtr dataLen:(int)datalen hexDataBuf:(NSString *)hexDatabuf;
 
 - (void)initSoundIfNeeded;
-- (void)playSound:(int)soundId;
+- (void)playSound:(int)soundId withVolume:(float)volume;
 
 @end
