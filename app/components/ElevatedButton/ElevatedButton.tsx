@@ -210,7 +210,9 @@ export function SecondaryButton({
   }, [currentDown]);
 
   const downBgColor = Color(contentTextColor).opaquer(-0.9).hexa();
-  const textColor = primary ? iosTintColor : Color(contentTextColor).opaquer(-0.5).hexa();
+  const textColor = primary
+    ? iosTintColor
+    : Color(contentTextColor).opaquer(-0.5).hexa();
   const barColor = Color(contentTextColor).opaquer(-0.9).hexa();
   const backgroundColor = currentDown ? downBgColor : 'transparent';
 
@@ -234,6 +236,7 @@ export function SecondaryButton({
         onLayout={handleLayout}
         style={[
           styles.secondaryContentContainer,
+          disabled && styles.secondaryContentContainerDisabled,
           { backgroundColor },
           currentDown && styles.contentContainerDown,
         ]}
@@ -333,6 +336,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  secondaryContentContainerDisabled: {
+    opacity: 0.32,
   },
   bar: {
     position: 'absolute',

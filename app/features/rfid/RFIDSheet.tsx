@@ -883,6 +883,7 @@ function RFIDSheet(
                         <SecondaryButton
                           title="Wipe"
                           onPress={unlockAndReset}
+                          disabled={!rfidReaderDeviceReady}
                         />
                       );
                     default:
