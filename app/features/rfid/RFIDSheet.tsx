@@ -331,6 +331,30 @@ function RFIDSheet(
   ]);
 
   useEffect(() => {
+    if (!sheetOpened || isWorking || useBuiltinReader) return;
+
+    const syncNativeBluetoothConnectionStatus = async () => {
+      const connectionStatus =
+        await RFIDWithUHFBLEModule.getDeviceConnectStatus();
+      if (connectionStatus !== bleDeviceConnectionStatus?.status)
+        setBleDeviceConnectionStatus(s => ({ ...s, status: connectionStatus }));
+    };
+    const timer = setTimeout(syncNativeBluetoothConnectionStatus, 100);
+    const interval = setInterval(syncNativeBluetoothConnectionStatus, 3000);
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [
+    pairedBleDeviceAddress,
+    useBuiltinReader,
+    bleDeviceConnectionStatus?.status,
+    sheetOpened,
+    isWorking,
+  ]);
+
+  useEffect(() => {
     if (!sheetOpened || useBuiltinReader) return;
     if (bleDeviceConnectionStatus?.status !== 'CONNECTED') return;
     if (isWorking) return;
