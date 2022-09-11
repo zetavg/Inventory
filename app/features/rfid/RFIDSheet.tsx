@@ -203,7 +203,6 @@ function RFIDSheet(
       RFIDWithUHFUARTModule.free();
     } catch (e) {
       // TODO: Log error
-      Alert.alert('RFID Device Error', 'Failed to free built-in RFID reader');
     }
   }, []);
 
