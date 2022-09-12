@@ -1,9 +1,10 @@
+import { useAttachment } from '@app/features/attachments';
 import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
 import ImageView from 'react-native-image-viewing';
 
 type Props = {
-  doc: unknown;
+  uuid: string;
   aspectRatio?: number;
   viewable?: boolean;
   containerStyle?: React.ComponentProps<typeof TouchableOpacity>['style'];
@@ -13,7 +14,7 @@ const BLANK_IMAGE =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAQSURBVHgBAQUA+v8AAAAAAAAFAAFkeJU4AAAAAElFTkSuQmCC';
 
 function AttachmentImage({
-  doc,
+  uuid,
   aspectRatio: aspectRatioFromProp,
   viewable,
   style,
@@ -23,6 +24,7 @@ function AttachmentImage({
 }: Props) {
   const [width, setWidth] = useState(0);
   const lastWidth = useRef(width);
+  const attachment = useAttachment(uuid);
 
   const handleLayout = useCallback<
     Exclude<React.ComponentProps<typeof ImageBackground>['onLayout'], undefined>
@@ -40,23 +42,21 @@ function AttachmentImage({
   );
 
   const imageSourceUri = (() => {
-    if (!doc) return BLANK_IMAGE;
-    if (typeof doc !== 'object') return BLANK_IMAGE;
+    if (!attachment) return BLANK_IMAGE;
+    if (typeof attachment !== 'object') return BLANK_IMAGE;
 
-    const { content_type, data } = doc as { [k: string]: unknown };
-    if (typeof content_type !== 'string' || typeof data !== 'string')
-      return BLANK_IMAGE;
+    const { data } = attachment;
 
-    return `data:${content_type};base64,${data}`;
+    return data;
   })();
 
   const aspectRatio =
     aspectRatioFromProp ||
     (() => {
-      if (!doc) return 1;
-      if (typeof doc !== 'object') return 1;
+      if (!attachment) return 1;
+      if (typeof attachment !== 'object') return 1;
 
-      const { dimensions } = doc as { [k: string]: unknown };
+      const { dimensions } = attachment;
       if (!dimensions) return 1;
       if (typeof dimensions !== 'object') return 1;
 
@@ -124,7 +124,7 @@ function AttachmentImage({
 
 const styles = StyleSheet.create({
   imageBackground: {
-    backgroundColor: '#8E8E93',
+    backgroundColor: 'transparent',
     width: '100%',
   },
   container: {

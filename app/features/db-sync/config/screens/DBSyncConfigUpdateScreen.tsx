@@ -1,5 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView, Switch } from 'react-native';
 
 import { PouchDB } from '@app/db';
 
@@ -53,12 +53,24 @@ function DBSyncConfigUpdateScreen({
   const [attachmentsDbUri, setAttachmentsDbUri] = useState(
     oldConfig.attachmentsDB?.uri || '',
   );
-  const [attachmentsDbUsername, setAttachmentsDbUsername] = useState(
+  const [attachmentsDbDUsername, setAttachmentsDbUsername] = useState(
     oldConfig.attachmentsDB?.username || '',
   );
-  const [attachmentsDbPassword, setAttachmentsDbPassword] = useState(
+  const [attachmentsDbDPassword, setAttachmentsDbPassword] = useState(
     oldConfig.attachmentsDB?.password || '',
   );
+  const [attachmentsDbSameUser, setAttachmentsDbSameUser] = useState(
+    oldConfig.db && oldConfig.attachmentsDB
+      ? oldConfig.db.username === oldConfig.attachmentsDB.username &&
+          oldConfig.db.password === oldConfig.attachmentsDB.password
+      : true,
+  );
+  const attachmentsDbUsername = attachmentsDbSameUser
+    ? dbUsername
+    : attachmentsDbDUsername;
+  const attachmentsDbPassword = attachmentsDbSameUser
+    ? dbPassword
+    : attachmentsDbDPassword;
   const attachmentsDbErrorMessage = (() => {
     if (!attachmentsDbUri.match(/^https?:\/\//)) {
       return 'URI must start with "http://" or "https://"';
@@ -305,32 +317,47 @@ function DBSyncConfigUpdateScreen({
           />
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
-            vertical2
-            label="Username"
+            compactLabel
+            label="Same username/password"
             detail={
-              <InsetGroup.TextInput
-                placeholder="username"
-                autoCapitalize="none"
-                secureTextEntry={false}
-                value={attachmentsDbUsername}
-                onChangeText={setAttachmentsDbUsername}
+              <Switch
+                value={attachmentsDbSameUser}
+                onChange={() => setAttachmentsDbSameUser(v => !v)}
               />
             }
           />
-          <InsetGroup.ItemSeperator />
-          <InsetGroup.Item
-            vertical2
-            label="Password"
-            detail={
-              <InsetGroup.TextInput
-                secureTextEntry
-                placeholder="********"
-                autoCapitalize="none"
-                value={attachmentsDbPassword}
-                onChangeText={setAttachmentsDbPassword}
+          {!attachmentsDbSameUser && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                vertical2
+                label="Username"
+                detail={
+                  <InsetGroup.TextInput
+                    placeholder="username"
+                    autoCapitalize="none"
+                    secureTextEntry={false}
+                    value={attachmentsDbUsername}
+                    onChangeText={setAttachmentsDbUsername}
+                  />
+                }
               />
-            }
-          />
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                vertical2
+                label="Password"
+                detail={
+                  <InsetGroup.TextInput
+                    secureTextEntry
+                    placeholder="********"
+                    autoCapitalize="none"
+                    value={attachmentsDbPassword}
+                    onChangeText={setAttachmentsDbPassword}
+                  />
+                }
+              />
+            </>
+          )}
         </InsetGroup>
 
         <InsetGroup

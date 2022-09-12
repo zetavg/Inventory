@@ -9,13 +9,17 @@ export type DBContent = {
   a: any;
 };
 
+export type AttachmentsDBThumbnailType = 's128' | 's64';
+
 export type AttachmentsDBContent = {
-  filename: string;
-  thumbnail128?: string;
-  thumbnail64?: string;
-  content_type: string;
+  file_name?: string;
   data: string;
+  thumbnail_type?: AttachmentsDBThumbnailType;
   dimensions?: {
+    width: number;
+    height: number;
+  };
+  original_dimensions?: {
     width: number;
     height: number;
   };

@@ -61,10 +61,16 @@ function addIndexesToDB(
 }
 
 export function getAttachmentsDatabase(name: string): AttachmentsDatabase {
-  return new PouchDBRN<AttachmentsDBContent>(name, {
+  const db = new PouchDBRN<AttachmentsDBContent>(name, {
     adapter: 'react-native-sqlite',
     auto_compaction: true,
   });
+
+  db.createIndex({
+    index: { fields: ['thumbnail_type', 'added_at'] },
+  });
+
+  return db;
 }
 
 export function getLogsDatabase(name: string): LogsDatabase {

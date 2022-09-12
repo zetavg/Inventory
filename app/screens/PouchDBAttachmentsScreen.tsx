@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Alert, RefreshControl, ScrollView, View, Image } from 'react-native';
-import { DataTable, ActivityIndicator } from 'react-native-paper';
+import { DataTable } from 'react-native-paper';
 import ImageView from 'react-native-image-viewing';
-import { launchImageLibrary } from 'react-native-image-picker';
-import ImageResizer from 'react-native-image-resizer';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 import useColors from '@app/hooks/useColors';
@@ -15,15 +12,14 @@ import commonStyles from '@app/utils/commonStyles';
 
 import useDB from '@app/hooks/useDB';
 
-import { v4 as uuidv4 } from 'uuid';
 import InsetGroup from '@app/components/InsetGroup';
-import base64FromFile from '@app/utils/base64FromFile';
+import { addFromImageLibrary } from '@app/features/attachments';
+import LoadingOverlay from '@app/components/LoadingOverlay';
 
 function PouchDBAttachmentsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'PouchDBAttachments'>) {
   const { attachmentsDB } = useDB();
-  const rootNavigation = useRootNavigation();
 
   const numberOfItemsPerPageList = [5, 10, 20, 50];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[0]);
@@ -44,23 +40,38 @@ function PouchDBAttachmentsScreen({
   const getData = useCallback(async () => {
     setLoading(true);
     try {
-      const results = await (searchText
-        ? (attachmentsDB as any).search({
+      const results = searchText
+        ? await (attachmentsDB as any).search({
             query: searchText,
-            fields: ['name'],
+            fields: ['file_name'],
             language: 'en',
             include_docs: true,
             skip,
             limit,
           })
-        : attachmentsDB.allDocs({ include_docs: true, skip, limit }));
+        : {
+            rows: (
+              await attachmentsDB.find({
+                selector: {
+                  $and: [
+                    { thumbnail_type: 's128' },
+                    { added_at: { $gt: true } },
+                  ],
+                },
+                sort: [{ thumbnail_type: 'desc' }, { added_at: 'desc' }],
+                skip,
+                limit,
+              })
+            ).docs.map(doc => ({ doc })),
+            total_rows: (await attachmentsDB.allDocs()).total_rows,
+          };
       setData(results);
     } catch (e: any) {
       Alert.alert(e?.message);
     } finally {
       setLoading(false);
     }
-  }, [limit, searchText, skip]);
+  }, [attachmentsDB, limit, searchText, skip]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -82,86 +93,17 @@ function PouchDBAttachmentsScreen({
   }, [getData]);
 
   const handleUpload = useCallback(async () => {
-    const result = await launchImageLibrary({
-      mediaType: 'photo',
-      selectionLimit: 1,
-      maxWidth: 2048,
-      maxHeight: 2048,
-      includeBase64: true,
-    });
-
-    if (result.didCancel) return;
-
-    if (result.errorCode) {
-      Alert.alert('Error', `[${result.errorCode}] ${result.errorMessage}`);
-      return;
-    }
-
-    const image = result.assets && result.assets[0];
-    if (!image) return;
-    if (!image.uri) return;
-    if (!image.base64) return;
-
-    const filename = image.fileName
-      ? uuidv4() + '_' + image.fileName
-      : uuidv4();
-    const content_type = image.type;
-
     try {
-      // setLoading(true);
-
-      const { uri: thumbnail128Uri } = await ImageResizer.createResizedImage(
-        image.uri,
-        128,
-        128,
-        'JPEG',
-        100,
-        0,
-        undefined,
-        false,
-        { mode: 'cover' },
-      );
-      const thumbnail128 = `data:image/jpg;base64,${await base64FromFile(
-        thumbnail128Uri,
-      )}`;
-
-      const { uri: thumbnail64Uri } = await ImageResizer.createResizedImage(
-        image.uri,
-        64,
-        64,
-        'JPEG',
-        100,
-        0,
-        undefined,
-        false,
-        { mode: 'cover' },
-      );
-      const thumbnail64 = `data:image/jpg;base64,${await base64FromFile(
-        thumbnail64Uri,
-      )}`;
-
-      await attachmentsDB.put({
-        _id: filename,
-        filename,
-        thumbnail128,
-        thumbnail64,
-        content_type,
-        data: image.base64,
-        dimensions: {
-          width: image.width,
-          height: image.height,
-        },
-        timestamp: image.timestamp,
-      });
-
+      setLoading(true);
+      await addFromImageLibrary({ attachmentsDB, selectionLimit: 36 });
       handleRefresh();
     } catch (e: any) {
       Alert.alert('Error', `${e.message}`);
       return;
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
-  }, [handleRefresh]);
+  }, [attachmentsDB, handleRefresh]);
 
   const [shownImage, setShownImage] = useState<null | string>(null);
 
@@ -169,6 +111,7 @@ function PouchDBAttachmentsScreen({
     <ScreenContent
       navigation={navigation}
       title="PouchDB Attachments"
+      overlay={<LoadingOverlay show={loading} />}
       showSearch
       onSearchChangeText={setSearchText}
       action1Label="Upload"
@@ -186,20 +129,20 @@ function PouchDBAttachmentsScreen({
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
+        {/*<Text>{JSON.stringify(data, null, 2)}</Text>*/}
         {data && data.rows && (
           <InsetGroup>
             {data.rows
               .flatMap(({ doc }: any) => {
-                if (!doc) return [];
-
-                const imageSourceUri = `data:${doc.content_type};base64,${doc.data}`;
-
+                if (!doc) return [<Text>aa</Text>];
                 return [
                   <InsetGroup.Item
-                    key={doc.filename}
+                    key={doc._id}
                     // onPress={() => setShownImage(imageSourceUri)}
                     onPress={() =>
-                      navigation.push('PouchDBAttachment', { id: doc._id })
+                      navigation.push('PouchDBAttachment', {
+                        id: doc._id.replace(/^thumbnail-[^-]+-/, ''),
+                      })
                     }
                   >
                     <View
@@ -210,7 +153,7 @@ function PouchDBAttachmentsScreen({
                     >
                       <Image
                         source={{
-                          uri: doc.thumbnail128 || imageSourceUri,
+                          uri: doc.data,
                         }}
                         style={{
                           width: 64,
@@ -219,10 +162,10 @@ function PouchDBAttachmentsScreen({
                           marginRight: 16,
                         }}
                       />
-                      <Text style={{ flex: 1 }}>{doc.filename}</Text>
+                      <Text style={{ flex: 1 }}>{doc.file_name}</Text>
                     </View>
                   </InsetGroup.Item>,
-                  <InsetGroup.ItemSeperator key={`s-${doc.filename}`} />,
+                  <InsetGroup.ItemSeperator key={`s-${doc._id}`} />,
                 ];
               })
               .slice(0, -1)}
@@ -252,27 +195,6 @@ function PouchDBAttachmentsScreen({
         />
       </ScrollView>
     </ScreenContent>
-  );
-}
-
-function TableLoadingOverlay({ show }: { show: boolean }) {
-  const { backgroundColor } = useColors();
-
-  return (
-    <View
-      style={[commonStyles.overlay, commonStyles.centerChildren]}
-      pointerEvents={show ? 'auto' : 'none'}
-    >
-      <View
-        style={[
-          commonStyles.overlay,
-          commonStyles.opacity05,
-          show && { backgroundColor },
-        ]}
-        pointerEvents={show ? 'auto' : 'none'}
-      />
-      <ActivityIndicator animating={show} hidesWhenStopped size="large" />
-    </View>
   );
 }
 
