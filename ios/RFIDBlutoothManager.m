@@ -1311,13 +1311,18 @@ NSInteger dataIndex=0;
 
                if (self.isGetBattery) {
                     //獲取電池電量
-                    NSString *battyStr=[dataStr substringWithRange:NSMakeRange(12, 2)];
-                    NSInteger n = strtoul([battyStr UTF8String], 0, 16);//16進制數據轉10進制的NSInteger
-                    //NSLog(@"battyStr===%@",battyStr);
-                    NSString *batStr=[NSString stringWithFormat:@"%ld",n];
-                    [self.managerDelegate receiveMessageWithtype:@"e5" dataStr:batStr];
-                    self.isGetBattery = NO;
-                    return;
+                 @try {
+                   NSString *battyStr=[dataStr substringWithRange:NSMakeRange(12, 2)];
+                   NSInteger n = strtoul([battyStr UTF8String], 0, 16);//16進制數據轉10進制的NSInteger
+                   //NSLog(@"battyStr===%@",battyStr);
+                   NSString *batStr=[NSString stringWithFormat:@"%ld",n];
+                   [self.managerDelegate receiveMessageWithtype:@"e5" dataStr:batStr];
+                   self.isGetBattery = NO;
+                   return;
+                 } @catch (NSException *exception) {
+                   NSLog(@"Error on getting battery level: %@", exception);
+                   [self.managerDelegate receiveMessageWithtype:@"e5" dataStr:@"-1"];
+                 }
                }
 
                if (self.isCodeLab) {
