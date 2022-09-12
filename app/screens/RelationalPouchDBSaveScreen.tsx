@@ -152,9 +152,18 @@ function RelationalPouchDBSaveScreen({
                               <InsetGroup.TextInput
                                 alignRight
                                 placeholder={`Enter ${field}`}
-                                value={data[field]}
+                                value={(data[field] || '').replace(
+                                  /\u0020$/,
+                                  '\u0020\u033a\u0320',
+                                )}
                                 onChangeText={t => {
-                                  setData(d => ({ ...d, [field]: t }));
+                                  setData(d => ({
+                                    ...d,
+                                    [field]: t.replace(
+                                      /\u0020\u033a\u0320/,
+                                      '\u0020',
+                                    ),
+                                  }));
                                   setHasUnsavedChanges(true);
                                 }}
                               />
