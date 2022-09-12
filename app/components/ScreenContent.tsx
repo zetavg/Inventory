@@ -49,6 +49,8 @@ type Props = {
   /** See: https://materialdesignicons.com */
   action3MaterialIconName?: string;
   onAction3Press?: () => void;
+
+  overlay?: JSX.Element;
 };
 
 function ScreenContent({
@@ -73,6 +75,7 @@ function ScreenContent({
   action3SFSymbolName,
   action3MaterialIconName,
   onAction3Press,
+  overlay,
 }: Props) {
   const safeAreaInsets = useSafeAreaInsets();
   const tabBarInsets = useTabBarInsets();
@@ -342,6 +345,7 @@ function ScreenContent({
               ],
             },
           }}
+      {overlay}
     </View>
   );
 }

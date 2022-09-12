@@ -14,6 +14,7 @@ import Color from 'color';
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import isTextContent from '@app/utils/isTextContent';
+import LoadingOverlay from '../LoadingOverlay';
 
 const FONT_SIZE = 17;
 const GROUP_LABEL_FONT_SIZE = 13;
@@ -26,6 +27,7 @@ type Props = {
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
+  loading?: boolean;
 } & React.ComponentProps<typeof View>;
 
 type AddRefToPropsHack = { ref?: React.ForwardedRef<View> };
@@ -39,6 +41,7 @@ function InsetGroup(
     labelVariant,
     labelRight,
     labelContainerStyle,
+    loading,
     ...props
   }: Props & AddRefToPropsHack,
   ref?: React.ForwardedRef<View>,
@@ -94,12 +97,14 @@ function InsetGroup(
         {...props}
         style={[
           styles.container,
+          loading && styles.containerLoading,
           { backgroundColor: contentBackgroundColor },
           footerLabel ? styles.containerMarginBottom0 : {},
           ...(Array.isArray(style) ? style : [style]),
         ]}
       >
         {children}
+        {loading && <LoadingOverlay show />}
       </View>
       {footerLabel && (
         <Text
@@ -200,7 +205,7 @@ function InsetGroupItem({
               arrow &&
               styles.insetGroupItemVerticalContainerWithArrow,
             {
-              paddingVertical: (vertical ? 4 : vertical2 ? 8 : 12) * fontScale,
+              paddingVertical: (vertical ? 5 : vertical2 ? 8 : 12) * fontScale,
             },
             ...(Array.isArray(style) ? style : [style]),
           ]}
@@ -467,6 +472,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  containerLoading: {
+    minHeight: 300,
   },
   containerMarginBottom0: {
     marginBottom: 0,

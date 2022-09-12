@@ -77,18 +77,15 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             icon="sync"
             iosImage="ios-menu.sync.png"
             onPress={() => navigation.push('PouchDBSync')}
-          >
-            Profile
-          </TableView.Item>
+          />
           <TableView.Item
+            label="Travel Mode"
             icon="briefcase"
             iosImage="ios-menu.travel.png"
             switch
             switchValue={switchValue}
             onSwitchChangeValue={v => setSwitchValue(v)}
-          >
-            Travel Mode
-          </TableView.Item>
+          />
           <TableView.Item
             arrow
             icon="domain"
@@ -96,6 +93,14 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             onPress={() => navigation.push('Settings')}
           >
             Locations
+          </TableView.Item>
+          <TableView.Item
+            arrow
+            icon="bookmark-box-multiple"
+            iosImage="ios-menu.collections.png"
+            onPress={() => navigation.push('Collections')}
+          >
+            Collections
           </TableView.Item>
           <TableView.Item
             arrow

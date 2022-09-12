@@ -30,6 +30,8 @@ import SampleScreen from '@app/screens/SampleScreen';
 import StorybookScreen from '@app/screens/StorybookScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 
+import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
+
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
 import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
@@ -40,6 +42,7 @@ import type { TypeName as DataTypeName } from '@app/db/schema';
 
 export type StackParamList = {
   More: undefined;
+  Collections: undefined;
   TmpInventoryTab: undefined;
   Settings: undefined;
   GenericTextDetails: {
@@ -187,6 +190,8 @@ function MainStack({ initialRouteName }: Props) {
         component={NewAppScreen}
         options={SCREEN_OPTIONS.noHeader}
       />
+
+      <Stack.Screen name="Collections" component={CollectionsScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
       <Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />

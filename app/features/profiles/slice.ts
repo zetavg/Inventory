@@ -9,7 +9,7 @@ import {
   AttachmentsDatabase,
   LogsDatabase,
   getLogsDatabase,
-} from '@app/db';
+} from '@app/db/pouchdb';
 import dbSyncConfigReducer, {
   dbSyncConfigSlice,
   DBSyncConfigState,
