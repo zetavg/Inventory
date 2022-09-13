@@ -10,6 +10,7 @@ import titleCase from '@app/utils/titleCase';
 import schema from '@app/db/schema';
 import useDB from '@app/hooks/useDB';
 import { save } from '@app/db/relationalUtils';
+import { applyWhitespaceFix, removeWhitespaceFix } from '@app/utils/text-input-whitespace-fix';
 
 function RelationalPouchDBSaveScreen({
   route,
@@ -152,17 +153,13 @@ function RelationalPouchDBSaveScreen({
                               <InsetGroup.TextInput
                                 alignRight
                                 placeholder={`Enter ${field}`}
-                                value={(data[field] || '').replace(
-                                  /\u0020$/,
-                                  '\u0020\u033a\u0320',
+                                value={applyWhitespaceFix(
+                                  data[field] as string | undefined,
                                 )}
                                 onChangeText={t => {
                                   setData(d => ({
                                     ...d,
-                                    [field]: t.replace(
-                                      /\u0020\u033a\u0320/,
-                                      '\u0020',
-                                    ),
+                                    [field]: removeWhitespaceFix(t),
                                   }));
                                   setHasUnsavedChanges(true);
                                 }}
