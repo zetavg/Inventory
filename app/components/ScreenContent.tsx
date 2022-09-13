@@ -343,6 +343,12 @@ function ScreenContent({
                   : [children.props.style]),
                 { backgroundColor },
               ],
+              contentContainerStyle: [
+                ...(Array.isArray(children.props.contentContainerStyle)
+                  ? children.props.contentContainerStyle
+                  : [children.props.contentContainerStyle]),
+                { paddingTop: 16 },
+              ],
             },
           }}
       {overlay}
