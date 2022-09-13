@@ -3,5 +3,6 @@ declare module 'react-native-neomorph-shadows' {
   const noTypesYet: any;
   export default noTypesYet;
   const NeomorphBox = noTypesYet;
-  export { NeomorphBox };
+  const ShadowBox = noTypesYet;
+  export { NeomorphBox, ShadowBox };
 }

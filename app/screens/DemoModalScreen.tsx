@@ -18,17 +18,12 @@ function DemoModalScreen({
   const [showAppbar, setShowAppbar] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const { statusBarStyle } = useModalClosingHandler(
-    navigation,
-    hasUnsavedChanges,
-  );
-
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
   return (
     <ModalContent
-      statusBarStyle={statusBarStyle}
+      navigation={navigation}
       showAppBar={showAppbar}
       title="Demo Modal"
       action1Label="Save"

@@ -25,7 +25,7 @@ function SettingsScreen({
 
   const { backgroundColor } = useColors();
 
-  const { rfidScanSheet } = useRootBottomSheets();
+  // const { rfidScanSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
   const [switchValue2, setSwitchValue2] = useState(false);
@@ -54,7 +54,7 @@ function SettingsScreen({
           />
         </TableView.Section>
 
-        <TableView.Section>
+        {/*<TableView.Section>
           <TableView.Item
             arrow
             icon="account-box"
@@ -122,7 +122,7 @@ function SettingsScreen({
           >
             Write Tag
           </TableView.Item>
-        </TableView.Section>
+        </TableView.Section>*/}
 
         <TableView.Section label="Developer Tools">
           <TableView.Item

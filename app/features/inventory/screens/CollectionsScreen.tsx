@@ -7,7 +7,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import LoadingOverlay from '@app/components/LoadingOverlay';
 import EditingListView from '@app/components/EditingListView/EditingListView';
 import commonStyles from '@app/utils/commonStyles';
 import useOrderedData from '@app/hooks/useOrderedData';

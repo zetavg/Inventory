@@ -1,2 +1,2 @@
-import TableView from './TableView';
-export default TableView;
+import EditingListView from './EditingListView';
+export default EditingListView;

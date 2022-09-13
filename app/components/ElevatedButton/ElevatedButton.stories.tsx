@@ -2,9 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { action } from '@storybook/addon-actions';
 import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
 import StorybookSection from '@app/components/StorybookSection';
-import commonStyles from '@app/utils/commonStyles';
 
-import ElevatedButton, { useBackgroundColor } from './ElevatedButton';
+import ElevatedButton from './ElevatedButton';
 import useColors from '@app/hooks/useColors';
 
 export default {

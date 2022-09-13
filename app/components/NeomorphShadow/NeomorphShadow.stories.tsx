@@ -11,7 +11,6 @@ import Slider from '@react-native-community/slider';
 import { ShadowBox } from 'react-native-neomorph-shadows';
 
 import useColors from '@app/hooks/useColors';
-import Color from 'color';
 
 // import { Chip } from 'react-native-paper';
 // import cs from '@app/utils/commonStyles';

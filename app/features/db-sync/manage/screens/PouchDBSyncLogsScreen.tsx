@@ -128,7 +128,7 @@ function PouchDBSyncLogsScreen({
             </View>
           ) : (
             (data?.docs || [])
-              .flatMap(doc => [
+              .flatMap((doc: any) => [
                 <InsetGroup.Item
                   style={{
                     borderLeftWidth: 4,

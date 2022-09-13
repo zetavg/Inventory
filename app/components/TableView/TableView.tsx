@@ -1,7 +1,13 @@
 import Color from 'color';
 import React, { useRef, useCallback } from 'react';
 import { Platform, ScrollView, Text, View } from 'react-native';
-import { Checkbox, RadioButton, Divider, List, Switch, useTheme } from 'react-native-paper';
+import {
+  RadioButton,
+  Divider,
+  List,
+  Switch,
+  useTheme,
+} from 'react-native-paper';
 import TableViewIOS from './TableViewIOS';
 
 type Insets = {
@@ -281,6 +287,7 @@ function TableViewItem({
         label={label || children || ''}
         onPress={onPress}
         status={selected ? 'checked' : 'unchecked'}
+        value=""
       />
     );
   }

@@ -5,7 +5,7 @@ import type { StackParamList } from '@app/navigation/MainStack';
 
 function InventoryTabScreen({
   navigation,
-}: StackScreenProps<StackParamList, 'InventoryTab'>) {
+}: StackScreenProps<StackParamList, 'TmpInventoryTab'>) {
   useEffect(() => {
     navigation.replace('RelationalPouchDBType', { type: 'collection' });
   }, [navigation]);
