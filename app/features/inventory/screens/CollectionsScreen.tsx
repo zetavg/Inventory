@@ -1,16 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
+
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
+
+import commonStyles from '@app/utils/commonStyles';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
-
+import Icon, { IconColor, IconName } from '@app/components/Icon';
 import EditingListView from '@app/components/EditingListView/EditingListView';
-import commonStyles from '@app/utils/commonStyles';
-import useOrderedData from '@app/hooks/useOrderedData';
+
+import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
+import { DataTypeWithID } from '@app/db/relationalUtils';
+import useOrderedData from '@app/hooks/useOrderedData';
+
 import moveItemInArray from '@app/utils/moveItemInArray';
 
 function CollectionsScreen({
@@ -81,16 +87,12 @@ function CollectionsScreen({
       title="Collections"
       action1Label={editing ? 'Done' : 'Add'}
       action1SFSymbolName={editing ? undefined : 'rectangle.stack.badge.plus'}
-      action1MaterialIconName={editing ? undefined : 'square-edit-outline'}
+      action1MaterialIconName={editing ? undefined : 'plus'}
       onAction1Press={() =>
-        editing
-          ? endEdit()
-          : rootNavigation?.navigate('RelationalPouchDBSave', {
-              type: 'collection',
-            })
+        editing ? endEdit() : rootNavigation?.navigate('SaveCollection', {})
       }
       action2SFSymbolName={
-        orderedData && !editing ? 'square.and.pencil' : undefined
+        orderedData && !editing ? 'list.bullet.indent' : undefined
       }
       onAction2Press={orderedData && !editing ? () => startEdit() : undefined}
     >
@@ -120,21 +122,20 @@ function CollectionsScreen({
               {orderedData &&
                 orderedData
                   .flatMap(collection => [
-                    <InsetGroup.Item
+                    <CollectionItem
                       key={collection.id}
-                      arrow
-                      vertical
-                      label={collection.name}
-                      detail={collection.id}
+                      collection={collection}
                       onPress={() =>
-                        navigation.push('RelationalPouchDBTypeDataDetail', {
-                          type: 'collection',
+                        navigation.push('Collection', {
                           id: collection.id || '',
                           initialTitle: collection.name,
                         })
                       }
                     />,
-                    <InsetGroup.ItemSeperator key={`s-${collection.id}`} />,
+                    <InsetGroup.ItemSeperator
+                      key={`s-${collection.id}`}
+                      leftInset={50}
+                    />,
                   ])
                   .slice(0, -1)}
             </InsetGroup>
@@ -144,5 +145,59 @@ function CollectionsScreen({
     </ScreenContent>
   );
 }
+
+function CollectionItem({
+  collection,
+  onPress,
+}: {
+  collection: DataTypeWithID<'collection'>;
+  onPress: () => void;
+}) {
+  const { db } = useDB();
+  const [itemsCount, setItemsCount] = useState<number | null>(null);
+  const loadItemsCount = useCallback(async () => {
+    const results = await db.query(
+      function (doc: any, emit: any) {
+        emit(doc?.data?.collection);
+      },
+      { startkey: collection.id, endkey: collection.id, include_docs: false },
+    );
+    setItemsCount(results.rows.length);
+  }, [collection.id, db]);
+
+  useEffect(() => {
+    loadItemsCount();
+  }, [loadItemsCount]);
+
+  return (
+    <InsetGroup.Item
+      key={collection.id}
+      arrow
+      vertical
+      label={collection.name}
+      leftElement={
+        <Icon
+          name={collection.iconName as IconName}
+          color={collection.iconColor as IconColor}
+          size={20}
+        />
+      }
+      labelTextStyle={styles.collectionItemLabelText}
+      detailTextStyle={styles.collectionItemDetailText}
+      onPress={onPress}
+      detail={[
+        collection.collectionReferenceNumber,
+        itemsCount !== null && `${itemsCount} items`,
+      ]
+        .filter(s => s)
+        .join(' | ')}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  collectionItemLabelText: { fontSize: 16 },
+  collectionItemDetailText: { fontSize: 12 },
+});
 
 export default CollectionsScreen;

@@ -93,6 +93,8 @@ export const schema = s({
     dataSchema: jtdSchema({
       properties: {
         name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        iconName: { type: 'string' },
+        iconColor: { type: 'string' },
         collectionReferenceNumber: {
           type: 'string',
           metadata: { match: EPCUtils.COLLECTION_REFERENCE_REGEX },

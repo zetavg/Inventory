@@ -45,9 +45,13 @@ import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
 import SelectIconScreen from '@app/screens/SelectIconScreen';
 
+import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
+
 import { TypeName } from '@app/db/schema';
+import { IconName } from '@app/consts/icons';
 
 import commonStyles from '@app/utils/commonStyles';
+import { DataTypeWithID } from '@app/db/relationalUtils';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -64,6 +68,9 @@ export type RootStackParamList = {
   NewProfile: undefined;
   DBSyncConfigUpdate: {
     name?: string;
+  };
+  SaveCollection: {
+    initialData?: DataTypeWithID<'collection'>;
   };
   SelectIcon: {
     callback: (iconName: IconName) => void;
@@ -181,6 +188,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               component={RelationalPouchDBTypeDataSelectScreen}
             />
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
+            <Stack.Screen
+              name="SaveCollection"
+              component={SaveCollectionScreen}
+            />
           </Stack.Navigator>
           <RFIDSheet
             ref={rfidSheetRef}

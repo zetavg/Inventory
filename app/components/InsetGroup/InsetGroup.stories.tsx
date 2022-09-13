@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Chip } from 'react-native-paper';
 import cs from '@app/utils/commonStyles';
 import Text from '@app/components/Text';
@@ -128,11 +128,45 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
       </InsetGroup>
+
       <InsetGroup>
         <InsetGroup.Item label="Hello World" />
         <InsetGroup.ItemSeperator />
         <InsetGroup.Item label="Hello Worlddddddddddddddddddddddddddddd" />
       </InsetGroup>
+
+      <InsetGroup>
+        <InsetGroup.Item
+          leftElement={
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 5,
+                backgroundColor: '#eee',
+              }}
+            />
+          }
+          label="With Left Element"
+        />
+        <InsetGroup.ItemSeperator leftInset={60} />
+        <InsetGroup.Item
+          vertical
+          leftElement={
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 5,
+                backgroundColor: '#eee',
+              }}
+            />
+          }
+          label="Hi"
+          detail="The seperator has leftInset set to 60"
+        />
+      </InsetGroup>
+
       <InsetGroup>
         <InsetGroup.Item arrow label="Arrow" />
         <InsetGroup.ItemSeperator />

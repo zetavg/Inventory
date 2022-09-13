@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Platform,
   useWindowDimensions,
@@ -15,6 +15,7 @@ import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import isTextContent from '@app/utils/isTextContent';
 import LoadingOverlay from '../LoadingOverlay';
+import commonStyles from '@app/utils/commonStyles';
 
 const FONT_SIZE = 17;
 const GROUP_LABEL_FONT_SIZE = 13;
@@ -151,8 +152,12 @@ function InsetGroupContainer({
 InsetGroup.Container = InsetGroupContainer;
 
 type InsetGroupItemProps = {
+  containerStyle?: React.ComponentProps<typeof View>['style'];
+  leftElement?: JSX.Element;
   label?: string;
+  labelTextStyle?: React.ComponentProps<typeof Text>['style'];
   detail?: string | React.ReactNode;
+  detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   detailAsText?: boolean;
   compactLabel?: boolean;
   vertical?: boolean;
@@ -166,9 +171,13 @@ type InsetGroupItemProps = {
 } & React.ComponentProps<typeof View>;
 
 function InsetGroupItem({
+  containerStyle,
   style,
+  leftElement,
   label,
+  labelTextStyle,
   detail,
+  detailTextStyle,
   detailAsText,
   compactLabel,
   vertical,
@@ -193,125 +202,135 @@ function InsetGroupItem({
   const { fontScale } = useWindowDimensions();
 
   const element = (
-    <>
-      {label && (
-        <View
-          {...props}
-          style={[
-            vertical || vertical2
-              ? styles.insetGroupItemVerticalContainer
-              : styles.insetGroupItemContainer,
-            (vertical || vertical2) &&
-              arrow &&
-              styles.insetGroupItemVerticalContainerWithArrow,
-            {
-              paddingVertical: (vertical ? 5 : vertical2 ? 8 : 12) * fontScale,
-            },
-            ...(Array.isArray(style) ? style : [style]),
-          ]}
-        >
-          <Text
-            style={[
-              vertical2
-                ? styles.insetGroupItemVertical2Text
-                : vertical
-                ? styles.insetGroupItemVerticalText
-                : styles.insetGroupItemText,
-              compactLabel ? styles.insetGroupItemCompactLabelText : {},
-              {
-                color: (() => {
-                  if (disabled) return contentDisabledTextColor;
-
-                  if (button) {
-                    if (destructive) return iosDestructiveColor;
-
-                    return iosTintColor;
-                  }
-
-                  if (vertical2 && !compactLabel)
-                    return contentSecondaryTextColor;
-
-                  return contentTextColor;
-                })(),
-              },
-              detail && !(vertical || vertical2)
-                ? styles.insetGroupItemWithDetailText
-                : {},
-            ]}
-            numberOfLines={1}
-          >
-            {label}
-          </Text>
+    <View style={[commonStyles.row, containerStyle]}>
+      {leftElement && (
+        <View style={styles.insetGroupLeftElementContainer}>{leftElement}</View>
+      )}
+      <View style={commonStyles.flex1}>
+        {label && (
           <View
-            style={
+            {...props}
+            style={[
               vertical || vertical2
-                ? [
-                    styles.insetGroupItemVerticalDetail,
-                    { marginTop: 2 * fontScale },
-                  ]
-                : styles.insetGroupItemDetail
-            }
+                ? styles.insetGroupItemVerticalContainer
+                : styles.insetGroupItemContainer,
+              (vertical || vertical2) &&
+                arrow &&
+                styles.insetGroupItemVerticalContainerWithArrow,
+              {
+                paddingVertical:
+                  (vertical ? 5 : vertical2 ? 8 : 12) * fontScale,
+              },
+              ...(Array.isArray(style) ? style : [style]),
+            ]}
           >
-            {isTextContent(detail) || detailAsText ? (
-              <Text
-                style={{
-                  fontSize: vertical ? FONT_SIZE * 0.8 : FONT_SIZE,
-                  color: vertical2
-                    ? contentTextColor
-                    : contentSecondaryTextColor,
-                }}
-                numberOfLines={vertical2 ? undefined : 1}
-                selectable
-              >
-                {detail}
-              </Text>
-            ) : (
-              detail
-            )}
-          </View>
-          {arrow && Platform.OS === 'ios' && (
+            <Text
+              style={[
+                vertical2
+                  ? styles.insetGroupItemVertical2Text
+                  : vertical
+                  ? styles.insetGroupItemVerticalText
+                  : styles.insetGroupItemText,
+                compactLabel ? styles.insetGroupItemCompactLabelText : {},
+                {
+                  color: (() => {
+                    if (disabled) return contentDisabledTextColor;
+
+                    if (button) {
+                      if (destructive) return iosDestructiveColor;
+
+                      return iosTintColor;
+                    }
+
+                    if (vertical2 && !compactLabel)
+                      return contentSecondaryTextColor;
+
+                    return contentTextColor;
+                  })(),
+                },
+                detail && !(vertical || vertical2)
+                  ? styles.insetGroupItemWithDetailText
+                  : {},
+                labelTextStyle,
+              ]}
+              numberOfLines={1}
+            >
+              {label}
+            </Text>
             <View
               style={
                 vertical || vertical2
-                  ? styles.itemVerticalArrowContainer
-                  : styles.itemArrowContainer
+                  ? [
+                      styles.insetGroupItemVerticalDetail,
+                      { marginTop: 2 * fontScale },
+                    ]
+                  : styles.insetGroupItemDetail
               }
             >
-              <Image
-                source={{
-                  uri: isDarkMode
-                    ? 'ios-ui.tableview.arrow.dark.png'
-                    : 'ios-ui.tableview.arrow.light.png',
-                }}
-                style={styles.iosArrow}
-              />
+              {isTextContent(detail) || detailAsText ? (
+                <Text
+                  style={[
+                    {
+                      fontSize: vertical ? FONT_SIZE * 0.8 : FONT_SIZE,
+                      color: vertical2
+                        ? contentTextColor
+                        : contentSecondaryTextColor,
+                    },
+                    detailTextStyle,
+                  ]}
+                  numberOfLines={vertical2 ? undefined : 1}
+                  selectable
+                >
+                  {detail}
+                </Text>
+              ) : (
+                detail
+              )}
             </View>
-          )}
-          {selected && (
-            <Image
-              source={
-                isDarkMode
-                  ? require('./images/ios-ui.tableview.checked.dark.png')
-                  : require('./images/ios-ui.tableview.checked.light.png')
-              }
-              style={styles.itemCheckedImage}
-            />
-          )}
-        </View>
-      )}
-      {children && (
-        <View
-          style={[
-            styles.insetGroupItemContainer,
-            !label && { paddingTop: 12 * fontScale },
-            { paddingBottom: 12 * fontScale },
-            { marginTop: -2 * fontScale },
-          ]}
-        >
-          {children}
-        </View>
-      )}
-    </>
+            {arrow && Platform.OS === 'ios' && (
+              <View
+                style={
+                  vertical || vertical2
+                    ? styles.itemVerticalArrowContainer
+                    : styles.itemArrowContainer
+                }
+              >
+                <Image
+                  source={{
+                    uri: isDarkMode
+                      ? 'ios-ui.tableview.arrow.dark.png'
+                      : 'ios-ui.tableview.arrow.light.png',
+                  }}
+                  style={styles.iosArrow}
+                />
+              </View>
+            )}
+            {selected && (
+              <Image
+                source={
+                  isDarkMode
+                    ? require('./images/ios-ui.tableview.checked.dark.png')
+                    : require('./images/ios-ui.tableview.checked.light.png')
+                }
+                style={styles.itemCheckedImage}
+              />
+            )}
+          </View>
+        )}
+        {children && (
+          <View
+            style={[
+              styles.insetGroupItemContainer,
+              !label && { paddingTop: 12 * fontScale },
+              { paddingBottom: 12 * fontScale },
+              { marginTop: -2 * fontScale },
+            ]}
+          >
+            {children}
+          </View>
+        )}
+      </View>
+    </View>
   );
 
   if (onPress && !disabled)
@@ -331,13 +350,23 @@ function InsetGroupItem({
 
 InsetGroup.Item = InsetGroupItem;
 
-function InsetGroupItemSeperator() {
+function InsetGroupItemSeperator({ leftInset }: { leftInset?: number }) {
   const { insetGroupSeperatorColor } = useColors();
+  const backgroundColorStyle = useMemo(
+    () => ({ backgroundColor: insetGroupSeperatorColor }),
+    [insetGroupSeperatorColor],
+  );
+  const leftInsetStyle = useMemo(
+    () => (leftInset ? { marginLeft: leftInset } : undefined),
+    [leftInset],
+  );
+
   return (
     <View
       style={[
         styles.insetGroupItemSeperator,
-        { backgroundColor: insetGroupSeperatorColor },
+        backgroundColorStyle,
+        leftInsetStyle,
       ]}
     />
   );
@@ -465,11 +494,14 @@ InsetGroup.FONT_SIZE = FONT_SIZE;
 InsetGroup.GROUP_LABEL_FONT_SIZE = GROUP_LABEL_FONT_SIZE;
 InsetGroup.ITEM_PADDING_HORIZONTAL = INSET_GROUP_ITEM_PADDING_HORIZONTAL;
 
+const MARGIN_HORIZONTAL = 16;
+InsetGroup.MARGIN_HORIZONTAL = MARGIN_HORIZONTAL;
+
 const styles = StyleSheet.create({
   container: {
     marginTop: 0,
     marginBottom: 35,
-    marginHorizontal: 16,
+    marginHorizontal: MARGIN_HORIZONTAL,
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -509,6 +541,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 32,
     marginTop: 8,
     marginBottom: 35,
+  },
+  insetGroupLeftElementContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: INSET_GROUP_ITEM_PADDING_HORIZONTAL,
+    paddingBottom: 1,
   },
   insetGroupItemContainer: {
     flexDirection: 'row',
