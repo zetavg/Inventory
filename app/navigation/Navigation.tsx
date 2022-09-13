@@ -43,6 +43,8 @@ import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchD
 import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
+import SelectIconScreen from '@app/screens/SelectIconScreen';
+
 import { TypeName } from '@app/db/schema';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -62,6 +64,10 @@ export type RootStackParamList = {
   NewProfile: undefined;
   DBSyncConfigUpdate: {
     name?: string;
+  };
+  SelectIcon: {
+    callback: (iconName: IconName) => void;
+    defaultValue?: IconName;
   };
   ReduxSelectCommonActions: {
     callback: (data: string) => void;
@@ -174,6 +180,7 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               name="RelationalPouchDBTypeDataSelect"
               component={RelationalPouchDBTypeDataSelectScreen}
             />
+            <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
           </Stack.Navigator>
           <RFIDSheet
             ref={rfidSheetRef}

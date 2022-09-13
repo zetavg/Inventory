@@ -24,6 +24,8 @@ function useColors() {
   const purple = isDarkMode ? '#BF5AF2' : '#AF52DE';
   const pink = isDarkMode ? '#FF2D55' : '#FF2D55';
 
+  const gray = isDarkMode ? '#8E8E93' : '#8E8E93';
+
   const red2 = isDarkMode ? '#FF6A61' : '#FF6259';
   const orange2 = isDarkMode ? '#FF6A61' : '#FFAA33';
   const yellow2 = isDarkMode ? '#FFDE3B' : '#FFD633';
@@ -69,6 +71,7 @@ function useColors() {
     indigo,
     purple,
     pink,
+    gray,
     red2,
     orange2,
     yellow2,

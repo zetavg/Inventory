@@ -70,6 +70,7 @@
     "react-native-modal-selector": "^2.1.1",
     "react-native-neomorph-shadows": "0.0.8",
     "react-native-paper": "^5.0.0-rc.3",
+    "react-native-platform-searchbar": "^1.2.3",
     "react-native-quick-base64": "^2.0.5",
     "react-native-quick-sqlite": "^4.0.5",
     "react-native-quick-websql": "^0.2.0",
