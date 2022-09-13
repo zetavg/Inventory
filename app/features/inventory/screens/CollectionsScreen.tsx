@@ -156,12 +156,11 @@ function CollectionItem({
   const { db } = useDB();
   const [itemsCount, setItemsCount] = useState<number | null>(null);
   const loadItemsCount = useCallback(async () => {
-    const results = await db.query(
-      function (doc: any, emit: any) {
-        emit(doc?.data?.collection);
-      },
-      { startkey: collection.id, endkey: collection.id, include_docs: false },
-    );
+    const results = await db.query('relational_data_index/by_collection', {
+      startkey: collection.id,
+      endkey: collection.id,
+      include_docs: false,
+    });
     setItemsCount(results.rows.length);
   }, [collection.id, db]);
 

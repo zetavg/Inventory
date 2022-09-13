@@ -25,6 +25,17 @@ export function getDatabase(name: string): Database {
   const db = new PouchDBRN<DBContent>(name, { adapter: 'react-native-sqlite' });
   const relDB = db.setSchema(translateSchema(schema));
 
+  const relDataIndexDdoc = {
+    views: {
+      by_collection: {
+        map: 'function (doc) { emit(doc && doc.data && doc.data.collection); }',
+      },
+    },
+  };
+  db.get('_design/relational_data_index')
+    .catch(() => ({ _id: '_design/relational_data_index' }))
+    .then(doc => db.put({ ...doc, ...relDataIndexDdoc } as any));
+
   return addIndexesToDB(relDB, [
     relDB.createIndex({
       index: {
