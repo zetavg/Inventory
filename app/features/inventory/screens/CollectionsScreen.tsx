@@ -30,10 +30,12 @@ function CollectionsScreen({
     settingName: 'collections',
   });
 
+  const [reloadCounter, setReloadCounter] = useState(0);
   useFocusEffect(
     useCallback(() => {
       reloadOrder();
       reloadData();
+      setReloadCounter(v => v + 1);
     }, [reloadData, reloadOrder]),
   );
 
@@ -124,6 +126,7 @@ function CollectionsScreen({
                   .flatMap(collection => [
                     <CollectionItem
                       key={collection.id}
+                      reloadCounter={reloadCounter}
                       collection={collection}
                       onPress={() =>
                         navigation.push('Collection', {
@@ -149,9 +152,11 @@ function CollectionsScreen({
 function CollectionItem({
   collection,
   onPress,
+  reloadCounter,
 }: {
   collection: DataTypeWithID<'collection'>;
   onPress: () => void;
+  reloadCounter: number;
 }) {
   const { db } = useDB();
   const [itemsCount, setItemsCount] = useState<number | null>(null);
@@ -165,8 +170,9 @@ function CollectionItem({
   }, [collection.id, db]);
 
   useEffect(() => {
+    reloadCounter;
     loadItemsCount();
-  }, [loadItemsCount]);
+  }, [loadItemsCount, reloadCounter]);
 
   return (
     <InsetGroup.Item
