@@ -26,6 +26,17 @@ function useColors() {
 
   const gray = isDarkMode ? '#8E8E93' : '#8E8E93';
 
+  const iconBlue = isDarkMode ? '#3A82F7' : '#3478F6';
+  const iconBrown = isDarkMode ? '#A78F6D' : '#9D8563';
+  const iconGray = isDarkMode ? '#8E8E92' : '#8E8E92';
+  const iconGreen = isDarkMode ? '#67CE67' : '#65C466';
+  const iconIndigo = isDarkMode ? '#5D5CDE' : '#5756CE';
+  const iconYellow = isDarkMode ? '#F1A33B' : '#F09A37';
+  const iconRed = isDarkMode ? '#EB4B62' : '#EA4459';
+  const iconPurple = isDarkMode ? '#B25FEA' : '#A357D7';
+  const iconOrange = isDarkMode ? '#EB5545' : '#EB4D3D';
+  const iconTeal = isDarkMode ? '#6AC5DD' : '#59ADC4';
+
   const red2 = isDarkMode ? '#FF6A61' : '#FF6259';
   const orange2 = isDarkMode ? '#FF6A61' : '#FFAA33';
   const yellow2 = isDarkMode ? '#FFDE3B' : '#FFD633';
@@ -72,6 +83,16 @@ function useColors() {
     purple,
     pink,
     gray,
+    iconBlue,
+    iconBrown,
+    iconGray,
+    iconGreen,
+    iconIndigo,
+    iconYellow,
+    iconRed,
+    iconPurple,
+    iconOrange,
+    iconTeal,
     red2,
     orange2,
     yellow2,

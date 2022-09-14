@@ -137,7 +137,8 @@ function CollectionsScreen({
                     />,
                     <InsetGroup.ItemSeperator
                       key={`s-${collection.id}`}
-                      leftInset={50}
+                      // leftInset={50}
+                      leftInset={60}
                     />,
                   ])
                   .slice(0, -1)}
@@ -184,7 +185,11 @@ function CollectionItem({
         <Icon
           name={collection.iconName as IconName}
           color={collection.iconColor as IconColor}
-          size={20}
+          style={styles.collectionItemIcon}
+          // size={20}
+          size={30}
+          showBackground
+          backgroundPadding={4}
         />
       }
       labelTextStyle={styles.collectionItemLabelText}
@@ -201,6 +206,7 @@ function CollectionItem({
 }
 
 const styles = StyleSheet.create({
+  collectionItemIcon: { marginRight: -2 },
   collectionItemLabelText: { fontSize: 16 },
   collectionItemDetailText: { fontSize: 12 },
 });

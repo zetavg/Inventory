@@ -448,13 +448,15 @@ InsetGroup.ItemAffix = InsetGroupItemAffix;
 function InsetGroupItemDetailButton({
   label,
   onPress,
+  style,
 }: {
   label: string;
   onPress: () => void;
+  style?: React.ComponentProps<typeof TouchableOpacity>['style'];
 }) {
   const { iosTintColor } = useColors();
   return (
-    <TouchableOpacity onPress={onPress}>
+    <TouchableOpacity onPress={onPress} style={style}>
       <Text
         style={[styles.insetGroupItemDetailButtonText, { color: iosTintColor }]}
       >
@@ -585,10 +587,13 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 16,
     justifyContent: 'flex-end',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     flexDirection: 'row',
   },
-  insetGroupItemVerticalDetail: { flex: 1, alignSelf: 'stretch' },
+  insetGroupItemVerticalDetail: {
+    flex: 1,
+    alignSelf: 'stretch',
+  },
   insetGroupItemSeperator: {
     marginTop: -StyleSheet.hairlineWidth * 2,
     height: StyleSheet.hairlineWidth,

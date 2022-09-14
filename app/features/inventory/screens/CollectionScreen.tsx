@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { View, ScrollView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, ScrollView, TouchableWithoutFeedback } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -31,7 +31,7 @@ function CollectionScreen({
 
   const collection = data?.data;
 
-  const { contentTextColor } = useColors();
+  const [devModeCounter, setDevModeCounter] = useState(0);
 
   return (
     <ScreenContent
@@ -54,32 +54,43 @@ function CollectionScreen({
       // onAction2Press={handleDelete}
     >
       <ScrollView keyboardDismissMode="interactive">
-        <InsetGroup style={commonStyles.mt16} loading={!collection}>
-          <View style={[commonStyles.row, commonStyles.centerChildren]}>
-            <InsetGroup.Item
-              vertical2
-              label="Name"
-              detail={collection?.name}
-              containerStyle={[commonStyles.flex1]}
-            />
-            <View
-              style={{
-                marginRight: InsetGroup.MARGIN_HORIZONTAL,
-                padding: 8,
-                borderRadius: 4,
-                backgroundColor: Color(contentTextColor).opaquer(-0.9).hexa(),
-              }}
-            >
+        <InsetGroup style={commonStyles.mt2} loading={!collection}>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              setDevModeCounter(v => v + 1);
+            }}
+          >
+            <View style={[commonStyles.row, commonStyles.centerChildren]}>
+              <InsetGroup.Item
+                vertical2
+                label="Collection Name"
+                detail={collection?.name}
+                containerStyle={[commonStyles.flex1]}
+              />
               <Icon
+                showBackground
                 name={collection?.iconName as IconName}
                 color={collection?.iconColor as IconColor}
-                size={20}
+                size={40}
+                style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
               />
             </View>
-          </View>
+          </TouchableWithoutFeedback>
+          {devModeCounter > 10 && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item vertical2 label="ID" detail={collection?.id} />
+            </>
+          )}
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            vertical2
+            label="Reference Number"
+            detail={collection?.collectionReferenceNumber}
+          />
         </InsetGroup>
         <InsetGroup
-          label="Items In This Collection"
+          label="Items in this collection"
           labelVariant="large"
           loading={!collection}
         >

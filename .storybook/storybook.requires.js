@@ -32,6 +32,7 @@ const getStories = () => {
     require("../app/components/Button/Button.stories.tsx"),
     require("../app/components/EditingListView/EditingListView.stories.tsx"),
     require("../app/components/ElevatedButton/ElevatedButton.stories.tsx"),
+    require("../app/components/Icon/Icon.stories.tsx"),
     require("../app/components/InsetGroup/InsetGroup.stories.tsx"),
     require("../app/components/NeomorphShadow/NeomorphShadow.stories.tsx"),
     require("../app/components/RubberButton/RubberButton.stories.tsx"),

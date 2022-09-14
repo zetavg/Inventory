@@ -92,7 +92,7 @@ function SelectIconScreen({
                     iconName === value && { borderColor: iosTintColor },
                   ]}
                 >
-                  <Icon name={iconName} />
+                  <Icon name={iconName} size={20} />
                 </View>
               </TouchableWithoutFeedback>
             ))}

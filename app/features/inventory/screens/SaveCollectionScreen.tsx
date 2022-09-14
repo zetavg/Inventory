@@ -1,13 +1,13 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ScrollView, Alert, View } from 'react-native';
+import { ScrollView, Alert } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import Color from 'color';
 import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
 import ModalContent from '@app/components/ModalContent';
+import Text from '@app/components/Text';
 import InsetGroup from '@app/components/InsetGroup';
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 import Icon, { IconColor, IconName } from '@app/components/Icon';
@@ -130,25 +130,38 @@ function SaveCollectionScreen({
             compactLabel
             label="Reference Number"
             detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="0000"
-                keyboardType="number-pad"
-                maxLength={4}
-                returnKeyType="done"
-                value={data.collectionReferenceNumber}
-                onChangeText={t => {
-                  setData(d => ({
-                    ...d,
-                    collectionReferenceNumber: t,
-                  }));
-                  setReferenceNumberIsRandomlyGenerated(false);
-                  setHasUnsavedChanges(true);
-                }}
-              />
+              <>
+                <InsetGroup.TextInput
+                  alignRight
+                  placeholder="0000"
+                  keyboardType="number-pad"
+                  maxLength={7}
+                  returnKeyType="done"
+                  // clearButtonMode="while-editing"
+                  value={data.collectionReferenceNumber}
+                  onChangeText={t => {
+                    setData(d => ({
+                      ...d,
+                      collectionReferenceNumber: t,
+                    }));
+                    setReferenceNumberIsRandomlyGenerated(false);
+                    setHasUnsavedChanges(true);
+                  }}
+                />
+                {(!data.collectionReferenceNumber ||
+                  referenceNumberIsRandomlyGenerated) && (
+                  <>
+                    <InsetGroup.ItemDetailButton
+                      style={commonStyles.ml4}
+                      label="Generate"
+                      onPress={randomGenerateReferenceNumber}
+                    />
+                  </>
+                )}
+              </>
             }
           />
-          {(!data.collectionReferenceNumber ||
+          {/*{(!data.collectionReferenceNumber ||
             referenceNumberIsRandomlyGenerated) && (
             <>
               <InsetGroup.ItemSeperator />
@@ -158,7 +171,7 @@ function SaveCollectionScreen({
                 onPress={randomGenerateReferenceNumber}
               />
             </>
-          )}
+          )}*/}
         </InsetGroup>
 
         <InsetGroup>
@@ -170,26 +183,28 @@ function SaveCollectionScreen({
                 label="Select"
                 onPress={() =>
                   navigation.navigate('SelectIcon', {
-                    callback: iconName => setData(d => ({ ...d, iconName })),
+                    defaultValue: data.iconName as IconName,
+                    callback: iconName => {
+                      setData(d => ({ ...d, iconName }));
+                      setHasUnsavedChanges(true);
+                    },
                   })
                 }
               />
             }
           >
             {data.iconName && (
-              <View
-                style={{
-                  padding: 8,
-                  borderRadius: 4,
-                  backgroundColor: Color(contentTextColor).opaquer(-0.9).hexa(),
-                }}
-              >
+              <>
                 <Icon
                   name={data.iconName as IconName}
                   color={data.iconColor as IconColor}
-                  size={20}
+                  showBackground
+                  size={40}
                 />
-              </View>
+                <Text style={[commonStyles.ml12, commonStyles.opacity05]}>
+                  {data.iconName}
+                </Text>
+              </>
             )}
           </InsetGroup.Item>
           <InsetGroup.ItemSeperator />

@@ -43,6 +43,37 @@ const commonStyles = StyleSheet.create({
   w16: {
     width: 16,
   },
+  ml1: {
+    marginLeft: 1,
+  },
+  ml2: {
+    marginLeft: 2,
+  },
+  ml4: {
+    marginLeft: 4,
+  },
+  ml8: {
+    marginLeft: 8,
+  },
+  ml12: {
+    marginLeft: 12,
+  },
+  ml16: {
+    marginLeft: 16,
+  },
+  ml20: {
+    marginLeft: 20,
+  },
+  ml24: {
+    marginLeft: 24,
+  },
+  ml28: {
+    marginLeft: 28,
+  },
+  ml32: {
+    marginLeft: 32,
+  },
+
   mr1: {
     marginRight: 1,
   },
