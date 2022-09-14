@@ -1,14 +1,19 @@
-export type IconColor =
-  | 'blue'
-  | 'brown'
-  | 'gray'
-  | 'green'
-  | 'indigo'
-  | 'yellow'
-  | 'red'
-  | 'purple'
-  | 'orange'
-  | 'teal';
+import objectEntries from "@app/utils/objectEntries";
+
+export const ICON_COLORS = [
+  'blue',
+  'brown',
+  'gray',
+  'green',
+  'indigo',
+  'yellow',
+  'red',
+  'purple',
+  'orange',
+  'teal',
+] as const;
+
+export type IconColor = typeof ICON_COLORS[number];
 
 export const ICONS = {
   // Box
@@ -551,5 +556,7 @@ export const ICONS = {
   //   keywords: '',
   // },
 } as const;
+
+export const ICON_NAMES = objectEntries(ICONS).map(([name]) => name);
 
 export type IconName = keyof typeof ICONS;

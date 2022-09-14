@@ -1,6 +1,7 @@
 import type { Schema as JTDSchema } from 'jtd';
 import { JTDDataType } from 'ajv/dist/jtd';
 import EPCUtils from '@app/modules/EPCUtils';
+import { ICON_COLORS, ICON_NAMES } from '@app/consts/icons';
 
 // ==== Type of Schema ==== //
 
@@ -93,8 +94,8 @@ export const schema = s({
     dataSchema: jtdSchema({
       properties: {
         name: { type: 'string', metadata: { trimAndNotEmpty: true } },
-        iconName: { type: 'string' },
-        iconColor: { type: 'string' },
+        iconName: { type: 'string', enum: ICON_NAMES },
+        iconColor: { type: 'string', enum: ICON_COLORS },
         collectionReferenceNumber: {
           type: 'string',
           metadata: { match: EPCUtils.COLLECTION_REFERENCE_REGEX },
