@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 /**
  * Common, utility styles,
@@ -149,6 +149,18 @@ const commonStyles = StyleSheet.create({
   mt36: {
     marginTop: 36,
   },
+  mbm2: {
+    marginBottom: -2,
+  },
+  mbm3: {
+    marginBottom: -3,
+  },
+  mbm4: {
+    marginBottom: -4,
+  },
+  mbm5: {
+    marginBottom: -5,
+  },
   p4: {
     padding: 4,
   },
@@ -192,7 +204,13 @@ const commonStyles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  opacity08: {
+    opacity: 0.8,
+  },
   opacity05: {
+    opacity: 0.5,
+  },
+  opacity04: {
     opacity: 0.5,
   },
   opacity02: {
@@ -200,6 +218,9 @@ const commonStyles = StyleSheet.create({
   },
   centerChildren: {
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  alignItemsCenter: {
     alignItems: 'center',
   },
   touchableSFSymbolContainer: {
@@ -216,6 +237,10 @@ const commonStyles = StyleSheet.create({
   },
   tac: {
     textAlign: 'center',
+  },
+  monospaced: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    opacity: 0.9,
   },
 });
 

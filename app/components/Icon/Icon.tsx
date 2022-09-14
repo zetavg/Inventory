@@ -10,12 +10,14 @@ import titleCase from '@app/utils/titleCase';
 
 type Props = {
   name: IconName;
-  color?: IconColor;
+  color?: IconColor | string;
   size?: number;
   showBackground?: boolean;
   backgroundColor?: string;
   backgroundPadding?: number;
   style?: React.ComponentProps<typeof View>['style'];
+  sfSymbolWeight?: React.ComponentProps<typeof SFSymbol>['weight'];
+  sfSymbolScale?: React.ComponentProps<typeof SFSymbol>['scale'];
 };
 
 export default function Icon({
@@ -26,12 +28,15 @@ export default function Icon({
   backgroundPadding = 8,
   backgroundColor: bgColor,
   style,
+  sfSymbolWeight,
+  sfSymbolScale,
 }: Props) {
   const colors = useColors();
   const icon = ICONS[name];
-  const color = colorName
+  let color = colorName
     ? (colors as any)[`icon${titleCase(colorName)}`]
     : Color(colors.contentTextColor).opaquer(-0.32).hexa();
+  if (!color) color = colorName;
 
   const iconSize = showBackground ? size - backgroundPadding * 2 : size;
 
@@ -54,6 +59,8 @@ export default function Icon({
               name={(icon as any).sfSymbolName}
               color={color}
               size={iconSize * 0.88}
+              weight={sfSymbolWeight}
+              scale={sfSymbolScale}
             />
           </View>
         );

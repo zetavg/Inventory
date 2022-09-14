@@ -24,7 +24,7 @@ const INSET_GROUP_ITEM_PADDING_HORIZONTAL = 16;
 type Props = {
   children: React.ReactNode;
   label?: string;
-  footerLabel?: string;
+  footerLabel?: string | JSX.Element;
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
@@ -151,6 +151,42 @@ function InsetGroupContainer({
 
 InsetGroup.Container = InsetGroupContainer;
 
+type InsetGroupLabelButtonProps = {
+  children?: React.ReactNode;
+  title?: string;
+} & React.ComponentProps<typeof TouchableHighlight>;
+
+function InsetGroupLabelButton({
+  children,
+  title,
+  style,
+  ...props
+}: InsetGroupLabelButtonProps) {
+  const { iosTintColor, textOnDarkBackgroundColor } = useColors();
+  return (
+    <TouchableHighlight
+      underlayColor={Color(iosTintColor).darken(0.2).hexa()}
+      {...props}
+      style={[
+        { backgroundColor: iosTintColor },
+        styles.insetGroupLabelButton,
+        ...(Array.isArray(style) ? style : [style]),
+      ]}
+    >
+      <Text
+        style={[
+          { color: textOnDarkBackgroundColor },
+          styles.insetGroupLabelButtonText,
+        ]}
+      >
+        {children || title}
+      </Text>
+    </TouchableHighlight>
+  );
+}
+
+InsetGroup.LabelButton = InsetGroupLabelButton;
+
 type InsetGroupItemProps = {
   containerStyle?: React.ComponentProps<typeof View>['style'];
   leftElement?: JSX.Element;
@@ -202,7 +238,7 @@ function InsetGroupItem({
   const { fontScale } = useWindowDimensions();
 
   const element = (
-    <View style={[commonStyles.row, containerStyle]}>
+    <View style={[commonStyles.row, !onPress && containerStyle]}>
       {leftElement && (
         <View style={styles.insetGroupLeftElementContainer}>{leftElement}</View>
       )}
@@ -339,6 +375,7 @@ function InsetGroupItem({
         activeOpacity={1}
         underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
         onPress={onPress}
+        style={containerStyle}
       >
         {/*<Text>{Color(contentTextColor).opaquer(-0.1).hexa()}</Text>*/}
         {element}
@@ -612,6 +649,7 @@ const styles = StyleSheet.create({
   insetGroupItemAffix: {
     marginLeft: 4,
     fontSize: FONT_SIZE * 0.8,
+    alignSelf: 'flex-end',
   },
   insetGroupItemDetailButtonText: {
     fontSize: FONT_SIZE * 0.82,
@@ -628,6 +666,18 @@ const styles = StyleSheet.create({
   },
   insetGroupContainer: {
     paddingTop: 16,
+  },
+  insetGroupLabelButton: {
+    marginTop: -3,
+    marginVertical: -0,
+    marginLeft: 4,
+    borderRadius: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+  },
+  insetGroupLabelButtonText: {
+    fontWeight: '500',
+    fontSize: 15,
   },
 });
 

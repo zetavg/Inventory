@@ -1,5 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Alert } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ScrollView, View, Alert, TouchableOpacity } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -12,6 +12,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 import Icon, { IconColor, IconName } from '@app/components/Icon';
 
+import { v4 as uuidv4 } from 'uuid';
 import useDB from '@app/hooks/useDB';
 import { DataTypeWithID, save } from '@app/db/relationalUtils';
 
@@ -21,30 +22,61 @@ import {
   removeWhitespaceFix,
 } from '@app/utils/text-input-whitespace-fix';
 
-function SaveCollectionScreen({
+function SaveItemScreen({
   route,
   navigation,
-}: StackScreenProps<RootStackParamList, 'SaveCollection'>) {
+}: StackScreenProps<RootStackParamList, 'SaveItem'>) {
   const { initialData } = route.params;
   const { contentTextColor } = useColors();
 
   const { db } = useDB();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const [data, setData] = useState<Partial<DataTypeWithID<'collection'>>>({
-    iconName: 'box',
+  const [data, setData] = useState<Partial<DataTypeWithID<'item'>>>({
+    iconName: 'cube-outline',
     iconColor: 'gray',
-    itemDefaultIconName: 'cube-outline',
     ...initialData,
   });
+
+  const [selectedCollectionData, setSelectedCollectionData] = useState<
+    null | string | { name: string; iconName: string; iconColor: string }
+  >(null);
+  const loadSetSelectedCollectionData = useCallback(async () => {
+    if (!data.collection) return;
+
+    try {
+      const collectionDoc: any = await db.get(
+        `collection-2-${data.collection}`,
+      );
+      const { data: d } = collectionDoc;
+      if (typeof d !== 'object') throw new Error(`${d} is not an object`);
+      setSelectedCollectionData(d);
+    } catch (e) {
+      setSelectedCollectionData(`Error: ${e}`);
+    }
+  }, [data.collection, db]);
+  useEffect(() => {
+    setSelectedCollectionData(null);
+    loadSetSelectedCollectionData();
+  }, [loadSetSelectedCollectionData]);
+
+  const handleOpenSelectCollection = useCallback(() => {
+    navigation.navigate('SelectCollection', {
+      defaultValue: data.collection,
+      callback: collection => {
+        setData(d => ({ ...d, collection }));
+        setHasUnsavedChanges(true);
+      },
+    });
+  }, [data.collection, navigation]);
 
   const [
     referenceNumberIsRandomlyGenerated,
     setReferenceNumberIsRandomlyGenerated,
   ] = useState(false);
   const randomGenerateReferenceNumber = useCallback(() => {
-    const number = randomInt(1000, 9900);
-    setData(d => ({ ...d, collectionReferenceNumber: number.toString() }));
+    const number = randomInt(100000, 999999);
+    setData(d => ({ ...d, itemReferenceNumber: number.toString() }));
     setReferenceNumberIsRandomlyGenerated(true);
   }, []);
 
@@ -60,32 +92,24 @@ function SaveCollectionScreen({
     [data.iconName, navigation],
   );
 
-  const handleOpenSelectDefaultItemIcon = useCallback(
-    () =>
-      navigation.navigate('SelectIcon', {
-        defaultValue: data.itemDefaultIconName as IconName,
-        callback: iconName => {
-          setData(d => ({ ...d, itemDefaultIconName: iconName }));
-          setHasUnsavedChanges(true);
-        },
-      }),
-    [data.itemDefaultIconName, navigation],
-  );
-
   const [saving, setSaving] = useState(false);
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      await save(db, 'collection', data);
+      if (!data.id) data.id = uuidv4();
+      await save(db, 'item', data);
       isDone.current = true;
+      if (route.params.afterSave) {
+        route.params.afterSave(data);
+      }
       navigation.goBack();
     } catch (e: any) {
       Alert.alert('Error', e?.message || 'Unknown error');
     } finally {
       setSaving(false);
     }
-  }, [data, db, navigation]);
+  }, [data, db, navigation, route.params]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
@@ -98,7 +122,7 @@ function SaveCollectionScreen({
 
       Alert.alert(
         'Discard changes?',
-        'The collection is not saved yet. Are you sure to discard the changes and leave?',
+        'The item is not saved yet. Are you sure to discard the changes and leave?',
         [
           { text: "Don't leave", style: 'cancel', onPress: () => {} },
           {
@@ -119,7 +143,7 @@ function SaveCollectionScreen({
       navigation={navigation}
       preventClose={hasUnsavedChanges}
       confirmCloseFn={handleLeave}
-      title={`${data.id ? 'Edit' : 'New'} Collection`}
+      title={`${data.id ? 'Edit' : 'New'} Item`}
       action1Label="Save"
       action1MaterialIconName="check"
       action1Variant="strong"
@@ -140,7 +164,7 @@ function SaveCollectionScreen({
             detail={
               <InsetGroup.TextInput
                 alignRight
-                placeholder="Enter Name"
+                placeholder="Enter Name (Required)"
                 autoCapitalize="words"
                 returnKeyType="done"
                 onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
@@ -158,29 +182,75 @@ function SaveCollectionScreen({
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             compactLabel
+            label="Collection"
+            detail={
+              <InsetGroup.ItemDetailButton
+                label="Select"
+                onPress={handleOpenSelectCollection}
+              />
+            }
+          >
+            <TouchableOpacity
+              style={commonStyles.flex1}
+              onPress={handleOpenSelectCollection}
+            >
+              <View style={commonStyles.row}>
+                {selectedCollectionData &&
+                  typeof selectedCollectionData === 'object' && (
+                    <Icon
+                      showBackground
+                      backgroundPadding={4}
+                      size={InsetGroup.FONT_SIZE + 8}
+                      name={selectedCollectionData.iconName as IconName}
+                      color={selectedCollectionData.iconColor as IconColor}
+                      style={commonStyles.mr8}
+                    />
+                  )}
+                <Text
+                  style={[
+                    (!selectedCollectionData ||
+                      typeof selectedCollectionData !== 'object') &&
+                      commonStyles.opacity02,
+                    { fontSize: InsetGroup.FONT_SIZE },
+                  ]}
+                >
+                  {data.collection
+                    ? selectedCollectionData
+                      ? typeof selectedCollectionData === 'object'
+                        ? selectedCollectionData.name
+                        : selectedCollectionData
+                      : 'Loading...'
+                    : '(Required)'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </InsetGroup.Item>
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            compactLabel
             label="Reference Number"
             detail={
               <>
                 <InsetGroup.TextInput
                   alignRight
-                  placeholder="0000"
+                  placeholder="000000"
                   keyboardType="number-pad"
                   maxLength={7}
                   returnKeyType="done"
                   style={commonStyles.monospaced}
                   // clearButtonMode="while-editing"
-                  onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
-                  value={data.collectionReferenceNumber}
+                  value={data.itemReferenceNumber}
                   onChangeText={t => {
                     setData(d => ({
                       ...d,
-                      collectionReferenceNumber: t,
+                      itemReferenceNumber: t,
                     }));
                     setReferenceNumberIsRandomlyGenerated(false);
                     setHasUnsavedChanges(true);
                   }}
                 />
-                {(!data.collectionReferenceNumber ||
+                {(!data.itemReferenceNumber ||
                   referenceNumberIsRandomlyGenerated) && (
                   <>
                     <InsetGroup.ItemDetailButton
@@ -193,7 +263,34 @@ function SaveCollectionScreen({
               </>
             }
           />
-          {/*{(!data.collectionReferenceNumber ||
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
+            label="Serial"
+            detail={
+              <>
+                <InsetGroup.TextInput
+                  alignRight
+                  placeholder="1234"
+                  keyboardType="number-pad"
+                  maxLength={4}
+                  returnKeyType="done"
+                  style={commonStyles.monospaced}
+                  // clearButtonMode="while-editing"
+                  value={(data.serial || '').toString()}
+                  onChangeText={t => {
+                    setData(d => ({
+                      ...d,
+                      serial: t ? parseInt(t, 10) : undefined,
+                    }));
+                    setReferenceNumberIsRandomlyGenerated(false);
+                    setHasUnsavedChanges(true);
+                  }}
+                />
+              </>
+            }
+          />
+          {/*{(!data.itemReferenceNumber ||
             referenceNumberIsRandomlyGenerated) && (
             <>
               <InsetGroup.ItemSeperator />
@@ -250,40 +347,9 @@ function SaveCollectionScreen({
             />
           </InsetGroup.Item>
         </InsetGroup>
-
-        <InsetGroup>
-          <InsetGroup.Item
-            compactLabel
-            label="Default Icon for Items"
-            detail={
-              <InsetGroup.ItemDetailButton
-                label="Select"
-                onPress={handleOpenSelectDefaultItemIcon}
-              />
-            }
-          >
-            <TouchableOpacity
-              style={commonStyles.flex1}
-              onPress={handleOpenSelectDefaultItemIcon}
-            >
-              {data.itemDefaultIconName && (
-                <View style={[commonStyles.row, commonStyles.alignItemsCenter]}>
-                  <Icon
-                    name={data.itemDefaultIconName as IconName}
-                    showBackground
-                    size={40}
-                  />
-                  <Text style={[commonStyles.ml12, commonStyles.opacity05]}>
-                    {data.itemDefaultIconName}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </InsetGroup.Item>
-        </InsetGroup>
       </ScrollView>
     </ModalContent>
   );
 }
 
-export default SaveCollectionScreen;
+export default SaveItemScreen;

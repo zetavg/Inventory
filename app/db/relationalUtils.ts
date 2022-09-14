@@ -231,15 +231,17 @@ export async function save<T extends TypeName>(
           d.serial || 0,
           { joinBy: '.', includePrefix: false },
         );
-        d.calculatedRfidTagEpcMemoryBankContents =
+        d.computedRfidTagEpcMemoryBankContents =
           await calculateRfidTagEpcMemoryBankContentsForItem(db, d);
-        // TODO: Write to actual after tag write
-        d.actualRfidTagEpcMemoryBankContents =
-          d.calculatedRfidTagEpcMemoryBankContents;
       } else {
         d.individualAssetReference = undefined;
-        d.calculatedRfidTagEpcMemoryBankContents = undefined;
+        d.computedRfidTagEpcMemoryBankContents = undefined;
       }
+
+      const timestamp = Math.floor(Date.now() / 1000);
+      if (!d.createdAt) d.createdAt = timestamp;
+      d.updatedAt = timestamp;
+
       break;
     }
   }
@@ -247,6 +249,35 @@ export async function save<T extends TypeName>(
   await db.rel.save(type, data);
 
   // TODO: post-process
+  // TODO: For editing collection's reference number, we need to update all of its items.
+}
+
+/**
+ * A wrapper of `db.rel.delete` with better types and validation support.
+ */
+export async function del<T extends TypeName>(
+  db: Database,
+  type: T,
+  id: string,
+): Promise<void> {
+  const data = await findWithRelations(db, type, id);
+
+  if (!data.data)
+    throw new Error(`Can't find ${type} with ID ${id}. Is it already deleted?`);
+
+  // Validate
+  switch (type) {
+    case 'collection': {
+      const relatedItems = data.getRelated('items', { arrElementType: 'item' });
+      if (relatedItems && relatedItems.length > 0) {
+        throw new Error(
+          `Can't delete collection ${data.data.name} as it still has items in it. Remove all items from the collection and try again.`,
+        );
+      }
+    }
+  }
+
+  await db.rel.del(type, data.data);
 }
 
 export async function calculateRfidTagEpcMemoryBankContentsForItem(
@@ -407,9 +438,9 @@ export async function validateItemReferenceNumberWithSerialUnique(
 
   await db.indexesReady;
   const data = await db.find({
-    use_index: 'index-field-calculatedRfidTagEpcMemoryBankContents',
+    use_index: 'index-field-computedRfidTagEpcMemoryBankContents',
     selector: {
-      'data.calculatedRfidTagEpcMemoryBankContents': { $eq: epcContents },
+      'data.computedRfidTagEpcMemoryBankContents': { $eq: epcContents },
     },
   });
 

@@ -22,27 +22,38 @@ import Icon from '@app/components/Icon';
 import { ICONS } from '@app/consts/icons';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import objectEntries from '@app/utils/objectEntries';
+import { useRelationalData } from '@app/db';
+import useOrderedData from '@app/hooks/useOrderedData';
+import { CollectionItem } from './CollectionsScreen';
 
-function SelectIconScreen({
+function SelectCollectionScreen({
   navigation,
   route,
-}: StackScreenProps<RootStackParamList, 'SelectIcon'>) {
+}: StackScreenProps<RootStackParamList, 'SelectCollection'>) {
   const { callback, defaultValue } = route.params;
   const [value, setValue] = useState(defaultValue);
   const [search, setSearch] = useState('');
 
-  const iconNames = useMemo(() => {
-    let iconEnteries = objectEntries(ICONS);
+  const { data, reloadData } = useRelationalData('collection');
+  const { orderedData, reloadOrder, updateOrder } = useOrderedData({
+    data,
+    settingName: 'collections',
+  });
+
+  const collections = useMemo(() => {
+    if (!orderedData) return orderedData;
 
     if (search) {
       const searchTerm = search.toLowerCase();
-      iconEnteries = iconEnteries.filter(([k, v]) =>
-        `${k} ${(v as any).keywords}`.match(searchTerm),
+      return orderedData.filter(c =>
+        `${c.collectionReferenceNumber} ${c.name.toLowerCase()}`.match(
+          searchTerm,
+        ),
       );
     }
 
-    return iconEnteries.map(([k]) => k);
-  }, [search]);
+    return orderedData;
+  }, [orderedData, search]);
 
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
@@ -77,7 +88,7 @@ function SelectIconScreen({
   return (
     <ModalContent
       navigation={navigation}
-      title="Select Icon"
+      title="Select Collection"
       preventClose={true}
       confirmCloseFn={handleLeave}
       action2Label="Cancel"
@@ -101,24 +112,26 @@ function SelectIconScreen({
             onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
           />
         </View>
-        <InsetGroup style={[cs.centerChildren]}>
-          <View style={styles.iconsContainer}>
-            {iconNames.map(iconName => (
-              <TouchableWithoutFeedback
-                key={iconName}
-                onPress={() => setValue(iconName)}
-              >
-                <View
-                  style={[
-                    styles.iconItemContainer,
-                    iconName === value && { borderColor: iosTintColor },
-                  ]}
-                >
-                  <Icon name={iconName} size={20} />
-                </View>
-              </TouchableWithoutFeedback>
-            ))}
-          </View>
+        <InsetGroup loading={!orderedData}>
+          {collections &&
+            collections
+              .flatMap(collection => [
+                <CollectionItem
+                  key={collection.id}
+                  reloadCounter={0}
+                  hideDetails
+                  collection={collection}
+                  onPress={() => setValue(collection.id)}
+                  arrow={false}
+                  selected={collection.id === value}
+                />,
+                <InsetGroup.ItemSeperator
+                  key={`s-${collection.id}`}
+                  // leftInset={50}
+                  leftInset={60}
+                />,
+              ])
+              .slice(0, -1)}
         </InsetGroup>
       </ScrollView>
     </ModalContent>
@@ -152,4 +165,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SelectIconScreen;
+export default SelectCollectionScreen;

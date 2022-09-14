@@ -10,17 +10,20 @@ import { TypeName } from './schema';
 
 export function useRelationalData<T1 extends TypeName>(
   type: T1,
-): { data: DataTypeWithID<T1>[] | null; reloadData: () => void };
+): { data: DataTypeWithID<T1>[] | null; reloadData: () => Promise<void> };
 export function useRelationalData<T2 extends TypeName>(
   type: T2,
   id: string,
-): { data: FindWithRelationsReturnedData<T2> | null; reloadData: () => void };
+): {
+  data: FindWithRelationsReturnedData<T2> | null;
+  reloadData: () => Promise<void>;
+};
 export function useRelationalData<T extends TypeName>(
   type: T,
   id?: string,
 ): {
   data: DataTypeWithID<T>[] | FindWithRelationsReturnedData<T> | null;
-  reloadData: () => void;
+  reloadData: () => Promise<void>;
 } {
   const { db } = useDB();
 

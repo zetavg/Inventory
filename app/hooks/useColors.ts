@@ -7,12 +7,15 @@ function useColors() {
   const contentBackgroundColor = isDarkMode ? '#1C1C1E' : '#FFFFFF';
   const sheetBackgroundColor = isDarkMode ? '#1C1C1E' : '#F2F2F6';
   const contentTextColor = isDarkMode ? '#FFFFFF' : '#000000';
+  const textOnDarkBackgroundColor = '#fff';
   const contentSecondaryTextColor = isDarkMode ? '#98989F' : '#8A8A8E';
   const contentDisabledTextColor = isDarkMode ? '#8F8F8F' : '#8F8F8F';
   const iosHeaderTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
   const iosTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
   const iosDestructiveColor = isDarkMode ? '#EB5545' : '#EB4D3D';
   const insetGroupSeperatorColor = isDarkMode ? '#3E3E40' : '#C7C7C9';
+
+  const white = '#fff';
 
   const red = isDarkMode ? '#FF453A' : '#FF3B30';
   const orange = isDarkMode ? '#FF9F0A' : '#FF9500';
@@ -69,10 +72,12 @@ function useColors() {
     contentTextColor,
     contentSecondaryTextColor,
     contentDisabledTextColor,
+    textOnDarkBackgroundColor,
     iosHeaderTintColor,
     iosTintColor,
     iosDestructiveColor,
     insetGroupSeperatorColor,
+    white,
     red,
     orange,
     yellow,

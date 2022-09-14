@@ -10,8 +10,8 @@ export const relationDataAdditionalUI: {
     const item: DataType<'item'> = data as any;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { openRfidSheet } = useRootBottomSheets();
-    const { calculatedRfidTagEpcMemoryBankContents } = item;
-    if (!calculatedRfidTagEpcMemoryBankContents) return null;
+    const { computedRfidTagEpcMemoryBankContents } = item;
+    if (!computedRfidTagEpcMemoryBankContents) return null;
 
     return (
       <>
@@ -22,7 +22,7 @@ export const relationDataAdditionalUI: {
             onPress={() =>
               openRfidSheet({
                 functionality: 'locate',
-                epc: calculatedRfidTagEpcMemoryBankContents,
+                epc: computedRfidTagEpcMemoryBankContents,
               })
             }
           />
@@ -34,7 +34,7 @@ export const relationDataAdditionalUI: {
             onPress={() =>
               openRfidSheet({
                 functionality: 'write',
-                epc: calculatedRfidTagEpcMemoryBankContents,
+                epc: computedRfidTagEpcMemoryBankContents,
                 tagAccessPassword: item.rfidTagAccessPassword,
               })
             }

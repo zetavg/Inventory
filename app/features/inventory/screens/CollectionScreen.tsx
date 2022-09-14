@@ -15,6 +15,8 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 
 import { useRelationalData } from '@app/db';
 
+import ItemItem from '../components/ItemItem';
+
 function CollectionScreen({
   navigation,
   route,
@@ -31,7 +33,25 @@ function CollectionScreen({
 
   const collection = data?.data;
 
+  const handleAddNewItem = useCallback(
+    () =>
+      rootNavigation?.push('SaveItem', {
+        initialData: {
+          collection: collection?.id,
+          iconName: collection?.itemDefaultIconName,
+        },
+        afterSave: item => {
+          item.id &&
+            item.itemReferenceNumber &&
+            navigation.push('Item', { id: item.id });
+        },
+      }),
+    [collection, navigation, rootNavigation],
+  );
+
   const [devModeCounter, setDevModeCounter] = useState(0);
+
+  const { textOnDarkBackgroundColor } = useColors();
 
   return (
     <ScreenContent
@@ -79,53 +99,66 @@ function CollectionScreen({
           {devModeCounter > 10 && (
             <>
               <InsetGroup.ItemSeperator />
-              <InsetGroup.Item vertical2 label="ID" detail={collection?.id} />
+              <InsetGroup.Item
+                vertical2
+                label="ID"
+                detailTextStyle={commonStyles.monospaced}
+                detail={collection?.id}
+              />
             </>
           )}
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             vertical2
             label="Reference Number"
+            detailTextStyle={commonStyles.monospaced}
             detail={collection?.collectionReferenceNumber}
           />
         </InsetGroup>
         <InsetGroup
-          label="Items in this collection"
+          label="Items"
           labelVariant="large"
           loading={!collection}
+          labelRight={
+            <InsetGroup.LabelButton onPress={handleAddNewItem}>
+              <Icon
+                name="add"
+                sfSymbolWeight="bold"
+                color={textOnDarkBackgroundColor}
+              />{' '}
+              New Item
+            </InsetGroup.LabelButton>
+          }
         >
-          {(data?.getRelated('items', { arrElementType: 'item' }) || [])
-            .flatMap(item => [
-              <InsetGroup.Item
-                key={item.id}
-                vertical
-                arrow
-                label={item.name}
-                detail={item.id}
-                onPress={() =>
-                  navigation.push('RelationalPouchDBTypeDataDetail', {
-                    type: 'item',
-                    id: item.id || '',
-                    initialTitle: item.name,
-                  })
-                }
-              />,
-              <InsetGroup.ItemSeperator key={`s-${item.id}`} />,
-            ])
-            .slice(0, -1)}
-          <InsetGroup.ItemSeperator />
+          {(() => {
+            const itemElements = (
+              data?.getRelated('items', { arrElementType: 'item' }) || []
+            )
+              .flatMap(item => [
+                <ItemItem
+                  key={item.id}
+                  item={item}
+                  onPress={() =>
+                    navigation.push('Item', {
+                      id: item.id || '',
+                      initialTitle: item.name,
+                    })
+                  }
+                />,
+                <InsetGroup.ItemSeperator key={`s-${item.id}`} />,
+              ])
+              .slice(0, -1);
+
+            if (itemElements.length > 0) return itemElements;
+
+            return <InsetGroup.Item label="No Items" disabled />;
+          })()}
+          {/*<InsetGroup.ItemSeperator />
           <InsetGroup.Item
             button
             label="Add New Item"
-            onPress={() =>
-              rootNavigation?.push('RelationalPouchDBSave', {
-                type: 'item',
-                initialData: {
-                  collection: collection?.id,
-                },
-              })
-            }
-          />
+            onPress={handleAddNewItem}
+          />*/}
         </InsetGroup>
       </ScrollView>
     </ScreenContent>

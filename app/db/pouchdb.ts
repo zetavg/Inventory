@@ -45,8 +45,8 @@ export function getDatabase(name: string): Database {
     }),
     relDB.createIndex({
       index: {
-        ddoc: 'index-field-calculatedRfidTagEpcMemoryBankContents',
-        fields: ['data.calculatedRfidTagEpcMemoryBankContents'],
+        ddoc: 'index-field-computedRfidTagEpcMemoryBankContents',
+        fields: ['data.computedRfidTagEpcMemoryBankContents'],
       },
     }),
     relDB.createIndex({

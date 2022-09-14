@@ -76,6 +76,7 @@ export type RFIDSheetOptions =
       functionality: 'write';
       epc?: string;
       tagAccessPassword?: string;
+      afterWriteSuccess?: () => void;
     };
 
 type Props = {
@@ -650,6 +651,7 @@ function RFIDSheet(
         soundEnabled: true,
         reportStatus: setWriteAndLockStatus,
       });
+      if (options?.afterWriteSuccess) options?.afterWriteSuccess();
     } catch (e: any) {
       // console.warn(e);
     } finally {
@@ -843,6 +845,8 @@ function RFIDSheet(
             <View style={styles.actionButtonAndStatusTextContainer}>
               <Text style={styles.actionButtonStatusText} numberOfLines={1}>
                 {(() => {
+                  if (!useBuiltinReader && !rfidReaderDeviceReady)
+                    return 'Trying to connect to RFID reader...';
                   switch (options?.functionality) {
                     case 'scan':
                       return scanStatus;
@@ -1155,6 +1159,7 @@ function RFIDSheet(
                                       alignRight
                                       keyboardType="number-pad"
                                       placeholder="32"
+                                      returnKeyType="done"
                                       value={scanFilterBitOffset?.toString()}
                                       onChangeText={
                                         handleChangeScanFilterBitOffsetText
@@ -1170,6 +1175,7 @@ function RFIDSheet(
                                       alignRight
                                       keyboardType="number-pad"
                                       placeholder="16"
+                                      returnKeyType="done"
                                       value={scanFilterBitCount?.toString()}
                                       onChangeText={
                                         handleChangeScanFilterBitCountText
@@ -1188,8 +1194,16 @@ function RFIDSheet(
                                       autoCorrect={false}
                                       clearButtonMode="while-editing"
                                       returnKeyType="done"
+                                      style={commonStyles.monospaced}
                                       value={scanFilterData}
-                                      onChangeText={setScanFilterData}
+                                      keyboardType="ascii-capable"
+                                      onChangeText={t =>
+                                        setScanFilterData(
+                                          t
+                                            .replace(/[^0-9a-fA-F]/gm, '')
+                                            .toUpperCase(),
+                                        )
+                                      }
                                     />
                                   }
                                 />
@@ -1236,6 +1250,7 @@ function RFIDSheet(
                               vertical2
                               label="EPC"
                               detailAsText
+                              detailTextStyle={commonStyles.monospaced}
                               detail={
                                 <AutoSizeText
                                   fontSize={InsetGroup.FONT_SIZE}
@@ -1262,12 +1277,14 @@ function RFIDSheet(
                               <InsetGroup.Item
                                 vertical2
                                 label="Raw EPC"
+                                detailTextStyle={commonStyles.monospaced}
                                 detail={options.epc}
                               />
                               <InsetGroup.ItemSeperator />
                               <InsetGroup.Item
                                 vertical2
                                 label="Access Password"
+                                detailTextStyle={commonStyles.monospaced}
                                 detail={
                                   config
                                     ? getTagAccessPassword(
@@ -1295,8 +1312,14 @@ function RFIDSheet(
                                 clearButtonMode="while-editing"
                                 returnKeyType="done"
                                 value={writeAndLockFallbackEpc}
-                                onChangeText={v =>
-                                  setWriteAndLockFallbackEpc(v)
+                                style={commonStyles.monospaced}
+                                keyboardType="ascii-capable"
+                                onChangeText={t =>
+                                  setWriteAndLockFallbackEpc(
+                                    t
+                                      .replace(/[^0-9a-fA-F]/gm, '')
+                                      .toUpperCase(),
+                                  )
                                 }
                               />
                             }
@@ -1316,6 +1339,7 @@ function RFIDSheet(
                                 autoCorrect={false}
                                 clearButtonMode="while-editing"
                                 returnKeyType="done"
+                                style={commonStyles.monospaced}
                                 value={writeAndLockFallbackAccessPassword}
                                 onChangeText={v =>
                                   setWriteAndLockFallbackAccessPassword(v)
@@ -1355,6 +1379,7 @@ function RFIDSheet(
                           vertical2
                           label="EPC"
                           detailAsText
+                          detailTextStyle={commonStyles.monospaced}
                           detail={
                             <AutoSizeText
                               fontSize={InsetGroup.FONT_SIZE}
@@ -1387,7 +1412,13 @@ function RFIDSheet(
                               clearButtonMode="while-editing"
                               returnKeyType="done"
                               value={locateFallbackEpc}
-                              onChangeText={v => setLocateFallbackEpc(v)}
+                              style={commonStyles.monospaced}
+                              keyboardType="ascii-capable"
+                              onChangeText={t =>
+                                setLocateFallbackEpc(
+                                  t.replace(/[^0-9a-fA-F]/gm, '').toUpperCase(),
+                                )
+                              }
                             />
                           }
                         />

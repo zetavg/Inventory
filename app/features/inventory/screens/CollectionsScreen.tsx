@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation';
@@ -10,11 +10,12 @@ import commonStyles from '@app/utils/commonStyles';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Icon, { IconColor, IconName } from '@app/components/Icon';
-import EditingListView from '@app/components/EditingListView/EditingListView';
+import EditingListView from '@app/components/EditingListView';
+import Text from '@app/components/Text';
 
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID, del } from '@app/db/relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 
 import moveItemInArray from '@app/utils/moveItemInArray';
@@ -24,6 +25,7 @@ function CollectionsScreen({
 }: StackScreenProps<StackParamList, 'Collections'>) {
   const rootNavigation = useRootNavigation();
 
+  const { db } = useDB();
   const { data, reloadData } = useRelationalData('collection');
   const { orderedData, reloadOrder, updateOrder } = useOrderedData({
     data,
@@ -79,9 +81,20 @@ function CollectionsScreen({
     [editing, newOrder, updateOrder],
   );
   const [editingListViewKey, setEditingListViewKey] = useState(0);
-  const handleItemDelete = useCallback((_index: number) => {
-    setEditingListViewKey(v => v + 1);
-  }, []);
+  const handleItemDelete = useCallback(
+    async (index: number) => {
+      const id = newOrder[index];
+      try {
+        await del(db, 'collection', id);
+      } catch (e: any) {
+        Alert.alert('Alert', e.message);
+      } finally {
+        await reloadData();
+        setEditingListViewKey(v => v + 1);
+      }
+    },
+    [db, newOrder, reloadData],
+  );
 
   return (
     <ScreenContent
@@ -93,10 +106,18 @@ function CollectionsScreen({
       onAction1Press={() =>
         editing ? endEdit() : rootNavigation?.navigate('SaveCollection', {})
       }
+      // TODO: Not supported on Android yet, still need to implement the EditingListView
+      // on Android
       action2SFSymbolName={
-        orderedData && !editing ? 'list.bullet.indent' : undefined
+        orderedData && orderedData.length && !editing
+          ? 'list.bullet.indent'
+          : undefined
       }
-      onAction2Press={orderedData && !editing ? () => startEdit() : undefined}
+      onAction2Press={
+        orderedData && orderedData.length > 0 && !editing
+          ? () => startEdit()
+          : undefined
+      }
     >
       {(() => {
         if (orderedData && (editing || editingWithDelayOff)) {
@@ -122,26 +143,34 @@ function CollectionsScreen({
           <ScrollView keyboardDismissMode="interactive">
             <InsetGroup loading={!orderedData}>
               {orderedData &&
-                orderedData
-                  .flatMap(collection => [
-                    <CollectionItem
-                      key={collection.id}
-                      reloadCounter={reloadCounter}
-                      collection={collection}
-                      onPress={() =>
-                        navigation.push('Collection', {
-                          id: collection.id || '',
-                          initialTitle: collection.name,
-                        })
-                      }
-                    />,
-                    <InsetGroup.ItemSeperator
-                      key={`s-${collection.id}`}
-                      // leftInset={50}
-                      leftInset={60}
-                    />,
-                  ])
-                  .slice(0, -1)}
+                (orderedData.length > 0 ? (
+                  orderedData
+                    .flatMap(collection => [
+                      <CollectionItem
+                        key={collection.id}
+                        reloadCounter={reloadCounter}
+                        collection={collection}
+                        onPress={() =>
+                          navigation.push('Collection', {
+                            id: collection.id || '',
+                            initialTitle: collection.name,
+                          })
+                        }
+                      />,
+                      <InsetGroup.ItemSeperator
+                        key={`s-${collection.id}`}
+                        // leftInset={50}
+                        leftInset={60}
+                      />,
+                    ])
+                    .slice(0, -1)
+                ) : (
+                  <Text style={styles.emptyText}>
+                    You do not have any collections yet.
+                    {'\n'}
+                    Press the add button on the top right to add one.
+                  </Text>
+                ))}
             </InsetGroup>
           </ScrollView>
         );
@@ -150,15 +179,18 @@ function CollectionsScreen({
   );
 }
 
-function CollectionItem({
+export function CollectionItem({
   collection,
   onPress,
+  hideDetails,
   reloadCounter,
+  ...props
 }: {
   collection: DataTypeWithID<'collection'>;
   onPress: () => void;
+  hideDetails?: boolean;
   reloadCounter: number;
-}) {
+} & React.ComponentProps<typeof InsetGroup.Item>) {
   const { db } = useDB();
   const [itemsCount, setItemsCount] = useState<number | null>(null);
   const loadItemsCount = useCallback(async () => {
@@ -172,14 +204,16 @@ function CollectionItem({
 
   useEffect(() => {
     reloadCounter;
+    if (hideDetails) return;
+
     loadItemsCount();
-  }, [loadItemsCount, reloadCounter]);
+  }, [hideDetails, loadItemsCount, reloadCounter]);
 
   return (
     <InsetGroup.Item
       key={collection.id}
       arrow
-      vertical
+      vertical={!hideDetails}
       label={collection.name}
       leftElement={
         <Icon
@@ -195,17 +229,28 @@ function CollectionItem({
       labelTextStyle={styles.collectionItemLabelText}
       detailTextStyle={styles.collectionItemDetailText}
       onPress={onPress}
-      detail={[
-        collection.collectionReferenceNumber,
-        itemsCount !== null && `${itemsCount} items`,
-      ]
-        .filter(s => s)
-        .join(' | ')}
+      detail={
+        hideDetails
+          ? undefined
+          : [
+              collection.collectionReferenceNumber,
+              itemsCount !== null && `${itemsCount} items`,
+            ]
+              .filter(s => s)
+              .join(' | ')
+      }
+      {...props}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  emptyText: {
+    padding: 32,
+    paddingVertical: 64,
+    opacity: 0.5,
+    textAlign: 'center',
+  },
   collectionItemIcon: { marginRight: -2 },
   collectionItemLabelText: { fontSize: 16 },
   collectionItemDetailText: { fontSize: 12 },

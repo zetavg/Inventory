@@ -45,7 +45,9 @@ import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
 import SelectIconScreen from '@app/screens/SelectIconScreen';
 
+import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
+import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 
 import { TypeName } from '@app/db/schema';
 import { IconName } from '@app/consts/icons';
@@ -69,8 +71,16 @@ export type RootStackParamList = {
   DBSyncConfigUpdate: {
     name?: string;
   };
+  SelectCollection: {
+    callback: (value: string) => void;
+    defaultValue?: string;
+  };
   SaveCollection: {
-    initialData?: DataTypeWithID<'collection'>;
+    initialData?: Partial<DataTypeWithID<'collection'>>;
+  };
+  SaveItem: {
+    initialData?: Partial<DataTypeWithID<'item'>>;
+    afterSave?: (data: Partial<DataTypeWithID<'item'>>) => void;
   };
   SelectIcon: {
     callback: (iconName: IconName) => void;
@@ -189,9 +199,14 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             />
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
             <Stack.Screen
+              name="SelectCollection"
+              component={SelectCollectionScreen}
+            />
+            <Stack.Screen
               name="SaveCollection"
               component={SaveCollectionScreen}
             />
+            <Stack.Screen name="SaveItem" component={SaveItemScreen} />
           </Stack.Navigator>
           <RFIDSheet
             ref={rfidSheetRef}
@@ -314,7 +329,7 @@ function TabNavigator() {
         />
         <Tab.Screen
           name="InventoryTab"
-          children={() => <MainStack initialRouteName="TmpInventoryTab" />}
+          children={() => <MainStack initialRouteName="Collections" />}
           options={{
             title: 'Inventory',
             tabBarIcon: ({ focused, ...props }) => (

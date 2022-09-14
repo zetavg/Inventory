@@ -1,4 +1,4 @@
-import objectEntries from "@app/utils/objectEntries";
+import objectEntries from '@app/utils/objectEntries';
 
 export const ICON_COLORS = [
   'blue',
@@ -490,6 +490,25 @@ export const ICONS = {
     sfSymbolName: 'drop.fill',
     materialIconName: 'water',
     keywords: 'water drop',
+  },
+
+  // App
+  'rfid-locate': {
+    sfSymbolName: 'scope',
+    materialIconName: 'magnify-scan',
+  },
+  'rfid-write': {
+    sfSymbolName: 'dot.radiowaves.forward',
+    // sfSymbolStyle: {},
+    materialIconName: 'square-edit-outline',
+  },
+  'app-exclamation': {
+    sfSymbolName: 'exclamationmark.triangle.fill',
+    materialIconName: 'exclamation-thick',
+  },
+  add: {
+    sfSymbolName: 'plus',
+    materialIconName: 'plus',
   },
 
   // Shape

@@ -94,14 +94,17 @@ export const schema = s({
     dataSchema: jtdSchema({
       properties: {
         name: { type: 'string', metadata: { trimAndNotEmpty: true } },
-        iconName: { type: 'string', enum: ICON_NAMES },
-        iconColor: { type: 'string', enum: ICON_COLORS },
+        iconName: { type: 'string' /* , enum: ICON_NAMES */ },
+        iconColor: { type: 'string' /* , enum: ICON_COLORS */ },
         collectionReferenceNumber: {
           type: 'string',
           metadata: { match: EPCUtils.COLLECTION_REFERENCE_REGEX },
         },
       },
-      additionalProperties: false,
+      optionalProperties: {
+        itemDefaultIconName: { type: 'string' /* , enum: ICON_NAMES */ },
+      },
+      additionalProperties: true,
     }),
     relations: {
       items: {
@@ -115,6 +118,8 @@ export const schema = s({
     dataSchema: jtdSchema({
       properties: {
         name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        iconName: { type: 'string' /* , enum: ICON_NAMES */ },
+        iconColor: { type: 'string' /* , enum: ICON_COLORS */ },
         // relations
         collection: { type: 'string' },
       },
@@ -131,7 +136,7 @@ export const schema = s({
           type: 'string',
           metadata: { editable: false },
         },
-        calculatedRfidTagEpcMemoryBankContents: {
+        computedRfidTagEpcMemoryBankContents: {
           type: 'string',
           metadata: { editable: false },
         },
@@ -143,11 +148,13 @@ export const schema = s({
           type: 'string',
           metadata: { editable: false },
         },
+        createdAt: { type: 'uint32' },
+        updatedAt: { type: 'uint32' },
         // relations
         dedicatedContainer: { type: 'string' },
         container: { type: 'string' },
       },
-      additionalProperties: false,
+      additionalProperties: true,
     }),
     relations: {
       collection: { belongsTo: 'collection' },
