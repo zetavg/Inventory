@@ -33,7 +33,7 @@ index a83a57d..a34cac0 100644
 +import rp from '../lib';
 +export default rp;
 diff --git a/node_modules/relational-pouch/lib/index.js b/node_modules/relational-pouch/lib/index.js
-index 24cd6b0..d1a355d 100644
+index 24cd6b0..6967954 100644
 --- a/node_modules/relational-pouch/lib/index.js
 +++ b/node_modules/relational-pouch/lib/index.js
 @@ -1,4 +1,4 @@
@@ -75,7 +75,15 @@ index 24cd6b0..d1a355d 100644
      let collationType = str.charAt(idx + 1);
      let id = str.substring(idx + 3);
      if (collationType === TYPE_NUM) {
-@@ -372,7 +372,7 @@ function createRel(db, keysToSchemas, schema) {
+@@ -102,6 +102,7 @@ function createRel(db, keysToSchemas, schema) {
+         let id = obj.id || uuid();
+         delete obj.id;
+         doc._id = serialize(typeInfo.documentType, id);
++        doc.type = typeInfo.documentType;
+         if (typeInfo.relations) {
+             Object.keys(typeInfo.relations).forEach(function (field) {
+                 let relationDef = typeInfo.relations[field];
+@@ -372,7 +373,7 @@ function createRel(db, keysToSchemas, schema) {
          return _del(type, obj);
      }
      function parseDocID(str) {
