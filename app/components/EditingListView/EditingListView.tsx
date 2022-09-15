@@ -1,5 +1,5 @@
 import Color from 'color';
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useEffect } from 'react';
 import { Platform, ScrollView, Text, View } from 'react-native';
 import {
   RadioButton,
@@ -26,6 +26,7 @@ type Props = {
   style?: React.ComponentProps<typeof ScrollView>['style'];
   onItemMove: (d: { from: number; to: number }) => void;
   onItemDelete: (index: number) => void;
+  scrollToTopOnLoad?: boolean;
 };
 
 function EditingListView({
@@ -39,7 +40,18 @@ function EditingListView({
   contentInset,
   scrollIndicatorInsets,
   style,
+  scrollToTopOnLoad,
 }: Props) {
+  const scrollViewRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (!scrollToTopOnLoad) return;
+
+    const timer = setTimeout(() => {
+      scrollViewRef.current?.scrollTo(0, -999, false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [scrollToTopOnLoad]);
+
   if (Platform.OS === 'ios') {
     // Dirty mapping to iOS native EditingListView
 
@@ -66,6 +78,7 @@ function EditingListView({
 
     return (
       <TableViewIOS
+        ref={scrollViewRef}
         style={style as any}
         contentInset={contentInsets || contentInset}
         scrollIndicatorInsets={scrollIndicatorInsets}

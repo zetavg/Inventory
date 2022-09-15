@@ -42,11 +42,13 @@ function OrderItemsScreen({
       backButtonLabel="Done"
     >
       <EditingListView
-        style={[commonStyles.flex1, commonStyles.pt16]}
+        style={[commonStyles.flex1]}
+        contentInset={{ topA: 24 } as any}
         editing
         onItemMove={handleItemMove}
         onItemDelete={handleItemDelete}
         key={editingListViewKey}
+        scrollToTopOnLoad
       >
         {newOrder
           .map(id => orderedItemsMap[id])

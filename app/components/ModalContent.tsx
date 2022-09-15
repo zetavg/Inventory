@@ -101,8 +101,17 @@ function ModalContent({
             props: {
               ...children.props,
               contentInset: {
+                top:
+                  (showAppBar ? AppBarIOS.HEIGHT : 0) +
+                  (children.props.contentInset?.topA || 0),
+                bottom: safeAreaInsets.bottom,
+                ...children.props.contentInset,
+                ...children.props.contentInsets,
+              },
+              scrollIndicatorInsets: {
                 top: showAppBar ? AppBarIOS.HEIGHT : 0,
                 bottom: safeAreaInsets.bottom,
+                ...children.props.scrollIndicatorInsets,
               },
               style: [
                 ...(Array.isArray(children.props.style)
