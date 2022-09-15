@@ -5,16 +5,20 @@ import useDB from './useDB';
 export default function useOrderedData<T extends { id?: string }>({
   data,
   settingName,
+  settingPriority,
 }: {
-  data: T[] | null;
+  data: ReadonlyArray<T> | null;
   settingName: string;
+  settingPriority?: string;
 }): {
-  orderedData: T[] | null;
+  orderedData: ReadonlyArray<T> | null;
   reloadOrder: () => void;
   updateOrder: (newOrder: string[]) => void;
 } {
   const { db } = useDB();
-  const settingId = `0100-settings/${settingName}-order`;
+  const settingId = `01${
+    settingPriority || '00'
+  }-settings/${settingName}-order`;
   const [orderData, setOrderData] = useState<null | {
     _id: string;
     data: string[];
@@ -51,7 +55,10 @@ export default function useOrderedData<T extends { id?: string }>({
           return d;
         })
         .filter((v: any): v is T => v),
-      ...Object.values(dataMap),
+      ...Object.values(dataMap).sort(
+        (a: any, b: any) =>
+          ((a && a.createdAt) || 0) - ((b && b.createdAt) || 0),
+      ),
     ];
   }, [data, orderData]);
 

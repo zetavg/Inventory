@@ -1,5 +1,10 @@
-import React, { useCallback, useState } from 'react';
-import { View, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import {
+  View,
+  ScrollView,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+} from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -16,6 +21,7 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 import { useRelationalData } from '@app/db';
 
 import ItemItem from '../components/ItemItem';
+import useOrderedData from '@app/hooks/useOrderedData';
 
 function CollectionScreen({
   navigation,
@@ -32,6 +38,15 @@ function CollectionScreen({
   );
 
   const collection = data?.data;
+  const items = data?.getRelated('items', { arrElementType: 'item' }) || null;
+  const { orderedData: orderedItems, updateOrder: updateItemsOrder } =
+    useOrderedData({
+      data: items,
+      settingName: `collection-${collection?.id}-items`,
+      settingPriority: '10',
+    });
+  const updateItemsOrderFunctionRef = useRef(updateItemsOrder);
+  updateItemsOrderFunctionRef.current = updateItemsOrder;
 
   const handleAddNewItem = useCallback(
     () =>
@@ -51,7 +66,7 @@ function CollectionScreen({
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
-  const { textOnDarkBackgroundColor } = useColors();
+  const { textOnDarkBackgroundColor, iosTintColor } = useColors();
 
   return (
     <ScreenContent
@@ -120,20 +135,42 @@ function CollectionScreen({
           labelVariant="large"
           loading={!collection}
           labelRight={
-            <InsetGroup.LabelButton onPress={handleAddNewItem}>
-              <Icon
-                name="add"
-                sfSymbolWeight="bold"
-                color={textOnDarkBackgroundColor}
-              />{' '}
-              New Item
-            </InsetGroup.LabelButton>
+            <>
+              {orderedItems && orderedItems.length > 0 && (
+                <InsetGroup.LabelButton
+                  onPress={() =>
+                    rootNavigation?.push('OrderItems', {
+                      orderedItems,
+                      updateOrderFunctionRef: updateItemsOrderFunctionRef,
+                    })
+                  }
+                  contentAsText={false}
+                  style={commonStyles.mr8}
+                >
+                  <Icon
+                    name="app-reorder"
+                    sfSymbolWeight="bold"
+                    color={iosTintColor}
+                  />
+                </InsetGroup.LabelButton>
+              )}
+              <InsetGroup.LabelButton primary onPress={handleAddNewItem}>
+                <Icon
+                  name="add"
+                  sfSymbolWeight="bold"
+                  color={textOnDarkBackgroundColor}
+                />{' '}
+                New Item
+              </InsetGroup.LabelButton>
+            </>
           }
         >
           {(() => {
-            const itemElements = (
-              data?.getRelated('items', { arrElementType: 'item' }) || []
-            )
+            if (!orderedItems)
+              return <InsetGroup.Item label="Loading..." disabled />;
+            if (orderedItems.length <= 0)
+              return <InsetGroup.Item label="No Items" disabled />;
+            return orderedItems
               .flatMap(item => [
                 <ItemItem
                   key={item.id}
@@ -148,10 +185,6 @@ function CollectionScreen({
                 <InsetGroup.ItemSeperator key={`s-${item.id}`} />,
               ])
               .slice(0, -1);
-
-            if (itemElements.length > 0) return itemElements;
-
-            return <InsetGroup.Item label="No Items" disabled />;
           })()}
           {/*<InsetGroup.ItemSeperator />
           <InsetGroup.Item

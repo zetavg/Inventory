@@ -23,7 +23,7 @@ const INSET_GROUP_ITEM_PADDING_HORIZONTAL = 16;
 
 type Props = {
   children: React.ReactNode;
-  label?: string;
+  label?: string | JSX.Element;
   footerLabel?: string | JSX.Element;
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
@@ -154,34 +154,56 @@ InsetGroup.Container = InsetGroupContainer;
 type InsetGroupLabelButtonProps = {
   children?: React.ReactNode;
   title?: string;
+  contentAsText?: boolean;
+  primary?: boolean;
 } & React.ComponentProps<typeof TouchableHighlight>;
 
 function InsetGroupLabelButton({
   children,
   title,
+  primary,
   style,
+  contentAsText,
   ...props
 }: InsetGroupLabelButtonProps) {
-  const { iosTintColor, textOnDarkBackgroundColor } = useColors();
+  const { iosTintColor, textOnDarkBackgroundColor, contentTextColor } =
+    useColors();
+  const Container: any = primary ? TouchableHighlight : TouchableOpacity;
+  const containerProps = primary
+    ? { underlayColor: Color(iosTintColor).darken(0.2).hexa() }
+    : {};
+
+  const ContentContainer = contentAsText === false ? React.Fragment : Text;
+  const contentContainerProps =
+    contentAsText !== false
+      ? {
+          style: [
+            primary
+              ? { color: textOnDarkBackgroundColor }
+              : { color: iosTintColor },
+            styles.insetGroupLabelButtonText,
+          ],
+        }
+      : {};
+
   return (
-    <TouchableHighlight
-      underlayColor={Color(iosTintColor).darken(0.2).hexa()}
+    <Container
+      {...containerProps}
       {...props}
       style={[
-        { backgroundColor: iosTintColor },
+        {
+          backgroundColor: primary
+            ? iosTintColor
+            : Color(contentTextColor).opaquer(-0.9).hexa(),
+        },
         styles.insetGroupLabelButton,
         ...(Array.isArray(style) ? style : [style]),
       ]}
     >
-      <Text
-        style={[
-          { color: textOnDarkBackgroundColor },
-          styles.insetGroupLabelButtonText,
-        ]}
-      >
+      <ContentContainer {...contentContainerProps}>
         {children || title}
-      </Text>
-    </TouchableHighlight>
+      </ContentContainer>
+    </Container>
   );
 }
 
@@ -545,7 +567,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   containerLoading: {
-    minHeight: 300,
+    minHeight: 120,
   },
   containerMarginBottom0: {
     marginBottom: 0,
@@ -672,6 +694,9 @@ const styles = StyleSheet.create({
     marginVertical: -0,
     marginLeft: 4,
     borderRadius: 6,
+    minHeight: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 6,
     paddingHorizontal: 8,
   },

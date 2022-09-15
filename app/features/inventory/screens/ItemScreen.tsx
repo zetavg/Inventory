@@ -96,6 +96,7 @@ function ItemScreen({
           ? () =>
               rootNavigation?.navigate('SaveItem', {
                 initialData: item,
+                afterDelete: () => navigation.goBack(),
               })
           : undefined
       }

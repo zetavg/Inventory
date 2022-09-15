@@ -48,6 +48,7 @@ import SelectIconScreen from '@app/screens/SelectIconScreen';
 import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
+import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
 
 import { TypeName } from '@app/db/schema';
 import { IconName } from '@app/consts/icons';
@@ -81,6 +82,11 @@ export type RootStackParamList = {
   SaveItem: {
     initialData?: Partial<DataTypeWithID<'item'>>;
     afterSave?: (data: Partial<DataTypeWithID<'item'>>) => void;
+    afterDelete?: () => void;
+  };
+  OrderItems: {
+    orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;
+    updateOrderFunctionRef: { current: (newOrder: string[]) => void };
   };
   SelectIcon: {
     callback: (iconName: IconName) => void;
@@ -207,6 +213,7 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               component={SaveCollectionScreen}
             />
             <Stack.Screen name="SaveItem" component={SaveItemScreen} />
+            <Stack.Screen name="OrderItems" component={OrderItemsScreen} />
           </Stack.Navigator>
           <RFIDSheet
             ref={rfidSheetRef}

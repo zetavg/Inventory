@@ -506,6 +506,10 @@ export const ICONS = {
     sfSymbolName: 'exclamationmark.triangle.fill',
     materialIconName: 'exclamation-thick',
   },
+  'app-reorder': {
+    sfSymbolName: 'list.bullet.indent',
+    // materialIconName: 'exclamation-thick',
+  },
   add: {
     sfSymbolName: 'plus',
     materialIconName: 'plus',
