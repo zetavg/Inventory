@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ScrollView, View, Alert, TouchableOpacity } from 'react-native';
+import {
+  ScrollView,
+  View,
+  Alert,
+  TouchableOpacity,
+  Switch,
+} from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -346,6 +352,20 @@ function SaveItemScreen({
               }}
             />
           </InsetGroup.Item>
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            compactLabel
+            label="This is a container"
+            detail={
+              <Switch
+                value={data.isContainer}
+                onChange={() =>
+                  setData(d => ({ ...d, isContainer: !d.isContainer }))
+                }
+              />
+            }
+          />
         </InsetGroup>
         {initialData && initialData.id && (
           <InsetGroup>

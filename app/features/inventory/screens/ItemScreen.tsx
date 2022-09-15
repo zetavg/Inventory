@@ -27,6 +27,8 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
 import EPCUtils from '@app/modules/EPCUtils';
+import useOrderedData from '@app/hooks/useOrderedData';
+import ItemItem from '../components/ItemItem';
 
 function ItemScreen({
   navigation,
@@ -49,6 +51,21 @@ function ItemScreen({
     data?.getRelated('collection', {
       arrElementType: 'collection',
     }) || [];
+  const dedicatedContents =
+    data?.getRelated('dedicatedContents', { arrElementType: 'item' }) || null;
+  const {
+    orderedData: orderedDedicatedContents,
+    updateOrder: updateDedicatedContentsOrder,
+  } = useOrderedData({
+    data: dedicatedContents,
+    settingName: `item-${item?.id}-dedicatedContents`,
+    settingPriority: '12',
+  });
+  const updateDedicatedContentsOrderFunctionRef = useRef(
+    updateDedicatedContentsOrder,
+  );
+  updateDedicatedContentsOrderFunctionRef.current =
+    updateDedicatedContentsOrder;
 
   const writeActualEpcContent = useCallback(async () => {
     if (!item) return;
@@ -80,9 +97,27 @@ function ItemScreen({
     });
   }, []);
 
+  const handleAddNewDedicatedContent = useCallback(
+    () =>
+      rootNavigation?.push('SaveItem', {
+        initialData: {
+          collection: collection?.id,
+          iconName: collection?.itemDefaultIconName,
+          dedicatedContainer: item?.id,
+        },
+        afterSave: it => {
+          it.id &&
+            it.itemReferenceNumber &&
+            navigation.push('Item', { id: it.id });
+        },
+      }),
+    [collection, item, navigation, rootNavigation],
+  );
+
   const [devModeCounter, setDevModeCounter] = useState(0);
 
-  const { iosTintColor, contentTextColor } = useColors();
+  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
+    useColors();
 
   return (
     <ScreenContent
@@ -442,6 +477,76 @@ function ItemScreen({
             </>
           )}
         </InsetGroup>
+        {item?.isContainer && (
+          <InsetGroup
+            label="Dedicated Contents"
+            labelVariant="large"
+            loading={!item}
+            labelRight={
+              <>
+                {orderedDedicatedContents &&
+                  orderedDedicatedContents.length > 0 && (
+                    <InsetGroup.LabelButton
+                      onPress={() =>
+                        rootNavigation?.push('OrderItems', {
+                          orderedItems: orderedDedicatedContents,
+                          updateOrderFunctionRef:
+                            updateDedicatedContentsOrderFunctionRef,
+                        })
+                      }
+                      contentAsText={false}
+                      style={commonStyles.mr8}
+                    >
+                      <Icon
+                        name="app-reorder"
+                        sfSymbolWeight="bold"
+                        color={iosTintColor}
+                      />
+                    </InsetGroup.LabelButton>
+                  )}
+                <InsetGroup.LabelButton
+                  primary
+                  onPress={handleAddNewDedicatedContent}
+                  contentAsText={false}
+                >
+                  <Icon
+                    name="add"
+                    sfSymbolWeight="bold"
+                    color={textOnDarkBackgroundColor}
+                  />
+                </InsetGroup.LabelButton>
+              </>
+            }
+          >
+            {(() => {
+              if (!orderedDedicatedContents)
+                return <InsetGroup.Item label="Loading..." disabled />;
+              if (orderedDedicatedContents.length <= 0)
+                return <InsetGroup.Item label="No Items" disabled />;
+              return orderedDedicatedContents
+                .flatMap(it => [
+                  <ItemItem
+                    key={it.id}
+                    item={it}
+                    onPress={() =>
+                      navigation.push('Item', {
+                        id: it.id || '',
+                        initialTitle: it.name,
+                      })
+                    }
+                  />,
+                  <InsetGroup.ItemSeperator key={`s-${it.id}`} />,
+                ])
+                .slice(0, -1);
+            })()}
+            {/*<InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            button
+            label="Add New Item"
+            onPress={handleAddNewItem}
+          />*/}
+          </InsetGroup>
+        )}
         {/*<InsetGroup
           label="Items in this item"
           labelVariant="large"

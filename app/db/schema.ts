@@ -150,6 +150,7 @@ export const schema = s({
         },
         createdAt: { type: 'uint32' },
         updatedAt: { type: 'uint32' },
+        isContainer: { type: 'boolean' },
         // relations
         dedicatedContainer: { type: 'string' },
         container: { type: 'string' },
@@ -161,7 +162,7 @@ export const schema = s({
       // container
       dedicatedContainer: { belongsTo: 'item' },
       container: { belongsTo: 'item' },
-      dedicatedItems: {
+      dedicatedContents: {
         hasMany: {
           type: 'item',
           options: { queryInverse: 'dedicatedContainer' },
