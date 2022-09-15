@@ -47,7 +47,7 @@ function EditingListView({
     if (!scrollToTopOnLoad) return;
 
     const timer = setTimeout(() => {
-      scrollViewRef.current?.scrollTo(0, -999, false);
+      scrollViewRef.current?.scrollTo(0, -100, false);
     }, 0);
     return () => clearTimeout(timer);
   }, [scrollToTopOnLoad]);
