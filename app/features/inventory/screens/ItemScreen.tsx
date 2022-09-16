@@ -547,17 +547,32 @@ function ItemScreen({
                       />
                     </InsetGroup.LabelButton>
                   )}
-                <InsetGroup.LabelButton
-                  primary
-                  onPress={handleAddNewDedicatedContent}
-                  contentAsText={false}
-                >
-                  <Icon
-                    name="add"
-                    sfSymbolWeight="bold"
-                    color={textOnDarkBackgroundColor}
-                  />
-                </InsetGroup.LabelButton>
+                {orderedDedicatedContents &&
+                orderedDedicatedContents.length > 0 ? (
+                  <InsetGroup.LabelButton
+                    primary
+                    onPress={handleAddNewDedicatedContent}
+                    contentAsText={false}
+                  >
+                    <Icon
+                      name="add"
+                      sfSymbolWeight="bold"
+                      color={textOnDarkBackgroundColor}
+                    />
+                  </InsetGroup.LabelButton>
+                ) : (
+                  <InsetGroup.LabelButton
+                    primary
+                    onPress={handleAddNewDedicatedContent}
+                  >
+                    <Icon
+                      name="add"
+                      sfSymbolWeight="bold"
+                      color={textOnDarkBackgroundColor}
+                    />{' '}
+                    New Item
+                  </InsetGroup.LabelButton>
+                )}
               </>
             }
           >
