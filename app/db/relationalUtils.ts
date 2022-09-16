@@ -87,10 +87,10 @@ export type DataTypeWithID<T extends TypeName> = {
 
 export type FindWithRelationsReturnedData<T extends TypeName> = {
   data: DataTypeWithID<T> | null;
-  getRelated: <T extends TypeName>(
+  getRelated: <T2 extends TypeName>(
     field: string,
-    options: { arrElementType: T },
-  ) => ReadonlyArray<DataTypeWithID<T>>;
+    options: { arrElementType?: T2 },
+  ) => ReadonlyArray<DataTypeWithID<T2>>;
 };
 
 // ==== Util Functions ==== //
@@ -197,9 +197,25 @@ export async function save<T extends TypeName>(
   db: Database,
   type: T,
   data: any,
+  options: { touch?: boolean } = {},
 ): Promise<void> {
   const typeDef = schema[type];
   if (!typeDef) throw new Error(`No such type: ${type}`);
+
+  // Default values
+  switch (type) {
+    case 'collection': {
+      if (!data.iconName) data.iconName = 'box';
+      if (!data.iconColor) data.iconColor = 'gray';
+      break;
+    }
+
+    case 'item': {
+      if (!data.iconName) data.iconName = 'cube-outline';
+      if (!data.iconColor) data.iconColor = 'gray';
+      break;
+    }
+  }
 
   await validate(db, type, data);
 
@@ -240,7 +256,7 @@ export async function save<T extends TypeName>(
 
       const timestamp = Math.floor(Date.now() / 1000);
       if (!d.createdAt) d.createdAt = timestamp;
-      d.updatedAt = timestamp;
+      if (options.touch !== false) d.updatedAt = timestamp;
 
       break;
     }
