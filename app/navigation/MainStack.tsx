@@ -22,6 +22,7 @@ import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
 import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
 import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
 import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchDBTypeDataDetailScreen';
+import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -78,6 +79,7 @@ export type StackParamList = {
     id: string | number;
     initialTitle?: string;
   };
+  RelationalPouchDBFixDataConsistency: undefined;
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
   EPCTDS: undefined;
@@ -171,6 +173,10 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="RelationalPouchDBTypeDataDetail"
         component={RelationalPouchDBTypeDataDetailScreen}
+      />
+      <Stack.Screen
+        name="RelationalPouchDBFixDataConsistency"
+        component={RelationalPouchDBFixDataConsistencyScreen}
       />
       <Stack.Screen
         name="PouchDBAttachments"

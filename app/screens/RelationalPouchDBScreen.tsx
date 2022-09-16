@@ -30,6 +30,15 @@ function RelationalPouchDBScreen({
             ])
             .slice(0, -1)}
         </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            label="Fix Data Consistency"
+            arrow
+            onPress={() =>
+              navigation.push('RelationalPouchDBFixDataConsistency')
+            }
+          />
+        </InsetGroup>
       </ScrollView>
     </ScreenContent>
   );
