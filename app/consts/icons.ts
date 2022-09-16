@@ -133,6 +133,10 @@ export const ICONS = {
   cup: {
     materialIconName: 'cup',
   },
+  knife: {
+    materialIconName: 'knife',
+    keywords: 'knife',
+  },
   food: {
     // sfSymbolName: 'pencil.and.ruler.fill',
     materialIconName: 'food-apple',
@@ -289,15 +293,32 @@ export const ICONS = {
     materialIconName: 'cellphone-link',
     keywords: 'computer phone laptop electronics',
   },
+  'laptop-computer': {
+    sfSymbolName: 'laptopcomputer',
+    materialIconName: 'laptop',
+    keywords: '',
+  },
   'desktop-computer': {
     sfSymbolName: 'desktopcomputer',
     materialIconName: 'desktop-classic',
+    keywords: '',
+  },
+  tablet: {
+    materialIconName: 'tablet',
+    keywords: '',
+  },
+  cellphone: {
+    materialIconName: 'cellphone',
     keywords: '',
   },
   headphones: {
     sfSymbolName: 'headphones',
     materialIconName: 'headphones',
     keywords: 'headphones',
+  },
+  monitor: {
+    materialIconName: 'monitor',
+    keywords: 'screen',
   },
   speaker: {
     sfSymbolName: 'hifispeaker.fill',
@@ -322,6 +343,16 @@ export const ICONS = {
   'usb-port': {
     // sfSymbolName: '',
     materialIconName: 'usb-port',
+    keywords: '',
+  },
+  'hdmi-port': {
+    // sfSymbolName: '',
+    materialIconName: 'video-input-hdmi',
+    keywords: '',
+  },
+  'ethernet-port': {
+    // sfSymbolName: '',
+    materialIconName: 'ethernet-cable',
     keywords: '',
   },
   'data-cable': {
@@ -459,6 +490,10 @@ export const ICONS = {
     materialIconName: 'camera',
     keywords: 'gamecontroller',
   },
+  cutter: {
+    materialIconName: 'box-cutter',
+    keywords: 'knife',
+  },
   printer: {
     sfSymbolName: 'printer.filled.and.paper',
     materialIconName: 'printer',
@@ -499,12 +534,42 @@ export const ICONS = {
     materialIconName: 'wrench',
     keywords: 'tools wrench',
   },
+  'hand-saw': {
+    materialIconName: 'hand-saw',
+    keywords: '',
+  },
+  'circular-saw': {
+    materialIconName: 'circular-saw',
+    keywords: '',
+  },
+  'saw-blade': {
+    materialIconName: 'saw-blade',
+    keywords: '',
+  },
+  'test-tube': {
+    materialIconName: 'saw-blade',
+    keywords: '',
+  },
 
   // Material
   water: {
     sfSymbolName: 'drop.fill',
     materialIconName: 'water',
     keywords: 'water drop',
+  },
+
+  // Military
+  'military-knife': {
+    materialIconName: 'knife-military',
+    keywords: 'dagger poniard saber',
+  },
+  pistol: {
+    materialIconName: 'pistol',
+    keywords: 'gun',
+  },
+  'pistol-magazine': {
+    materialIconName: 'magazine-pistol',
+    keywords: 'gun',
   },
 
   // App
@@ -523,7 +588,11 @@ export const ICONS = {
   },
   'app-reorder': {
     sfSymbolName: 'list.bullet.indent',
-    // materialIconName: 'exclamation-thick',
+    materialIconName: 'sort',
+  },
+  'app-questionmark': {
+    sfSymbolName: 'questionmark',
+    materialIconName: 'help',
   },
   add: {
     sfSymbolName: 'plus',
