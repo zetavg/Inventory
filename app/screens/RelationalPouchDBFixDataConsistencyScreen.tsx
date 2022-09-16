@@ -66,10 +66,15 @@ function RelationalPouchDBFixDataConsistencyScreen({
             const result = await db.rel.find(type, id);
             const data = result[(schema as any)[type].plural][0];
             await save(db, type as any, data, { touch: false });
-          } catch (err: any) {
+          } catch (caughtError: any) {
             setErrors(es => [
               ...es,
-              { type, id, errorMessage: err.message, error: err },
+              {
+                type,
+                id,
+                errorMessage: caughtError.message,
+                error: caughtError,
+              },
             ]);
           } finally {
             setStatus(s => ({
