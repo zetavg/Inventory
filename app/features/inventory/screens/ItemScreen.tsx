@@ -40,9 +40,11 @@ function ItemScreen({
   const { db } = useDB();
   const { data, reloadData } = useRelationalData('item', id);
 
+  const [reloadCounter, setReloadCounter] = useState(0);
   useFocusEffect(
     useCallback(() => {
       reloadData();
+      setReloadCounter(v => v + 1);
     }, [reloadData]),
   );
 
@@ -569,6 +571,9 @@ function ItemScreen({
                   <ItemItem
                     key={it.id}
                     item={it}
+                    hideDedicatedContainerDetails
+                    hideCollectionDetails={it.collection === item.collection}
+                    reloadCounter={reloadCounter}
                     onPress={() =>
                       navigation.push('Item', {
                         id: it.id || '',

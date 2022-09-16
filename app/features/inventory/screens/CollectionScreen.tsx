@@ -35,12 +35,6 @@ function CollectionScreen({
   const { id, initialTitle } = route.params;
   const { data, reloadData } = useRelationalData('collection', id);
 
-  useFocusEffect(
-    useCallback(() => {
-      reloadData();
-    }, [reloadData]),
-  );
-
   const collection = data?.data;
   const [items, setItems] = useState<null | DataTypeWithID<'item'>[]>(null);
   const loadItems = useCallback(async () => {
@@ -82,6 +76,15 @@ function CollectionScreen({
         },
       }),
     [collection, navigation, rootNavigation],
+  );
+
+  const [reloadCounter, setReloadCounter] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      reloadData();
+      loadItems();
+      setReloadCounter(v => v + 1);
+    }, [loadItems, reloadData]),
   );
 
   const [devModeCounter, setDevModeCounter] = useState(0);
@@ -195,6 +198,8 @@ function CollectionScreen({
                 <ItemItem
                   key={item.id}
                   item={item}
+                  hideCollectionDetails
+                  reloadCounter={reloadCounter}
                   onPress={() =>
                     navigation.push('Item', {
                       id: item.id || '',

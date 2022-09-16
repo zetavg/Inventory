@@ -27,8 +27,11 @@ export function getDatabase(name: string): Database {
 
   const relDataIndexDdoc = {
     views: {
-      by_collection: {
-        map: 'function (doc) { emit(doc && doc.data && doc.data.collection); }',
+      item_by_collection: {
+        map: "function (doc) { emit(doc && doc.type === 'item' && doc.data && doc.data.collection); }",
+      },
+      item_by_dedicatedContainer: {
+        map: "function (doc) { emit(doc && doc.type === 'item' && doc.data && doc.data.dedicatedContainer); }",
       },
     },
   };

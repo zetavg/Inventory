@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import useColors from '@app/hooks/useColors';
 import commonStyles from '@app/utils/commonStyles';
@@ -14,16 +14,21 @@ export default function ItemItem({
   item,
   onPress,
   hideDetails,
+  hideCollectionDetails,
+  hideDedicatedContainerDetails,
   reloadCounter,
   ...props
 }: {
   item: DataTypeWithID<'item'>;
   onPress: () => void;
   hideDetails?: boolean;
+  hideCollectionDetails?: boolean;
+  hideDedicatedContainerDetails?: boolean;
   reloadCounter?: number;
 } & React.ComponentProps<typeof InsetGroup.Item>) {
   const { contentSecondaryTextColor } = useColors();
   const { db } = useDB();
+
   const [collectionData, setCollectionData] =
     useState<DataType<'collection'> | null>(null);
   const loadCollectionData = useCallback(async () => {
@@ -32,12 +37,100 @@ export default function ItemItem({
     setCollectionData(results.data);
   }, [db, item]);
 
+  const [dedicatedItemsCount, setDedicatedItemsCount] = useState<number | null>(
+    null,
+  );
+  const loadDedicatedItemsCount = useCallback(async () => {
+    if (!item.isContainer) {
+      setDedicatedItemsCount(null);
+      return;
+    }
+
+    const results = await db.query(
+      'relational_data_index/item_by_dedicatedContainer',
+      {
+        startkey: item.id,
+        endkey: item.id,
+        include_docs: false,
+      },
+    );
+    setDedicatedItemsCount(results.rows.length);
+  }, [item.isContainer, item.id, db]);
+
+  const [dedicatedContainerData, setDedicatedContainerData] =
+    useState<DataType<'collection'> | null>(null);
+  const loadDedicatedContainerData = useCallback(async () => {
+    if (!item.dedicatedContainer) {
+      item._dedicatedContainerData = null;
+      setDedicatedContainerData(null);
+      return;
+    }
+    const results: any = await db.get(`item-2-${item.dedicatedContainer}`);
+    item._dedicatedContainerData = results.data;
+    setDedicatedContainerData(results.data);
+  }, [db, item]);
+
   useEffect(() => {
     reloadCounter;
+
     if (hideDetails) return;
 
-    loadCollectionData();
-  }, [hideDetails, loadCollectionData, reloadCounter]);
+    if (!hideCollectionDetails) loadCollectionData();
+    if (!hideDedicatedContainerDetails) loadDedicatedContainerData();
+    loadDedicatedItemsCount();
+  }, [
+    hideCollectionDetails,
+    hideDedicatedContainerDetails,
+    hideDetails,
+    loadCollectionData,
+    loadDedicatedContainerData,
+    loadDedicatedItemsCount,
+    reloadCounter,
+  ]);
+
+  const detailElements = useMemo(() => {
+    return hideDetails
+      ? undefined
+      : [
+          dedicatedItemsCount !== null && `${dedicatedItemsCount} items`,
+          !hideCollectionDetails && collectionData && (
+            <Text key="collectionData">
+              <Icon
+                name={collectionData.iconName as IconName}
+                color={contentSecondaryTextColor}
+                size={11}
+                style={styles.itemDetailCollectionIcon}
+              />{' '}
+              {collectionData.name}
+            </Text>
+          ),
+          !hideDedicatedContainerDetails && dedicatedContainerData && (
+            <Text key="dedicatedContainerData">
+              <Icon
+                name={dedicatedContainerData.iconName as IconName}
+                color={contentSecondaryTextColor}
+                size={11}
+                style={styles.itemDetailCollectionIcon}
+              />{' '}
+              {dedicatedContainerData.name}
+            </Text>
+          ),
+          item.individualAssetReference,
+          // itemsCount !== null && `${itemsCount} items`,
+        ]
+          .filter(s => s)
+          .flatMap(element => [element, ' | '])
+          .slice(0, -1);
+  }, [
+    collectionData,
+    contentSecondaryTextColor,
+    dedicatedContainerData,
+    dedicatedItemsCount,
+    hideCollectionDetails,
+    hideDedicatedContainerDetails,
+    hideDetails,
+    item.individualAssetReference,
+  ]);
 
   return (
     <InsetGroup.Item
@@ -63,24 +156,9 @@ export default function ItemItem({
       detail={
         hideDetails
           ? undefined
-          : [
-              collectionData && (
-                <React.Fragment key="collection">
-                  <Icon
-                    name={collectionData.iconName as IconName}
-                    color={contentSecondaryTextColor}
-                    size={11}
-                    style={styles.itemDetailCollectionIcon}
-                  />{' '}
-                  {collectionData.name}
-                </React.Fragment>
-              ),
-              item.individualAssetReference,
-              // itemsCount !== null && `${itemsCount} items`,
-            ]
-              .filter(s => s)
-              .flatMap(element => [element, ' | '])
-              .slice(0, -1)
+          : (detailElements?.length || 0) > 0
+          ? detailElements
+          : '-'
       }
       {...props}
     />
