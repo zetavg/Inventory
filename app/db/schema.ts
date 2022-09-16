@@ -8,7 +8,15 @@ import { ICON_COLORS, ICON_NAMES } from '@app/consts/icons';
 export type RelationDef =
   | { belongsTo: string }
   // `queryInverse` must be used to avoid the need of adding foreign keys on both sides.
-  | { hasMany: { type: string; options: { queryInverse: string } } };
+  | {
+      hasMany: {
+        type: string;
+        options: {
+          queryInverse: string;
+          sort?: { field: string; order: 'asc' | 'desc' };
+        };
+      };
+    };
 
 export type TypeDef = Readonly<{
   plural: string;
@@ -165,7 +173,10 @@ export const schema = s({
       dedicatedContents: {
         hasMany: {
           type: 'item',
-          options: { queryInverse: 'dedicatedContainer' },
+          options: {
+            queryInverse: 'dedicatedContainer',
+            sort: { field: 'createdAt', order: 'desc' },
+          },
         },
       },
       items: {

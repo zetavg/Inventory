@@ -52,7 +52,7 @@ export function getDatabase(name: string): Database {
     relDB.createIndex({
       index: {
         ddoc: 'index-item-dedicatedContainer',
-        fields: ['type', 'data.dedicatedContainer'],
+        fields: ['type', 'data.dedicatedContainer', 'data.createdAt'],
       },
     }),
     relDB.createIndex({

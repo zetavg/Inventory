@@ -26,11 +26,8 @@ export default function useOrderedData<T extends { id?: string }>({
   }>(null);
   const loadOrder = useCallback(async () => {
     try {
-      const d = await db.get(settingId);
-      setOrderData({
-        data: [],
-        ...d,
-      });
+      const d: any = await db.get(settingId);
+      setOrderData(d);
     } catch (e) {
       setOrderData({ _id: settingId, data: [] });
       // TODO: handle errors that are not 404
@@ -55,10 +52,12 @@ export default function useOrderedData<T extends { id?: string }>({
           return d;
         })
         .filter((v: any): v is T => v),
-      ...Object.values(dataMap).sort(
-        (a: any, b: any) =>
-          ((a && a.createdAt) || 0) - ((b && b.createdAt) || 0),
-      ),
+      ...Object.values(dataMap),
+      // This is now handled by .find queries
+      // .sort(
+      //   (a: any, b: any) =>
+      //     ((a && a.createdAt) || 0) - ((b && b.createdAt) || 0),
+      // )
     ];
   }, [data, orderData]);
 
