@@ -39,6 +39,24 @@ export function getDatabase(name: string): Database {
   return addIndexesToDB(relDB, [
     relDB.createIndex({
       index: {
+        ddoc: 'index-type',
+        fields: ['type'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-item-collection',
+        fields: ['type', 'data.collection'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-item-dedicatedContainer',
+        fields: ['type', 'data.dedicatedContainer'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
         ddoc: 'index-field-collectionReferenceNumber',
         fields: ['data.collectionReferenceNumber'],
       },
@@ -53,6 +71,12 @@ export function getDatabase(name: string): Database {
       index: {
         ddoc: 'index-field-actualRfidTagEpcMemoryBankContents',
         fields: ['data.actualRfidTagEpcMemoryBankContents'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-item-isContainer',
+        fields: ['type', 'data.isContainer', 'data.updatedAt'],
       },
     }),
   ]);
