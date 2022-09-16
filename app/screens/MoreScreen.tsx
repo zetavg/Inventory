@@ -46,7 +46,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
     }
   })();
 
-  const { openRfidSheet } = useRootBottomSheets();
+  const { openRfidSheet, rfidSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
   const [overallDBSyncStatus] = useOverallDBSyncStatus();
@@ -116,7 +116,22 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="cellphone-wireless"
             iosImage="ios-menu.wireless-scan.png"
-            onPress={() => openRfidSheet({ functionality: 'scan' })}
+            onPress={() =>
+              openRfidSheet({
+                functionality: 'scan',
+                onScannedItemPress: (data, itemType, itemId) => {
+                  if (itemType === 'item' && itemId) {
+                    navigation.push('Item', { id: itemId });
+                    rfidSheet.current?.collapse();
+                  } else {
+                    navigation.push('GenericTextDetails', {
+                      details: JSON.stringify(data, null, 2),
+                    });
+                    rfidSheet.current?.collapse();
+                  }
+                },
+              })
+            }
           >
             Scan Tags
           </TableView.Item>

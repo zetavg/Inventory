@@ -13,6 +13,7 @@ import { DataTypeWithID } from '@app/db/relationalUtils';
 export default function ItemItem({
   item,
   onPress,
+  additionalDetails,
   hideDetails,
   hideCollectionDetails,
   hideDedicatedContainerDetails,
@@ -20,7 +21,8 @@ export default function ItemItem({
   ...props
 }: {
   item: DataTypeWithID<'item'>;
-  onPress: () => void;
+  onPress?: () => void;
+  additionalDetails?: string | number;
   hideDetails?: boolean;
   hideCollectionDetails?: boolean;
   hideDedicatedContainerDetails?: boolean;
@@ -92,6 +94,7 @@ export default function ItemItem({
     return hideDetails
       ? undefined
       : [
+          additionalDetails,
           dedicatedItemsCount !== null &&
             (() => {
               switch (item.isContainerType) {
@@ -131,6 +134,7 @@ export default function ItemItem({
           .flatMap(element => [element, ' | '])
           .slice(0, -1);
   }, [
+    additionalDetails,
     collectionData,
     contentSecondaryTextColor,
     dedicatedContainerData,

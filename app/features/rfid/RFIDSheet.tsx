@@ -38,6 +38,7 @@ import Text from '@app/components/Text';
 import ElevatedButton, {
   SecondaryButton,
 } from '@app/components/ElevatedButton';
+import AppIcon from '@app/components/Icon';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useForwardedRef from '@app/hooks/useForwardedRef';
@@ -59,11 +60,21 @@ import RFIDWithUHFBLEModule, {
   DeviceConnectStatusPayload,
   ScanDevicesData,
 } from '@app/modules/RFIDWithUHFBLEModule';
+import ItemItem from '../inventory/components/ItemItem';
+import { DataTypeWithID } from '@app/db/relationalUtils';
+import { getDataFromDocs } from '@app/db/hooks';
+
+export type OnScannedItemPressFn = (
+  data: ScanData,
+  loadedItemType: string | null,
+  loadedItemId: string | null,
+) => void;
 
 export type RFIDSheetOptions =
   | {
       functionality: 'scan';
       useDefaultFilter?: boolean;
+      onScannedItemPress?: OnScannedItemPressFn;
     }
   | {
       functionality: 'locate';
@@ -97,6 +108,14 @@ function RFIDSheet(
   ref: React.ForwardedRef<BottomSheetModal>,
 ) {
   const innerRef = useForwardedRef(ref);
+  // #region Options Processing //
+  const [options, setOptions] = useState<RFIDSheetOptions | null>(null);
+  const handlePassedOptions = useCallback((opts: RFIDSheetOptions) => {
+    setOptions(opts);
+  }, []);
+  rfidSheetPassOptionsFnRef.current = handlePassedOptions;
+  // #endregion //
+
   // #region Styles //
   const windowDimensions = useWindowDimensions();
   const safeAreaInsets = useSafeAreaInsets();
@@ -121,7 +140,7 @@ function RFIDSheet(
   const contentBottomInset =
     footerBottomInset + footerHeight + footerLinearGradientHeight / 10;
 
-  const initialSnapPoints = useMemo(() => ['CONTENT_HEIGHT'], []);
+  const initialSnapPoints = useMemo(() => [100, 'CONTENT_HEIGHT'], []);
 
   const {
     animatedHandleHeight,
@@ -132,27 +151,29 @@ function RFIDSheet(
   } = useBottomSheetDynamicSnapPoints(initialSnapPoints);
   // #endregion //
 
-  // #region Options Processing //
-  const [options, setOptions] = useState<RFIDSheetOptions | null>(null);
-  const handlePassedOptions = useCallback((opts: RFIDSheetOptions) => {
-    setOptions(opts);
-  }, []);
-  rfidSheetPassOptionsFnRef.current = handlePassedOptions;
-  // #endregion //
-
   // #region Sheet Open/Close Handlers //
   const [sheetOpened, setSheetOpened] = useState(false);
+  const [sheetHalfClosed, setSheetHalfClosed] = useState(false);
   const [devShowDetailsCounter, setDevShowDetailsCounter] = useState(0);
-  const handleChange = useCallback((index: number) => {
-    if (index >= 0) {
-      setSheetOpened(true);
-    }
+  const handleChange = useCallback(
+    (index: number) => {
+      if (index >= 0) {
+        setSheetOpened(true);
+      }
 
-    if (index < 0) {
-      setSheetOpened(false);
-      setDevShowDetailsCounter(0);
-    }
-  }, []);
+      if (index < 0) {
+        setSheetOpened(false);
+        setDevShowDetailsCounter(0);
+      }
+
+      if (index >= 0 && index < initialSnapPoints.length - 1) {
+        setSheetHalfClosed(true);
+      } else {
+        setSheetHalfClosed(false);
+      }
+    },
+    [initialSnapPoints.length],
+  );
 
   const handleDismiss = useCallback(() => {
     //   console.warn('Dismiss');
@@ -873,6 +894,7 @@ function RFIDSheet(
                   }
                 })()}
                 disabled={(() => {
+                  if (sheetHalfClosed) return true;
                   if (!rfidReaderDeviceReady) return true;
 
                   switch (options?.functionality) {
@@ -987,6 +1009,7 @@ function RFIDSheet(
       handleActionButtonPressIn,
       handleActionButtonPressOut,
       safeAreaInsets.bottom,
+      sheetHalfClosed,
       rfidReaderDeviceReady,
       useBuiltinReader,
       bleDeviceBatteryLevel,
@@ -1113,8 +1136,15 @@ function RFIDSheet(
                       >
                         {Object.values(scannedData)
                           .flatMap(d => [
-                            <ScannedItem key={d.epc} item={d} />,
-                            <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
+                            <ScannedItem
+                              key={d.epc}
+                              item={d}
+                              onPress={options?.onScannedItemPress}
+                            />,
+                            <InsetGroup.ItemSeperator
+                              key={`s-${d.epc}`}
+                              leftInset={60}
+                            />,
                           ])
                           .slice(0, -1)}
                       </InsetGroup>
@@ -1781,10 +1811,19 @@ function RFIDSheet(
   // #endregion //
 }
 
-function ScannedItem({ item }: { item: ScanData }) {
+function ScannedItem({
+  item,
+  onPress,
+}: {
+  item: ScanData;
+  onPress?: OnScannedItemPressFn;
+}) {
   const { db } = useDB();
 
-  const [loadedItem, setLoadedItem] = useState<DataType<'item'> | null>(null);
+  const [loadedItem, setLoadedItem] = useState<DataTypeWithID<any> | null>(
+    null,
+  );
+  const [loadedItemType, setLoadedItemType] = useState<string | null>(null);
   const loadItem = useCallback(async () => {
     try {
       const data = await db.find({
@@ -1794,12 +1833,9 @@ function ScannedItem({ item }: { item: ScanData }) {
         },
       });
       const doc = (data as any)?.docs && (data as any)?.docs[0];
-      if (
-        doc &&
-        typeof (doc as any)?._id === 'string' &&
-        (doc as any)?._id.startsWith('item-')
-      )
-        setLoadedItem((doc as any).data);
+
+      setLoadedItemType((doc as any).type || null);
+      setLoadedItem(getDataFromDocs((doc as any).type, [doc])[0]);
     } catch (e) {
       // TODO: Handle other error
     }
@@ -1808,46 +1844,47 @@ function ScannedItem({ item }: { item: ScanData }) {
     loadItem();
   }, [loadItem]);
 
-  const [loadedItemCollection, setLoadedItemCollection] =
-    useState<DataType<'collection'> | null>(null);
-  const loadItemCollection = useCallback(async () => {
-    if (!loadedItem) return;
-
-    try {
-      const data = await db.get(`collection-2-${loadedItem.collection}`);
-      if (
-        data &&
-        typeof (data as any)?._id === 'string' &&
-        (data as any)?._id.startsWith('collection-')
-      )
-        setLoadedItemCollection((data as any).data);
-    } catch (e) {
-      // TODO: Handle other error
-    }
-  }, [db, loadedItem]);
-
-  useEffect(() => {
-    if (!loadedItem) return;
-    if (!loadedItem.collection) return;
-    loadItemCollection();
-  }, [loadItemCollection, loadedItem]);
-
   if (loadedItem) {
-    return (
-      <InsetGroup.Item
-        key={item.epc}
-        label={loadedItem.name}
-        vertical
-        detail={[
-          item.rssi && `RSSI: ${item.rssi}`,
-          loadedItemCollection && loadedItemCollection.name,
-          loadedItem.individualAssetReference &&
-            `${loadedItem.individualAssetReference}`,
-        ]
-          .filter(s => s)
-          .join(' | ')}
-      />
-    );
+    if (loadedItemType === 'item') {
+      return (
+        <ItemItem
+          item={loadedItem as any}
+          additionalDetails={item.rssi && `RSSI: ${item.rssi}`}
+          arrow={false}
+          onPress={
+            onPress
+              ? () => {
+                  onPress(item, 'item', loadedItem.id || null);
+                }
+              : undefined
+          }
+        />
+      );
+    }
+
+    // return (
+    //   <InsetGroup.Item
+    //     key={item.epc}
+    //     label={loadedItem.name}
+    //     vertical
+    //     detail={[
+    //       item.rssi && `RSSI: ${item.rssi}`,
+    //       loadedItem.individualAssetReference &&
+    //         `${loadedItem.individualAssetReference}`,
+    //     ]
+    //       .filter(s => s)
+    //       .join(' | ')}
+    //     leftElement={
+    //       <AppIcon
+    //         name="app-questionmark"
+    //         style={styles.scannedItemIcon}
+    //         size={30}
+    //         showBackground
+    //         backgroundPadding={4}
+    //       />
+    //     }
+    //   />
+    // );
   }
 
   return (
@@ -1861,6 +1898,22 @@ function ScannedItem({ item }: { item: ScanData }) {
       ]
         .filter(s => s)
         .join(', ')}
+      leftElement={
+        <AppIcon
+          name="app-questionmark"
+          style={styles.scannedItemIcon}
+          size={30}
+          showBackground
+          backgroundPadding={4}
+        />
+      }
+      onPress={
+        onPress
+          ? () => {
+              onPress(item, null, null);
+            }
+          : undefined
+      }
     />
   );
 }
@@ -2045,6 +2098,7 @@ const styles = StyleSheet.create({
   controlsModelContent: {
     borderRadius: 8,
   },
+  scannedItemIcon: { marginRight: -2 },
 });
 
 export default React.forwardRef(RFIDSheet);

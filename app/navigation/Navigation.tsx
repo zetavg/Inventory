@@ -156,6 +156,7 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
         rfidSheetPassOptionsFnRef.current &&
           rfidSheetPassOptionsFnRef.current(options);
         rfidSheetRef.current?.present();
+        rfidSheetRef.current?.expand();
       },
     }),
     [],
