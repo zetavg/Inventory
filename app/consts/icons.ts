@@ -32,6 +32,11 @@ export const ICONS = {
     materialIconName: 'cube',
     keywords: '',
   },
+  'shallow-box': {
+    sfSymbolName: 'tray.fill',
+    materialIconName: 'inbox',
+    keywords: '',
+  },
   gift: {
     sfSymbolName: 'gift.fill',
     materialIconName: 'gift',
@@ -298,6 +303,16 @@ export const ICONS = {
     sfSymbolName: 'hifispeaker.fill',
     materialIconName: 'speaker',
     keywords: 'hifispeaker',
+  },
+  keyboard: {
+    sfSymbolName: 'keyboard.fill',
+    materialIconName: 'keyboard',
+    keywords: '',
+  },
+  'computer-mouse': {
+    sfSymbolName: 'computermouse.fill',
+    materialIconName: 'mouse',
+    keywords: 'computermouse',
   },
   'external-drive': {
     sfSymbolName: 'externaldrive.fill',
