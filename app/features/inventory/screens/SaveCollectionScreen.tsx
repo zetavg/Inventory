@@ -20,6 +20,7 @@ import {
   applyWhitespaceFix,
   removeWhitespaceFix,
 } from '@app/utils/text-input-whitespace-fix';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
 function SaveCollectionScreen({
   route,
@@ -113,6 +114,7 @@ function SaveCollectionScreen({
   );
 
   const scrollViewRef = useRef<ScrollView>(null);
+  useScrollViewContentInsetFix(scrollViewRef);
 
   return (
     <ModalContent
