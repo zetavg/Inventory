@@ -12,6 +12,8 @@ import { name as appName } from './app.json';
 
 rnQuickBase64Shim();
 
+require('events').EventEmitter.defaultMaxListeners = 32;
+
 AppRegistry.registerComponent(appName, () => App);
 // AppRegistry.registerComponent(appName, () => StorybookUIRoot);
 
