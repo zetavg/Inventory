@@ -222,6 +222,85 @@ function SaveItemScreen({
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             compactLabel
+            label="Icon"
+            detail={
+              <TouchableOpacity onPress={handleOpenSelectIcon}>
+                <Icon
+                  name={data.iconName as IconName}
+                  color={data.iconColor as IconColor}
+                  showBackground
+                  size={40}
+                />
+              </TouchableOpacity>
+            }
+          />
+          {data.dedicatedContainer && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                compactLabel
+                label="Dedicated Container"
+                detail={
+                  data.dedicatedContainer ? (
+                    <InsetGroup.ItemDetailButton
+                      label="Remove"
+                      destructive
+                      onPress={() =>
+                        setData(d => ({ ...d, dedicatedContainer: undefined }))
+                      }
+                    />
+                  ) : (
+                    <InsetGroup.ItemDetailButton
+                      label="Select"
+                      onPress={handleOpenSelectDedicatedContainer}
+                    />
+                  )
+                }
+              >
+                <TouchableOpacity
+                  style={commonStyles.flex1}
+                  onPress={handleOpenSelectDedicatedContainer}
+                >
+                  <View style={commonStyles.row}>
+                    {selectedDedicatedContainerData &&
+                      typeof selectedDedicatedContainerData === 'object' && (
+                        <Icon
+                          showBackground
+                          backgroundPadding={4}
+                          size={InsetGroup.FONT_SIZE + 8}
+                          name={
+                            selectedDedicatedContainerData.iconName as IconName
+                          }
+                          color={
+                            selectedDedicatedContainerData.iconColor as IconColor
+                          }
+                          style={commonStyles.mr8}
+                        />
+                      )}
+                    <Text
+                      style={[
+                        (!selectedDedicatedContainerData ||
+                          typeof selectedDedicatedContainerData !== 'object') &&
+                          commonStyles.opacity02,
+                        { fontSize: InsetGroup.FONT_SIZE },
+                      ]}
+                    >
+                      {data.dedicatedContainer
+                        ? selectedDedicatedContainerData
+                          ? typeof selectedDedicatedContainerData === 'object'
+                            ? selectedDedicatedContainerData.name
+                            : selectedDedicatedContainerData
+                          : 'Loading...'
+                        : 'No Dedicated Container'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </InsetGroup.Item>
+            </>
+          )}
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
             label="Collection"
             detail={
               <InsetGroup.ItemDetailButton

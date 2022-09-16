@@ -181,5 +181,6 @@ const styles = StyleSheet.create({
   itemItemDetailText: { fontSize: 12 },
   itemDetailCollectionIcon: {
     opacity: 0.7,
+    marginBottom: -1.5,
   },
 });

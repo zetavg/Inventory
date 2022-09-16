@@ -275,6 +275,9 @@ function InsetGroupItem({
               (vertical || vertical2) &&
                 arrow &&
                 styles.insetGroupItemVerticalContainerWithArrow,
+              (vertical || vertical2) &&
+                selected &&
+                styles.insetGroupItemVerticalContainerWithCheckmark,
               {
                 paddingVertical:
                   (vertical ? 5 : vertical2 ? 8 : 12) * fontScale,
@@ -634,6 +637,9 @@ const styles = StyleSheet.create({
   },
   insetGroupItemVerticalContainerWithArrow: {
     paddingRight: 36,
+  },
+  insetGroupItemVerticalContainerWithCheckmark: {
+    paddingRight: 42,
   },
   insetGroupItemText: {
     fontSize: FONT_SIZE,

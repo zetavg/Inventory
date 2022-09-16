@@ -160,6 +160,21 @@ function SaveCollectionScreen({
           <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             compactLabel
+            label="Icon"
+            detail={
+              <TouchableOpacity onPress={handleOpenSelectIcon}>
+                <Icon
+                  name={data.iconName as IconName}
+                  color={data.iconColor as IconColor}
+                  showBackground
+                  size={40}
+                />
+              </TouchableOpacity>
+            }
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
             label="Reference Number"
             detail={
               <>
