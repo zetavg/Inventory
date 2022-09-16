@@ -1887,6 +1887,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.2.4.tgz#8d88adceeb32f7997a122feba48d7186fca80346"
   integrity sha512-uY51UoipQW4ELnFWMU6rTHRc4EUYaW+Z1O9Teijej6NYVYdUcUKq+t7WeBGjMAEc1ipyooMeBqRXToWO5zAU2Q==
 
+"@react-native-picker/picker@^1.8.3":
+  version "1.16.8"
+  resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-1.16.8.tgz#2126ca54d4a5a3e9ea5e3f39ad1e6643f8e4b3d4"
+  integrity sha512-pacdQDX6V6EmjF+HoiIh6u++qx4mTK0WnhgUHRc01B+Qt5eoeUwseBqmqfTSXTx/aHDEd6PiIw7UGvKgFoqgFQ==
+
 "@react-native-picker/picker@^2.4.4":
   version "2.4.4"
   resolved "https://registry.yarnpkg.com/@react-native-picker/picker/-/picker-2.4.4.tgz#4e4d2ec4b040e24d8b99c6be8f8b3201bb29fad3"
@@ -11611,6 +11616,14 @@ react-native-paper@^5.0.0-rc.3:
     "@callstack/react-theme-provider" "^3.0.7"
     color "^3.1.2"
     react-native-iphone-x-helper "^1.3.1"
+
+react-native-picker-select@^8.0.4:
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/react-native-picker-select/-/react-native-picker-select-8.0.4.tgz#3f7f1f42df69b06e7d2c10338288332a6c40fd10"
+  integrity sha512-orBjPIwBkV5oipyVw263YNMI56f6Kj3p/ejabZoCYYNSG3AiLVVhC2RqsxMgDA7IayyURAW+AlV+mDJyVqLBkg==
+  dependencies:
+    "@react-native-picker/picker" "^1.8.3"
+    lodash.isequal "^4.5.0"
 
 react-native-platform-searchbar@^1.2.3:
   version "1.2.3"

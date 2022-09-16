@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Switch,
 } from 'react-native';
+import RNPickerSelect from 'react-native-picker-select';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -268,6 +269,55 @@ function SaveItemScreen({
         <InsetGroup>
           <InsetGroup.Item
             compactLabel
+            label="This is a container"
+            detail={
+              <Switch
+                value={data.isContainer}
+                onChange={() =>
+                  setData(d => ({
+                    ...d,
+                    isContainer: !d.isContainer,
+                    isContainerType: d.isContainerType || 'container',
+                  }))
+                }
+              />
+            }
+          />
+          {data.isContainer && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                compactLabel
+                label="Container Type"
+                detail={
+                  <RNPickerSelect
+                    value={data.isContainerType}
+                    onValueChange={v =>
+                      setData(d => ({ ...d, isContainerType: v }))
+                    }
+                    placeholder={{}}
+                    items={[
+                      { label: 'Container', value: 'container' },
+                      { label: 'Item With Parts', value: 'item-with-parts' },
+                    ]}
+                    useNativeAndroidPickerStyle={false}
+                    textInputProps={
+                      {
+                        style: {
+                          color: contentTextColor,
+                          fontSize: InsetGroup.FONT_SIZE,
+                        },
+                      } as any
+                    }
+                  />
+                }
+              />
+            </>
+          )}
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            compactLabel
             label="Reference Number"
             detail={
               <>
@@ -387,19 +437,6 @@ function SaveItemScreen({
           </InsetGroup.Item>
         </InsetGroup>
         <InsetGroup>
-          <InsetGroup.Item
-            compactLabel
-            label="This is a container"
-            detail={
-              <Switch
-                value={data.isContainer}
-                onChange={() =>
-                  setData(d => ({ ...d, isContainer: !d.isContainer }))
-                }
-              />
-            }
-          />
-          <InsetGroup.ItemSeperator />
           <InsetGroup.Item
             compactLabel
             label="Dedicated Container"

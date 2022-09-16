@@ -92,7 +92,16 @@ export default function ItemItem({
     return hideDetails
       ? undefined
       : [
-          dedicatedItemsCount !== null && `${dedicatedItemsCount} items`,
+          dedicatedItemsCount !== null &&
+            (() => {
+              switch (item.isContainerType) {
+                case 'item-with-parts':
+                  return `+${dedicatedItemsCount} parts`;
+
+                default:
+                  return `${dedicatedItemsCount} items`;
+              }
+            })(),
           !hideCollectionDetails && collectionData && (
             <Text key="collectionData">
               <Icon
@@ -130,6 +139,7 @@ export default function ItemItem({
     hideDedicatedContainerDetails,
     hideDetails,
     item.individualAssetReference,
+    item.isContainerType,
   ]);
 
   return (

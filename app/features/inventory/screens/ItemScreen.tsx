@@ -321,7 +321,14 @@ function ItemScreen({
                 <>
                   <InsetGroup.Item
                     vertical2
-                    label="Dedicated Container"
+                    label={(() => {
+                      switch (dedicatedContainer?.isContainerType) {
+                        case 'item-with-parts':
+                          return 'Part of';
+                        default:
+                          return 'Dedicated Container';
+                      }
+                    })()}
                     detailTextStyle={
                       !dedicatedContainer?.name && commonStyles.opacity04
                     }
@@ -522,7 +529,14 @@ function ItemScreen({
         </InsetGroup>
         {item?.isContainer && (
           <InsetGroup
-            label="Dedicated Contents"
+            label={(() => {
+              switch (item.isContainerType) {
+                case 'item-with-parts':
+                  return 'Parts';
+                default:
+                  return 'Dedicated Contents';
+              }
+            })()}
             labelVariant="large"
             loading={!item}
             labelRight={
