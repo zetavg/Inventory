@@ -219,6 +219,28 @@ export async function save<T extends TypeName>(
 
   await validate(db, type, data);
 
+  // Additional validations
+  switch (type) {
+    case 'item': {
+      const d: DataType<'item'> = data;
+      if (!d.isContainer) {
+        const results = await db.query(
+          'relational_data_index/item_by_dedicatedContainer',
+          {
+            startkey: d.id,
+            endkey: d.id,
+            include_docs: false,
+          },
+        );
+        if (results.rows.length > 0) {
+          throw new Error(
+            "Can't set isContainer to false since this item still has contents.",
+          );
+        }
+      }
+    }
+  }
+
   // Pre-process before save
   switch (type) {
     case 'item': {
