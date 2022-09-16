@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -18,15 +18,19 @@ import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Icon, { IconName, IconColor } from '@app/components/Icon';
 
+import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
 
 import ItemItem from '../components/ItemItem';
 import useOrderedData from '@app/hooks/useOrderedData';
+import { getDataFromDocs } from '@app/db/hooks';
+import { DataTypeWithID } from '@app/db/relationalUtils';
 
 function CollectionScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Collection'>) {
+  const { db } = useDB();
   const rootNavigation = useRootNavigation();
   const { id, initialTitle } = route.params;
   const { data, reloadData } = useRelationalData('collection', id);
@@ -38,7 +42,23 @@ function CollectionScreen({
   );
 
   const collection = data?.data;
-  const items = data?.getRelated('items', { arrElementType: 'item' }) || null;
+  const [items, setItems] = useState<null | DataTypeWithID<'item'>[]>(null);
+  const loadItems = useCallback(async () => {
+    const { docs } = await db.find({
+      selector: {
+        $and: [
+          { type: 'item' },
+          { 'data.collection': id },
+          { 'data.computedShowInCollection': true },
+        ],
+      },
+      use_index: 'index-item-collection-computedShowInCollection',
+    });
+    setItems(getDataFromDocs('item', docs));
+  }, [db, id]);
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
   const { orderedData: orderedItems, updateOrder: updateItemsOrder } =
     useOrderedData({
       data: items,

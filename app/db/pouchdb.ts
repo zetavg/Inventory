@@ -51,6 +51,12 @@ export function getDatabase(name: string): Database {
     }),
     relDB.createIndex({
       index: {
+        ddoc: 'index-item-collection-computedShowInCollection',
+        fields: ['type', 'data.collection', 'data.computedShowInCollection'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
         ddoc: 'index-item-dedicatedContainer',
         fields: ['type', 'data.dedicatedContainer', 'data.createdAt'],
       },

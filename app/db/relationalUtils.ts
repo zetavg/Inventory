@@ -254,6 +254,20 @@ export async function save<T extends TypeName>(
         d.computedRfidTagEpcMemoryBankContents = undefined;
       }
 
+      d.computedShowInCollection = true;
+      if (d.dedicatedContainer && !d.alwaysShowOutsideOfDedicatedContainer) {
+        const dedicatedContainerDoc = await db.get(
+          `item-2-${d.dedicatedContainer}`,
+        );
+
+        if (dedicatedContainerDoc.type === 'item') {
+          const { data: dedicatedContainer } = dedicatedContainerDoc;
+          if (dedicatedContainer.collection === d.collection) {
+            d.computedShowInCollection = false;
+          }
+        }
+      }
+
       const timestamp = Math.floor(Date.now() / 1000);
       if (!d.createdAt) d.createdAt = timestamp;
       if (options.touch !== false) d.updatedAt = timestamp;

@@ -51,8 +51,9 @@ function ItemScreen({
     data?.getRelated('collection', {
       arrElementType: 'collection',
     }) || [];
-  const [dedicatedContainer] =
-    data?.getRelated('dedicatedContainer', { arrElementType: 'item' }) || [];
+  const [dedicatedContainer] = data?.getRelated('dedicatedContainer', {
+    arrElementType: 'item',
+  }) || [null];
   const dedicatedContents =
     data?.getRelated('dedicatedContents', { arrElementType: 'item' }) || null;
   const {
@@ -299,7 +300,7 @@ function ItemScreen({
               />
             </>
           )}
-          {dedicatedContainer && (
+          {item?.dedicatedContainer && (
             <>
               <InsetGroup.ItemSeperator />
               <TouchableHighlight
@@ -308,8 +309,8 @@ function ItemScreen({
                   collection
                     ? () =>
                         navigation.push('Item', {
-                          id: dedicatedContainer.id || '',
-                          initialTitle: dedicatedContainer.name,
+                          id: item?.dedicatedContainer || '',
+                          initialTitle: dedicatedContainer?.name,
                         })
                     : undefined
                 }
@@ -319,13 +320,16 @@ function ItemScreen({
                   <InsetGroup.Item
                     vertical2
                     label="Dedicated Container"
-                    detail={dedicatedContainer.name}
+                    detailTextStyle={
+                      !dedicatedContainer?.name && commonStyles.opacity04
+                    }
+                    detail={dedicatedContainer?.name || 'Loading'}
                     containerStyle={[commonStyles.flex1]}
                   />
                   <Icon
                     showBackground
-                    name={dedicatedContainer.iconName as IconName}
-                    color={dedicatedContainer.iconColor as IconColor}
+                    name={dedicatedContainer?.iconName as IconName}
+                    color={dedicatedContainer?.iconColor as IconColor}
                     size={40}
                     style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
                   />
@@ -340,7 +344,7 @@ function ItemScreen({
               collection
                 ? () =>
                     navigation.push('Collection', {
-                      id: collection.id || '',
+                      id: item?.collection || '',
                       initialTitle: collection.name,
                     })
                 : undefined
@@ -351,7 +355,8 @@ function ItemScreen({
               <InsetGroup.Item
                 vertical2
                 label="In Collection"
-                detail={collection?.name}
+                detailTextStyle={!collection?.name && commonStyles.opacity04}
+                detail={collection?.name || 'Loading'}
                 containerStyle={[commonStyles.flex1]}
               />
               <Icon

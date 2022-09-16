@@ -159,6 +159,8 @@ export const schema = s({
         createdAt: { type: 'uint32' },
         updatedAt: { type: 'uint32' },
         isContainer: { type: 'boolean' },
+        alwaysShowOutsideOfDedicatedContainer: { type: 'boolean' },
+        computedShowInCollection: { type: 'boolean' },
         // relations
         dedicatedContainer: { type: 'string' },
         container: { type: 'string' },

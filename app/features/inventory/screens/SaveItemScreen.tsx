@@ -457,6 +457,27 @@ function SaveItemScreen({
               </View>
             </TouchableOpacity>
           </InsetGroup.Item>
+          {data.dedicatedContainer && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <InsetGroup.Item
+                compactLabel
+                label="Always show individually"
+                detail={
+                  <Switch
+                    value={data.alwaysShowOutsideOfDedicatedContainer}
+                    onChange={() =>
+                      setData(d => ({
+                        ...d,
+                        alwaysShowOutsideOfDedicatedContainer:
+                          !d.alwaysShowOutsideOfDedicatedContainer,
+                      }))
+                    }
+                  />
+                }
+              />
+            </>
+          )}
         </InsetGroup>
         {initialData && initialData.id && (
           <InsetGroup>
