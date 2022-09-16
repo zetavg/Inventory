@@ -1,3 +1,5 @@
+import type { DataType } from './schema';
+
 export type ConfigStoredInDB = {
   epcCompanyPrefix: string;
   rfidTagAccessPassword: string;
@@ -5,9 +7,15 @@ export type ConfigStoredInDB = {
   epcPrefix: number;
 };
 
-export type DBContent = {
-  a: any;
-};
+export type DBContent =
+  | {
+      type: 'collection';
+      data: DataType<'collection'>;
+    }
+  | {
+      type: 'item';
+      data: DataType<'item'>;
+    };
 
 export type AttachmentsDBThumbnailType = 's128' | 's64';
 
