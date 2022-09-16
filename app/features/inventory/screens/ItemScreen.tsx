@@ -51,6 +51,8 @@ function ItemScreen({
     data?.getRelated('collection', {
       arrElementType: 'collection',
     }) || [];
+  const [dedicatedContainer] =
+    data?.getRelated('dedicatedContainer', { arrElementType: 'item' }) || [];
   const dedicatedContents =
     data?.getRelated('dedicatedContents', { arrElementType: 'item' }) || null;
   const {
@@ -295,6 +297,40 @@ function ItemScreen({
                     : '(null)'
                 }
               />
+            </>
+          )}
+          {dedicatedContainer && (
+            <>
+              <InsetGroup.ItemSeperator />
+              <TouchableHighlight
+                style={[commonStyles.row, commonStyles.centerChildren]}
+                onPress={
+                  collection
+                    ? () =>
+                        navigation.push('Item', {
+                          id: dedicatedContainer.id || '',
+                          initialTitle: dedicatedContainer.name,
+                        })
+                    : undefined
+                }
+                underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
+              >
+                <>
+                  <InsetGroup.Item
+                    vertical2
+                    label="Dedicated Container"
+                    detail={dedicatedContainer.name}
+                    containerStyle={[commonStyles.flex1]}
+                  />
+                  <Icon
+                    showBackground
+                    name={dedicatedContainer.iconName as IconName}
+                    color={dedicatedContainer.iconColor as IconColor}
+                    size={40}
+                    style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
+                  />
+                </>
+              </TouchableHighlight>
             </>
           )}
           <InsetGroup.ItemSeperator />

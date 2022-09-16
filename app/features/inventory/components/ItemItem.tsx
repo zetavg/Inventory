@@ -28,8 +28,9 @@ export default function ItemItem({
     useState<DataType<'collection'> | null>(null);
   const loadCollectionData = useCallback(async () => {
     const results: any = await db.get(`collection-2-${item.collection}`);
+    item._collectionData = results.data;
     setCollectionData(results.data);
-  }, [db, item.collection]);
+  }, [db, item]);
 
   useEffect(() => {
     reloadCounter;

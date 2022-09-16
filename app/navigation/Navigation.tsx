@@ -46,6 +46,7 @@ import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 import SelectIconScreen from '@app/screens/SelectIconScreen';
 
 import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
+import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
@@ -73,6 +74,10 @@ export type RootStackParamList = {
     name?: string;
   };
   SelectCollection: {
+    callback: (value: string) => void;
+    defaultValue?: string;
+  };
+  SelectContainer: {
     callback: (value: string) => void;
     defaultValue?: string;
   };
@@ -207,6 +212,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             <Stack.Screen
               name="SelectCollection"
               component={SelectCollectionScreen}
+            />
+            <Stack.Screen
+              name="SelectContainer"
+              component={SelectContainerScreen}
             />
             <Stack.Screen
               name="SaveCollection"

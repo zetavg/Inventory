@@ -364,14 +364,21 @@ function InsetGroupItem({
               </View>
             )}
             {selected && (
-              <Image
-                source={
-                  isDarkMode
-                    ? require('./images/ios-ui.tableview.checked.dark.png')
-                    : require('./images/ios-ui.tableview.checked.light.png')
+              <View
+                style={
+                  (vertical || vertical2) &&
+                  styles.itemVerticalCheckedImageContainer
                 }
-                style={styles.itemCheckedImage}
-              />
+              >
+                <Image
+                  source={
+                    isDarkMode
+                      ? require('./images/ios-ui.tableview.checked.dark.png')
+                      : require('./images/ios-ui.tableview.checked.light.png')
+                  }
+                  style={styles.itemCheckedImage}
+                />
+              </View>
             )}
           </View>
         )}
@@ -508,16 +515,21 @@ function InsetGroupItemDetailButton({
   label,
   onPress,
   style,
+  destructive,
 }: {
   label: string;
   onPress: () => void;
   style?: React.ComponentProps<typeof TouchableOpacity>['style'];
+  destructive?: boolean;
 }) {
-  const { iosTintColor } = useColors();
+  const { iosTintColor, iosDestructiveColor } = useColors();
   return (
     <TouchableOpacity onPress={onPress} style={style}>
       <Text
-        style={[styles.insetGroupItemDetailButtonText, { color: iosTintColor }]}
+        style={[
+          styles.insetGroupItemDetailButtonText,
+          { color: destructive ? iosDestructiveColor : iosTintColor },
+        ]}
       >
         {label}
       </Text>
@@ -680,6 +692,13 @@ const styles = StyleSheet.create({
   iosArrow: { width: 8.12, height: 14.41 },
   itemArrowContainer: { marginLeft: 12 },
   itemVerticalArrowContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 16,
+    justifyContent: 'center',
+  },
+  itemVerticalCheckedImageContainer: {
     position: 'absolute',
     top: 0,
     bottom: 0,

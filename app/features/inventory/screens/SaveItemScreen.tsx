@@ -27,6 +27,7 @@ import {
   applyWhitespaceFix,
   removeWhitespaceFix,
 } from '@app/utils/text-input-whitespace-fix';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
 function SaveItemScreen({
   route,
@@ -47,7 +48,7 @@ function SaveItemScreen({
   const [selectedCollectionData, setSelectedCollectionData] = useState<
     null | string | { name: string; iconName: string; iconColor: string }
   >(null);
-  const loadSetSelectedCollectionData = useCallback(async () => {
+  const loadSelectedCollectionData = useCallback(async () => {
     if (!data.collection) return;
 
     try {
@@ -63,8 +64,29 @@ function SaveItemScreen({
   }, [data.collection, db]);
   useEffect(() => {
     setSelectedCollectionData(null);
-    loadSetSelectedCollectionData();
-  }, [loadSetSelectedCollectionData]);
+    loadSelectedCollectionData();
+  }, [loadSelectedCollectionData]);
+
+  const [selectedDedicatedContainerData, setSelectedDedicatedContainerData] =
+    useState<
+      null | string | { name: string; iconName: string; iconColor: string }
+    >(null);
+  const loadSelectedDedicatedContainerData = useCallback(async () => {
+    if (!data.dedicatedContainer) return;
+
+    try {
+      const doc: any = await db.get(`item-2-${data.dedicatedContainer}`);
+      const { data: d } = doc;
+      if (typeof d !== 'object') throw new Error(`${d} is not an object`);
+      setSelectedDedicatedContainerData(d);
+    } catch (e) {
+      setSelectedDedicatedContainerData(`Error: ${e}`);
+    }
+  }, [data.dedicatedContainer, db]);
+  useEffect(() => {
+    setSelectedDedicatedContainerData(null);
+    loadSelectedDedicatedContainerData();
+  }, [loadSelectedDedicatedContainerData]);
 
   const handleOpenSelectCollection = useCallback(() => {
     navigation.navigate('SelectCollection', {
@@ -75,6 +97,16 @@ function SaveItemScreen({
       },
     });
   }, [data.collection, navigation]);
+
+  const handleOpenSelectDedicatedContainer = useCallback(() => {
+    navigation.navigate('SelectContainer', {
+      defaultValue: data.dedicatedContainer,
+      callback: dedicatedContainer => {
+        setData(d => ({ ...d, dedicatedContainer }));
+        setHasUnsavedChanges(true);
+      },
+    });
+  }, [data.dedicatedContainer, navigation]);
 
   const [
     referenceNumberIsRandomlyGenerated,
@@ -143,6 +175,7 @@ function SaveItemScreen({
   );
 
   const scrollViewRef = useRef<ScrollView>(null);
+  useScrollViewContentInsetFix(scrollViewRef);
 
   return (
     <ModalContent
@@ -366,6 +399,64 @@ function SaveItemScreen({
               />
             }
           />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
+            label="Dedicated Container"
+            detail={
+              data.dedicatedContainer ? (
+                <InsetGroup.ItemDetailButton
+                  label="Remove"
+                  destructive
+                  onPress={() =>
+                    setData(d => ({ ...d, dedicatedContainer: undefined }))
+                  }
+                />
+              ) : (
+                <InsetGroup.ItemDetailButton
+                  label="Select"
+                  onPress={handleOpenSelectDedicatedContainer}
+                />
+              )
+            }
+          >
+            <TouchableOpacity
+              style={commonStyles.flex1}
+              onPress={handleOpenSelectDedicatedContainer}
+            >
+              <View style={commonStyles.row}>
+                {selectedDedicatedContainerData &&
+                  typeof selectedDedicatedContainerData === 'object' && (
+                    <Icon
+                      showBackground
+                      backgroundPadding={4}
+                      size={InsetGroup.FONT_SIZE + 8}
+                      name={selectedDedicatedContainerData.iconName as IconName}
+                      color={
+                        selectedDedicatedContainerData.iconColor as IconColor
+                      }
+                      style={commonStyles.mr8}
+                    />
+                  )}
+                <Text
+                  style={[
+                    (!selectedDedicatedContainerData ||
+                      typeof selectedDedicatedContainerData !== 'object') &&
+                      commonStyles.opacity02,
+                    { fontSize: InsetGroup.FONT_SIZE },
+                  ]}
+                >
+                  {data.dedicatedContainer
+                    ? selectedDedicatedContainerData
+                      ? typeof selectedDedicatedContainerData === 'object'
+                        ? selectedDedicatedContainerData.name
+                        : selectedDedicatedContainerData
+                      : 'Loading...'
+                    : 'No Dedicated Container'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </InsetGroup.Item>
         </InsetGroup>
         {initialData && initialData.id && (
           <InsetGroup>
