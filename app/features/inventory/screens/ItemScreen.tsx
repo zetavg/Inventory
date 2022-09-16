@@ -660,6 +660,61 @@ function ItemScreen({
             }
           />
         </InsetGroup>*/}
+        {(() => {
+          const detailElements = [];
+
+          if (item?.modelName) {
+            detailElements.push(
+              <InsetGroup.Item
+                vertical2
+                label="Model Name"
+                detail={item.modelName}
+              />,
+            );
+          }
+
+          if (typeof item?.purchasePriceX1000 === 'number') {
+            // const strValue = (() => {
+            //   const str = item.purchasePriceX1000.toString();
+            //   const a = str.slice(0, -3) || '0';
+            //   const b = str.slice(-3).padStart(3, '0').replace(/0+$/, '');
+            //   if (!b) {
+            //     return a;
+            //   }
+            //   return a + '.' + b;
+            // })();
+            const strValue = new Intl.NumberFormat('en-US').format(
+              item.purchasePriceX1000 / 1000.0,
+            );
+            detailElements.push(
+              <InsetGroup.Item
+                vertical2
+                label="Purchase Price"
+                detailAsText
+                detail={
+                  <>
+                    {strValue}
+                    {!!item?.purchasePriceCurrency && (
+                      <InsetGroup.ItemAffix>
+                        {' ' + item.purchasePriceCurrency}
+                      </InsetGroup.ItemAffix>
+                    )}
+                  </>
+                }
+              />,
+            );
+          }
+
+          if (detailElements.length <= 0) return;
+
+          return (
+            <InsetGroup label="Details" labelVariant="large">
+              {detailElements
+                .flatMap(element => [element, <InsetGroup.ItemSeperator />])
+                .slice(0, -1)}
+            </InsetGroup>
+          );
+        })()}
       </ScrollView>
     </ScreenContent>
   );

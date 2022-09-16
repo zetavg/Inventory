@@ -49,6 +49,21 @@ export function getAjv(): Ajv {
     },
   });
 
+  ajv.addKeyword({
+    keyword: 'trim',
+    type: 'string',
+    schemaType: 'boolean',
+    code: (cxt: KeywordCxt) => {
+      if (cxt.schema) {
+        cxt.gen.assign(cxt.data, _`${cxt.data}.trim()`);
+        cxt.gen.assign(
+          _`${cxt.it.parentData}[${cxt.it.parentDataProperty}]`,
+          cxt.data,
+        );
+      }
+    },
+  });
+
   return ajv;
 }
 

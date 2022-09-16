@@ -501,11 +501,20 @@ function InsetGroupTextInput(
 
 InsetGroup.TextInput = React.forwardRef(InsetGroupTextInput);
 
-function InsetGroupItemAffix({ children }: { children: string }) {
+function InsetGroupItemAffix({
+  children,
+  style,
+  ...props
+}: { children: string } & React.ComponentProps<typeof Text>) {
   const { contentSecondaryTextColor } = useColors();
   return (
     <Text
-      style={[styles.insetGroupItemAffix, { color: contentSecondaryTextColor }]}
+      {...props}
+      style={[
+        styles.insetGroupItemAffix,
+        { color: contentSecondaryTextColor },
+        style,
+      ]}
     >
       {children}
     </Text>
@@ -569,6 +578,9 @@ InsetGroup.GroupLabelRightButton = InsetGroupGroupLabelRightButton;
 InsetGroup.FONT_SIZE = FONT_SIZE;
 InsetGroup.GROUP_LABEL_FONT_SIZE = GROUP_LABEL_FONT_SIZE;
 InsetGroup.ITEM_PADDING_HORIZONTAL = INSET_GROUP_ITEM_PADDING_HORIZONTAL;
+
+const ITEM_AFFIX_FONT_SIZE = FONT_SIZE * 0.8;
+InsetGroup.ITEM_AFFIX_FONT_SIZE = ITEM_AFFIX_FONT_SIZE;
 
 const MARGIN_HORIZONTAL = 16;
 InsetGroup.MARGIN_HORIZONTAL = MARGIN_HORIZONTAL;
@@ -688,7 +700,7 @@ const styles = StyleSheet.create({
   },
   insetGroupItemAffix: {
     marginLeft: 4,
-    fontSize: FONT_SIZE * 0.8,
+    fontSize: ITEM_AFFIX_FONT_SIZE,
     alignSelf: 'flex-end',
   },
   insetGroupItemDetailButtonText: {

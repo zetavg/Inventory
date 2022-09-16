@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  StyleSheet,
   ScrollView,
   View,
   Alert,
@@ -35,7 +36,7 @@ function SaveItemScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'SaveItem'>) {
   const { initialData } = route.params;
-  const { contentTextColor } = useColors();
+  const { contentTextColor, contentSecondaryTextColor } = useColors();
 
   const { db } = useDB();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -177,6 +178,9 @@ function SaveItemScreen({
 
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
+
+  const [purchasePriceInputTailing, setPurchasePriceInputTailing] =
+    useState('');
 
   return (
     <ModalContent
@@ -595,6 +599,116 @@ function SaveItemScreen({
             </>
           )}
         </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            compactLabel
+            label="Model Name"
+            detail={
+              <InsetGroup.TextInput
+                alignRight
+                placeholder="Enter Model Name"
+                autoCapitalize="words"
+                returnKeyType="done"
+                value={applyWhitespaceFix(data.modelName)}
+                onChangeText={t => {
+                  setData(d => ({
+                    ...d,
+                    modelName: removeWhitespaceFix(t),
+                  }));
+                  setHasUnsavedChanges(true);
+                }}
+              />
+            }
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
+            label="Purchase Price"
+            detail={
+              <>
+                <InsetGroup.TextInput
+                  alignRight
+                  placeholder="000.00"
+                  keyboardType="decimal-pad"
+                  returnKeyType="done"
+                  value={
+                    typeof data.purchasePriceX1000 === 'number'
+                      ? (() => {
+                          const str = data.purchasePriceX1000.toString();
+                          const a = str.slice(0, -3) || '0';
+                          const b = str
+                            .slice(-3)
+                            .padStart(3, '0')
+                            .replace(/0+$/, '');
+                          if (!b) {
+                            return a;
+                          }
+                          return a + '.' + b;
+                        })() + (purchasePriceInputTailing || '')
+                      : ''
+                  }
+                  onChangeText={t => {
+                    const [, tailing1] = t.match(/^[0-9]*(\.[0]*)$/) || [];
+                    const [tailing2] =
+                      (t.match(/\./) && t.match(/[0]*$/)) || [];
+                    setPurchasePriceInputTailing(tailing1 || tailing2);
+                    setData(d => ({
+                      ...d,
+                      purchasePriceX1000: t
+                        ? (() => {
+                            try {
+                              const [a0, b0] = t.split('.');
+                              const a1 = a0 ? a0 : '0';
+                              const b1 = b0 ? b0 : '0';
+                              const b2 = b1.slice(0, 3);
+                              const b3 = b2.padEnd(3, '0');
+                              const number =
+                                parseInt(a1, 10) * 1000 + parseInt(b3, 10);
+                              if (isNaN(number)) return undefined;
+                              return number;
+                            } catch (e) {
+                              return undefined;
+                            }
+                          })()
+                        : undefined,
+                      ...(t
+                        ? {
+                            purchasePriceCurrency:
+                              d.purchasePriceCurrency || 'USD',
+                          }
+                        : {}),
+                    }));
+                    setHasUnsavedChanges(true);
+                  }}
+                  onBlur={() => setPurchasePriceInputTailing('')}
+                />
+                {data.purchasePriceCurrency && (
+                  <RNPickerSelect
+                    style={{ viewContainer: styles.affixCurrencyPickerSelect }}
+                    value={data.purchasePriceCurrency}
+                    onValueChange={v =>
+                      setData(d => ({ ...d, purchasePriceCurrency: v }))
+                    }
+                    placeholder={{}}
+                    items={[
+                      { label: 'USD', value: 'USD' },
+                      { label: 'TWD', value: 'TWD' },
+                    ]}
+                    useNativeAndroidPickerStyle={false}
+                    textInputProps={
+                      {
+                        style: {
+                          color: contentSecondaryTextColor,
+                          fontSize: InsetGroup.ITEM_AFFIX_FONT_SIZE,
+                        },
+                      } as any
+                    }
+                  />
+                )}
+              </>
+            }
+          />
+        </InsetGroup>
         {initialData && initialData.id && (
           <InsetGroup>
             <InsetGroup.Item
@@ -636,5 +750,13 @@ function SaveItemScreen({
     </ModalContent>
   );
 }
+
+const styles = StyleSheet.create({
+  affixCurrencyPickerSelect: {
+    marginLeft: 8,
+    marginBottom: 1,
+    alignSelf: 'flex-end',
+  },
+});
 
 export default SaveItemScreen;

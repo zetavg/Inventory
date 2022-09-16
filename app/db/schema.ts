@@ -162,6 +162,10 @@ export const schema = s({
         isContainerType: { type: 'string' },
         alwaysShowOutsideOfDedicatedContainer: { type: 'boolean' },
         computedShowInCollection: { type: 'boolean' },
+        // Additional data
+        modelName: { type: 'string', metadata: { trim: true } },
+        purchasePriceX1000: { type: 'uint32' },
+        purchasePriceCurrency: { type: 'string' },
         // relations
         dedicatedContainer: { type: 'string' },
         container: { type: 'string' },
