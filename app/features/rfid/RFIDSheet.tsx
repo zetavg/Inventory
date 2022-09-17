@@ -28,6 +28,7 @@ import {
   BottomSheetHandle,
   BottomSheetModal,
   BottomSheetScrollView,
+  BottomSheetScrollViewMethods,
 } from '@gorhom/bottom-sheet';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -149,6 +150,8 @@ function RFIDSheet(
     animatedScrollViewStyles,
     handleContentLayout,
   } = useBottomSheetDynamicSnapPoints(initialSnapPoints);
+
+  const scrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
   // #endregion //
 
   // #region Sheet Open/Close Handlers //
@@ -493,6 +496,15 @@ function RFIDSheet(
     }));
     setScannedDataCount(c => c + d.length);
   }, []);
+  const scannedDataLength = Object.keys(scannedData).length;
+  const prevScannedDataLength = useRef(scannedDataLength);
+  useEffect(() => {
+    if (scannedDataLength > prevScannedDataLength.current) {
+      scrollViewRef.current?.scrollTo({ y: 999999, animated: true });
+    }
+
+    prevScannedDataLength.current = scannedDataLength;
+  }, [scannedDataLength]);
 
   const startScan = useCallback(async () => {
     if (options?.functionality !== 'scan') return;
@@ -1094,6 +1106,7 @@ function RFIDSheet(
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
                   automaticallyAdjustKeyboardInsets
+                  ref={scrollViewRef}
                   // contentInset={{ bottom: contentBottomInset }}
                 >
                   <View
