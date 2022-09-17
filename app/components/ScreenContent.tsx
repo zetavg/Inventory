@@ -51,6 +51,8 @@ type Props = {
   onAction3Press?: () => void;
 
   overlay?: JSX.Element;
+
+  route?: unknown;
 };
 
 function ScreenContent({
@@ -76,6 +78,7 @@ function ScreenContent({
   action3MaterialIconName,
   onAction3Press,
   overlay,
+  route,
 }: Props) {
   const safeAreaInsets = useSafeAreaInsets();
   const tabBarInsets = useTabBarInsets();
@@ -253,6 +256,20 @@ function ScreenContent({
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [searchEnabled]),
   );
+
+  React.useEffect(() => {
+    if (typeof route !== 'object') return;
+    const params = (route as Record<string, unknown>)?.params;
+    if (typeof params !== 'object') return;
+    const beforeRemove = (params as Record<string, unknown>)?.beforeRemove;
+    if (typeof beforeRemove !== 'function') return;
+
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      beforeRemove();
+    });
+
+    return unsubscribe;
+  }, [navigation, route]);
 
   return (
     <View style={commonStyles.flex1}>

@@ -133,6 +133,7 @@ function ItemScreen({
   return (
     <ScreenContent
       navigation={navigation}
+      route={route}
       title={data?.data ? data?.data.name : initialTitle || 'Item'}
       action1Label="Edit"
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}

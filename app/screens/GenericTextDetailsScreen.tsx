@@ -22,6 +22,7 @@ function GenericTextDetailsScreen({
   return (
     <ScreenContent
       navigation={navigation}
+      route={route}
       headerLargeTitle={false}
       title={title || 'Details'}
     >

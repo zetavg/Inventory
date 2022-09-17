@@ -55,11 +55,15 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
   onScannedItemPressRef.current = (data, itemType, itemId) => {
     if (itemType === 'item' && itemId) {
-      navigation.push('Item', { id: itemId });
+      navigation.push('Item', {
+        id: itemId,
+        ...({ beforeRemove: () => rfidSheet.current?.expand() } as any),
+      });
       rfidSheet.current?.collapse();
     } else {
       navigation.push('GenericTextDetails', {
         details: JSON.stringify(data, null, 2),
+        ...({ beforeRemove: () => rfidSheet.current?.expand() } as any),
       });
       rfidSheet.current?.collapse();
     }
@@ -120,7 +124,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="tag"
             iosImage="ios-menu.tag.png"
-            onPress={() => navigation.push('Settings')}
+            onPress={() => navigation.push('More')}
           >
             Tags
           </TableView.Item>
