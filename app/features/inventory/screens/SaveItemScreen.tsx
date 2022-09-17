@@ -603,6 +603,29 @@ function SaveItemScreen({
           <InsetGroup.Item
             compactLabel
             vertical2
+            label="Notes"
+            detail={
+              <InsetGroup.TextInput
+                placeholder="Enter notes..."
+                autoCapitalize="sentences"
+                multiline
+                scrollEnabled={false}
+                value={data.notes}
+                onChangeText={t => {
+                  setData(d => ({
+                    ...d,
+                    notes: t,
+                  }));
+                  setHasUnsavedChanges(true);
+                }}
+              />
+            }
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            compactLabel
+            vertical2
             label="Model Name"
             detail={
               <InsetGroup.TextInput

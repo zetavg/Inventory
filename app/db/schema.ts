@@ -163,6 +163,7 @@ export const schema = s({
         alwaysShowOutsideOfDedicatedContainer: { type: 'boolean' },
         computedShowInCollection: { type: 'boolean' },
         // Additional data
+        notes: { type: 'string' },
         modelName: { type: 'string', metadata: { trim: true } },
         purchasePriceX1000: { type: 'uint32' },
         purchasePriceCurrency: { type: 'string' },

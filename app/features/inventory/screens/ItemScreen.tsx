@@ -671,12 +671,20 @@ function ItemScreen({
             }
           />
         </InsetGroup>*/}
+        {!!item?.notes && (
+          <InsetGroup label="Notes" labelVariant="large">
+            <InsetGroup.Item>
+              <Text>{item.notes}</Text>
+            </InsetGroup.Item>
+          </InsetGroup>
+        )}
         {(() => {
           const detailElements = [];
 
           if (item?.modelName) {
             detailElements.push(
               <InsetGroup.Item
+                key="modelName"
                 vertical2
                 label="Model Name"
                 detail={item.modelName}
@@ -699,6 +707,7 @@ function ItemScreen({
             );
             detailElements.push(
               <InsetGroup.Item
+                key="purchasePrice"
                 vertical2
                 label="Purchase Price"
                 detailAsText
@@ -719,6 +728,7 @@ function ItemScreen({
           if (item?.purchasedFrom) {
             detailElements.push(
               <InsetGroup.Item
+                key="purchasedFrom"
                 vertical2
                 label="Purchased From"
                 detail={item.purchasedFrom}
