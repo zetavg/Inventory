@@ -190,7 +190,7 @@ function ItemScreen({
                       }
                       style={{ color: iosTintColor }}
                     >
-                      dismiss this warning
+                      mark this as done
                     </RNText>
                     <RNText>.</RNText>
                   </>
@@ -449,6 +449,7 @@ function ItemScreen({
                       functionality: 'write',
                       epc: item.computedRfidTagEpcMemoryBankContents,
                       tagAccessPassword: item.rfidTagAccessPassword,
+                      // TODO: Make this a ref so the function can be updated correctly?
                       afterWriteSuccess: () => {
                         if (!item.actualRfidTagEpcMemoryBankContents)
                           writeActualEpcContent();
@@ -529,14 +530,22 @@ function ItemScreen({
         </InsetGroup>
         {item?.isContainer && (
           <InsetGroup
-            label={(() => {
-              switch (item.isContainerType) {
-                case 'item-with-parts':
-                  return 'Parts';
-                default:
-                  return 'Dedicated Contents';
-              }
-            })()}
+            label={
+              (() => {
+                const count =
+                  orderedDedicatedContents && orderedDedicatedContents.length;
+                if (count) return `${count} `;
+                return '';
+              })() +
+              (() => {
+                switch (item.isContainerType) {
+                  case 'item-with-parts':
+                    return 'Parts';
+                  default:
+                    return 'Dedicated Items';
+                }
+              })()
+            }
             labelVariant="large"
             loading={!item}
             labelRight={
@@ -701,6 +710,16 @@ function ItemScreen({
                     )}
                   </>
                 }
+              />,
+            );
+          }
+
+          if (item?.purchasedFrom) {
+            detailElements.push(
+              <InsetGroup.Item
+                vertical2
+                label="Purchased From"
+                detail={item.purchasedFrom}
               />,
             );
           }

@@ -140,7 +140,7 @@ function RFIDSheet(
   const contentBottomInset =
     footerBottomInset + footerHeight + footerLinearGradientHeight / 10;
 
-  const initialSnapPoints = useMemo(() => [100, 'CONTENT_HEIGHT'], []);
+  const initialSnapPoints = useMemo(() => [150, 'CONTENT_HEIGHT'], []);
 
   const {
     animatedHandleHeight,
@@ -866,6 +866,7 @@ function RFIDSheet(
             <View style={styles.actionButtonAndStatusTextContainer}>
               <Text style={styles.actionButtonStatusText} numberOfLines={1}>
                 {(() => {
+                  if (sheetHalfClosed) return 'Slide up to access';
                   if (!useBuiltinReader && !rfidReaderDeviceReady)
                     return 'Trying to connect to RFID reader...';
                   switch (options?.functionality) {
@@ -1056,8 +1057,8 @@ function RFIDSheet(
         disappearsOnIndex={initialSnapPoints.length - 2}
         appearsOnIndex={initialSnapPoints.length - 1}
         opacity={0.4}
-        // pressBehavior="collapse"
-        pressBehavior="close"
+        pressBehavior="collapse"
+        // pressBehavior="close"
       />
     ),
     [initialSnapPoints.length],
@@ -2057,6 +2058,7 @@ const styles = StyleSheet.create({
   },
   actionButtonAndStatusTextContainer: {
     alignItems: 'stretch',
+    paddingTop: 5,
   },
   actionButtonStatusText: {
     marginBottom: 8,

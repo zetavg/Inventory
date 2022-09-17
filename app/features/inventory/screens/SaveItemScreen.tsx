@@ -602,10 +602,10 @@ function SaveItemScreen({
         <InsetGroup>
           <InsetGroup.Item
             compactLabel
+            vertical2
             label="Model Name"
             detail={
               <InsetGroup.TextInput
-                alignRight
                 placeholder="Enter Model Name"
                 autoCapitalize="words"
                 returnKeyType="done"
@@ -706,6 +706,27 @@ function SaveItemScreen({
                   />
                 )}
               </>
+            }
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            compactLabel
+            vertical2
+            label="Purchased From"
+            detail={
+              <InsetGroup.TextInput
+                placeholder="Enter Supplier Name"
+                autoCapitalize="words"
+                returnKeyType="done"
+                value={applyWhitespaceFix(data.purchasedFrom)}
+                onChangeText={t => {
+                  setData(d => ({
+                    ...d,
+                    purchasedFrom: removeWhitespaceFix(t),
+                  }));
+                  setHasUnsavedChanges(true);
+                }}
+              />
             }
           />
         </InsetGroup>

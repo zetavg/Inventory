@@ -166,6 +166,7 @@ export const schema = s({
         modelName: { type: 'string', metadata: { trim: true } },
         purchasePriceX1000: { type: 'uint32' },
         purchasePriceCurrency: { type: 'string' },
+        purchasedFrom: { type: 'string' },
         // relations
         dedicatedContainer: { type: 'string' },
         container: { type: 'string' },
