@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -13,6 +13,7 @@ import TableView from '@app/components/TableView';
 import { useAppSelector } from '@app/redux';
 import { selectActiveProfileConfig } from '@app/features/profiles';
 import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
+import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
 
 function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const rootNavigation = useRootNavigation();
@@ -50,6 +51,19 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
 
   const [switchValue, setSwitchValue] = useState(false);
   const [overallDBSyncStatus] = useOverallDBSyncStatus();
+
+  const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
+  onScannedItemPressRef.current = (data, itemType, itemId) => {
+    if (itemType === 'item' && itemId) {
+      navigation.push('Item', { id: itemId });
+      rfidSheet.current?.collapse();
+    } else {
+      navigation.push('GenericTextDetails', {
+        details: JSON.stringify(data, null, 2),
+      });
+      rfidSheet.current?.collapse();
+    }
+  };
 
   return (
     <ScreenContent
@@ -119,17 +133,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             onPress={() =>
               openRfidSheet({
                 functionality: 'scan',
-                onScannedItemPress: (data, itemType, itemId) => {
-                  if (itemType === 'item' && itemId) {
-                    navigation.push('Item', { id: itemId });
-                    rfidSheet.current?.collapse();
-                  } else {
-                    navigation.push('GenericTextDetails', {
-                      details: JSON.stringify(data, null, 2),
-                    });
-                    rfidSheet.current?.collapse();
-                  }
-                },
+                onScannedItemPressRef,
               })
             }
           >

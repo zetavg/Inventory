@@ -124,6 +124,12 @@ function ItemScreen({
   const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
     useColors();
 
+  const afterWriteSuccessRef = useRef<(() => void) | null>(null);
+  afterWriteSuccessRef.current = () => {
+    if (item && !item.actualRfidTagEpcMemoryBankContents)
+      writeActualEpcContent();
+  };
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -449,11 +455,7 @@ function ItemScreen({
                       functionality: 'write',
                       epc: item.computedRfidTagEpcMemoryBankContents,
                       tagAccessPassword: item.rfidTagAccessPassword,
-                      // TODO: Make this a ref so the function can be updated correctly?
-                      afterWriteSuccess: () => {
-                        if (!item.actualRfidTagEpcMemoryBankContents)
-                          writeActualEpcContent();
-                      },
+                      afterWriteSuccessRef,
                     })
                   }
                 >

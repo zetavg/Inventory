@@ -74,7 +74,7 @@ export type RFIDSheetOptions =
   | {
       functionality: 'scan';
       useDefaultFilter?: boolean;
-      onScannedItemPress?: OnScannedItemPressFn;
+      onScannedItemPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
     }
   | {
       functionality: 'locate';
@@ -87,7 +87,7 @@ export type RFIDSheetOptions =
       functionality: 'write';
       epc?: string;
       tagAccessPassword?: string;
-      afterWriteSuccess?: () => void;
+      afterWriteSuccessRef?: React.MutableRefObject<(() => void) | null>;
     };
 
 type Props = {
@@ -672,7 +672,8 @@ function RFIDSheet(
         soundEnabled: true,
         reportStatus: setWriteAndLockStatus,
       });
-      if (options?.afterWriteSuccess) options?.afterWriteSuccess();
+      if (options?.afterWriteSuccessRef && options.afterWriteSuccessRef.current)
+        options.afterWriteSuccessRef.current();
     } catch (e: any) {
       // console.warn(e);
     } finally {
@@ -1140,7 +1141,7 @@ function RFIDSheet(
                             <ScannedItem
                               key={d.epc}
                               item={d}
-                              onPress={options?.onScannedItemPress}
+                              onPressRef={options?.onScannedItemPressRef}
                             />,
                             <InsetGroup.ItemSeperator
                               key={`s-${d.epc}`}
@@ -1814,10 +1815,10 @@ function RFIDSheet(
 
 function ScannedItem({
   item,
-  onPress,
+  onPressRef,
 }: {
   item: ScanData;
-  onPress?: OnScannedItemPressFn;
+  onPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
 }) {
   const { db } = useDB();
 
@@ -1853,9 +1854,10 @@ function ScannedItem({
           additionalDetails={item.rssi && `RSSI: ${item.rssi}`}
           arrow={false}
           onPress={
-            onPress
+            onPressRef
               ? () => {
-                  onPress(item, 'item', loadedItem.id || null);
+                  onPressRef.current &&
+                    onPressRef.current(item, 'item', loadedItem.id || null);
                 }
               : undefined
           }
@@ -1909,9 +1911,9 @@ function ScannedItem({
         />
       }
       onPress={
-        onPress
+        onPressRef
           ? () => {
-              onPress(item, null, null);
+              onPressRef.current && onPressRef.current(item, null, null);
             }
           : undefined
       }
