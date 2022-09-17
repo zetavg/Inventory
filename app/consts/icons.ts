@@ -127,23 +127,25 @@ export const ICONS = {
     materialIconName: 'bottle-wine',
     keywords: 'bottle-wine',
   },
+  bottle: {
+    // sfSymbolName: 'wineglass.fill',
+    materialIconName: 'bottle-soda',
+    keywords: '',
+  },
+  knife: {
+    materialIconName: 'knife',
+    keywords: 'knife',
+  },
   coffee: {
     materialIconName: 'coffee',
   },
   cup: {
     materialIconName: 'cup',
   },
-  knife: {
-    materialIconName: 'knife',
-    keywords: 'knife',
-  },
   food: {
-    // sfSymbolName: 'pencil.and.ruler.fill',
-    materialIconName: 'food-apple',
-    keywords: 'food',
-  },
-  cupcake: {
-    materialIconName: 'cupcake',
+    // sfSymbolName: 'carrot.fill',
+    materialIconName: 'carrot',
+    keywords: 'carrot',
   },
   kettle: {
     // sfSymbolName: '',
@@ -154,6 +156,19 @@ export const ICONS = {
     // sfSymbolName: '',
     materialIconName: 'hanger',
     keywords: '',
+  },
+  cupcake: {
+    materialIconName: 'cupcake',
+  },
+  carrot: {
+    // sfSymbolName: 'carrot.fill',
+    materialIconName: 'carrot',
+    keywords: '',
+  },
+  apple: {
+    // sfSymbolName: 'pencil.and.ruler.fill',
+    materialIconName: 'food-apple',
+    keywords: 'food',
   },
 
   // Book
@@ -199,10 +214,24 @@ export const ICONS = {
     materialIconName: 'tray',
     keywords: 'tray',
   },
+  pencil: {
+    materialIconName: 'pencil',
+  },
+  pen: {
+    materialIconName: 'pen',
+  },
+  'fountain-pen': {
+    materialIconName: 'fountain-pen',
+  },
   ruler: {
     sfSymbolName: 'ruler.fill',
     materialIconName: 'ruler',
     keywords: 'ruler',
+  },
+  scissors: {
+    sfSymbolName: 'scissors',
+    materialIconName: 'content-cut',
+    keywords: 'scissors cut cutter',
   },
   tag: {
     sfSymbolName: 'tag.fill',
@@ -225,6 +254,32 @@ export const ICONS = {
     // sfSymbolName: '',
     materialIconName: 'shoe-formal',
     keywords: 'shoe',
+  },
+  'shoe-heel': {
+    // sfSymbolName: '',
+    materialIconName: 'shoe-heel',
+    keywords: 'shoe-heel',
+  },
+  'shoe-sneaker': {
+    // sfSymbolName: '',
+    materialIconName: 'shoe-sneaker',
+    keywords: 'shoe-sneaker',
+  },
+  glasses: {
+    sfSymbolName: 'eyeglasses',
+    materialIconName: 'glasses',
+    keywords: 'eyeglasses',
+  },
+  hat: {
+    materialIconName: 'hat-fedora',
+  },
+  'face-mask': {
+    sfSymbolName: 'facemask.fill',
+    materialIconName: 'face-mask',
+    keywords: 'facemask face-mask',
+  },
+  towel: {
+    materialIconName: 'receipt',
   },
   comb: {
     sfSymbolName: 'comb.fill',
@@ -285,6 +340,15 @@ export const ICONS = {
     sfSymbolName: 'cross.vial.fill',
     materialIconName: 'pill',
     keywords: 'medication',
+  },
+  spray: {
+    materialIconName: 'spray',
+  },
+  'spray-bottle': {
+    materialIconName: 'spray-bottle',
+  },
+  lipstick: {
+    materialIconName: 'lipstick',
   },
 
   // Electronics
@@ -417,11 +481,19 @@ export const ICONS = {
     materialIconName: 'fan',
     keywords: 'fan',
   },
+  iron: {
+    materialIconName: 'iron',
+  },
 
   // Outdoors
   sun: {
     sfSymbolName: 'sun.max.fill',
     materialIconName: 'white-balance-sunny',
+    keywords: 'outdoor',
+  },
+  'cloud-sun': {
+    sfSymbolName: 'cloud.sun.fill',
+    materialIconName: 'weather-partly-cloudy',
     keywords: 'outdoor',
   },
   umbrella: {
@@ -519,6 +591,12 @@ export const ICONS = {
     materialIconName: 'hammer-screwdriver',
     keywords: 'tools hammer screwdriver wrench',
   },
+  'tape-measure': {
+    materialIconName: 'tape-measure',
+  },
+  pliers: {
+    materialIconName: 'pliers',
+  },
   screwdriver: {
     sfSymbolName: 'screwdriver.fill',
     materialIconName: 'screwdriver',
@@ -534,6 +612,18 @@ export const ICONS = {
     materialIconName: 'wrench',
     keywords: 'tools wrench',
   },
+  nail: {
+    materialIconName: 'nail',
+    keywords: '',
+  },
+  screw: {
+    materialIconName: 'screw-machine-flat-top',
+    keywords: 'bolt',
+  },
+  nut: {
+    materialIconName: 'nut',
+    keywords: 'screw',
+  },
   'hand-saw': {
     materialIconName: 'hand-saw',
     keywords: '',
@@ -547,7 +637,19 @@ export const ICONS = {
     keywords: '',
   },
   'test-tube': {
-    materialIconName: 'saw-blade',
+    materialIconName: 'test-tube',
+    keywords: '',
+  },
+  ladder: {
+    materialIconName: 'ladder',
+    keywords: '',
+  },
+  shovel: {
+    materialIconName: 'shovel',
+    keywords: '',
+  },
+  'fire-extinguisher': {
+    materialIconName: 'fire-extinguisher',
     keywords: '',
   },
 
@@ -574,7 +676,7 @@ export const ICONS = {
 
   // App
   'rfid-locate': {
-    sfSymbolName: 'scope',
+    sfSymbolName: 'dot.viewfinder',
     materialIconName: 'magnify-scan',
   },
   'rfid-write': {
