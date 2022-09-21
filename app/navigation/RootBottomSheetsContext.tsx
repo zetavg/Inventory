@@ -10,10 +10,12 @@ const RootBottomSheetsContext = React.createContext<{
     (options: OpenRfidSheetOptions) => void
   >;
   openRfidSheet: (options: OpenRfidSheetOptions) => void;
+  showRfidSheet: () => void;
 }>({
   rfidSheet: { current: null },
   rfidSheetPassOptionsFn: { current: null },
   openRfidSheet: () => {},
+  showRfidSheet: () => {},
 });
 
 export function useRootBottomSheets() {

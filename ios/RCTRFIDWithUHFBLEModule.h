@@ -33,6 +33,7 @@
 
   NSMutableSet *scannedEpcs;
   BOOL soundEnabled;
+  NSMutableSet *playSoundOnlyForEpcs;
   
   BOOL scanIsLocate;
 }

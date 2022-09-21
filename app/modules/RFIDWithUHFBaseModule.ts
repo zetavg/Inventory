@@ -35,6 +35,8 @@ export type ScanOptions = BasicOptions & {
   eventRate?: number;
   isLocate?: boolean;
   enableReaderSound?: boolean;
+  scannedEpcs?: ReadonlyArray<string>;
+  playSoundOnlyForEpcs?: ReadonlyArray<string>;
 };
 
 export type LocateOptions = BasicOptions & {
@@ -170,6 +172,8 @@ const RFIDWithUHFBaseModule = {
       !!options.isLocate,
       !!options.soundEnabled,
       !!options.enableReaderSound,
+      options.scannedEpcs || [],
+      options.playSoundOnlyForEpcs || [],
     );
   },
   stopScan(): Promise<void> {

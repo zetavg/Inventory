@@ -13,6 +13,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
@@ -30,6 +31,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
   ReactApplicationContext context;
   public RFIDWithUHFUART uhfReader;
   public Set<String> scannedTags = new HashSet<String>();
+  public Set<String> soundOnlyForEpcsSet = new HashSet<String>();
 
   private int scanRate = 10;
   private int scanEventRate = 100;
@@ -190,11 +192,21 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
           boolean isLocate,
           boolean playSound,
           boolean enableReaderSound,
+          ReadableArray scannedEpcs,
+          ReadableArray soundOnlyForEpcs,
           Promise promise
   ) {
     scanRate = rate;
     scanEventRate = eventRate;
     scanIsLocate = isLocate;
+    if (scannedEpcs.size() > 0) {
+      scannedTags = new HashSet(scannedEpcs.toArrayList());
+    }
+    if (soundOnlyForEpcs.size() > 0) {
+      soundOnlyForEpcsSet = new HashSet(soundOnlyForEpcs.toArrayList());
+    } else {
+      soundOnlyForEpcsSet = new HashSet();
+    }
     try {
       prepareStartScan();
       this.playSoundFlag = playSound;
@@ -255,7 +267,7 @@ public class RFIDWithUHFUARTModule extends ReactContextBaseJavaModule {
 
           String epc = tagData.getEPC();
 
-          if (playSoundFlag) {
+          if (playSoundFlag && (soundOnlyForEpcsSet.size() <= 0 || soundOnlyForEpcsSet.contains(epc))) {
             if (scanIsLocate) {
               playSound(2);
             } else {

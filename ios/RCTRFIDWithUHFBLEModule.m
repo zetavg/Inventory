@@ -185,6 +185,8 @@ RCT_EXPORT_METHOD(startScan:
                   (BOOL)isLocate:
                   (BOOL)soundEnabled:
                   (BOOL)enableReaderSound:
+                  (NSArray*)scannedEpcsArr:
+                  (NSArray*)playSoundOnlyForEpcsArr:
                   (RCTPromiseResolveBlock)resolve:
                   (RCTPromiseRejectBlock)reject)
 {
@@ -195,10 +197,18 @@ RCT_EXPORT_METHOD(startScan:
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
     [[RFIDBlutoothManager shareManager] setLaunchPowerWithstatus:@"1" antenna:@"1" readStr:[power stringValue] writeStr:[power stringValue]];
     usleep(80 * 1000);
-    if (!scannedEpcs) scannedEpcs = [[NSMutableSet alloc] init];
+    // Init or reset scanned epcs
+    if (!scannedEpcs || scannedEpcsArr.count > 0) scannedEpcs = [[NSMutableSet alloc] init];
+    if (scannedEpcsArr.count > 0) {
+      [scannedEpcs addObjectsFromArray:scannedEpcsArr];
+    }
     if (!enableReaderSound) {
       [[RFIDBlutoothManager shareManager] setCloseBuzzer];
       usleep(80 * 1000);
+    }
+    playSoundOnlyForEpcs = [[NSMutableSet alloc] init];
+    if (playSoundOnlyForEpcsArr.count > 0) {
+      [playSoundOnlyForEpcs addObjectsFromArray:playSoundOnlyForEpcsArr];
     }
     self->scanIsLocate = isLocate;
     self->soundEnabled = soundEnabled;
@@ -599,7 +609,7 @@ RCT_EXPORT_METHOD(playSound:
   if (!self->scanTagsData) self->scanTagsData = [NSMutableArray array];
   [self->scanTagsData addObject:jsData];
 
-  if (self->soundEnabled) {
+  if (self->soundEnabled && ([playSoundOnlyForEpcs count] <= 0 || [playSoundOnlyForEpcs containsObject:[epc uppercaseString]])) {
     if (self->scanIsLocate) {
       float maxVolume = 10;
       [[RFIDBlutoothManager shareManager] playSound:2 withVolume:1 + MIN(maxVolume, MAX(0, (80 + rssi) * (maxVolume / (80 - 30))))];

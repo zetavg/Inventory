@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -29,6 +29,10 @@ import { useRelationalData } from '@app/db';
 import EPCUtils from '@app/modules/EPCUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 import ItemItem from '../components/ItemItem';
+import {
+  OnScannedItemPressFn,
+  RenderScannedItemsFn,
+} from '@app/features/rfid/RFIDSheet';
 
 function ItemScreen({
   navigation,
@@ -129,6 +133,89 @@ function ItemScreen({
     if (item && !item.actualRfidTagEpcMemoryBankContents)
       writeActualEpcContent();
   };
+
+  const renderScannedItemsRef = useRef<RenderScannedItemsFn | null>(null);
+  renderScannedItemsRef.current = useCallback<RenderScannedItemsFn>(
+    (items, { contentBackgroundColor }) => {
+      return (
+        <>
+          <InsetGroup
+            label={`${
+              (orderedDedicatedContents || []).filter(
+                it => !!items[it.actualRfidTagEpcMemoryBankContents || ''],
+              ).length
+            }/${orderedDedicatedContents?.length} Items Checked`}
+            style={{ backgroundColor: contentBackgroundColor }}
+          >
+            {(orderedDedicatedContents || [])
+              .flatMap(it => {
+                const scannedData =
+                  items[it.actualRfidTagEpcMemoryBankContents || ''];
+                return [
+                  <ItemItem
+                    key={it.id}
+                    item={it}
+                    checkStatus={scannedData ? 'checked' : 'unchecked'}
+                    hideDedicatedContainerDetails
+                    hideCollectionDetails={it.collection === item?.collection}
+                    reloadCounter={reloadCounter}
+                    additionalDetails={
+                      scannedData?.rssi
+                        ? `RSSI: ${scannedData.rssi}`
+                        : undefined
+                    }
+                    // onPress={() =>
+                    //   navigation.push('Item', {
+                    //     id: it.id || '',
+                    //     initialTitle: it.name,
+                    //   })
+                    // }
+                    arrow={false}
+                  />,
+                  <InsetGroup.ItemSeperator
+                    key={`s-${it.id}`}
+                    leftInset={60}
+                  />,
+                ];
+              })
+              .slice(0, -1)}
+          </InsetGroup>
+        </>
+      );
+    },
+    [item?.collection, orderedDedicatedContents, reloadCounter],
+  );
+  const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
+  const rfidSheetScanOptions = useMemo(
+    () => ({
+      functionality: 'scan' as const,
+      scanName: `container-${id}-scan`,
+      playSoundOnlyForEpcs: dedicatedContents?.map(
+        it => it.actualRfidTagEpcMemoryBankContents,
+      ),
+      onScannedItemPressRef,
+      renderScannedItemsRef,
+    }),
+    [dedicatedContents, id],
+  );
+  onScannedItemPressRef.current = (data, itemType, itemId) => {
+    if (itemType === 'item' && itemId) {
+      // navigation.push('Item', {
+      //   id: itemId,
+      //   ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
+      // });
+      // rfidSheet.current?.collapse();
+    } else {
+      // navigation.push('GenericTextDetails', {
+      //   details: JSON.stringify(data, null, 2),
+      //   ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
+      // });
+      // rfidSheet.current?.collapse();
+    }
+  };
+  const handleCheckContents = useCallback(() => {
+    openRfidSheet(rfidSheetScanOptions);
+  }, [openRfidSheet, rfidSheetScanOptions]);
 
   return (
     <ScreenContent
@@ -553,6 +640,20 @@ function ItemScreen({
             loading={!item}
             labelRight={
               <>
+                {orderedDedicatedContents &&
+                  orderedDedicatedContents.length > 0 && (
+                    <InsetGroup.LabelButton
+                      onPress={handleCheckContents}
+                      contentAsText={false}
+                      style={commonStyles.mr8}
+                    >
+                      <Icon
+                        name="checklist"
+                        sfSymbolWeight="bold"
+                        color={iosTintColor}
+                      />
+                    </InsetGroup.LabelButton>
+                  )}
                 {orderedDedicatedContents &&
                   orderedDedicatedContents.length > 0 && (
                     <InsetGroup.LabelButton

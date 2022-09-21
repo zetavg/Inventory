@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, View, Text, Platform } from 'react-native';
 
 import useColors from '@app/hooks/useColors';
 import commonStyles from '@app/utils/commonStyles';
@@ -9,6 +9,7 @@ import Icon, { IconName } from '@app/components/Icon';
 import useDB from '@app/hooks/useDB';
 import { DataType } from '@app/db/schema';
 import { DataTypeWithID } from '@app/db/relationalUtils';
+import { SFSymbol } from 'react-native-sfsymbols';
 
 export default function ItemItem({
   item,
@@ -18,6 +19,7 @@ export default function ItemItem({
   hideCollectionDetails,
   hideDedicatedContainerDetails,
   reloadCounter,
+  checkStatus,
   ...props
 }: {
   item: DataTypeWithID<'item'>;
@@ -27,6 +29,7 @@ export default function ItemItem({
   hideCollectionDetails?: boolean;
   hideDedicatedContainerDetails?: boolean;
   reloadCounter?: number;
+  checkStatus?: 'checked' | 'unchecked';
 } & React.ComponentProps<typeof InsetGroup.Item>) {
   const { contentSecondaryTextColor } = useColors();
   const { db } = useDB();
@@ -153,18 +156,30 @@ export default function ItemItem({
       vertical={!hideDetails}
       label={item.name}
       leftElement={
-        <Icon
-          name={item.iconName as IconName}
-          color={item.iconColor}
-          style={styles.itemItemIcon}
-          // size={20}
-          size={30}
-          showBackground
-          backgroundPadding={4}
-        />
+        <View>
+          <Icon
+            name={item.iconName as IconName}
+            color={item.iconColor}
+            style={[
+              styles.itemItemIcon,
+              checkStatus === 'unchecked' && styles.itemItemIconUnchecked,
+            ]}
+            // size={20}
+            size={30}
+            showBackground
+            backgroundPadding={4}
+          />
+          {!!checkStatus && <CheckStatusIcon status={checkStatus} />}
+        </View>
       }
-      labelTextStyle={styles.itemItemLabelText}
-      detailTextStyle={styles.itemItemDetailText}
+      labelTextStyle={[
+        styles.itemItemLabelText,
+        checkStatus === 'unchecked' && styles.itemItemLabelTextUnchecked,
+      ]}
+      detailTextStyle={[
+        styles.itemItemDetailText,
+        checkStatus === 'unchecked' && styles.itemItemDetailTextUnchecked,
+      ]}
       onPress={onPress}
       detailAsText
       detail={
@@ -179,12 +194,74 @@ export default function ItemItem({
   );
 }
 
+function CheckStatusIcon({ status }: { status: 'checked' | 'unchecked' }) {
+  const { contentBackgroundColor, green, gray } = useColors();
+
+  if (Platform.OS === 'ios') {
+    switch (status) {
+      case 'checked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            <SFSymbol
+              name="checkmark.circle.fill"
+              color={green}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+
+      case 'unchecked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            {/*<SFSymbol
+              style={styles.checkStatusIconIosLayer1}
+              name="questionmark.app.dashed"
+              color={contentBackgroundColor}
+              size={16}
+              weight="heavy"
+            />*/}
+            <SFSymbol
+              // style={styles.checkStatusIconIosLayer2}
+              name="questionmark.app.dashed"
+              color={gray}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+    }
+  }
+
+  return null;
+}
+
 const styles = StyleSheet.create({
   itemItemIcon: { marginRight: -2 },
+  itemItemIconUnchecked: {
+    opacity: 0.3,
+  },
   itemItemLabelText: { fontSize: 16 },
   itemItemDetailText: { fontSize: 12 },
+  itemItemLabelTextUnchecked: {
+    opacity: 0.5,
+  },
+  itemItemDetailTextUnchecked: {
+    opacity: 0.5,
+  },
   itemDetailCollectionIcon: {
     opacity: 0.7,
     marginBottom: -1.5,
+  },
+  checkStatusIconContainer: {
+    position: 'absolute',
+    right: 2,
+    bottom: 5,
+  },
+  checkStatusIconIosLayer1: {
+    position: 'absolute',
+  },
+  checkStatusIconIosLayer2: {
+    position: 'absolute',
   },
 });

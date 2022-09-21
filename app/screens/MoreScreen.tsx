@@ -47,23 +47,28 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
     }
   })();
 
-  const { openRfidSheet, rfidSheet } = useRootBottomSheets();
+  const { openRfidSheet, showRfidSheet, rfidSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
   const [overallDBSyncStatus] = useOverallDBSyncStatus();
 
   const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
+  const rfidSheetScanOptions = {
+    functionality: 'scan' as const,
+    onScannedItemPressRef,
+    autoScroll: true,
+  };
   onScannedItemPressRef.current = (data, itemType, itemId) => {
     if (itemType === 'item' && itemId) {
       navigation.push('Item', {
         id: itemId,
-        ...({ beforeRemove: () => rfidSheet.current?.expand() } as any),
+        ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
       });
       rfidSheet.current?.collapse();
     } else {
       navigation.push('GenericTextDetails', {
         details: JSON.stringify(data, null, 2),
-        ...({ beforeRemove: () => rfidSheet.current?.expand() } as any),
+        ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
       });
       rfidSheet.current?.collapse();
     }
@@ -134,12 +139,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="cellphone-wireless"
             iosImage="ios-menu.wireless-scan.png"
-            onPress={() =>
-              openRfidSheet({
-                functionality: 'scan',
-                onScannedItemPressRef,
-              })
-            }
+            onPress={() => openRfidSheet(rfidSheetScanOptions)}
           >
             Scan Tags
           </TableView.Item>

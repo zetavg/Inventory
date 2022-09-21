@@ -71,11 +71,20 @@ export type OnScannedItemPressFn = (
   loadedItemId: string | null,
 ) => void;
 
+export type RenderScannedItemsFn = (
+  items: Record<string, ScanData>,
+  options: { contentBackgroundColor: string },
+) => JSX.Element;
+
 export type RFIDSheetOptions =
   | {
       functionality: 'scan';
+      scanName?: string;
+      playSoundOnlyForEpcs?: string[];
       useDefaultFilter?: boolean;
+      autoScroll?: boolean;
       onScannedItemPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
+      renderScannedItemsRef?: React.MutableRefObject<RenderScannedItemsFn | null>;
     }
   | {
       functionality: 'locate';
@@ -455,8 +464,15 @@ function RFIDSheet(
   }, [options?.functionality, useBuiltinReader]);
 
   const [scanStatus, setScanStatus] = useState('');
-  const [scannedData, setScannedData] = useState<Record<string, ScanData>>({});
-  const [scannedDataCount, setScannedDataCount] = useState(0);
+  const scanName = useMemo(() => {
+    if (options?.functionality !== 'scan') return 'default';
+
+    return options.scanName || 'default';
+  }, [options]);
+  const [scannedData, setScannedData] = useState<
+    Record<string, Record<string, ScanData>>
+  >({});
+  // const [scannedDataCount, setScannedDataCount] = useState(0);
   // Will be used if useDefaultFilter is not specified in options
   const [useDefaultFilterFallback, setUseDefaultFilterFallback] =
     useState(true);
@@ -489,22 +505,30 @@ function RFIDSheet(
     [setScanFilterBitCount],
   );
 
-  const receiveScanData = useCallback((d: ScanData[]) => {
-    setScannedData(data => ({
-      ...data,
-      ...Object.fromEntries(d.map(dd => [dd.epc, dd])),
-    }));
-    setScannedDataCount(c => c + d.length);
-  }, []);
+  const receiveScanData = useCallback(
+    (d: ScanData[]) => {
+      setScannedData(data => ({
+        ...data,
+        [scanName]: {
+          ...data[scanName],
+          ...Object.fromEntries(d.map(dd => [dd.epc, dd])),
+        },
+      }));
+      // setScannedDataCount(c => c + d.length);
+    },
+    [scanName],
+  );
   const scannedDataLength = Object.keys(scannedData).length;
   const prevScannedDataLength = useRef(scannedDataLength);
   useEffect(() => {
+    if (options?.functionality !== 'scan') return;
+    if (!options?.autoScroll) return;
     if (scannedDataLength > prevScannedDataLength.current) {
       scrollViewRef.current?.scrollTo({ y: 999999, animated: true });
     }
 
     prevScannedDataLength.current = scannedDataLength;
-  }, [scannedDataLength]);
+  }, [options, scannedDataLength]);
 
   const startScan = useCallback(async () => {
     if (options?.functionality !== 'scan') return;
@@ -532,6 +556,8 @@ function RFIDSheet(
     try {
       setIsWorking(true);
       setScanStatus('Scan starting...');
+      const scannedEpcs = Object.keys(scannedData[scanName] || {});
+      if (scannedEpcs.length <= 0) scannedEpcs.push('z'); // Must have at least 1 item to work
       await RFIDModule.startScan({
         power,
         soundEnabled: true,
@@ -539,6 +565,8 @@ function RFIDSheet(
         scanRate: 30,
         eventRate: 250,
         filter: filterOption,
+        playSoundOnlyForEpcs: options.playSoundOnlyForEpcs,
+        scannedEpcs,
       });
       setScanStatus('Scanning...');
     } catch (e: any) {
@@ -549,6 +577,8 @@ function RFIDSheet(
     RFIDModule,
     defaultFilter,
     options,
+    scanName,
+    scannedData,
     useDefaultFilterFallback,
     enableScanFilter,
     scanFilterBitOffset,
@@ -570,10 +600,12 @@ function RFIDSheet(
   }, [RFIDModule]);
 
   const clearScannedData = useCallback(async () => {
-    setScannedData({});
-    setScannedDataCount(0);
-    await RFIDModule.clearScannedTags();
-  }, [RFIDModule]);
+    setScannedData(d => ({ ...d, [scanName]: {} }));
+    // setScannedDataCount(0);
+    // await RFIDModule.clearScannedTags();
+  }, [scanName]);
+
+  const scannedItems = scannedData[scanName] || {};
 
   const [locateReaderSoundEnabled, setLocateReaderSoundEnabled] =
     usePersistedState('RFIDSheet-locateReaderSoundEnabled', true);
@@ -1101,7 +1133,8 @@ function RFIDSheet(
         {(() => {
           switch (options?.functionality) {
             case 'scan': {
-              const scannedItemsCount = Object.keys(scannedData).length;
+              const scannedItemsCount = Object.keys(scannedItems).length;
+              const renderScannedItems = options.renderScannedItemsRef?.current;
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
@@ -1117,146 +1150,156 @@ function RFIDSheet(
                     ]}
                     onLayout={handleContentLayout}
                   >
-                    {scannedItemsCount <= 0 ? (
-                      <InsetGroup
-                        style={[
-                          {
-                            backgroundColor: insetGroupBackgroundColor,
-                          },
-                          commonStyles.centerChildren,
-                          commonStyles.ph16,
-                          commonStyles.pv40,
-                        ]}
-                      >
-                        <Text
-                          style={[commonStyles.opacity05, commonStyles.tac]}
-                        >
-                          Press and hold the Scan button to start scanning
-                        </Text>
-                      </InsetGroup>
+                    {renderScannedItems ? (
+                      renderScannedItems(scannedItems, {
+                        contentBackgroundColor: insetGroupBackgroundColor,
+                      })
                     ) : (
-                      <InsetGroup
-                        style={{
-                          backgroundColor: insetGroupBackgroundColor,
-                        }}
-                        label={`${scannedItemsCount} Item${
-                          scannedItemsCount > 1 ? 's' : ''
-                        }`}
-                        // labelRight={
-                        //   <InsetGroup.GroupLabelRightButton
-                        //     label="Clear"
-                        //     onPress={clearScannedData}
-                        //   />
-                        // }
-                      >
-                        {Object.values(scannedData)
-                          .flatMap(d => [
-                            <ScannedItem
-                              key={d.epc}
-                              item={d}
-                              onPressRef={options?.onScannedItemPressRef}
-                            />,
-                            <InsetGroup.ItemSeperator
-                              key={`s-${d.epc}`}
-                              leftInset={60}
-                            />,
-                          ])
-                          .slice(0, -1)}
-                      </InsetGroup>
-                    )}
-                    {options?.useDefaultFilter === undefined && (
-                      <InsetGroup
-                        label="Scan Settings"
-                        style={{
-                          backgroundColor: insetGroupBackgroundColor,
-                        }}
-                      >
-                        <InsetGroup.Item
-                          label="Use Default Filter"
-                          detail={
-                            <Switch
-                              value={useDefaultFilterFallback}
-                              onChange={() =>
-                                setUseDefaultFilterFallback(v => !v)
-                              }
-                            />
-                          }
-                        />
-                        {!useDefaultFilterFallback && (
-                          <>
-                            <InsetGroup.ItemSeperator />
+                      <>
+                        {scannedItemsCount <= 0 ? (
+                          <InsetGroup
+                            style={[
+                              {
+                                backgroundColor: insetGroupBackgroundColor,
+                              },
+                              commonStyles.centerChildren,
+                              commonStyles.ph16,
+                              commonStyles.pv40,
+                            ]}
+                          >
+                            <Text
+                              style={[commonStyles.opacity05, commonStyles.tac]}
+                            >
+                              Press and hold the Scan button to start scanning
+                            </Text>
+                          </InsetGroup>
+                        ) : (
+                          <InsetGroup
+                            style={{
+                              backgroundColor: insetGroupBackgroundColor,
+                            }}
+                            label={`${scannedItemsCount} Item${
+                              scannedItemsCount > 1 ? 's' : ''
+                            }`}
+                            // labelRight={
+                            //   <InsetGroup.GroupLabelRightButton
+                            //     label="Clear"
+                            //     onPress={clearScannedData}
+                            //   />
+                            // }
+                          >
+                            {Object.values(scannedItems)
+                              .flatMap(d => [
+                                <ScannedItem
+                                  key={d.epc}
+                                  item={d}
+                                  onPressRef={options?.onScannedItemPressRef}
+                                />,
+                                <InsetGroup.ItemSeperator
+                                  key={`s-${d.epc}`}
+                                  leftInset={60}
+                                />,
+                              ])
+                              .slice(0, -1)}
+                          </InsetGroup>
+                        )}
+                        {options?.useDefaultFilter === undefined && (
+                          <InsetGroup
+                            label="Scan Settings"
+                            style={{
+                              backgroundColor: insetGroupBackgroundColor,
+                            }}
+                          >
                             <InsetGroup.Item
-                              label="Enable Custom Filter"
+                              label="Use Default Filter"
                               detail={
                                 <Switch
-                                  value={enableScanFilter}
-                                  onChange={() => setEnableScanFilter(v => !v)}
+                                  value={useDefaultFilterFallback}
+                                  onChange={() =>
+                                    setUseDefaultFilterFallback(v => !v)
+                                  }
                                 />
                               }
                             />
-                            {enableScanFilter && (
+                            {!useDefaultFilterFallback && (
                               <>
                                 <InsetGroup.ItemSeperator />
                                 <InsetGroup.Item
-                                  label="Filter Bit Offset (ptr)"
+                                  label="Enable Custom Filter"
                                   detail={
-                                    <InsetGroup.TextInput
-                                      alignRight
-                                      keyboardType="number-pad"
-                                      placeholder="32"
-                                      returnKeyType="done"
-                                      value={scanFilterBitOffset?.toString()}
-                                      onChangeText={
-                                        handleChangeScanFilterBitOffsetText
+                                    <Switch
+                                      value={enableScanFilter}
+                                      onChange={() =>
+                                        setEnableScanFilter(v => !v)
                                       }
                                     />
                                   }
                                 />
-                                <InsetGroup.ItemSeperator />
-                                <InsetGroup.Item
-                                  label="Filter Bit Count (len)"
-                                  detail={
-                                    <InsetGroup.TextInput
-                                      alignRight
-                                      keyboardType="number-pad"
-                                      placeholder="16"
-                                      returnKeyType="done"
-                                      value={scanFilterBitCount?.toString()}
-                                      onChangeText={
-                                        handleChangeScanFilterBitCountText
+                                {enableScanFilter && (
+                                  <>
+                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.Item
+                                      label="Filter Bit Offset (ptr)"
+                                      detail={
+                                        <InsetGroup.TextInput
+                                          alignRight
+                                          keyboardType="number-pad"
+                                          placeholder="32"
+                                          returnKeyType="done"
+                                          value={scanFilterBitOffset?.toString()}
+                                          onChangeText={
+                                            handleChangeScanFilterBitOffsetText
+                                          }
+                                        />
                                       }
                                     />
-                                  }
-                                />
-                                <InsetGroup.ItemSeperator />
-                                <InsetGroup.Item
-                                  label="Filter Data"
-                                  vertical2
-                                  detail={
-                                    <InsetGroup.TextInput
-                                      placeholder="0000"
-                                      autoCapitalize="characters"
-                                      autoCorrect={false}
-                                      clearButtonMode="while-editing"
-                                      returnKeyType="done"
-                                      style={commonStyles.monospaced}
-                                      value={scanFilterData}
-                                      keyboardType="ascii-capable"
-                                      onChangeText={t =>
-                                        setScanFilterData(
-                                          t
-                                            .replace(/[^0-9a-fA-F]/gm, '')
-                                            .toUpperCase(),
-                                        )
+                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.Item
+                                      label="Filter Bit Count (len)"
+                                      detail={
+                                        <InsetGroup.TextInput
+                                          alignRight
+                                          keyboardType="number-pad"
+                                          placeholder="16"
+                                          returnKeyType="done"
+                                          value={scanFilterBitCount?.toString()}
+                                          onChangeText={
+                                            handleChangeScanFilterBitCountText
+                                          }
+                                        />
                                       }
                                     />
-                                  }
-                                />
+                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.Item
+                                      label="Filter Data"
+                                      vertical2
+                                      detail={
+                                        <InsetGroup.TextInput
+                                          placeholder="0000"
+                                          autoCapitalize="characters"
+                                          autoCorrect={false}
+                                          clearButtonMode="while-editing"
+                                          returnKeyType="done"
+                                          style={commonStyles.monospaced}
+                                          value={scanFilterData}
+                                          keyboardType="ascii-capable"
+                                          onChangeText={t =>
+                                            setScanFilterData(
+                                              t
+                                                .replace(/[^0-9a-fA-F]/gm, '')
+                                                .toUpperCase(),
+                                            )
+                                          }
+                                        />
+                                      }
+                                    />
+                                  </>
+                                )}
                               </>
                             )}
-                          </>
+                          </InsetGroup>
                         )}
-                      </InsetGroup>
+                      </>
                     )}
                   </View>
                 </BottomSheetScrollView>

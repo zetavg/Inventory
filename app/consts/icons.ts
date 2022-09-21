@@ -700,6 +700,10 @@ export const ICONS = {
     sfSymbolName: 'plus',
     materialIconName: 'plus',
   },
+  checklist: {
+    sfSymbolName: 'checklist',
+    materialIconName: 'order-bool-descending-variant',
+  },
 
   // Shape
   heart: {
