@@ -200,7 +200,10 @@ RCT_EXPORT_METHOD(startScan:
     // Init or reset scanned epcs
     if (!scannedEpcs || scannedEpcsArr.count > 0) scannedEpcs = [[NSMutableSet alloc] init];
     if (scannedEpcsArr.count > 0) {
-      [scannedEpcs addObjectsFromArray:scannedEpcsArr];
+      for (NSString* epc in scannedEpcsArr) {
+        [scannedEpcs addObject:[epc lowercaseString]];
+      }
+      // [scannedEpcs addObjectsFromArray:scannedEpcsArr];
     }
     if (!enableReaderSound) {
       [[RFIDBlutoothManager shareManager] setCloseBuzzer];
