@@ -5,7 +5,7 @@
 import 'react-native-get-random-values';
 import { shim as rnQuickBase64Shim } from 'react-native-quick-base64';
 
-import { AppRegistry, LogBox } from 'react-native';
+import { AppRegistry, LogBox, Platform, UIManager } from 'react-native';
 import App from '@app/App';
 // import StorybookUIRoot from '@app/StorybookUIRoot';
 import { name as appName } from './app.json';
@@ -13,6 +13,12 @@ import { name as appName } from './app.json';
 rnQuickBase64Shim();
 
 require('events').EventEmitter.defaultMaxListeners = 32;
+
+if (Platform.OS === 'android') {
+  if (UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}
 
 AppRegistry.registerComponent(appName, () => App);
 // AppRegistry.registerComponent(appName, () => StorybookUIRoot);
