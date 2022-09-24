@@ -1,3 +1,15 @@
+diff --git a/node_modules/pouchdb-quick-search/lib/index.js b/node_modules/pouchdb-quick-search/lib/index.js
+index 4ddbd85..f76976b 100644
+--- a/node_modules/pouchdb-quick-search/lib/index.js
++++ b/node_modules/pouchdb-quick-search/lib/index.js
+@@ -184,6 +184,7 @@ exports.search = utils.toPromise(function (opts, callback) {
+   // token more than once, in fact I think even Lucene does this
+   // special cases like boingo boingo and mother mother are rare
+   var queryTerms = uniq(getTokenStream(q, index));
++  // console.log('queryTerms', queryTerms);
+   if (!queryTerms.length) {
+     return callback(null, {total_rows: 0, rows: []});
+   }
 diff --git a/node_modules/pouchdb-quick-search/lib/pouch-utils.js b/node_modules/pouchdb-quick-search/lib/pouch-utils.js
 index 85e2561..879ae31 100644
 --- a/node_modules/pouchdb-quick-search/lib/pouch-utils.js

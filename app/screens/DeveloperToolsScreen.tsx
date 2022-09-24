@@ -43,6 +43,20 @@ function DeveloperToolsScreen({
       <ScrollView>
         <InsetGroup style={commonStyles.mt16}>
           <InsetGroup.Item
+            label="Storybook"
+            arrow
+            onPress={() => navigation.push('Storybook')}
+          />
+          <InsetGroup.ItemSeperator />
+          <InsetGroup.Item
+            label="Enter Storybook Mode"
+            button
+            onPress={handleEnterStorybookMode}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="Redux"
             arrow
             onPress={() => navigation.push('Redux')}
@@ -83,6 +97,14 @@ function DeveloperToolsScreen({
 
         <InsetGroup>
           <InsetGroup.Item
+            label="LinguisticTaggerModuleIOS"
+            arrow
+            onPress={() => navigation.push('LinguisticTaggerModuleIOS')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="EPC-TDS"
             arrow
             onPress={() => navigation.push('EPCTDS')}
@@ -92,20 +114,6 @@ function DeveloperToolsScreen({
             label="RFID UHF Module"
             arrow
             onPress={() => navigation.push('RFIDUHFModule')}
-          />
-        </InsetGroup>
-
-        <InsetGroup>
-          <InsetGroup.Item
-            label="Storybook"
-            arrow
-            onPress={() => navigation.push('Storybook')}
-          />
-          <InsetGroup.ItemSeperator />
-          <InsetGroup.Item
-            label="Enter Storybook Mode"
-            button
-            onPress={handleEnterStorybookMode}
           />
         </InsetGroup>
 

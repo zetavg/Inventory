@@ -25,6 +25,7 @@ import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchD
 import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
+import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
 import RFIDUHFModuleScreen from '@app/screens/RFIDUHFModuleScreen';
 import SampleScreen from '@app/screens/SampleScreen';
@@ -82,6 +83,7 @@ export type StackParamList = {
   RelationalPouchDBFixDataConsistency: undefined;
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
+  LinguisticTaggerModuleIOS: undefined;
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
   Counter: undefined;
@@ -185,6 +187,10 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="PouchDBAttachment"
         component={PouchDBAttachmentScreen}
+      />
+      <Stack.Screen
+        name="LinguisticTaggerModuleIOS"
+        component={LinguisticTaggerModuleIOSScreen}
       />
       <Stack.Screen name="EPCTDS" component={EPCTDSScreen} />
       <Stack.Screen name="RFIDUHFModule" component={RFIDUHFModuleScreen} />

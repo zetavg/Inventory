@@ -1,13 +1,34 @@
+import { Platform } from 'react-native';
 import PouchDBRN from 'pouchdb-react-native';
 import find from 'pouchdb-find';
 import rel from 'relational-pouch';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import WebSQLite from 'react-native-quick-websql';
+import LinguisticTaggerModuleIOS from '@app/modules/LinguisticTaggerModuleIOS';
 import { DBContent, AttachmentsDBContent, LogsDBContent } from './types';
 import schema from './schema';
 import { translateSchema } from './relationalUtils';
 
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);
+
+if (Platform.OS === 'ios') {
+  // Since LinguisticTaggerModuleIOS.cut is a blocking method, init the tagger
+  // asynchronous first to avoid long blocking on the first call.
+  LinguisticTaggerModuleIOS.initTagger();
+
+  const nodejiebaPolyfill = {
+    load() {},
+    cut(str: string) {
+      return LinguisticTaggerModuleIOS.cut(str);
+    },
+  };
+  const lunr = require('lunr');
+  require('lunr-languages/lunr.stemmer.support')(lunr);
+  require('lunr-languages/lunr.multi')(lunr);
+  require('lunr-languages/lunr.zh.js')(lunr, null, nodejiebaPolyfill);
+
+  (global as any).lunr = lunr; // for pouchdb-quick-search
+} // TODO: support zh searching on Android
 
 PouchDBRN.plugin(require('pouchdb-quick-search'));
 PouchDBRN.plugin(find);

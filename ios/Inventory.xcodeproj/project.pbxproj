@@ -12,6 +12,8 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		1925A26928E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */; };
+		1925A26A28E0ABE500FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */; };
 		197AF16E28C7919900F7066A /* BLEModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16828C7919800F7066A /* BLEModel.m */; };
 		197AF16F28C7919900F7066A /* BluetoothUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16928C7919800F7066A /* BluetoothUtil.m */; };
 		197AF17028C7919900F7066A /* AppHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16A28C7919800F7066A /* AppHelper.m */; };
@@ -61,6 +63,8 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Inventory/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Inventory/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Inventory/main.m; sourceTree = "<group>"; };
+		1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTNSLinguisticTaggerModule.h; sourceTree = "<group>"; };
+		1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNSLinguisticTaggerModule.m; sourceTree = "<group>"; };
 		197AF16628C7919800F7066A /* BLEModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEModel.h; sourceTree = "<group>"; };
 		197AF16728C7919800F7066A /* RFIDBlutoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFIDBlutoothManager.h; sourceTree = "<group>"; };
 		197AF16828C7919800F7066A /* BLEModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLEModel.m; sourceTree = "<group>"; };
@@ -135,6 +139,8 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				197D8A3628C340FA0048042D /* RCTRFIDWithUHFBLEModule.h */,
 				197D8A3728C341630048042D /* RCTRFIDWithUHFBLEModule.m */,
+				1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */,
+				1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */,
 			);
 			name = Inventory;
 			sourceTree = "<group>";
@@ -485,6 +491,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				197D8A3928C341630048042D /* RCTRFIDWithUHFBLEModule.m in Sources */,
+				1925A26A28E0ABE500FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */,
 				00E356F31AD99517003FC87E /* InventoryTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -498,6 +505,7 @@
 				197AF16E28C7919900F7066A /* BLEModel.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				197D8A3828C341630048042D /* RCTRFIDWithUHFBLEModule.m in Sources */,
+				1925A26928E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */,
 				197AF17128C7919900F7066A /* RFIDBlutoothManager.m in Sources */,
 				197AF17028C7919900F7066A /* AppHelper.m in Sources */,
 			);

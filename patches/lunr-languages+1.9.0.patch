@@ -1,0 +1,54 @@
+diff --git a/node_modules/lunr-languages/lunr.zh.js b/node_modules/lunr-languages/lunr.zh.js
+index 14a177c..75cc053 100644
+--- a/node_modules/lunr-languages/lunr.zh.js
++++ b/node_modules/lunr-languages/lunr.zh.js
+@@ -30,7 +30,8 @@
+      * only CommonJS-like environments that support module.exports,
+      * like Node.
+      */
+-    module.exports = factory(require('nodejieba'))
++    var isNode = false;
++    module.exports = factory(isNode ? /* require('nodejieba') */ null : null);
+   } else {
+     // Browser globals (root is window)
+     factory()(root.lunr);
+@@ -41,7 +42,15 @@
+    * This example returns an object, but the module
+    * can return a function as the exported value.
+    */
+-  return function(lunr, nodejiebaDictJson) {
++  return function(lunr, nodejiebaDictJson, nodejiebaPolyfill) {
++    if (!nodejieba) {
++      nodejieba = nodejiebaPolyfill;
++    }
++
++    if (!nodejieba) {
++      throw new Error('lunr.zh: nodejieba is not avaliable on the current platform, and nodejiebaPolyfill is not provided.');
++    }
++
+     /* throw error if lunr is not yet included */
+     if ('undefined' === typeof lunr) {
+       throw new Error('Lunr is not present. Please include / require Lunr before this script.');
+@@ -130,16 +139,18 @@
+     /* lunr stemmer function */
+     lunr.zh.stemmer = (function() {
+ 
++      // Use default (en) stemmer for now
++      return lunr.stemmer;
+       /* TODO Chinese stemmer  */
+-      return function(word) {
+-        return word;
+-      }
++      // return function(word) {
++      //   return word;
++      // }
+     })();
+     lunr.Pipeline.registerFunction(lunr.zh.stemmer, 'stemmer-zh');
+ 
+     /* lunr stop word filter. see https://www.ranks.nl/stopwords/chinese-stopwords */
+     lunr.zh.stopWordFilter = lunr.generateStopWordFilter(
+-      '的 一 不 在 人 有 是 为 以 于 上 他 而 后 之 来 及 了 因 下 可 到 由 这 与 也 此 但 并 个 其 已 无 小 我 们 起 最 再 今 去 好 只 又 或 很 亦 某 把 那 你 乃 它 吧 被 比 别 趁 当 从 到 得 打 凡 儿 尔 该 各 给 跟 和 何 还 即 几 既 看 据 距 靠 啦 了 另 么 每 们 嘛 拿 哪 那 您 凭 且 却 让 仍 啥 如 若 使 谁 虽 随 同 所 她 哇 嗡 往 哪 些 向 沿 哟 用 于 咱 则 怎 曾 至 致 着 诸 自'.split(' '));
++      '的 一 不 在 人 有 是 為 以 於 上 他 而 後 之 來 及 了 因 下 可 到 由 這 與 也 此 但 並 個 其 已 無 小 我 們 起 最 再 今 去 好 只 又 或 很 亦 某 把 那 你 乃 它 吧 被 比 別 趁 當 從 到 得 打 凡 兒 爾 該 各 給 跟 和 何 還 即 幾 既 看 據 距 靠 啦 了 另 麼 每 們 嘛 拿 哪 那 您 憑 且 卻 讓 仍 啥 如 若 使 誰 雖 隨 同 所 她 哇 嗡 往 哪 些 向 沿 喲 用 於 咱 則 怎 曾 至 致 著 諸 自 的 一 不 在 人 有 是 爲 以 於 上 他 而 後 之 來 及 了 因 下 可 到 由 這 與 也 此 但 並 個 其 已 無 小 我 們 起 最 再 今 去 好 只 又 或 很 亦 某 把 那 你 乃 它 吧 被 比 別 趁 當 從 到 得 打 凡 兒 爾 該 各 給 跟 和 何 還 即 幾 既 看 據 距 靠 啦 了 另 麼 每 們 嘛 拿 哪 那 您 憑 且 卻 讓 仍 啥 如 若 使 誰 雖 隨 同 所 她 哇 嗡 往 哪 些 向 沿 喲 用 於 咱 則 怎 曾 至 致 着 諸 自 的 一 不 在 人 有 是 为 以 于 上 他 而 后 之 来 及 了 因 下 可 到 由 这 与 也 此 但 并 个 其 已 无 小 我 们 起 最 再 今 去 好 只 又 或 很 亦 某 把 那 你 乃 它 吧 被 比 别 趁 当 从 到 得 打 凡 儿 尔 该 各 给 跟 和 何 还 即 几 既 看 据 距 靠 啦 了 另 么 每 们 嘛 拿 哪 那 您 凭 且 却 让 仍 啥 如 若 使 谁 虽 随 同 所 她 哇 嗡 往 哪 些 向 沿 哟 用 于 咱 则 怎 曾 至 致 着 诸 自'.split(' '));
+     lunr.Pipeline.registerFunction(lunr.zh.stopWordFilter, 'stopWordFilter-zh');
+   };
+ }))

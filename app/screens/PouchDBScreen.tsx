@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import {
+  Alert,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  View,
+} from 'react-native';
 import { DataTable, ActivityIndicator } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
@@ -53,9 +59,13 @@ function PouchDBScreen({
               'data.title',
               'data.description',
               'data.keywords',
+              'e',
+              'f',
             ],
-            // language: ['en', 'zh'],
-            language: 'en',
+            // TODO: support zh searching on Android
+            // `language: ['zh', 'en']` will not work well
+            // See: patches/pouchdb-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
+            language: Platform.OS === 'ios' ? 'zh' : 'en',
             include_docs: true,
             skip,
             limit,
@@ -63,7 +73,7 @@ function PouchDBScreen({
         : db.allDocs({ include_docs: true, skip, limit }));
       setData(results);
     } catch (e: any) {
-      Alert.alert(e?.message);
+      Alert.alert(e?.message, JSON.stringify(e?.stack));
     } finally {
       setLoading(false);
     }
