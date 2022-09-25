@@ -518,17 +518,25 @@ function RFIDSheet(
     },
     [scanName],
   );
-  const scannedDataLength = Object.keys(scannedData).length;
-  const prevScannedDataLength = useRef(scannedDataLength);
+  const scannedDataLength = Object.keys(scannedData[scanName] || {}).length;
+  const prevScannedDataLengths = useRef(
+    Object.fromEntries(
+      Object.entries(scannedData).map(([k, v]) => [k, Object.keys(v).length]),
+    ),
+  );
   useEffect(() => {
     if (options?.functionality !== 'scan') return;
     if (!options?.autoScroll) return;
-    if (scannedDataLength > prevScannedDataLength.current) {
-      scrollViewRef.current?.scrollTo({ y: 999999, animated: true });
+
+    if (scannedDataLength > (prevScannedDataLengths.current[scanName] || -1)) {
+      setTimeout(
+        () => scrollViewRef.current?.scrollTo({ y: 999999, animated: true }),
+        1,
+      );
     }
 
-    prevScannedDataLength.current = scannedDataLength;
-  }, [options, scannedDataLength]);
+    prevScannedDataLengths.current[scanName] = scannedDataLength;
+  }, [options, scanName, scannedDataLength]);
 
   const startScan = useCallback(async () => {
     if (options?.functionality !== 'scan') return;
