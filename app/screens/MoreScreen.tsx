@@ -57,6 +57,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
     functionality: 'scan' as const,
     onScannedItemPressRef,
     autoScroll: true,
+    power: 12,
   };
   onScannedItemPressRef.current = (data, itemType, itemId) => {
     if (itemType === 'item' && itemId) {

@@ -76,7 +76,7 @@ export type RenderScannedItemsFn = (
   options: { contentBackgroundColor: string },
 ) => JSX.Element;
 
-export type RFIDSheetOptions =
+export type RFIDSheetOptions = { power?: number } & (
   | {
       functionality: 'scan';
       scanName?: string;
@@ -98,7 +98,8 @@ export type RFIDSheetOptions =
       epc?: string;
       tagAccessPassword?: string;
       afterWriteSuccessRef?: React.MutableRefObject<(() => void) | null>;
-    };
+    }
+);
 
 type Props = {
   rfidSheetPassOptionsFnRef: React.MutableRefObject<
@@ -452,6 +453,10 @@ function RFIDSheet(
   const [power, setPower] = useState(20);
 
   useEffect(() => {
+    if (options?.power) {
+      return setPower(options?.power);
+    }
+
     switch (options?.functionality) {
       case 'scan':
         return setPower(useBuiltinReader ? 28 : 20);
@@ -461,7 +466,7 @@ function RFIDSheet(
       default:
         return setPower(8);
     }
-  }, [options?.functionality, useBuiltinReader]);
+  }, [options?.power, options?.functionality, useBuiltinReader]);
 
   const [scanStatus, setScanStatus] = useState('');
   const scanName = useMemo(() => {
