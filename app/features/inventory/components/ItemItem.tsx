@@ -20,6 +20,7 @@ export default function ItemItem({
   hideDedicatedContainerDetails,
   reloadCounter,
   checkStatus,
+  grayOut,
   ...props
 }: {
   item: DataTypeWithID<'item'>;
@@ -29,7 +30,8 @@ export default function ItemItem({
   hideCollectionDetails?: boolean;
   hideDedicatedContainerDetails?: boolean;
   reloadCounter?: number;
-  checkStatus?: 'checked' | 'unchecked';
+  checkStatus?: 'checked' | 'unchecked' | 'partially-checked' | 'no-rfid-tag';
+  grayOut?: boolean;
 } & React.ComponentProps<typeof InsetGroup.Item>) {
   const { contentSecondaryTextColor } = useColors();
   const { db } = useDB();
@@ -174,11 +176,11 @@ export default function ItemItem({
       }
       labelTextStyle={[
         styles.itemItemLabelText,
-        checkStatus === 'unchecked' && styles.itemItemLabelTextUnchecked,
+        grayOut && styles.itemItemLabelTextGrayout,
       ]}
       detailTextStyle={[
         styles.itemItemDetailText,
-        checkStatus === 'unchecked' && styles.itemItemDetailTextUnchecked,
+        grayOut && styles.itemItemDetailTextGrayout,
       ]}
       onPress={onPress}
       detailAsText
@@ -194,8 +196,12 @@ export default function ItemItem({
   );
 }
 
-function CheckStatusIcon({ status }: { status: 'checked' | 'unchecked' }) {
-  const { contentBackgroundColor, green, gray } = useColors();
+function CheckStatusIcon({
+  status,
+}: {
+  status: 'checked' | 'unchecked' | 'partially-checked' | 'no-rfid-tag';
+}) {
+  const { contentBackgroundColor, green, gray, yellow } = useColors();
 
   if (Platform.OS === 'ios') {
     switch (status) {
@@ -205,6 +211,17 @@ function CheckStatusIcon({ status }: { status: 'checked' | 'unchecked' }) {
             <SFSymbol
               name="checkmark.circle.fill"
               color={green}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+      case 'partially-checked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            <SFSymbol
+              name="ellipsis.circle.fill"
+              color={yellow}
               size={16}
               weight="regular"
             />
@@ -230,6 +247,26 @@ function CheckStatusIcon({ status }: { status: 'checked' | 'unchecked' }) {
             />
           </View>
         );
+
+      case 'no-rfid-tag':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            {/*<SFSymbol
+              style={styles.checkStatusIconIosLayer2}
+              name="antenna.radiowaves.left.and.right.slash"
+              color={contentBackgroundColor}
+              size={16}
+              weight="heavy"
+            />*/}
+            <SFSymbol
+              // style={styles.checkStatusIconIosLayer2}
+              name="antenna.radiowaves.left.and.right.slash"
+              color={gray}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
     }
   }
 
@@ -243,10 +280,10 @@ const styles = StyleSheet.create({
   },
   itemItemLabelText: { fontSize: 16 },
   itemItemDetailText: { fontSize: 12 },
-  itemItemLabelTextUnchecked: {
+  itemItemLabelTextGrayout: {
     opacity: 0.5,
   },
-  itemItemDetailTextUnchecked: {
+  itemItemDetailTextGrayout: {
     opacity: 0.5,
   },
   itemDetailCollectionIcon: {

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,7 +8,6 @@ import {
   Text as RNText,
   Alert,
   TouchableHighlight,
-  LayoutAnimation,
 } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -34,21 +27,21 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
 import { DataTypeWithID } from '@app/db/relationalUtils';
-import EPCUtils from '@app/modules/EPCUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
+
+import EPCUtils from '@app/modules/EPCUtils';
+import { RenderScannedItemsFn } from '@app/features/rfid/RFIDSheet';
+
 import ItemItem from '../components/ItemItem';
-import {
-  OnScannedItemPressFn,
-  RenderScannedItemsFn,
-} from '@app/features/rfid/RFIDSheet';
-import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
+import CheckItems from '../components/CheckItems';
+import getChildrenDedicatedItemIds from '../utils/getChildrenDedicatedItemIds';
 
 function ItemScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Item'>) {
   const rootNavigation = useRootNavigation();
-  const { openRfidSheet } = useRootBottomSheets();
+  const { openRfidSheet, rfidSheet } = useRootBottomSheets();
   const { id, initialTitle } = route.params;
   const { db } = useDB();
   const { data, reloadData } = useRelationalData('item', id);
@@ -143,50 +136,73 @@ function ItemScreen({
       writeActualEpcContent();
   };
 
-  const renderScannedItemsRef = useRef<RenderScannedItemsFn | null>(null);
-  renderScannedItemsRef.current = useCallback<RenderScannedItemsFn>(
-    (items, { contentBackgroundColor }) => {
-      return (
-        <CheckItems
-          items={orderedDedicatedContents || []}
-          scannedItems={items}
-          contentBackgroundColor={contentBackgroundColor}
-        />
-      );
-    },
-    [orderedDedicatedContents],
+  const renderCheckContentsScannedItemsRef =
+    useRef<RenderScannedItemsFn | null>(null);
+  const checkContentsLoadedItemsMapRef = useRef<null | Map<
+    string,
+    DataTypeWithID<'item'>
+  >>(null);
+  const dedicatedIdsMapRef = useRef<null | Record<string, Array<string>>>(null);
+  const loadChildrenDedicatedItemIdsPromiseRef = useRef<null | Promise<any>>(
+    null,
   );
-  const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
-  const rfidSheetScanOptions = useMemo(
-    () => ({
+  const handleCheckContents = useCallback(async () => {
+    // Data will be loaded via useEffect but we need to wait until it's ready
+    if (loadChildrenDedicatedItemIdsPromiseRef.current) {
+      await loadChildrenDedicatedItemIdsPromiseRef.current;
+    }
+    openRfidSheet({
       functionality: 'scan' as const,
       scanName: `container-${id}-scan`,
-      playSoundOnlyForEpcs: dedicatedContents
-        ?.map(it => it.actualRfidTagEpcMemoryBankContents)
+      renderScannedItemsRef: renderCheckContentsScannedItemsRef,
+      playSoundOnlyForEpcs: [
+        ...(dedicatedContents || []),
+        ...Array.from(checkContentsLoadedItemsMapRef.current?.values() || []),
+      ]
+        .map(it => it.actualRfidTagEpcMemoryBankContents)
         .filter((epc): epc is string => !!epc),
-      onScannedItemPressRef,
-      renderScannedItemsRef,
-    }),
-    [dedicatedContents, id],
+    });
+  }, [dedicatedContents, id, openRfidSheet]);
+  const handleCheckItemsOnViewItemPress = useCallback(
+    (itemId: string) => {
+      rfidSheet.current?.close();
+      navigation.push('Item', {
+        id: itemId,
+        ...({ beforeRemove: handleCheckContents } as any),
+      });
+    },
+    [navigation, rfidSheet, handleCheckContents],
   );
-  onScannedItemPressRef.current = (data, itemType, itemId) => {
-    if (itemType === 'item' && itemId) {
-      // navigation.push('Item', {
-      //   id: itemId,
-      //   ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
-      // });
-      // rfidSheet.current?.collapse();
-    } else {
-      // navigation.push('GenericTextDetails', {
-      //   details: JSON.stringify(data, null, 2),
-      //   ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
-      // });
-      // rfidSheet.current?.collapse();
-    }
-  };
-  const handleCheckContents = useCallback(() => {
-    openRfidSheet(rfidSheetScanOptions);
-  }, [openRfidSheet, rfidSheetScanOptions]);
+  renderCheckContentsScannedItemsRef.current =
+    useCallback<RenderScannedItemsFn>(
+      (items, { contentBackgroundColor }) => {
+        return (
+          <CheckItems
+            items={orderedDedicatedContents || []}
+            scannedItems={items}
+            contentBackgroundColor={contentBackgroundColor}
+            dedicatedIdsMap={dedicatedIdsMapRef.current || {}}
+            loadedItemsMapRef={checkContentsLoadedItemsMapRef}
+            onViewItemPress={handleCheckItemsOnViewItemPress}
+          />
+        );
+      },
+      [handleCheckItemsOnViewItemPress, orderedDedicatedContents],
+    );
+  useEffect(() => {
+    if (!item?.isContainer) return;
+
+    if (!checkContentsLoadedItemsMapRef.current)
+      checkContentsLoadedItemsMapRef.current = new Map();
+    loadChildrenDedicatedItemIdsPromiseRef.current =
+      getChildrenDedicatedItemIds(
+        db,
+        (dedicatedContents || [])
+          .filter(it => it.isContainer)
+          .map(it => it.id || ''),
+        checkContentsLoadedItemsMapRef,
+      ).then(obj => (dedicatedIdsMapRef.current = obj));
+  }, [db, dedicatedContents, item?.isContainer]);
 
   return (
     <ScreenContent
@@ -255,7 +271,7 @@ function ItemScreen({
                       }
                       style={{ color: iosTintColor }}
                     >
-                      mark this as done
+                      manually set this as done
                     </RNText>
                     <RNText>.</RNText>
                   </>
@@ -304,7 +320,7 @@ function ItemScreen({
                       }
                       style={{ color: iosTintColor }}
                     >
-                      mark this as done
+                      manually set this as done
                     </RNText>
                     <RNText>.</RNText>
                   </>
@@ -821,128 +837,6 @@ function ItemScreen({
         })()}
       </ScrollView>
     </ScreenContent>
-  );
-}
-
-function CheckItems({
-  items,
-  scannedItems,
-  contentBackgroundColor,
-}: {
-  items: ReadonlyArray<DataTypeWithID<'item'>>;
-  scannedItems: Record<string, ScanData>;
-  contentBackgroundColor: string;
-}) {
-  const itemsIdEpcMap = useMemo<Record<string, string>>(() => {
-    return Object.fromEntries(
-      items.map(it => [it.id, it.actualRfidTagEpcMemoryBankContents]),
-    );
-  }, [items]);
-  const [notSeenItemIds, setNotSeenItemIds] = useState<Set<string>>(() => {
-    const ids = Object.keys(itemsIdEpcMap);
-    const notSeenIds = ids.filter(id => !scannedItems[id]);
-
-    return new Set(notSeenIds);
-  });
-  const [delayedNotSeenItemIds, setDelayedNotSeenItemIds] =
-    useState<Set<string>>(notSeenItemIds);
-  const [
-    delayedNotSeenItemIdsChangeCounter,
-    setDelayedNotSeenItemIdsChangeCounter,
-  ] = useState(0);
-  useEffect(() => {
-    const newSeenIds: string[] = [];
-    for (const id of notSeenItemIds) {
-      if (scannedItems[itemsIdEpcMap[id]]) newSeenIds.push(id);
-    }
-    if (newSeenIds.length > 0) {
-      setNotSeenItemIds(s => {
-        for (const id of newSeenIds) {
-          s.delete(id);
-        }
-        return s;
-      });
-      setTimeout(() => {
-        setDelayedNotSeenItemIds(s => {
-          for (const id of newSeenIds) {
-            s.delete(id);
-          }
-          return s;
-        });
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setDelayedNotSeenItemIdsChangeCounter(v => v + 1);
-      }, 500);
-    }
-  }, [itemsIdEpcMap, notSeenItemIds, scannedItems]);
-
-  // Handle reset
-  useEffect(() => {
-    if (Object.keys(scannedItems).length > 0) return;
-
-    const allIds = Object.keys(itemsIdEpcMap);
-    setNotSeenItemIds(new Set(allIds));
-    setDelayedNotSeenItemIds(new Set(allIds));
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setDelayedNotSeenItemIdsChangeCounter(v => v + 1);
-  }, [scannedItems, itemsIdEpcMap]);
-
-  const itemsToRender = useMemo(() => {
-    delayedNotSeenItemIdsChangeCounter;
-    const seenItems: Array<DataTypeWithID<'item'>> = [];
-    const notSeenItems: Array<DataTypeWithID<'item'>> = [];
-
-    for (const it of items) {
-      if (it.id && delayedNotSeenItemIds.has(it.id)) {
-        notSeenItems.push(it);
-      } else {
-        seenItems.push(it);
-      }
-    }
-
-    return [...notSeenItems, ...seenItems];
-  }, [delayedNotSeenItemIdsChangeCounter, delayedNotSeenItemIds, items]);
-
-  return (
-    <>
-      <InsetGroup
-        label={`${
-          (items || []).filter(
-            it => !!scannedItems[it.actualRfidTagEpcMemoryBankContents || ''],
-          ).length
-        }/${items?.length} Items Checked`}
-        style={{ backgroundColor: contentBackgroundColor }}
-      >
-        {/*<Text>{Array.from(delayedNotSeenItemIds).join(', ')}</Text>*/}
-        {itemsToRender
-          .flatMap(it => {
-            const scannedData =
-              scannedItems[it.actualRfidTagEpcMemoryBankContents || ''];
-            return [
-              <ItemItem
-                key={it.id}
-                item={it}
-                checkStatus={scannedData ? 'checked' : 'unchecked'}
-                hideDedicatedContainerDetails
-                // hideCollectionDetails={it.collection === item?.collection}
-                hideCollectionDetails
-                // reloadCounter={reloadCounter}
-                additionalDetails={
-                  scannedData?.rssi ? `RSSI: ${scannedData.rssi}` : undefined
-                }
-                // onPress={() =>
-                //   navigation.push('Item', {
-                //     id: it.id || '',
-                //     initialTitle: it.name,
-                //   })
-                // }
-                arrow={false}
-              />,
-              <InsetGroup.ItemSeperator key={`s-${it.id}`} leftInset={60} />,
-            ];
-          })
-          .slice(0, -1)}
-      </InsetGroup>
-    </>
   );
 }
 
