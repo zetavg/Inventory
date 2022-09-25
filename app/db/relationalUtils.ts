@@ -253,6 +253,10 @@ export async function save<T extends TypeName>(
           );
         }
       }
+
+      if (d.id === d.dedicatedContainer) {
+        throw new Error("Can't set dedicatedContainer to self.");
+      }
     }
   }
 
