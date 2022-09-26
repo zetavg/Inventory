@@ -2,11 +2,23 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Platform,
   Alert,
+  StyleSheet,
   RefreshControl,
   ScrollView,
   View,
   ActionSheetIOS,
 } from 'react-native';
+import {
+  Camera,
+  useCameraDevices,
+  useFrameProcessor,
+} from 'react-native-vision-camera';
+// import {
+//   useScanBarcodes,
+//   BarcodeFormat,
+//   scanBarcodes,
+//   Barcode,
+// } from 'vision-camera-code-scanner';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -36,6 +48,7 @@ import {
 } from '../slice';
 
 import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
+import { runOnJS } from 'react-native-reanimated';
 
 function SearchScreen({
   navigation,
@@ -105,6 +118,28 @@ function SearchScreen({
     dispatch(addRecentSearchQuery({ query: searchText }));
   }, [dispatch, searchText]);
 
+  const [isScanBarcodeMode, setIsScanBarcodeMode] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const devices = useCameraDevices();
+  const device = devices.back;
+  // const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
+  //   checkInverted: true,
+  // });
+  // const [barcodes, setBarcodes] = useState<Barcode[]>([]);
+  // const frameProcessor = useFrameProcessor(frame => {
+  //   'worklet';
+  //   const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE]);
+  //   runOnJS(setBarcodes)(detectedBarcodes);
+  // }, []);
+
+  React.useEffect(() => {
+    if (!isScanBarcodeMode) return;
+    (async () => {
+      const status = await Camera.requestCameraPermission();
+      setHasCameraPermission(status === 'authorized');
+    })();
+  }, [isScanBarcodeMode]);
+
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
@@ -126,6 +161,10 @@ function SearchScreen({
           callback: _ => {},
         })
       }
+      action2Label="Scan"
+      action2SFSymbolName="barcode.viewfinder"
+      action2MaterialIconName="barcode-scan"
+      onAction2Press={() => setIsScanBarcodeMode(v => !v)}
     >
       <ScrollView
         ref={scrollViewRef}
@@ -294,6 +333,20 @@ function SearchScreen({
                 .slice(0, -1);
             })()}
           </InsetGroup>
+        )}
+        {isScanBarcodeMode && device != null && hasCameraPermission && (
+          <>
+            <Camera
+              style={StyleSheet.absoluteFill}
+              device={device}
+              isActive={true}
+              // frameProcessor={frameProcessor}
+              // frameProcessorFps={5}
+            />
+            {/*{barcodes.map((barcode, idx) => (
+              <Text key={idx}>{barcode.displayValue}</Text>
+            ))}*/}
+          </>
         )}
       </ScrollView>
     </ScreenContent>
