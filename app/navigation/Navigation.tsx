@@ -50,6 +50,7 @@ import SelectContainerScreen from '@app/features/inventory/screens/SelectContain
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
+import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
 
 import { TypeName } from '@app/db/schema';
 import { IconName } from '@app/consts/icons';
@@ -92,6 +93,10 @@ export type RootStackParamList = {
   OrderItems: {
     orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;
     updateOrderFunctionRef: { current: (newOrder: string[]) => void };
+  };
+  SearchOptions: {
+    callback: (value: string) => void;
+    defaultValue?: string;
   };
   SelectIcon: {
     callback: (iconName: IconName) => void;
@@ -234,6 +239,10 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             />
             <Stack.Screen name="SaveItem" component={SaveItemScreen} />
             <Stack.Screen name="OrderItems" component={OrderItemsScreen} />
+            <Stack.Screen
+              name="SearchOptions"
+              component={SearchOptionsScreen}
+            />
           </Stack.Navigator>
           <RFIDSheet
             ref={rfidSheetRef}
@@ -398,7 +407,7 @@ function TabNavigator() {
         />
         <Tab.Screen
           name="SearchTab"
-          children={() => <MainStack initialRouteName="Settings" />}
+          children={() => <MainStack initialRouteName="Search" />}
           options={{
             title: 'Search',
             tabBarIcon: ({ focused, ...props }) => (

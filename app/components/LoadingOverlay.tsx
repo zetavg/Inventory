@@ -6,7 +6,7 @@ import Color from 'color';
 type Props = { show: boolean; fullBackground?: boolean };
 
 export default function LoadingOverlay({ show, fullBackground }: Props) {
-  const { backgroundColor: bgColor } = useColors();
+  const { contentBackgroundColor: bgColor } = useColors();
   if (!show) return null;
 
   const backgroundColor = fullBackground

@@ -9,16 +9,17 @@ import { useFocusEffect } from '@react-navigation/native';
 import commonStyles from '@app/utils/commonStyles';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
-import Icon, { IconColor, IconName } from '@app/components/Icon';
 import EditingListView from '@app/components/EditingListView';
 import Text from '@app/components/Text';
 
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
-import { DataTypeWithID, del } from '@app/db/relationalUtils';
+import { del } from '@app/db/relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 
 import moveItemInArray from '@app/utils/moveItemInArray';
+
+import CollectionItem from '../components/CollectionItem';
 
 function CollectionsScreen({
   navigation,
@@ -179,71 +180,6 @@ function CollectionsScreen({
   );
 }
 
-export function CollectionItem({
-  collection,
-  onPress,
-  hideDetails,
-  reloadCounter,
-  ...props
-}: {
-  collection: DataTypeWithID<'collection'>;
-  onPress: () => void;
-  hideDetails?: boolean;
-  reloadCounter: number;
-} & React.ComponentProps<typeof InsetGroup.Item>) {
-  const { db } = useDB();
-  const [itemsCount, setItemsCount] = useState<number | null>(null);
-  const loadItemsCount = useCallback(async () => {
-    const results = await db.query('relational_data_index/item_by_collection', {
-      startkey: collection.id,
-      endkey: collection.id,
-      include_docs: false,
-    });
-    setItemsCount(results.rows.length);
-  }, [collection.id, db]);
-
-  useEffect(() => {
-    reloadCounter;
-    if (hideDetails) return;
-
-    loadItemsCount();
-  }, [hideDetails, loadItemsCount, reloadCounter]);
-
-  return (
-    <InsetGroup.Item
-      key={collection.id}
-      arrow
-      vertical={!hideDetails}
-      label={collection.name}
-      leftElement={
-        <Icon
-          name={collection.iconName as IconName}
-          color={collection.iconColor as IconColor}
-          style={styles.collectionItemIcon}
-          // size={20}
-          size={30}
-          showBackground
-          backgroundPadding={4}
-        />
-      }
-      labelTextStyle={styles.collectionItemLabelText}
-      detailTextStyle={styles.collectionItemDetailText}
-      onPress={onPress}
-      detail={
-        hideDetails
-          ? undefined
-          : [
-              collection.collectionReferenceNumber,
-              itemsCount !== null && `${itemsCount} items`,
-            ]
-              .filter(s => s)
-              .join(' | ')
-      }
-      {...props}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
   emptyText: {
     padding: 32,
@@ -251,9 +187,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     textAlign: 'center',
   },
-  collectionItemIcon: { marginRight: -2 },
-  collectionItemLabelText: { fontSize: 16 },
-  collectionItemDetailText: { fontSize: 12 },
 });
 
 export default CollectionsScreen;

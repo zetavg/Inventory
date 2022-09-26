@@ -24,7 +24,7 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import objectEntries from '@app/utils/objectEntries';
 import { useRelationalData } from '@app/db';
 import useOrderedData from '@app/hooks/useOrderedData';
-import { CollectionItem } from './CollectionsScreen';
+import CollectionItem from '../components/CollectionItem';
 
 function SelectCollectionScreen({
   navigation,

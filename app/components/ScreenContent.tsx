@@ -23,6 +23,9 @@ type Props = {
   navigation: StackScreenProps<StackParamList>['navigation'];
   showAppBar?: boolean;
   showSearch?: boolean;
+  onSearchBlur?: () => void;
+  searchHideWhenScrollingIOS?: boolean;
+  searchCanBeClosedAndroid?: boolean;
   // autoFocusSearch?: boolean;
 
   title: string;
@@ -59,6 +62,9 @@ function ScreenContent({
   navigation,
   showAppBar = true,
   showSearch,
+  onSearchBlur,
+  searchHideWhenScrollingIOS = true,
+  searchCanBeClosedAndroid = true,
   // autoFocusSearch,
   onSearchChangeText,
   title,
@@ -101,9 +107,11 @@ function ScreenContent({
         ? {
             headerSearchBarOptions: {
               // autoFocus: autoFocusSearch,
+              hideWhenScrolling: searchHideWhenScrollingIOS,
               onChangeText: (event: any) =>
                 onSearchChangeText &&
                 onSearchChangeText(event?.nativeEvent?.text || ''),
+              onBlur: onSearchBlur,
             },
           }
         : {}),
@@ -224,6 +232,8 @@ function ScreenContent({
     onSearchChangeText,
     showAppBar,
     showSearch,
+    onSearchBlur,
+    searchHideWhenScrollingIOS,
     title,
     headerLargeTitle,
   ]);
@@ -238,11 +248,13 @@ function ScreenContent({
     action3MaterialIconName,
   );
 
-  const [searchEnabled, setSearchEnabled] = useState(false);
+  const [searchEnabled, setSearchEnabled] = useState(
+    searchCanBeClosedAndroid ? false : true,
+  );
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        if (searchEnabled) {
+        if (searchEnabled && searchCanBeClosedAndroid) {
           setSearchEnabled(false);
           return true;
         } else {
@@ -254,7 +266,7 @@ function ScreenContent({
 
       return () =>
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [searchEnabled]),
+    }, [searchEnabled, searchCanBeClosedAndroid]),
   );
 
   React.useEffect(() => {
@@ -281,24 +293,53 @@ function ScreenContent({
             height: 56 + safeAreaInsets.top,
           }}
         >
-          {navigation.canGoBack() || searchEnabled ? (
+          {navigation.canGoBack() ||
+          (searchEnabled && searchCanBeClosedAndroid) ? (
             <Appbar.BackAction
               onPress={() =>
                 searchEnabled ? setSearchEnabled(false) : navigation.goBack()
               }
             />
-          ) : (
+          ) : searchCanBeClosedAndroid ? (
             <View style={styles.appBarSpacer} />
+          ) : (
+            <Appbar.Action
+              icon="magnify"
+              onPress={() => setSearchEnabled(true)}
+            />
           )}
           {searchEnabled ? (
             <>
               <TextInput
                 style={styles.searchTextInput}
-                autoFocus
+                autoFocus={!searchCanBeClosedAndroid}
                 placeholder="Search"
                 onChangeText={onSearchChangeText}
                 returnKeyType="search"
+                onBlur={onSearchBlur}
               />
+              {!searchCanBeClosedAndroid && (
+                <>
+                  {verifiedAction3MaterialIconName && onAction2Press && (
+                    <Appbar.Action
+                      icon={verifiedAction3MaterialIconName}
+                      onPress={onAction3Press}
+                    />
+                  )}
+                  {verifiedAction2MaterialIconName && onAction2Press && (
+                    <Appbar.Action
+                      icon={verifiedAction2MaterialIconName}
+                      onPress={onAction2Press}
+                    />
+                  )}
+                  {verifiedAction1MaterialIconName && onAction1Press && (
+                    <Appbar.Action
+                      icon={verifiedAction1MaterialIconName}
+                      onPress={onAction1Press}
+                    />
+                  )}
+                </>
+              )}
             </>
           ) : (
             <>

@@ -43,6 +43,51 @@ const commonStyles = StyleSheet.create({
   w16: {
     width: 16,
   },
+  mh0: {
+    minHeight: 0,
+  },
+  mv2: {
+    marginVertical: 2,
+  },
+  mv4: {
+    marginVertical: 4,
+  },
+  mv8: {
+    marginVertical: 8,
+  },
+  mv12: {
+    marginVertical: 12,
+  },
+  mv16: {
+    marginVertical: 16,
+  },
+  mv20: {
+    marginVertical: 20,
+  },
+  mv40: {
+    marginVertical: 40,
+  },
+  mv60: {
+    marginVertical: 60,
+  },
+  mv80: {
+    marginVertical: 80,
+  },
+  mh2: {
+    marginHorizontal: 2,
+  },
+  mh4: {
+    marginHorizontal: 4,
+  },
+  mh8: {
+    marginHorizontal: 8,
+  },
+  mh16: {
+    marginHorizontal: 16,
+  },
+  mh20: {
+    marginHorizontal: 20,
+  },
   ml1: {
     marginLeft: 1,
   },

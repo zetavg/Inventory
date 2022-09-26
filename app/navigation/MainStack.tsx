@@ -35,6 +35,7 @@ import NewAppScreen from '@app/screens/NewAppScreen';
 import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
 import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
+import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
@@ -49,6 +50,7 @@ export type StackParamList = {
   Collections: undefined;
   Collection: { id: string; initialTitle?: string };
   Item: { id: string; initialTitle?: string };
+  Search: { query?: string } | undefined;
   TmpInventoryTab: undefined;
   Settings: undefined;
   GenericTextDetails: {
@@ -150,6 +152,7 @@ function MainStack({ initialRouteName }: Props) {
       screenOptions={screenOptions}
     >
       <Stack.Screen name="More" component={MoreScreen} />
+
       <Stack.Screen name="TmpInventoryTab" component={InventoryTabScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen
@@ -210,6 +213,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Collections" component={CollectionsScreen} />
       <Stack.Screen name="Collection" component={CollectionScreen} />
       <Stack.Screen name="Item" component={ItemScreen} />
+      <Stack.Screen name="Search" component={SearchScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
       <Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />

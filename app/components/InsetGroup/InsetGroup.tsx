@@ -226,6 +226,7 @@ type InsetGroupItemProps = {
   destructive?: boolean;
   disabled?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
 } & React.ComponentProps<typeof View>;
 
 function InsetGroupItem({
@@ -246,6 +247,7 @@ function InsetGroupItem({
   destructive,
   disabled,
   onPress,
+  onLongPress,
   children,
   ...props
 }: InsetGroupItemProps) {
@@ -407,6 +409,7 @@ function InsetGroupItem({
         activeOpacity={1}
         underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
         onPress={onPress}
+        onLongPress={onLongPress}
         style={containerStyle}
       >
         {/*<Text>{Color(contentTextColor).opaquer(-0.1).hexa()}</Text>*/}
