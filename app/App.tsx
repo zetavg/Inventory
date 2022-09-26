@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 import { store, persistor, useAppSelector, useAppDispatch } from '@app/redux';
 
@@ -47,49 +48,51 @@ function App() {
   );
 
   return (
-    <Provider store={store}>
-      <StatusBar
-        translucent
-        backgroundColor="rgba(0, 0, 0, 0.04)"
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-      />
-      <PersistGate loading={<SplashScreen />} persistor={persistor}>
-        <SetStorybookModeFunctionContext.Provider value={setStorybookMode}>
-          {(() => {
-            if (storybookMode) {
-              // Render Storybook (only!)
-              return (
-                <>
-                  <StatusBar
-                    backgroundColor="rgba(0, 0, 0, 0.8)"
-                    barStyle="light-content"
-                  />
-                  <StorybookUIRoot />
-                </>
-              );
-            }
+    <ActionSheetProvider>
+      <Provider store={store}>
+        <StatusBar
+          translucent
+          backgroundColor="rgba(0, 0, 0, 0.04)"
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        />
+        <PersistGate loading={<SplashScreen />} persistor={persistor}>
+          <SetStorybookModeFunctionContext.Provider value={setStorybookMode}>
+            {(() => {
+              if (storybookMode) {
+                // Render Storybook (only!)
+                return (
+                  <>
+                    <StatusBar
+                      backgroundColor="rgba(0, 0, 0, 0.8)"
+                      barStyle="light-content"
+                    />
+                    <StorybookUIRoot />
+                  </>
+                );
+              }
 
-            // Render application
-            return (
-              <GestureHandlerRootView
-                style={[styles.container, { backgroundColor }]}
-              >
-                <SafeAreaProvider>
-                  <PaperProvider theme={theme}>
-                    <ProfileReadyGate>
-                      <>
-                        <Navigation />
-                        <DBSyncManager />
-                      </>
-                    </ProfileReadyGate>
-                  </PaperProvider>
-                </SafeAreaProvider>
-              </GestureHandlerRootView>
-            );
-          })()}
-        </SetStorybookModeFunctionContext.Provider>
-      </PersistGate>
-    </Provider>
+              // Render application
+              return (
+                <GestureHandlerRootView
+                  style={[styles.container, { backgroundColor }]}
+                >
+                  <SafeAreaProvider>
+                    <PaperProvider theme={theme}>
+                      <ProfileReadyGate>
+                        <>
+                          <Navigation />
+                          <DBSyncManager />
+                        </>
+                      </ProfileReadyGate>
+                    </PaperProvider>
+                  </SafeAreaProvider>
+                </GestureHandlerRootView>
+              );
+            })()}
+          </SetStorybookModeFunctionContext.Provider>
+        </PersistGate>
+      </Provider>
+    </ActionSheetProvider>
   );
 }
 

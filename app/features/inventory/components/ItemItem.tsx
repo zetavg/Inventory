@@ -9,6 +9,7 @@ import Icon, { IconName } from '@app/components/Icon';
 import useDB from '@app/hooks/useDB';
 import { DataType } from '@app/db/schema';
 import { DataTypeWithID } from '@app/db/relationalUtils';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SFSymbol } from 'react-native-sfsymbols';
 
 export default function ItemItem({
@@ -270,7 +271,46 @@ function CheckStatusIcon({
     }
   }
 
-  return null;
+  switch (status) {
+    case 'checked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon name="check-circle" color={green} size={16} />
+        </View>
+      );
+    case 'partially-checked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="dots-horizontal-circle"
+            color={yellow}
+            size={16}
+          />
+        </View>
+      );
+
+    case 'unchecked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="progress-question"
+            color={gray}
+            size={16}
+          />
+        </View>
+      );
+
+    case 'no-rfid-tag':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="access-point-off"
+            color={gray}
+            size={16}
+          />
+        </View>
+      );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -290,11 +330,18 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginBottom: -1.5,
   },
-  checkStatusIconContainer: {
-    position: 'absolute',
-    right: 2,
-    bottom: 5,
-  },
+  checkStatusIconContainer:
+    Platform.OS === 'ios'
+      ? {
+          position: 'absolute',
+          right: 2,
+          bottom: 5,
+        }
+      : {
+          position: 'absolute',
+          right: -4,
+          bottom: -3,
+        },
   checkStatusIconIosLayer1: {
     position: 'absolute',
   },

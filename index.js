@@ -16,7 +16,8 @@ require('events').EventEmitter.defaultMaxListeners = 32;
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
+    // Currently causes error "The specified child already has a parent. You must call removeView() on the child's parent first."
+    UIManager.setLayoutAnimationEnabledExperimental(false);
   }
 }
 

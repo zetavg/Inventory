@@ -20,6 +20,7 @@ import { useAppSelector, useAppDispatch } from '@app/redux';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 import useColors from '@app/hooks/useColors';
+import useActionSheet from '@app/hooks/useActionSheet';
 import commonStyles from '@app/utils/commonStyles';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
@@ -44,6 +45,7 @@ function SearchScreen({
 
   const { db } = useDB();
   const rootNavigation = useRootNavigation();
+  const { showActionSheetWithOptions } = useActionSheet();
 
   const recentSearchQueries = useAppSelector(selectRecentSearchQueries);
   const dispatch = useAppDispatch();
@@ -112,8 +114,8 @@ function SearchScreen({
       title={queryFromParams ? queryFromParams : 'Search'}
       showSearch={!queryFromParams}
       onSearchBlur={handleSearchBlur}
-      searchHideWhenScrollingIOS={false}
-      searchCanBeClosedAndroid={false}
+      searchHideWhenScrollingIOS={!!queryFromParams}
+      searchCanBeClosedAndroid={!!queryFromParams}
       onSearchChangeText={setSearchText}
       action1Label="Settings"
       action1SFSymbolName="gearshape.fill"
@@ -129,6 +131,7 @@ function SearchScreen({
         ref={scrollViewRef}
         // automaticallyAdjustKeyboardInsets
         keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -155,7 +158,23 @@ function SearchScreen({
               labelRight={
                 <InsetGroup.LabelButton
                   title="Clear"
-                  onPress={() => dispatch(clearRecentSearchQueries({}))}
+                  onPress={() => {
+                    showActionSheetWithOptions(
+                      {
+                        options: ['Cancel', 'Clear search history'],
+                        destructiveButtonIndex: 1,
+                        cancelButtonIndex: 0,
+                      },
+                      buttonIndex => {
+                        if (buttonIndex === 0) {
+                          // cancel action
+                          return;
+                        } else if (buttonIndex === 1) {
+                          dispatch(clearRecentSearchQueries({}));
+                        }
+                      },
+                    );
+                  }}
                 />
               }
               labelContainerStyle={commonStyles.mt8}
@@ -171,31 +190,27 @@ function SearchScreen({
                       // setSearchText(query);
                       navigation.push('Search', { query });
                     }}
-                    onLongPress={
-                      Platform.OS === 'ios'
-                        ? () => {
-                            ActionSheetIOS.showActionSheetWithOptions(
-                              {
-                                options: ['Cancel', 'Remove Item'],
-                                destructiveButtonIndex: 1,
-                                cancelButtonIndex: 0,
-                              },
-                              buttonIndex => {
-                                if (buttonIndex === 0) {
-                                  // cancel action
-                                  return;
-                                } else if (buttonIndex === 1) {
-                                  dispatch(
-                                    removeRecentSearchQuery({
-                                      query,
-                                    }),
-                                  );
-                                }
-                              },
+                    onLongPress={() => {
+                      showActionSheetWithOptions(
+                        {
+                          options: ['Cancel', 'Remove Item'],
+                          destructiveButtonIndex: 1,
+                          cancelButtonIndex: 0,
+                        },
+                        buttonIndex => {
+                          if (buttonIndex === 0) {
+                            // cancel action
+                            return;
+                          } else if (buttonIndex === 1) {
+                            dispatch(
+                              removeRecentSearchQuery({
+                                query,
+                              }),
                             );
                           }
-                        : undefined
-                    }
+                        },
+                      );
+                    }}
                   />,
                   <InsetGroup.ItemSeperator key={`s-${i}`} />,
                 ])

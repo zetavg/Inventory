@@ -1,13 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   StyleSheet,
   Platform,
   LayoutAnimation,
   Alert,
-  ActionSheetIOS,
   View,
   TouchableHighlight,
 } from 'react-native';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SFSymbol } from 'react-native-sfsymbols';
 
 import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
@@ -20,6 +26,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
 
 import ItemItem from './ItemItem';
+import useActionSheet from '@app/hooks/useActionSheet';
 
 const UI_REORDER_ANIMATION_DELAY = 500;
 
@@ -41,6 +48,8 @@ export default function CheckItems({
   > | null>;
   onViewItemPress: (itemId: string) => void;
 }) {
+  const { showActionSheetWithOptions } = useActionSheet();
+
   /** An object of `{ [Key of item A]: Dedicated container of item A }` */
   const itemIdDedicatedContainerIdMap = useMemo(() => {
     return Object.fromEntries(
@@ -148,6 +157,8 @@ export default function CheckItems({
   const [notSeenItemIds, setNotSeenItemIds] = useState<Set<string>>(
     () => new Set(allIds),
   );
+  const notSeenItemIdsRef = useRef<null | Set<string>>(null);
+  notSeenItemIdsRef.current = notSeenItemIds;
   /**
    * Because the Set in the state will remain the same instance, updating it
    * will not trigger re-render, so here is a counter that will actual trigger
@@ -260,21 +271,31 @@ export default function CheckItems({
       updateStateWith(setNotSeenItemIds, setNotSeenItemIdsChangeCounter);
 
       // Change delayedNotSeenItemIds after some delay
-      setTimeout(() => {
-        updateStateWith(
-          setDelayedNotSeenItemIds,
-          setDelayedNotSeenItemIdsChangeCounter,
-        );
-      }, UI_REORDER_ANIMATION_DELAY);
+      setTimeout(
+        () => {
+          updateStateWith(
+            setDelayedNotSeenItemIds,
+            setDelayedNotSeenItemIdsChangeCounter,
+          );
+        },
+        notSeenItemIdsChangeCounter === 0 ? 0 : UI_REORDER_ANIMATION_DELAY,
+      );
     }
   }, [
     epcItemIdMap,
     itemIdDedicatedContainerIdMap,
     notSeenDedicatedItemIds,
     notSeenItemIds,
+    notSeenItemIdsChangeCounter,
     scannedItems,
     seenEpcs,
   ]);
+
+  const [forceExpandedItems, setForceExpandedItems] = useState({
+    value: new Set<string>(),
+  } as const);
+  const forceExpandedItemsRef = useRef<{ value: Set<string> } | null>(null);
+  forceExpandedItemsRef.current = forceExpandedItems;
 
   /** Handle reset */
   useEffect(() => {
@@ -286,6 +307,7 @@ export default function CheckItems({
     setDelayedNotSeenItemIds(new Set(allIds));
     setDelayedNotSeenItemIdsChangeCounter(v => v + 1);
     setNotSeenDedicatedItemIds(getNotSeenDedicatedItemIds);
+    setForceExpandedItems({ value: new Set() });
   }, [scannedItems, allIds, getNotSeenDedicatedItemIds]);
 
   /** Re-order items by there status */
@@ -294,20 +316,20 @@ export default function CheckItems({
     delayedNotSeenItemIdsChangeCounter;
 
     const seenItems: Array<DataTypeWithID<'item'>> = [];
-    // const partiallySeenItems: Array<DataTypeWithID<'item'>> = [];
+    const partiallySeenItems: Array<DataTypeWithID<'item'>> = [];
     const notSeenItems: Array<DataTypeWithID<'item'>> = [];
 
     for (const it of topLevelItems) {
       if (!it.id) continue;
       const selfNotSeen = delayedNotSeenItemIds.has(it.id);
-      // const allNotSeen = delayedNotSeenItemIds.has(`${it.id}-all`);
+      const allNotSeen = delayedNotSeenItemIds.has(`${it.id}-all`);
       let someNotSeen = delayedNotSeenItemIds.has(`${it.id}-some`);
 
       if (someNotSeen) {
-        // if (!allNotSeen) {
-        //   partiallySeenItems.push(it);
-        //   continue;
-        // }
+        if (!allNotSeen) {
+          partiallySeenItems.push(it);
+          continue;
+        }
         notSeenItems.push(it);
         continue;
       } else {
@@ -321,8 +343,9 @@ export default function CheckItems({
     }
 
     return [
+      // Order
+      ...partiallySeenItems,
       ...notSeenItems,
-      // ...partiallySeenItems,
       ...seenItems,
     ];
   }, [
@@ -342,48 +365,65 @@ export default function CheckItems({
 
   const handleItemPress = useCallback(
     (itemId: string) => {
-      if (Platform.OS === 'ios') {
-        const canMarkAsChecked = true;
-        const options = [
-          canMarkAsChecked && 'mark-as-checked',
-          'view-item',
-        ].filter(s => !!s);
-        const optionNames: Record<string, string> = {
-          'view-item': 'View item',
-          'mark-as-checked': 'Mark as checked',
-        };
-        const shownOptions = options.map(v => optionNames[v]);
-        ActionSheetIOS.showActionSheetWithOptions(
-          {
-            options: ['Cancel', ...shownOptions],
-            ...(canMarkAsChecked ? { destructiveButtonIndex: 1 } : {}),
-            cancelButtonIndex: 0,
-          },
-          buttonIndex => {
-            if (buttonIndex === 0) {
-              // cancel action
+      const canMarkAsChecked = true;
+      const partiallySeen =
+        notSeenItemIdsRef.current &&
+        notSeenItemIdsRef.current.has(`${itemId}-some`) &&
+        !notSeenItemIdsRef.current.has(`${itemId}-all`);
+      const canExpand = !!dedicatedIdsMap[itemId] && !partiallySeen;
+      const expanded = forceExpandedItemsRef.current?.value?.has(itemId);
+      const options = [
+        canMarkAsChecked && 'mark-as-checked',
+        canExpand && 'toggle-expand',
+        'view-item',
+      ].filter((s): s is string => !!s);
+      const optionNames: Record<string, string> = {
+        'view-item': 'View item',
+        'toggle-expand': expanded ? 'Hide contents' : 'Show contents',
+        'mark-as-checked': 'Mark as checked',
+      };
+      const shownOptions = options.map(v => optionNames[v]);
+      showActionSheetWithOptions(
+        {
+          options: ['Cancel', ...shownOptions],
+          ...(canMarkAsChecked ? { destructiveButtonIndex: 1 } : {}),
+          cancelButtonIndex: 0,
+        },
+        buttonIndex => {
+          if (buttonIndex === 0) {
+            // cancel action
+            return;
+          }
+
+          const selectedOption = options[(buttonIndex || 0) - 1];
+          switch (selectedOption) {
+            case 'view-item':
+              onViewItemPress(itemId);
               return;
-            }
-
-            const selectedOption = options[buttonIndex - 1];
-            switch (selectedOption) {
-              case 'view-item':
-                onViewItemPress(itemId);
-                return;
-              default:
-                Alert.alert(
-                  'TODO',
-                  `${selectedOption} is not implemented yet.`,
-                );
-                return;
-            }
-          },
-        );
-      }
-
-      // TODO: Android support
+            case 'toggle-expand':
+              LayoutAnimation.configureNext(
+                LayoutAnimation.Presets.easeInEaseOut,
+              );
+              if (expanded) {
+                setForceExpandedItems(({ value }) => {
+                  value.delete(itemId);
+                  return { value };
+                });
+              } else {
+                setForceExpandedItems(({ value }) => {
+                  value.add(itemId);
+                  return { value };
+                });
+              }
+              return;
+            default:
+              Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
+              return;
+          }
+        },
+      );
     },
-    [onViewItemPress],
+    [dedicatedIdsMap, onViewItemPress, showActionSheetWithOptions],
   );
   const getItemPressHandler = useMemo(() => {
     const cachedHandlers: Record<string, () => void> = {};
@@ -409,7 +449,8 @@ export default function CheckItems({
             const partiallySeen =
               notSeenItemIds.has(`${it.id}-some`) &&
               !notSeenItemIds.has(`${it.id}-all`);
-            const showDedicatedItems = partiallySeen;
+            const showDedicatedItems =
+              partiallySeen || forceExpandedItems.value.has(it.id || '');
 
             return [
               <React.Fragment key={it.id}>
@@ -417,6 +458,7 @@ export default function CheckItems({
                   key={it.id}
                   item={it}
                   onPress={getItemPressHandler(it.id || '')}
+                  onLongPress={getItemPressHandler(it.id || '')}
                   hideDedicatedContainerDetails
                   hideCollectionDetails
                   checkStatus={
@@ -441,7 +483,7 @@ export default function CheckItems({
                   >
                     {(dedicatedIdsMap[it.id || ''] || []).flatMap(dId => [
                       <InsetGroup.ItemSeperator
-                        leftInset={1}
+                        leftInset={25}
                         key={`s-${dId}`}
                       />,
                       <DedicatedCheckItem
@@ -453,6 +495,7 @@ export default function CheckItems({
                         delayedNotSeenItemIds={delayedNotSeenItemIds}
                         dedicatedIdsMap={dedicatedIdsMap}
                         loadedItemsMapRef={loadedItemsMapRef}
+                        forceExpandedItems={forceExpandedItems}
                       />,
                     ])}
                   </View>
@@ -474,6 +517,7 @@ function DedicatedCheckItem({
   delayedNotSeenItemIds,
   dedicatedIdsMap,
   loadedItemsMapRef,
+  forceExpandedItems,
   getItemPressHandler,
 }: {
   id: string;
@@ -485,6 +529,7 @@ function DedicatedCheckItem({
     string,
     DataTypeWithID<'item'>
   > | null>;
+  forceExpandedItems: { value: Set<string> };
   getItemPressHandler: (itemId: string) => () => void;
 }) {
   const { contentTextColor } = useColors();
@@ -495,6 +540,7 @@ function DedicatedCheckItem({
     scannedItems[item.actualRfidTagEpcMemoryBankContents || ''];
   const partiallySeen =
     notSeenItemIds.has(`${id}-some`) && !notSeenItemIds.has(`${id}-all`);
+  const showDedicatedItems = partiallySeen || forceExpandedItems.value.has(id);
 
   const dedicatedIds = dedicatedIdsMap[id];
 
@@ -522,10 +568,13 @@ function DedicatedCheckItem({
           </Text>
         </View>
       </TouchableHighlight>
-      {dedicatedIds && (
+      {showDedicatedItems && dedicatedIds && (
         <View style={styles.dedicatedCheckItemChildrenContainer}>
-          {dedicatedIds.flatMap(dId => [
-            <InsetGroup.ItemSeperator key={`s-${dId}`} leftInset={1} />,
+          {dedicatedIds.flatMap((dId, i) => [
+            <InsetGroup.ItemSeperator
+              key={`s-${dId}`}
+              leftInset={i === 0 ? 8 : 25}
+            />,
             <DedicatedCheckItem
               key={dId}
               id={dId}
@@ -535,6 +584,7 @@ function DedicatedCheckItem({
               delayedNotSeenItemIds={delayedNotSeenItemIds}
               dedicatedIdsMap={dedicatedIdsMap}
               loadedItemsMapRef={loadedItemsMapRef}
+              forceExpandedItems={forceExpandedItems}
             />,
           ])}
         </View>
@@ -600,8 +650,48 @@ function DedicatedCheckItemIcon({
     );
   }
 
-  // TODO: Android support
-  return null;
+  return (
+    <View style={styles.dedicatedCheckItemIconContainer}>
+      {(() => {
+        switch (status) {
+          case 'checked':
+            return (
+              <MaterialCommunityIcon
+                name="check-circle"
+                color={green}
+                size={16}
+              />
+            );
+          case 'partially-checked':
+            return (
+              <MaterialCommunityIcon
+                name="dots-horizontal-circle"
+                color={yellow}
+                size={16}
+              />
+            );
+
+          case 'unchecked':
+            return (
+              <MaterialCommunityIcon
+                name="progress-question"
+                color={gray}
+                size={16}
+              />
+            );
+
+          case 'no-rfid-tag':
+            return (
+              <MaterialCommunityIcon
+                name="access-point-off"
+                color={gray}
+                size={16}
+              />
+            );
+        }
+      })()}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -610,6 +700,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 2,
+    paddingBottom: 3,
     overflow: 'hidden',
     paddingRight: InsetGroup.ITEM_PADDING_HORIZONTAL,
   },
@@ -622,5 +713,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 5,
+    marginLeft: 4,
   },
 });

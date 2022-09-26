@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -89,6 +89,9 @@ function ScreenContent({
   const safeAreaInsets = useSafeAreaInsets();
   const tabBarInsets = useTabBarInsets();
   const { backgroundColor, iosHeaderTintColor } = useColors();
+
+  // For Android
+  const [searchText, setSearchText] = useState('');
 
   // iOS native navigation bar
   useLayoutEffect(() => {
@@ -283,6 +286,8 @@ function ScreenContent({
     return unsubscribe;
   }, [navigation, route]);
 
+  const searchInputRef = useRef<TextInput>(null);
+
   return (
     <View style={commonStyles.flex1}>
       {Platform.OS !== 'ios' && showAppBar && (
@@ -305,21 +310,35 @@ function ScreenContent({
           ) : (
             <Appbar.Action
               icon="magnify"
-              onPress={() => setSearchEnabled(true)}
+              onPress={() => searchInputRef.current?.focus()}
             />
           )}
           {searchEnabled ? (
             <>
               <TextInput
+                ref={searchInputRef}
                 style={styles.searchTextInput}
-                autoFocus={!searchCanBeClosedAndroid}
+                autoFocus={searchCanBeClosedAndroid}
                 placeholder="Search"
-                onChangeText={onSearchChangeText}
+                value={searchText}
+                onChangeText={text => {
+                  setSearchText(text);
+                  onSearchChangeText && onSearchChangeText(text);
+                }}
                 returnKeyType="search"
                 onBlur={onSearchBlur}
               />
               {!searchCanBeClosedAndroid && (
                 <>
+                  {searchText && (
+                    <Appbar.Action
+                      icon="close"
+                      onPress={() => {
+                        searchInputRef.current?.clear();
+                        onSearchChangeText && onSearchChangeText('');
+                      }}
+                    />
+                  )}
                   {verifiedAction3MaterialIconName && onAction2Press && (
                     <Appbar.Action
                       icon={verifiedAction3MaterialIconName}
