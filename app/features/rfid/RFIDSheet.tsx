@@ -151,7 +151,14 @@ function RFIDSheet(
   const contentBottomInset =
     footerBottomInset + footerHeight + footerLinearGradientHeight / 10;
 
-  const initialSnapPoints = useMemo(() => [150, 'CONTENT_HEIGHT'], []);
+  const initialSnapPoints = useMemo(
+    () => [
+      // Disabled
+      // 150,
+      'CONTENT_HEIGHT',
+    ],
+    [],
+  );
 
   const {
     animatedHandleHeight,

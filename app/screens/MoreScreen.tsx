@@ -65,13 +65,13 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
         id: itemId,
         ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
       });
-      rfidSheet.current?.collapse();
+      rfidSheet.current?.close();
     } else {
       navigation.push('GenericTextDetails', {
         details: JSON.stringify(data, null, 2),
         ...({ beforeRemove: () => openRfidSheet(rfidSheetScanOptions) } as any),
       });
-      rfidSheet.current?.collapse();
+      rfidSheet.current?.close();
     }
   };
 
