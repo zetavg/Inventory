@@ -33,13 +33,17 @@ const UI_REORDER_ANIMATION_DELAY = 500;
 export default function CheckItems({
   items: topLevelItems,
   scannedItems,
+  clearScannedDataCounter,
   contentBackgroundColor,
   dedicatedIdsMap,
   loadedItemsMapRef,
   onViewItemPress,
+  resultSeenIdsRef,
+  resultManuallyCheckedIdsRef,
 }: {
   items: ReadonlyArray<DataTypeWithID<'item'>>;
   scannedItems: Record<string, ScanData>;
+  clearScannedDataCounter: number;
   contentBackgroundColor: string;
   dedicatedIdsMap: Record<string, Array<string>>;
   loadedItemsMapRef: React.MutableRefObject<Map<
@@ -47,6 +51,8 @@ export default function CheckItems({
     DataTypeWithID<'item'>
   > | null>;
   onViewItemPress: (itemId: string) => void;
+  resultSeenIdsRef?: React.MutableRefObject<Set<string> | null>;
+  resultManuallyCheckedIdsRef?: React.MutableRefObject<Set<string> | null>;
 }) {
   const { showActionSheetWithOptions } = useActionSheet();
 
@@ -128,6 +134,13 @@ export default function CheckItems({
       });
   }, [topLevelItems, dedicatedIdsMap, itemIdDedicatedContainerIdMap]);
 
+  /** A set of manually checked item IDs */
+  const [manuallyCheckedIds, setManuallyCheckedIds] = useState({
+    value: resultManuallyCheckedIdsRef?.current || new Set<string>(),
+  });
+  if (resultManuallyCheckedIdsRef)
+    resultManuallyCheckedIdsRef.current = manuallyCheckedIds.value;
+
   /**
    * Function that returns a initial object of sets that will record not-seen
    * dedicated items of a item.
@@ -185,6 +198,7 @@ export default function CheckItems({
   >(getNotSeenDedicatedItemIds);
 
   /** Process newly seen EPCs */
+  const prevManuallyCheckedItems = useRef(new Set());
   useEffect(() => {
     const newEpcs = Object.keys(scannedItems).filter(epc => !seenEpcs.has(epc));
     newEpcs.forEach(epc => seenEpcs.add(epc));
@@ -195,6 +209,31 @@ export default function CheckItems({
       const itemId = epcItemIdMap[epc];
       if (!itemId) return;
 
+      if (resultSeenIdsRef) {
+        if (!resultSeenIdsRef.current) {
+          resultSeenIdsRef.current = new Set();
+        }
+
+        resultSeenIdsRef.current.add(itemId);
+      }
+
+      if (manuallyCheckedIds.value.has(itemId)) {
+        // Already set as seen by manuallyCheckedIds, just need to remove from manuallyCheckedIds
+        manuallyCheckedIds.value.delete(itemId); // Set directly to prevent infinite loop
+      } else {
+        setItemIdAsSeen(itemId);
+      }
+    });
+
+    const newManuallyCheckedIds = [...manuallyCheckedIds.value].filter(
+      id => !prevManuallyCheckedItems.current.has(id),
+    );
+    newManuallyCheckedIds.forEach(itemId => {
+      prevManuallyCheckedItems.current.add(itemId);
+      setItemIdAsSeen(itemId);
+    });
+
+    function setItemIdAsSeen(itemId: string) {
       idsToRemoveFromNotSeenIds.push(itemId);
       // Assume that this item is a container, at least itself is now seen,
       // so not all of it has not been seen now.
@@ -247,7 +286,7 @@ export default function CheckItems({
         selfId = containerId;
         containerId = itemIdDedicatedContainerIdMap[containerId];
       }
-    }); // End of newEpcs.forEach
+    } // End of function setItemIdAsSeen
 
     // Now, update the state if there's anything needed to be updated.
     if (idsToRemoveFromNotSeenIds.length > 0) {
@@ -284,9 +323,11 @@ export default function CheckItems({
   }, [
     epcItemIdMap,
     itemIdDedicatedContainerIdMap,
+    manuallyCheckedIds,
     notSeenDedicatedItemIds,
     notSeenItemIds,
     notSeenItemIdsChangeCounter,
+    resultSeenIdsRef,
     scannedItems,
     seenEpcs,
   ]);
@@ -298,8 +339,11 @@ export default function CheckItems({
   forceExpandedItemsRef.current = forceExpandedItems;
 
   /** Handle reset */
+  const prevClearScannedDataCounter = useRef(clearScannedDataCounter);
   useEffect(() => {
-    if (Object.keys(scannedItems).length > 0) return;
+    if (prevClearScannedDataCounter.current === clearScannedDataCounter) return;
+
+    prevClearScannedDataCounter.current = clearScannedDataCounter;
 
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setSeenEpcs(new Set());
@@ -307,8 +351,18 @@ export default function CheckItems({
     setDelayedNotSeenItemIds(new Set(allIds));
     setDelayedNotSeenItemIdsChangeCounter(v => v + 1);
     setNotSeenDedicatedItemIds(getNotSeenDedicatedItemIds);
+    setManuallyCheckedIds({ value: new Set() });
+    prevManuallyCheckedItems.current = new Set();
     setForceExpandedItems({ value: new Set() });
-  }, [scannedItems, allIds, getNotSeenDedicatedItemIds]);
+
+    if (resultSeenIdsRef) resultSeenIdsRef.current = new Set();
+  }, [
+    scannedItems,
+    allIds,
+    getNotSeenDedicatedItemIds,
+    resultSeenIdsRef,
+    clearScannedDataCounter,
+  ]);
 
   /** Re-order items by there status */
   const itemsToRender = useMemo(() => {
@@ -365,7 +419,8 @@ export default function CheckItems({
 
   const handleItemPress = useCallback(
     (itemId: string) => {
-      const canMarkAsChecked = true;
+      const canMarkAsChecked =
+        notSeenItemIdsRef.current && notSeenItemIdsRef.current.has(itemId);
       const partiallySeen =
         notSeenItemIdsRef.current &&
         notSeenItemIdsRef.current.has(`${itemId}-some`) &&
@@ -385,20 +440,27 @@ export default function CheckItems({
       const shownOptions = options.map(v => optionNames[v]);
       showActionSheetWithOptions(
         {
-          options: ['Cancel', ...shownOptions],
-          ...(canMarkAsChecked ? { destructiveButtonIndex: 1 } : {}),
-          cancelButtonIndex: 0,
+          options: [...shownOptions, 'Cancel'],
+          ...(canMarkAsChecked ? { destructiveButtonIndex: 0 } : {}),
+          cancelButtonIndex: shownOptions.length,
         },
         buttonIndex => {
-          if (buttonIndex === 0) {
+          if (buttonIndex === shownOptions.length) {
             // cancel action
             return;
           }
 
-          const selectedOption = options[(buttonIndex || 0) - 1];
+          const selectedOption =
+            typeof buttonIndex === 'number' ? options[buttonIndex] : null;
           switch (selectedOption) {
             case 'view-item':
               onViewItemPress(itemId);
+              return;
+            case 'mark-as-checked':
+              setManuallyCheckedIds(({ value }) => {
+                value.add(itemId);
+                return { value };
+              });
               return;
             case 'toggle-expand':
               LayoutAnimation.configureNext(
@@ -461,15 +523,40 @@ export default function CheckItems({
                   onLongPress={getItemPressHandler(it.id || '')}
                   hideDedicatedContainerDetails
                   hideCollectionDetails
-                  checkStatus={
-                    !it.actualRfidTagEpcMemoryBankContents
-                      ? 'no-rfid-tag'
-                      : partiallySeen
-                      ? 'partially-checked'
-                      : scannedData
-                      ? 'checked'
-                      : 'unchecked'
-                  }
+                  checkStatus={(() => {
+                    if (!it.actualRfidTagEpcMemoryBankContents) {
+                      if (manuallyCheckedIds.value.has(it.id || '')) {
+                        return 'manually-checked';
+                      }
+
+                      return 'no-rfid-tag';
+                    }
+
+                    if (
+                      !notSeenItemIds.has(it.id || '') &&
+                      !notSeenItemIds.has(`${it.id}-some`)
+                    ) {
+                      if (manuallyCheckedIds.value.has(it.id || '')) {
+                        return 'manually-checked';
+                      }
+
+                      return 'checked';
+                    }
+
+                    if (partiallySeen) {
+                      return 'partially-checked';
+                    }
+
+                    // if (scannedData) {
+                    //   return 'checked';
+                    // }
+
+                    if (manuallyCheckedIds.value.has(it.id || '')) {
+                      return 'manually-checked';
+                    }
+
+                    return 'unchecked';
+                  })()}
                   grayOut={!scannedData && !partiallySeen}
                   additionalDetails={
                     scannedData?.rssi ? `RSSI: ${scannedData.rssi}` : undefined
@@ -495,6 +582,7 @@ export default function CheckItems({
                         delayedNotSeenItemIds={delayedNotSeenItemIds}
                         dedicatedIdsMap={dedicatedIdsMap}
                         loadedItemsMapRef={loadedItemsMapRef}
+                        manuallyCheckedIds={manuallyCheckedIds}
                         forceExpandedItems={forceExpandedItems}
                       />,
                     ])}
@@ -517,6 +605,7 @@ function DedicatedCheckItem({
   delayedNotSeenItemIds,
   dedicatedIdsMap,
   loadedItemsMapRef,
+  manuallyCheckedIds,
   forceExpandedItems,
   getItemPressHandler,
 }: {
@@ -529,6 +618,7 @@ function DedicatedCheckItem({
     string,
     DataTypeWithID<'item'>
   > | null>;
+  manuallyCheckedIds: { value: Set<string> };
   forceExpandedItems: { value: Set<string> };
   getItemPressHandler: (itemId: string) => () => void;
 }) {
@@ -553,15 +643,40 @@ function DedicatedCheckItem({
       >
         <View style={styles.dedicatedCheckItemContainer}>
           <DedicatedCheckItemIcon
-            status={
-              !item.actualRfidTagEpcMemoryBankContents
-                ? 'no-rfid-tag'
-                : partiallySeen
-                ? 'partially-checked'
-                : scannedData
-                ? 'checked'
-                : 'unchecked'
-            }
+            status={(() => {
+              if (!item.actualRfidTagEpcMemoryBankContents) {
+                if (manuallyCheckedIds.value.has(id)) {
+                  return 'manually-checked';
+                }
+
+                return 'no-rfid-tag';
+              }
+
+              if (
+                !notSeenItemIds.has(id) &&
+                !notSeenItemIds.has(`${id}-some`)
+              ) {
+                if (manuallyCheckedIds.value.has(id || '')) {
+                  return 'manually-checked';
+                }
+
+                return 'checked';
+              }
+
+              if (partiallySeen) {
+                return 'partially-checked';
+              }
+
+              // if (scannedData) {
+              //   return 'checked';
+              // }
+
+              if (manuallyCheckedIds.value.has(id)) {
+                return 'manually-checked';
+              }
+
+              return 'unchecked';
+            })()}
           />
           <Text style={commonStyles.flex1} numberOfLines={2}>
             {item.name}
@@ -584,6 +699,7 @@ function DedicatedCheckItem({
               delayedNotSeenItemIds={delayedNotSeenItemIds}
               dedicatedIdsMap={dedicatedIdsMap}
               loadedItemsMapRef={loadedItemsMapRef}
+              manuallyCheckedIds={manuallyCheckedIds}
               forceExpandedItems={forceExpandedItems}
             />,
           ])}
@@ -596,7 +712,12 @@ function DedicatedCheckItem({
 function DedicatedCheckItemIcon({
   status,
 }: {
-  status: 'checked' | 'unchecked' | 'partially-checked' | 'no-rfid-tag';
+  status:
+    | 'checked'
+    | 'unchecked'
+    | 'partially-checked'
+    | 'manually-checked'
+    | 'no-rfid-tag';
 }) {
   const { green, gray, yellow } = useColors();
 
@@ -606,11 +727,12 @@ function DedicatedCheckItemIcon({
         {(() => {
           switch (status) {
             case 'checked':
+            case 'manually-checked':
               return (
                 <SFSymbol
                   name="checkmark.circle.fill"
                   scale="small"
-                  color={green}
+                  color={status === 'checked' ? green : gray}
                   size={16}
                 />
               );
@@ -655,10 +777,11 @@ function DedicatedCheckItemIcon({
       {(() => {
         switch (status) {
           case 'checked':
+          case 'manually-checked':
             return (
               <MaterialCommunityIcon
                 name="check-circle"
-                color={green}
+                color={status === 'checked' ? green : gray}
                 size={16}
               />
             );

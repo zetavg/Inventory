@@ -19,6 +19,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Color from 'color';
 import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
+import useActionSheet from '@app/hooks/useActionSheet';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
@@ -43,6 +44,7 @@ function ItemScreen({
 }: StackScreenProps<StackParamList, 'Item'>) {
   const rootNavigation = useRootNavigation();
   const { openRfidSheet, rfidSheet } = useRootBottomSheets();
+  const { showActionSheetWithOptions } = useActionSheet();
   const { id, initialTitle } = route.params;
   const { db } = useDB();
   const { data, reloadData } = useRelationalData('item', id);
@@ -155,6 +157,28 @@ function ItemScreen({
   const loadChildrenDedicatedItemIdsPromiseRef = useRef<null | Promise<any>>(
     null,
   );
+  const checkContentsResultSeenIdsRef = useRef<Set<string> | null>(null);
+  const checkContentsResultManuallyCheckedIdsRef = useRef<Set<string> | null>(
+    null,
+  );
+  const checkContentsResultSaved = useRef(false);
+  const handleCheckContentsDone = useCallback(() => {
+    console.warn(
+      'Check results',
+      JSON.stringify(
+        {
+          seen: [...(checkContentsResultSeenIdsRef.current || [])],
+          manuallyChecked: [
+            ...(checkContentsResultManuallyCheckedIdsRef.current || []),
+          ],
+        },
+        null,
+        2,
+      ),
+    );
+    checkContentsResultSaved.current = true;
+  }, []);
+  const ignoreNextCheckContentsRfidSheetClose = useRef(false);
   const handleCheckContents = useCallback(async () => {
     // Data will be loaded via useEffect but we need to wait until it's ready
     if (loadChildrenDedicatedItemIdsPromiseRef.current) {
@@ -163,6 +187,7 @@ function ItemScreen({
     openRfidSheet({
       functionality: 'scan' as const,
       scanName: `container-${id}-scan`,
+      resetData: checkContentsResultSaved.current,
       renderScannedItemsRef: renderCheckContentsScannedItemsRef,
       playSoundOnlyForEpcs: [
         ...(dedicatedContents || []),
@@ -170,10 +195,41 @@ function ItemScreen({
       ]
         .map(it => it.actualRfidTagEpcMemoryBankContents)
         .filter((epc): epc is string => !!epc),
+      onDone: handleCheckContentsDone,
+      onClose: () => {
+        if (ignoreNextCheckContentsRfidSheetClose.current) {
+          ignoreNextCheckContentsRfidSheetClose.current = false;
+          return;
+        }
+        showActionSheetWithOptions(
+          {
+            title: 'Save the check results?',
+            // message: 'Save?',
+            options: ['Save', 'Do not save'],
+            cancelButtonIndex: 1,
+          },
+          buttonIndex => {
+            if (buttonIndex === 1) {
+              // cancel action
+              return;
+            }
+
+            handleCheckContentsDone();
+          },
+        );
+      },
     });
-  }, [dedicatedContents, id, openRfidSheet]);
+    checkContentsResultSaved.current = false;
+  }, [
+    dedicatedContents,
+    handleCheckContentsDone,
+    id,
+    openRfidSheet,
+    showActionSheetWithOptions,
+  ]);
   const handleCheckItemsOnViewItemPress = useCallback(
     (itemId: string) => {
+      ignoreNextCheckContentsRfidSheetClose.current = true;
       rfidSheet.current?.close();
       navigation.push('Item', {
         id: itemId,
@@ -184,7 +240,7 @@ function ItemScreen({
   );
   renderCheckContentsScannedItemsRef.current =
     useCallback<RenderScannedItemsFn>(
-      (items, { contentBackgroundColor }) => {
+      (items, { contentBackgroundColor, clearScannedDataCounter }) => {
         return (
           <CheckItems
             items={orderedDedicatedContents || []}
@@ -193,6 +249,11 @@ function ItemScreen({
             dedicatedIdsMap={dedicatedIdsMapRef.current || {}}
             loadedItemsMapRef={checkContentsLoadedItemsMapRef}
             onViewItemPress={handleCheckItemsOnViewItemPress}
+            resultSeenIdsRef={checkContentsResultSeenIdsRef}
+            resultManuallyCheckedIdsRef={
+              checkContentsResultManuallyCheckedIdsRef
+            }
+            clearScannedDataCounter={clearScannedDataCounter}
           />
         );
       },

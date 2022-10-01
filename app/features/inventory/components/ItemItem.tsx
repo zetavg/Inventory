@@ -31,7 +31,12 @@ export default function ItemItem({
   hideCollectionDetails?: boolean;
   hideDedicatedContainerDetails?: boolean;
   reloadCounter?: number;
-  checkStatus?: 'checked' | 'unchecked' | 'partially-checked' | 'no-rfid-tag';
+  checkStatus?:
+    | 'checked'
+    | 'unchecked'
+    | 'partially-checked'
+    | 'manually-checked'
+    | 'no-rfid-tag';
   grayOut?: boolean;
 } & React.ComponentProps<typeof InsetGroup.Item>) {
   const { contentSecondaryTextColor } = useColors();
@@ -200,18 +205,24 @@ export default function ItemItem({
 function CheckStatusIcon({
   status,
 }: {
-  status: 'checked' | 'unchecked' | 'partially-checked' | 'no-rfid-tag';
+  status:
+    | 'checked'
+    | 'unchecked'
+    | 'partially-checked'
+    | 'manually-checked'
+    | 'no-rfid-tag';
 }) {
   const { contentBackgroundColor, green, gray, yellow } = useColors();
 
   if (Platform.OS === 'ios') {
     switch (status) {
       case 'checked':
+      case 'manually-checked':
         return (
           <View style={styles.checkStatusIconContainer}>
             <SFSymbol
               name="checkmark.circle.fill"
-              color={green}
+              color={status === 'checked' ? green : gray}
               size={16}
               weight="regular"
             />
@@ -273,9 +284,14 @@ function CheckStatusIcon({
 
   switch (status) {
     case 'checked':
+    case 'manually-checked':
       return (
         <View style={styles.checkStatusIconContainer}>
-          <MaterialCommunityIcon name="check-circle" color={green} size={16} />
+          <MaterialCommunityIcon
+            name="check-circle"
+            color={status === 'checked' ? green : gray}
+            size={16}
+          />
         </View>
       );
     case 'partially-checked':

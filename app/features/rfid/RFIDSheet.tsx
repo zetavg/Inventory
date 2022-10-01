@@ -73,13 +73,18 @@ export type OnScannedItemPressFn = (
 
 export type RenderScannedItemsFn = (
   items: Record<string, ScanData>,
-  options: { contentBackgroundColor: string },
+  options: { contentBackgroundColor: string; clearScannedDataCounter: number },
 ) => JSX.Element;
 
-export type RFIDSheetOptions = { power?: number } & (
+export type RFIDSheetOptions = {
+  power?: number;
+  onDone?: () => void;
+  onClose?: () => void;
+} & (
   | {
       functionality: 'scan';
       scanName?: string;
+      resetData?: boolean;
       playSoundOnlyForEpcs?: string[];
       useDefaultFilter?: boolean;
       autoScroll?: boolean;
@@ -175,15 +180,18 @@ function RFIDSheet(
   const [sheetOpened, setSheetOpened] = useState(false);
   const [sheetHalfClosed, setSheetHalfClosed] = useState(false);
   const [devShowDetailsCounter, setDevShowDetailsCounter] = useState(0);
+  const closeByDone = useRef(false);
   const handleChange = useCallback(
     (index: number) => {
       if (index >= 0) {
         setSheetOpened(true);
+        closeByDone.current = false;
       }
 
       if (index < 0) {
         setSheetOpened(false);
         setDevShowDetailsCounter(0);
+        if (!closeByDone.current && options?.onClose) options?.onClose();
       }
 
       if (index >= 0 && index < initialSnapPoints.length - 1) {
@@ -192,7 +200,7 @@ function RFIDSheet(
         setSheetHalfClosed(false);
       }
     },
-    [initialSnapPoints.length],
+    [initialSnapPoints.length, options],
   );
 
   const handleDismiss = useCallback(() => {
@@ -484,6 +492,9 @@ function RFIDSheet(
   const [scannedData, setScannedData] = useState<
     Record<string, Record<string, ScanData>>
   >({});
+  const [clearScannedDataCounter, setClearScannedDataCounter] = useState<
+    Record<string, number | undefined>
+  >({});
   // const [scannedDataCount, setScannedDataCount] = useState(0);
   // Will be used if useDefaultFilter is not specified in options
   const [useDefaultFilterFallback, setUseDefaultFilterFallback] =
@@ -621,9 +632,23 @@ function RFIDSheet(
 
   const clearScannedData = useCallback(async () => {
     setScannedData(d => ({ ...d, [scanName]: {} }));
+    setClearScannedDataCounter(d => ({
+      ...d,
+      [scanName]: (d[scanName] || 0) + 1,
+    }));
     // setScannedDataCount(0);
     // await RFIDModule.clearScannedTags();
   }, [scanName]);
+  useEffect(() => {
+    if (options?.functionality !== 'scan') return;
+    if (!options?.resetData) return;
+
+    clearScannedData();
+    // Wait for content to render so that clearScannedDataCounter can have effect
+    setTimeout(() => clearScannedData(), 10);
+    setTimeout(() => clearScannedData(), 100);
+    setTimeout(() => clearScannedData(), 500);
+  }, [options, clearScannedData]);
 
   const scannedItems = scannedData[scanName] || {};
 
@@ -1056,7 +1081,11 @@ function RFIDSheet(
                       return (
                         <SecondaryButton
                           title="Done"
-                          onPress={() => innerRef.current?.dismiss()}
+                          onPress={() => {
+                            if (options?.onDone) options?.onDone();
+                            closeByDone.current = true;
+                            innerRef.current?.dismiss();
+                          }}
                         />
                       );
                   }
@@ -1080,7 +1109,7 @@ function RFIDSheet(
       useBuiltinReader,
       bleDeviceBatteryLevel,
       power,
-      options?.functionality,
+      options,
       red2,
       yellow2,
       scanStatus,
@@ -1173,6 +1202,8 @@ function RFIDSheet(
                     {renderScannedItems ? (
                       renderScannedItems(scannedItems, {
                         contentBackgroundColor: insetGroupBackgroundColor,
+                        clearScannedDataCounter:
+                          clearScannedDataCounter[scanName] || 0,
                       })
                     ) : (
                       <>
