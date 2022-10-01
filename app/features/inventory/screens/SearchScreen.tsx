@@ -7,6 +7,7 @@ import {
   ScrollView,
   View,
   ActionSheetIOS,
+  LayoutAnimation,
 } from 'react-native';
 import {
   Camera,
@@ -49,6 +50,13 @@ import {
 
 import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
 import { runOnJS } from 'react-native-reanimated';
+import { DataTypeWithID } from '@app/db/relationalUtils';
+import { TypeName } from '@app/db/schema';
+
+const LAYOUT_ANIMATION_CONFIG = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 100,
+};
 
 function SearchScreen({
   navigation,
@@ -78,13 +86,17 @@ function SearchScreen({
   // const limit = perPage;
   const [loading, setLoading] = useState(true);
 
+  const prevSearchText = useRef(searchText);
   const getData = useCallback(async () => {
-    setLoading(true);
+    if (prevSearchText.current !== searchText) setLoading(true);
+    prevSearchText.current = searchText;
+
     try {
       const results = await (db as any).search({
         ...SEARCH_OPTIONS,
         query: searchText,
       });
+      LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
       setData(results);
     } catch (e: any) {
       Alert.alert(e?.message, JSON.stringify(e?.stack));
@@ -92,15 +104,43 @@ function SearchScreen({
       setLoading(false);
     }
   }, [db, searchText]);
+
+  const [recentData, setRecentData] = useState<null | Array<{
+    type: TypeName;
+    data: DataTypeWithID<TypeName>;
+  }>>(null);
+  const loadRecentData = useCallback(async () => {
+    try {
+      const results = await db.find({
+        selector: {
+          $and: [{ type: 'item' }, { 'data.updatedAt': { $exists: true } }],
+        },
+        sort: [{ type: 'desc' }, { 'data.updatedAt': 'desc' }],
+        limit: 10,
+        use_index: 'index-type-updatedAt',
+      });
+      const ds = results.docs.map(doc => ({
+        type: doc.type,
+        data: getDataFromDocs('item', [doc])[0],
+      }));
+      setRecentData(ds);
+    } catch (e) {
+      throw e;
+    } finally {
+    }
+  }, [db]);
+
   const [reloadCounter, setReloadCounter] = useState(0);
   useEffect(() => {
     getData();
-  }, [getData]);
+    loadRecentData();
+  }, [getData, loadRecentData]);
   useFocusEffect(
     useCallback(() => {
       setReloadCounter(v => v + 1);
       getData();
-    }, [getData]),
+      loadRecentData();
+    }, [getData, loadRecentData]),
   );
 
   const [refreshing, setRefreshing] = useState(false);
@@ -177,7 +217,7 @@ function SearchScreen({
       >
         {!searchText ? (
           recentSearchQueries.length <= 0 ? (
-            <InsetGroup loading={loading} style={commonStyles.mt8}>
+            <InsetGroup loading={loading} style={commonStyles.mt16}>
               <Text
                 style={[
                   commonStyles.mv80,
@@ -190,49 +230,18 @@ function SearchScreen({
               </Text>
             </InsetGroup>
           ) : (
-            <InsetGroup
-              label="Recent Searches"
-              labelVariant="large"
-              loading={loading}
-              labelRight={
-                <InsetGroup.LabelButton
-                  title="Clear"
-                  onPress={() => {
-                    showActionSheetWithOptions(
-                      {
-                        options: ['Cancel', 'Clear search history'],
-                        destructiveButtonIndex: 1,
-                        cancelButtonIndex: 0,
-                      },
-                      buttonIndex => {
-                        if (buttonIndex === 0) {
-                          // cancel action
-                          return;
-                        } else if (buttonIndex === 1) {
-                          dispatch(clearRecentSearchQueries({}));
-                        }
-                      },
-                    );
-                  }}
-                />
-              }
-              labelContainerStyle={commonStyles.mt8}
-            >
-              {recentSearchQueries
-                .slice(0, 10)
-                .flatMap((query, i) => [
-                  <InsetGroup.Item
-                    key={i}
-                    label={query}
-                    arrow
+            <>
+              <InsetGroup
+                label="Recent Searches"
+                labelVariant="large"
+                loading={loading}
+                labelRight={
+                  <InsetGroup.LabelButton
+                    title="Clear"
                     onPress={() => {
-                      // setSearchText(query);
-                      navigation.push('Search', { query });
-                    }}
-                    onLongPress={() => {
                       showActionSheetWithOptions(
                         {
-                          options: ['Cancel', 'Remove Item'],
+                          options: ['Cancel', 'Clear search history'],
                           destructiveButtonIndex: 1,
                           cancelButtonIndex: 0,
                         },
@@ -241,27 +250,116 @@ function SearchScreen({
                             // cancel action
                             return;
                           } else if (buttonIndex === 1) {
-                            dispatch(
-                              removeRecentSearchQuery({
-                                query,
-                              }),
-                            );
+                            dispatch(clearRecentSearchQueries({}));
                           }
                         },
                       );
                     }}
-                  />,
-                  <InsetGroup.ItemSeperator key={`s-${i}`} />,
-                ])
-                .slice(0, -1)}
-            </InsetGroup>
+                  />
+                }
+                labelContainerStyle={commonStyles.mt16}
+              >
+                {recentSearchQueries
+                  .slice(0, 10)
+                  .flatMap((query, i) => [
+                    <InsetGroup.Item
+                      key={i}
+                      label={query}
+                      arrow
+                      onPress={() => {
+                        // setSearchText(query);
+                        navigation.push('Search', { query });
+                      }}
+                      onLongPress={() => {
+                        showActionSheetWithOptions(
+                          {
+                            options: ['Cancel', 'Remove Item'],
+                            destructiveButtonIndex: 1,
+                            cancelButtonIndex: 0,
+                          },
+                          buttonIndex => {
+                            if (buttonIndex === 0) {
+                              // cancel action
+                              return;
+                            } else if (buttonIndex === 1) {
+                              dispatch(
+                                removeRecentSearchQuery({
+                                  query,
+                                }),
+                              );
+                            }
+                          },
+                        );
+                      }}
+                    />,
+                    <InsetGroup.ItemSeperator key={`s-${i}`} />,
+                  ])
+                  .slice(0, -1)}
+              </InsetGroup>
+              {!!recentData && recentData.length > 0 && (
+                <InsetGroup
+                  label="Recently Changed"
+                  labelVariant="large"
+                  labelContainerStyle={commonStyles.mt16}
+                >
+                  {recentData
+                    .flatMap(d => {
+                      switch (d.type) {
+                        case 'item': {
+                          const item: DataTypeWithID<'item'> = d.data as any;
+                          return [
+                            <ItemItem
+                              key={`item-${item.id}`}
+                              item={item}
+                              arrow
+                              onPress={() =>
+                                navigation.push('Item', {
+                                  id: item.id || '',
+                                  initialTitle: item.name,
+                                })
+                              }
+                            />,
+                            <InsetGroup.ItemSeperator
+                              key={`s-item-${item.id}`}
+                              leftInset={60}
+                            />,
+                          ];
+                        }
+
+                        default:
+                          return [];
+                      }
+                    })
+                    .slice(0, -1)}
+                </InsetGroup>
+              )}
+            </>
           )
         ) : (
-          <InsetGroup loading={loading} style={commonStyles.mt8}>
+          <InsetGroup
+            loading={loading}
+            style={[commonStyles.mt16, { minHeight: 0 }]}
+          >
             {(() => {
               if (!data || data.rows.length <= 0) {
+                if (loading) {
+                  return (
+                    <Text
+                      key="loading"
+                      style={[
+                        commonStyles.mv80,
+                        commonStyles.mh16,
+                        commonStyles.tac,
+                        commonStyles.opacity05,
+                      ]}
+                    >
+                      {' '}
+                    </Text>
+                  );
+                }
                 return (
                   <Text
+                    key="no-results"
                     style={[
                       commonStyles.mv80,
                       commonStyles.mh16,
@@ -269,7 +367,7 @@ function SearchScreen({
                       commonStyles.opacity05,
                     ]}
                   >
-                    {loading ? ' ' : 'No Results'}
+                    No Results
                   </Text>
                 );
               }

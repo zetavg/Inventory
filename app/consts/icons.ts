@@ -311,6 +311,11 @@ export const ICONS = {
     materialIconName: 'wallet',
     keywords: 'wallet',
   },
+  'credit-card': {
+    sfSymbolName: 'creditcard.fill',
+    materialIconName: 'credit-card',
+    keywords: 'money wallet',
+  },
   suitcase: {
     // sfSymbolName: 'suitcase.fill',
     materialIconName: 'bag-suitcase',
@@ -335,6 +340,14 @@ export const ICONS = {
     // sfSymbolName: 'backpack.fill',
     materialIconName: 'bag-personal',
     keywords: 'bag personal backpack',
+  },
+  'shopping-bag': {
+    materialIconName: 'shopping',
+    keywords: 'bag personal',
+  },
+  basket: {
+    materialIconName: 'basket',
+    keywords: 'bag personal',
   },
   medication: {
     sfSymbolName: 'cross.vial.fill',
@@ -403,6 +416,16 @@ export const ICONS = {
     sfSymbolName: 'externaldrive.fill',
     materialIconName: 'harddisk',
     keywords: 'harddisk',
+  },
+  'sd-card': {
+    // sfSymbolName: '',
+    materialIconName: 'sd',
+    keywords: '',
+  },
+  'micro-sd-card': {
+    // sfSymbolName: '',
+    materialIconName: 'micro-sd',
+    keywords: '',
   },
   'usb-port': {
     // sfSymbolName: '',
@@ -484,6 +507,10 @@ export const ICONS = {
   iron: {
     materialIconName: 'iron',
   },
+  'air-purifier': {
+    // sfSymbolName: 'air.purifier.fill',
+    materialIconName: 'air-purifier',
+  },
 
   // Outdoors
   sun: {
@@ -560,7 +587,12 @@ export const ICONS = {
   camera: {
     sfSymbolName: 'camera.fill',
     materialIconName: 'camera',
-    keywords: 'gamecontroller',
+    keywords: 'camera recorder',
+  },
+  video: {
+    sfSymbolName: 'video.fill',
+    materialIconName: 'video',
+    keywords: 'camera video recorder',
   },
   cutter: {
     materialIconName: 'box-cutter',
