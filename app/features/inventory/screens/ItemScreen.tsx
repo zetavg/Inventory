@@ -22,6 +22,7 @@ import useColors from '@app/hooks/useColors';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
+import Button from '@app/components/Button';
 import Icon, { IconName, IconColor } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
@@ -77,6 +78,14 @@ function ItemScreen({
   );
   updateDedicatedContentsOrderFunctionRef.current =
     updateDedicatedContentsOrder;
+  const dedicatedItemsName = (() => {
+    switch (item && item.isContainerType) {
+      case 'item-with-parts':
+        return 'Parts';
+      default:
+        return 'Dedicated Items';
+    }
+  })();
 
   const writeActualEpcContent = useCallback(async () => {
     if (!item) return;
@@ -606,121 +615,125 @@ function ItemScreen({
           )}
         </InsetGroup>
         {item?.isContainer && (
-          <InsetGroup
-            label={
-              (() => {
-                const count =
-                  orderedDedicatedContents && orderedDedicatedContents.length;
-                if (count) return `${count} `;
-                return '';
-              })() +
-              (() => {
-                switch (item.isContainerType) {
-                  case 'item-with-parts':
-                    return 'Parts';
-                  default:
-                    return 'Dedicated Items';
-                }
-              })()
-            }
-            labelVariant="large"
-            loading={!item}
-            labelRight={
-              <>
-                {orderedDedicatedContents &&
-                  orderedDedicatedContents.length > 0 && (
+          <>
+            <InsetGroup backgroundTransparent>
+              <Button mode="contained" onPress={handleCheckContents}>
+                <Icon
+                  name="checklist"
+                  sfSymbolWeight="bold"
+                  color={textOnDarkBackgroundColor}
+                />{' '}
+                Check {dedicatedItemsName}
+              </Button>
+            </InsetGroup>
+            <InsetGroup
+              label={
+                (() => {
+                  const count =
+                    orderedDedicatedContents && orderedDedicatedContents.length;
+                  if (count) return `${count} `;
+                  return '';
+                })() + dedicatedItemsName
+              }
+              labelVariant="large"
+              loading={!item}
+              labelRight={
+                <>
+                  {orderedDedicatedContents &&
+                    orderedDedicatedContents.length > 0 && (
+                      <InsetGroup.LabelButton
+                        onPress={handleCheckContents}
+                        contentAsText={false}
+                        style={commonStyles.mr8}
+                      >
+                        <Icon
+                          name="checklist"
+                          sfSymbolWeight="bold"
+                          color={iosTintColor}
+                        />
+                      </InsetGroup.LabelButton>
+                    )}
+                  {orderedDedicatedContents &&
+                    orderedDedicatedContents.length > 0 && (
+                      <InsetGroup.LabelButton
+                        onPress={() =>
+                          rootNavigation?.push('OrderItems', {
+                            orderedItems: orderedDedicatedContents,
+                            updateOrderFunctionRef:
+                              updateDedicatedContentsOrderFunctionRef,
+                          })
+                        }
+                        contentAsText={false}
+                        style={commonStyles.mr8}
+                      >
+                        <Icon
+                          name="app-reorder"
+                          sfSymbolWeight="bold"
+                          color={iosTintColor}
+                        />
+                      </InsetGroup.LabelButton>
+                    )}
+                  {orderedDedicatedContents &&
+                  orderedDedicatedContents.length > 0 ? (
                     <InsetGroup.LabelButton
-                      onPress={handleCheckContents}
+                      primary
+                      onPress={handleAddNewDedicatedContent}
                       contentAsText={false}
-                      style={commonStyles.mr8}
                     >
                       <Icon
-                        name="checklist"
+                        name="add"
                         sfSymbolWeight="bold"
-                        color={iosTintColor}
+                        color={textOnDarkBackgroundColor}
                       />
                     </InsetGroup.LabelButton>
-                  )}
-                {orderedDedicatedContents &&
-                  orderedDedicatedContents.length > 0 && (
+                  ) : (
                     <InsetGroup.LabelButton
+                      primary
+                      onPress={handleAddNewDedicatedContent}
+                    >
+                      <Icon
+                        name="add"
+                        sfSymbolWeight="bold"
+                        color={textOnDarkBackgroundColor}
+                      />{' '}
+                      New Item
+                    </InsetGroup.LabelButton>
+                  )}
+                </>
+              }
+            >
+              {(() => {
+                if (!orderedDedicatedContents)
+                  return <InsetGroup.Item label="Loading..." disabled />;
+                if (orderedDedicatedContents.length <= 0)
+                  return <InsetGroup.Item label="No Items" disabled />;
+                return orderedDedicatedContents
+                  .flatMap(it => [
+                    <ItemItem
+                      key={it.id}
+                      item={it}
+                      hideDedicatedContainerDetails
+                      hideCollectionDetails={it.collection === item.collection}
+                      reloadCounter={reloadCounter}
                       onPress={() =>
-                        rootNavigation?.push('OrderItems', {
-                          orderedItems: orderedDedicatedContents,
-                          updateOrderFunctionRef:
-                            updateDedicatedContentsOrderFunctionRef,
+                        navigation.push('Item', {
+                          id: it.id || '',
+                          initialTitle: it.name,
                         })
                       }
-                      contentAsText={false}
-                      style={commonStyles.mr8}
-                    >
-                      <Icon
-                        name="app-reorder"
-                        sfSymbolWeight="bold"
-                        color={iosTintColor}
-                      />
-                    </InsetGroup.LabelButton>
-                  )}
-                {orderedDedicatedContents &&
-                orderedDedicatedContents.length > 0 ? (
-                  <InsetGroup.LabelButton
-                    primary
-                    onPress={handleAddNewDedicatedContent}
-                    contentAsText={false}
-                  >
-                    <Icon
-                      name="add"
-                      sfSymbolWeight="bold"
-                      color={textOnDarkBackgroundColor}
-                    />
-                  </InsetGroup.LabelButton>
-                ) : (
-                  <InsetGroup.LabelButton
-                    primary
-                    onPress={handleAddNewDedicatedContent}
-                  >
-                    <Icon
-                      name="add"
-                      sfSymbolWeight="bold"
-                      color={textOnDarkBackgroundColor}
-                    />{' '}
-                    New Item
-                  </InsetGroup.LabelButton>
-                )}
-              </>
-            }
-          >
-            {(() => {
-              if (!orderedDedicatedContents)
-                return <InsetGroup.Item label="Loading..." disabled />;
-              if (orderedDedicatedContents.length <= 0)
-                return <InsetGroup.Item label="No Items" disabled />;
-              return orderedDedicatedContents
-                .flatMap(it => [
-                  <ItemItem
-                    key={it.id}
-                    item={it}
-                    hideDedicatedContainerDetails
-                    hideCollectionDetails={it.collection === item.collection}
-                    reloadCounter={reloadCounter}
-                    onPress={() =>
-                      navigation.push('Item', {
-                        id: it.id || '',
-                        initialTitle: it.name,
-                      })
-                    }
-                  />,
-                  <InsetGroup.ItemSeperator key={`s-${it.id}`} />,
-                ])
-                .slice(0, -1);
-            })()}
-            {/*<InsetGroup.ItemSeperator />
-          <InsetGroup.Item
-            button
-            label="Add New Item"
-            onPress={handleAddNewItem}
-          />*/}
-          </InsetGroup>
+                    />,
+                    <InsetGroup.ItemSeperator key={`s-${it.id}`} />,
+                  ])
+                  .slice(0, -1);
+              })()}
+              {/*<InsetGroup.ItemSeperator />
+            <InsetGroup.Item
+              button
+              label="Add New Item"
+              onPress={handleAddNewItem}
+            />*/}
+            </InsetGroup>
+          </>
         )}
         {/*<InsetGroup
           label="Items in this item"

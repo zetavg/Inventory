@@ -29,6 +29,7 @@ type Props = {
   labelRight?: JSX.Element;
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
   loading?: boolean;
+  backgroundTransparent?: boolean;
 } & React.ComponentProps<typeof View>;
 
 type AddRefToPropsHack = { ref?: React.ForwardedRef<View> };
@@ -43,6 +44,7 @@ function InsetGroup(
     labelRight,
     labelContainerStyle,
     loading,
+    backgroundTransparent,
     ...props
   }: Props & AddRefToPropsHack,
   ref?: React.ForwardedRef<View>,
@@ -99,7 +101,7 @@ function InsetGroup(
         style={[
           styles.container,
           loading && styles.containerLoading,
-          { backgroundColor: contentBackgroundColor },
+          !backgroundTransparent && { backgroundColor: contentBackgroundColor },
           footerLabel ? styles.containerMarginBottom0 : {},
           ...(Array.isArray(style) ? style : [style]),
         ]}
