@@ -678,11 +678,11 @@ function ItemScreen({
         {item?.isContainer && (
           <>
             <InsetGroup backgroundTransparent>
-              <Button mode="contained" onPress={handleCheckContents}>
+              <Button mode="text" onPress={handleCheckContents}>
                 <Icon
                   name="checklist"
                   sfSymbolWeight="bold"
-                  color={textOnDarkBackgroundColor}
+                  color={iosTintColor}
                 />{' '}
                 Check {dedicatedItemsName}
               </Button>

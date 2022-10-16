@@ -9,6 +9,7 @@ import {
 import { Button as PaperButton } from 'react-native-paper';
 
 import type { Optional } from '@app/utils/types';
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 import Color from 'color';
 
@@ -18,6 +19,7 @@ type Props = { title?: string } & Optional<
 >;
 
 function Button({ title, mode = 'text', style, ref, ...props }: Props) {
+  const isDarkMode = useIsDarkMode();
   const { iosTintColor, textOnDarkBackgroundColor, gray } = useColors();
 
   if (Platform.OS === 'ios') {
@@ -29,7 +31,9 @@ function Button({ title, mode = 'text', style, ref, ...props }: Props) {
           return iosTintColor;
 
         default:
-          return Color(gray).opaquer(-0.9).hexa();
+          return Color(gray)
+            .opaquer(isDarkMode ? -0.78 : -0.88)
+            .hexa();
       }
     })();
     const textStyle = (() => {
