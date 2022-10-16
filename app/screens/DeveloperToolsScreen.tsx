@@ -47,7 +47,7 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('Storybook')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Enter Storybook Mode"
             button
@@ -61,25 +61,25 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('Redux')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="PouchDB"
             arrow
             onPress={() => navigation.push('PouchDB')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Relational PouchDB"
             arrow
             onPress={() => navigation.push('RelationalPouchDB')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Attachments DB"
             arrow
             onPress={() => navigation.push('PouchDBAttachments')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="SQLite"
             arrow
@@ -109,7 +109,7 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('EPCTDS')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="RFID UHF Module"
             arrow
@@ -123,19 +123,19 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('Sample', {})}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Sample Modal Screen"
             arrow
             onPress={() => rootNavigation?.push('SampleModal', {})}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Counter (Redux Sample)"
             arrow
             onPress={() => navigation.push('Counter')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="React Native New App Screen"
             arrow

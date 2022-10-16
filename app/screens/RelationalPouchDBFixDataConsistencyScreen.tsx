@@ -112,7 +112,7 @@ function RelationalPouchDBFixDataConsistencyScreen({
               label={titleCase(type)}
               detail={s.all === null ? 'N/A' : `${s.done}/${s.all}`}
             />,
-            <InsetGroup.ItemSeperator />,
+            <InsetGroup.ItemSeparator />,
           ])}
         </InsetGroup>
         <InsetGroup>
@@ -124,7 +124,7 @@ function RelationalPouchDBFixDataConsistencyScreen({
           />
           {started && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item button label="Stop" destructive onPress={stop} />
             </>
           )}
@@ -144,7 +144,7 @@ function RelationalPouchDBFixDataConsistencyScreen({
                   })
                 }
               />,
-              <InsetGroup.ItemSeperator />,
+              <InsetGroup.ItemSeparator />,
             ])}
           </InsetGroup>
         )}

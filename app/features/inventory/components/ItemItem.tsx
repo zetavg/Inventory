@@ -198,11 +198,11 @@ export default function ItemItem({
       }
       labelTextStyle={[
         styles.itemItemLabelText,
-        grayOut && styles.itemItemLabelTextGrayout,
+        grayOut && styles.itemItemLabelTextGrayOut,
       ]}
       detailTextStyle={[
         styles.itemItemDetailText,
-        grayOut && styles.itemItemDetailTextGrayout,
+        grayOut && styles.itemItemDetailTextGrayOut,
       ]}
       onPress={onPress}
       detailAsText
@@ -352,10 +352,10 @@ const styles = StyleSheet.create({
   },
   itemItemLabelText: { fontSize: 16 },
   itemItemDetailText: { fontSize: 12 },
-  itemItemLabelTextGrayout: {
+  itemItemLabelTextGrayOut: {
     opacity: 0.5,
   },
-  itemItemDetailTextGrayout: {
+  itemItemDetailTextGrayOut: {
     opacity: 0.5,
   },
   itemDetailCollectionIcon: {

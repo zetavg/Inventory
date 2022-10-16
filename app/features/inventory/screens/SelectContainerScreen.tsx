@@ -148,7 +148,7 @@ function SelectContainerScreen({
                   // hideDetails
                   selected={item.id === value}
                 />,
-                <InsetGroup.ItemSeperator
+                <InsetGroup.ItemSeparator
                   key={`s-${item.id}`}
                   // leftInset={50}
                   leftInset={60}

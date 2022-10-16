@@ -239,7 +239,7 @@ function SaveItemScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Icon"
@@ -256,7 +256,7 @@ function SaveItemScreen({
           />
           {data.dedicatedContainer && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 compactLabel
                 label="Dedicated Container"
@@ -321,7 +321,7 @@ function SaveItemScreen({
               </InsetGroup.Item>
             </>
           )}
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Collection"
@@ -390,7 +390,7 @@ function SaveItemScreen({
           />
           {data.isContainer && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 compactLabel
                 label="Container Type"
@@ -468,7 +468,7 @@ function SaveItemScreen({
               </>
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Serial"
@@ -498,7 +498,7 @@ function SaveItemScreen({
           {/*{(!data.itemReferenceNumber ||
             referenceNumberIsRandomlyGenerated) && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 button
                 label="Generate Random Number"
@@ -538,7 +538,7 @@ function SaveItemScreen({
               )}
             </TouchableOpacity>
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item compactLabel label="Icon Color">
             <ColorSelect
               value={data.iconColor as ColorSelectColor}
@@ -615,7 +615,7 @@ function SaveItemScreen({
           </InsetGroup.Item>
           {data.dedicatedContainer && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 compactLabel
                 label="Always show individually"
@@ -679,7 +679,7 @@ function SaveItemScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Purchase Price"
@@ -767,7 +767,7 @@ function SaveItemScreen({
               </>
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             vertical2

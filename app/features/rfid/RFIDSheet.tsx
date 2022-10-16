@@ -1246,7 +1246,7 @@ function RFIDSheet(
                                   item={d}
                                   onPressRef={options?.onScannedItemPressRef}
                                 />,
-                                <InsetGroup.ItemSeperator
+                                <InsetGroup.ItemSeparator
                                   key={`s-${d.epc}`}
                                   leftInset={60}
                                 />,
@@ -1279,7 +1279,7 @@ function RFIDSheet(
                             />
                             {!useDefaultFilterFallback && (
                               <>
-                                <InsetGroup.ItemSeperator />
+                                <InsetGroup.ItemSeparator />
                                 <InsetGroup.Item
                                   label="Enable Custom Filter"
                                   detail={
@@ -1293,7 +1293,7 @@ function RFIDSheet(
                                 />
                                 {enableScanFilter && (
                                   <>
-                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.ItemSeparator />
                                     <InsetGroup.Item
                                       label="Filter Bit Offset (ptr)"
                                       detail={
@@ -1309,7 +1309,7 @@ function RFIDSheet(
                                         />
                                       }
                                     />
-                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.ItemSeparator />
                                     <InsetGroup.Item
                                       label="Filter Bit Count (len)"
                                       detail={
@@ -1325,7 +1325,7 @@ function RFIDSheet(
                                         />
                                       }
                                     />
-                                    <InsetGroup.ItemSeperator />
+                                    <InsetGroup.ItemSeparator />
                                     <InsetGroup.Item
                                       label="Filter Data"
                                       vertical2
@@ -1417,14 +1417,14 @@ function RFIDSheet(
                           </TouchableWithoutFeedback>
                           {devShowDetailsCounter > 10 && (
                             <>
-                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.ItemSeparator />
                               <InsetGroup.Item
                                 vertical2
                                 label="Raw EPC"
                                 detailTextStyle={commonStyles.monospaced}
                                 detail={options.epc}
                               />
-                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.ItemSeparator />
                               <InsetGroup.Item
                                 vertical2
                                 label="Access Password"
@@ -1468,7 +1468,7 @@ function RFIDSheet(
                               />
                             }
                           />
-                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.ItemSeparator />
                           <InsetGroup.Item
                             vertical2
                             label="Access Password (Hex)"
@@ -1621,17 +1621,17 @@ function RFIDSheet(
                           label="RFID Status"
                           detail={rfidReaderDeviceReady ? 'Ready' : 'Not Ready'}
                         />
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Config Ready"
                           detail={config ? 'Yes' : 'No'}
                         />
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Default Filter"
                           detail={defaultFilter}
                         />
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Status"
                           detail={(() => {
@@ -1641,13 +1641,13 @@ function RFIDSheet(
                             return 'null';
                           })()}
                         />
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Options"
                           vertical2
                           detail={JSON.stringify(options, null, 2)}
                         />
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Config"
                           vertical2
@@ -1712,7 +1712,7 @@ function RFIDSheet(
                       label="Name"
                       detail={pairedBleDeviceName}
                     />
-                    <InsetGroup.ItemSeperator />
+                    <InsetGroup.ItemSeparator />
                     <InsetGroup.Item
                       label="ID"
                       detail={pairedBleDeviceAddress}
@@ -1729,7 +1729,7 @@ function RFIDSheet(
                     label="Search"
                     onPress={scanBleDevices}
                   />
-                  <InsetGroup.ItemSeperator />
+                  <InsetGroup.ItemSeparator />
                   {Object.values(scanBleDevicesData).length <= 0 && (
                     <InsetGroup.Item
                       disabled
@@ -1743,7 +1743,7 @@ function RFIDSheet(
                         label="Clear List"
                         onPress={clearScanDevicesData}
                       />
-                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.ItemSeparator />
                     </>
                   )}*/}
                   {Object.values(scanBleDevicesData)
@@ -1757,7 +1757,7 @@ function RFIDSheet(
                           .join(', ')}
                         onPress={() => pairDevice(d)}
                       />,
-                      <InsetGroup.ItemSeperator key={`s-${d.address}`} />,
+                      <InsetGroup.ItemSeparator key={`s-${d.address}`} />,
                     ])
                     .slice(0, -1)}
                 </InsetGroup>
@@ -1792,7 +1792,7 @@ function RFIDSheet(
                   if (useBuiltinReader) {
                     return (
                       <>
-                        <InsetGroup.ItemSeperator />
+                        <InsetGroup.ItemSeparator />
                         <InsetGroup.Item
                           label="Status"
                           detail={builtinReaderPowerOn ? 'On' : 'Off'}
@@ -1805,19 +1805,19 @@ function RFIDSheet(
                     <>
                       {pairedBleDeviceAddress && (
                         <>
-                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.ItemSeparator />
                           <InsetGroup.Item
                             label="Device Name"
                             detail={pairedBleDeviceName}
                           />
-                          <InsetGroup.ItemSeperator />
+                          <InsetGroup.ItemSeparator />
                           <InsetGroup.Item
                             label="Device ID"
                             detail={pairedBleDeviceAddress}
                           />
                         </>
                       )}
-                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.ItemSeparator />
                       <InsetGroup.Item
                         label="Status"
                         detail={(() => {
@@ -1831,7 +1831,7 @@ function RFIDSheet(
                           return 'Not Connected';
                         })()}
                       />
-                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.ItemSeparator />
                       <InsetGroup.Item
                         button
                         label="Setup Device Connection"
@@ -1839,7 +1839,7 @@ function RFIDSheet(
                           setShowReaderSetup(true);
                         }}
                       />
-                      <InsetGroup.ItemSeperator />
+                      <InsetGroup.ItemSeparator />
                       <InsetGroup.Item
                         label="Beep while locating"
                         detail={
@@ -1870,7 +1870,7 @@ function RFIDSheet(
                       />
                     }
                   />
-                  <InsetGroup.ItemSeperator />
+                  <InsetGroup.ItemSeparator />
                   <InsetGroup.Item
                     label="Timeout"
                     detail={`${builtinReaderAutoFreeTimeout}s`}

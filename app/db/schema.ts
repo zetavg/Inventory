@@ -33,14 +33,14 @@ export type Schema = Readonly<{ [type: string]: TypeDef }>;
 // ==== Util Functions ==== //
 
 /**
- * For type-checking the JTD schema while the constant type of the schema can be infered.
+ * For type-checking the JTD schema while the constant type of the schema can be inferred.
  */
 function jtdSchema<T extends JTDSchema>(schema: T): T {
   return schema;
 }
 
 /**
- * For type-checking the relational schema while the constant type of the schema can be infered.
+ * For type-checking the relational schema while the constant type of the schema can be inferred.
  */
 function s<T extends Schema>(schema: T): T {
   return schema;

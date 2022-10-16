@@ -157,7 +157,7 @@ export default function CheckItems({
   /**
    * A set that logs EPCs that has already been seen. Used to reduce duplicated
    * work on each render, but might cause bugs if an EPC has been added to the
-   * set but havn't been process correctly since it will not have a second
+   * set but have not been process correctly since it will not have a second
    * chance to be processed.
    */
   const [seenEpcs, setSeenEpcs] = useState<Set<string>>(() => new Set());
@@ -255,7 +255,7 @@ export default function CheckItems({
       const dedicatedContainerId = itemIdDedicatedContainerIdMap[itemId];
       if (!dedicatedContainerId) return;
 
-      // Set all parent containers as "at least one item seened"
+      // Set all parent containers as "at least one item seen"
       let containerId: string | undefined = dedicatedContainerId;
       while (containerId) {
         idsToRemoveFromNotSeenIds.push(`${containerId}-all`);
@@ -569,7 +569,7 @@ export default function CheckItems({
                     key={`${it.id}-di`}
                   >
                     {(dedicatedIdsMap[it.id || ''] || []).flatMap(dId => [
-                      <InsetGroup.ItemSeperator
+                      <InsetGroup.ItemSeparator
                         leftInset={25}
                         key={`s-${dId}`}
                       />,
@@ -589,7 +589,7 @@ export default function CheckItems({
                   </View>
                 )}
               </React.Fragment>,
-              <InsetGroup.ItemSeperator key={`s-${it.id}`} leftInset={60} />,
+              <InsetGroup.ItemSeparator key={`s-${it.id}`} leftInset={60} />,
             ];
           })
           .slice(0, -1)}
@@ -686,7 +686,7 @@ function DedicatedCheckItem({
       {showDedicatedItems && dedicatedIds && (
         <View style={styles.dedicatedCheckItemChildrenContainer}>
           {dedicatedIds.flatMap((dId, i) => [
-            <InsetGroup.ItemSeperator
+            <InsetGroup.ItemSeparator
               key={`s-${dId}`}
               leftInset={i === 0 ? 8 : 25}
             />,

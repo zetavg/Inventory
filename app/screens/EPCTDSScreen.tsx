@@ -115,7 +115,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Decoded EPC Tag URI"
@@ -151,7 +151,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="RFID Tag EPC Memory Bank Contents"
@@ -180,7 +180,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Collection Reference"
@@ -192,7 +192,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Item Reference"
@@ -204,7 +204,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Serial"
@@ -216,7 +216,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Join By"
             detail={
@@ -228,7 +228,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Include Prefix"
             detail={
@@ -238,7 +238,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Encoded Data"
@@ -251,7 +251,7 @@ function EPCTDSScreen({
               )
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Company Prefix"
@@ -263,7 +263,7 @@ function EPCTDSScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="EPC Tag URI"
@@ -278,7 +278,7 @@ function EPCTDSScreen({
               )
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="RFID Tag EPC Memory Bank Contents"

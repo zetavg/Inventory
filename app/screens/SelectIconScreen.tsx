@@ -32,16 +32,16 @@ function SelectIconScreen({
   const [search, setSearch] = useState('');
 
   const iconNames = useMemo(() => {
-    let iconEnteries = objectEntries(ICONS);
+    let iconEntries = objectEntries(ICONS);
 
     if (search) {
       const searchTerm = search.toLowerCase();
-      iconEnteries = iconEnteries.filter(([k, v]) =>
+      iconEntries = iconEntries.filter(([k, v]) =>
         `${k} ${(v as any).keywords}`.match(searchTerm),
       );
     }
 
-    return iconEnteries.map(([k]) => k);
+    return iconEntries.map(([k]) => k);
   }, [search]);
 
   const scrollViewRef = useRef<ScrollView>(null);

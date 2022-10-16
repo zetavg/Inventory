@@ -158,7 +158,7 @@ function CollectionsScreen({
                           })
                         }
                       />,
-                      <InsetGroup.ItemSeperator
+                      <InsetGroup.ItemSeparator
                         key={`s-${collection.id}`}
                         // leftInset={50}
                         leftInset={60}

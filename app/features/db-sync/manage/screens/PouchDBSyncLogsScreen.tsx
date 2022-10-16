@@ -157,7 +157,7 @@ function PouchDBSyncLogsScreen({
                     })
                   }
                 />,
-                <InsetGroup.ItemSeperator key={`s-${doc?._id}`} />,
+                <InsetGroup.ItemSeparator key={`s-${doc?._id}`} />,
               ])
               .slice(0, -1)
           )}

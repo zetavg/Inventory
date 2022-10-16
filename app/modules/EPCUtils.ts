@@ -4,14 +4,14 @@ const COLLECTION_REFERENCE_REGEX = /^[0-9]{4}$/;
 // TODO: Calculate this base on companyPrefix length
 const ITEM_REFERENCE_REGEX = /^[0-9]{1,7}$/;
 const MIN_PREFIX = 10;
-const MAX_PERFIX = 99;
+const MAX_PREFIX = 99;
 const MAX_SERIAL = 9999;
 
 const EPCUtils = {
   COLLECTION_REFERENCE_REGEX: COLLECTION_REFERENCE_REGEX,
   ITEM_REFERENCE_REGEX: ITEM_REFERENCE_REGEX,
   MIN_PREFIX: MIN_PREFIX,
-  MAX_PERFIX: MAX_PERFIX,
+  MAX_PREFIX: MAX_PREFIX,
   MAX_SERIAL: MAX_SERIAL,
   decodeHexEPC: (hexEPC: string): [string, any] => {
     const epc = epcTds.valueOf(hexEPC);
@@ -33,8 +33,8 @@ const EPCUtils = {
   ): string => {
     if (!prefix || prefix < MIN_PREFIX)
       throw new Error(`prefix must be larger than ${MIN_PREFIX}`);
-    if (!prefix || prefix > MAX_PERFIX)
-      throw new Error(`prefix must be smaller than ${MAX_PERFIX}`);
+    if (!prefix || prefix > MAX_PREFIX)
+      throw new Error(`prefix must be smaller than ${MAX_PREFIX}`);
 
     if (!collectionReference.match(COLLECTION_REFERENCE_REGEX))
       throw new Error('collection reference has invalid format');

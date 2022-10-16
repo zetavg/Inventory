@@ -77,11 +77,11 @@ function PouchDBSyncDetailsScreen({
         </InsetGroup>
         <InsetGroup label="DB Connection">
           <InsetGroup.Item label="URI" detail={server.db.uri} />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item label="Username" detail={server.db.username} />
           {serverStatus.db?.lastStatus && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Status"
                 detail={serverStatus.db?.lastStatus}
@@ -91,7 +91,7 @@ function PouchDBSyncDetailsScreen({
           {isErrorStatus(serverStatus.db?.lastStatus) &&
             serverStatus.db?.lastErrorMessage && (
               <>
-                <InsetGroup.ItemSeperator />
+                <InsetGroup.ItemSeparator />
                 <InsetGroup.Item
                   label="Info"
                   detail={serverStatus.db?.lastErrorMessage}
@@ -100,7 +100,7 @@ function PouchDBSyncDetailsScreen({
             )}
           {serverStatus.db?.lastSyncedAt && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Last Synced"
                 detail={formatDate(new Date(serverStatus.db?.lastSyncedAt))}
@@ -110,14 +110,14 @@ function PouchDBSyncDetailsScreen({
         </InsetGroup>
         <InsetGroup label="Attachments DB Connection">
           <InsetGroup.Item label="URI" detail={server.attachmentsDB.uri} />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Username"
             detail={server.attachmentsDB.username}
           />
           {serverStatus.attachments_db?.lastStatus && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Status"
                 detail={serverStatus.attachments_db?.lastStatus}
@@ -127,7 +127,7 @@ function PouchDBSyncDetailsScreen({
           {isErrorStatus(serverStatus.attachments_db?.lastStatus) &&
             serverStatus.attachments_db?.lastErrorMessage && (
               <>
-                <InsetGroup.ItemSeperator />
+                <InsetGroup.ItemSeparator />
                 <InsetGroup.Item
                   label="Info"
                   detail={serverStatus.db?.lastErrorMessage}
@@ -136,7 +136,7 @@ function PouchDBSyncDetailsScreen({
             )}
           {serverStatus.attachments_db?.lastSyncedAt && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Last Synced"
                 detail={formatDate(

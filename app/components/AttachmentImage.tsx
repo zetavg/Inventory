@@ -79,9 +79,9 @@ function AttachmentImage({
     return [{ uri: imageSourceUri }];
   }, [imageSourceUri, viewable]);
 
-  const [imageViewVisiable, setImageViewVisiable] = useState(false);
-  const openImageView = useCallback(() => setImageViewVisiable(true), []);
-  const closeImageView = useCallback(() => setImageViewVisiable(false), []);
+  const [imageViewVisible, setImageViewVisible] = useState(false);
+  const openImageView = useCallback(() => setImageViewVisible(true), []);
+  const closeImageView = useCallback(() => setImageViewVisible(false), []);
 
   const element = (
     <>
@@ -100,7 +100,7 @@ function AttachmentImage({
         <ImageView
           images={imageViewImages}
           imageIndex={0}
-          visible={imageViewVisiable}
+          visible={imageViewVisible}
           onRequestClose={closeImageView}
         />
       )}

@@ -182,25 +182,25 @@ function RFIDUHFModuleScreen({
             label="Status"
             detail={deviceConnectionStatus?.status || 'N/A'}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           {deviceConnectionStatus?.deviceName && (
             <>
               <InsetGroup.Item
-                label="Deivce Name"
+                label="Device Name"
                 vertical2
                 detail={deviceConnectionStatus?.deviceName}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
             </>
           )}
           {deviceConnectionStatus?.deviceAddress && (
             <>
               <InsetGroup.Item
-                label="Deivce Address"
+                label="Device Address"
                 vertical2
                 detail={deviceConnectionStatus?.deviceAddress}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
             </>
           )}
           {deviceConnectionStatus?.status !== 'DISCONNECTED' && (
@@ -210,7 +210,7 @@ function RFIDUHFModuleScreen({
                 label="Disconnect"
                 onPress={() => RFIDWithUHFBLEModule.disconnectDevice()}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
             </>
           )}
           {deviceConnectionStatus?.status !== 'CONNECTED' &&
@@ -225,17 +225,17 @@ function RFIDUHFModuleScreen({
                     )
                   }
                 />
-                <InsetGroup.ItemSeperator />
+                <InsetGroup.ItemSeparator />
               </>
             )}
           <InsetGroup.Item button label="Search" onPress={scanDevices} />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Stop Search"
             onPress={stopScanDevices}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           {Object.values(scanDevicesData).length <= 0 && (
             <InsetGroup.Item
               disabled
@@ -249,7 +249,7 @@ function RFIDUHFModuleScreen({
                 label="Clear List"
                 onPress={clearScanDevicesData}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
             </>
           )}
           {Object.values(scanDevicesData)
@@ -263,7 +263,7 @@ function RFIDUHFModuleScreen({
                   .join(', ')}
                 onPress={() => RFIDWithUHFBLEModule.connectDevice(d.address)}
               />,
-              <InsetGroup.ItemSeperator key={`s-${d.address}`} />,
+              <InsetGroup.ItemSeparator key={`s-${d.address}`} />,
             ])
             .slice(0, -1)}
         </InsetGroup>
@@ -281,7 +281,7 @@ function RFIDUHFModuleScreen({
               }
             }}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Get Battery Level"
@@ -295,7 +295,7 @@ function RFIDUHFModuleScreen({
               }
             }}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Get Temperature"
@@ -309,7 +309,7 @@ function RFIDUHFModuleScreen({
               }
             }}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Get Temperature"
@@ -323,7 +323,7 @@ function RFIDUHFModuleScreen({
               }
             }}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Beep S"
             detail={
@@ -335,7 +335,7 @@ function RFIDUHFModuleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Trigger Beep"
@@ -412,13 +412,13 @@ function RFIDUHFModuleScreen({
     () => (
       <InsetGroup label="Device Status">
         <InsetGroup.Item button label="Init" onPress={initUhf} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Free" onPress={freeUhf} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Status" detail={uhfInitStatus} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Is Power On?" onPress={isPowerOn} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Is Working?" onPress={isWorking} />
       </InsetGroup>
     ),
@@ -497,7 +497,7 @@ function RFIDUHFModuleScreen({
         label="Shared Config"
         footerLabel={
           enableFilter
-            ? 'While filtering with EPC, the offset should be 32 while the count being a mutiple of 8, for example, "0000" with count set to 16.'
+            ? 'While filtering with EPC, the offset should be 32 while the count being a multiple of 8, for example, "0000" with count set to 16.'
             : ''
         }
       >
@@ -513,7 +513,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         {/*Not useful, can't set power during scan anyway*/}
         {/*<InsetGroup.Item
           button
@@ -528,12 +528,12 @@ function RFIDUHFModuleScreen({
             }
           }}
         />
-        <InsetGroup.ItemSeperator />*/}
+        <InsetGroup.ItemSeparator />*/}
         <InsetGroup.Item
           label="Sound"
           detail={<Switch value={soundEnabled} onChange={toggleSoundEnabled} />}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Filter"
           detail={
@@ -542,7 +542,7 @@ function RFIDUHFModuleScreen({
         />
         {enableFilter && (
           <>
-            <InsetGroup.ItemSeperator />
+            <InsetGroup.ItemSeparator />
             <InsetGroup.Item
               label="Filter Memory Bank"
               detail={
@@ -561,7 +561,7 @@ function RFIDUHFModuleScreen({
                 </ModalSelector>
               }
             />
-            <InsetGroup.ItemSeperator />
+            <InsetGroup.ItemSeparator />
             <InsetGroup.Item
               label="Filter Bit Offset (ptr)"
               detail={
@@ -574,7 +574,7 @@ function RFIDUHFModuleScreen({
                 />
               }
             />
-            <InsetGroup.ItemSeperator />
+            <InsetGroup.ItemSeparator />
             <InsetGroup.Item
               label="Filter Bit Count (len)"
               detail={
@@ -587,7 +587,7 @@ function RFIDUHFModuleScreen({
                 />
               }
             />
-            <InsetGroup.ItemSeperator />
+            <InsetGroup.ItemSeparator />
             <InsetGroup.Item
               label="Filter Data"
               detail={
@@ -747,7 +747,7 @@ function RFIDUHFModuleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Scan Callback Rate"
             detail={
@@ -760,11 +760,11 @@ function RFIDUHFModuleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item button label="Start Scan" onPress={startScan} />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item button label="Stop Scan" onPress={stopScan} />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item label="Status" detail={uhfScanStatus} />
         </InsetGroup>
 
@@ -789,18 +789,18 @@ function RFIDUHFModuleScreen({
           {Object.values(scannedData).length > 0 ? (
             <>
               <InsetGroup.Item label="All Count" detail={scannedDataCount} />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Unique Count"
                 detail={Object.keys(scannedData).length.toString()}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 button
                 label="Clear"
                 onPress={clearScannedData}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               {Object.values(scannedData)
                 .flatMap(d => [
                   <InsetGroup.Item
@@ -815,7 +815,7 @@ function RFIDUHFModuleScreen({
                       .join(', ')}
                     onPress={() => setLocateEpc(d.epc)}
                   />,
-                  <InsetGroup.ItemSeperator key={`s-${d.epc}`} />,
+                  <InsetGroup.ItemSeparator key={`s-${d.epc}`} />,
                 ])
                 .slice(0, -1)}
             </>
@@ -897,13 +897,13 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Status" detail={locateStatus} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Start Locate" onPress={startLocate} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Stop Locate" onPress={stopLocate} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Value" detail={locateValue} />
       </InsetGroup>
     ),
@@ -1028,7 +1028,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Memory Bank"
           detail={
@@ -1045,7 +1045,7 @@ function RFIDUHFModuleScreen({
             </ModalSelector>
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Offset (ptr)"
           detail={
@@ -1058,7 +1058,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Count (len)"
           detail={
@@ -1071,7 +1071,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Access Password"
           detail={
@@ -1083,9 +1083,9 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Read" onPress={read} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item vertical2 label="Data" detail={readData} />
       </InsetGroup>
     ),
@@ -1220,7 +1220,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Memory Bank"
           detail={
@@ -1237,7 +1237,7 @@ function RFIDUHFModuleScreen({
             </ModalSelector>
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Offset (ptr)"
           detail={
@@ -1250,7 +1250,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Count (len)"
           detail={
@@ -1263,7 +1263,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Access Password"
           detail={
@@ -1275,7 +1275,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           label="Data"
@@ -1289,7 +1289,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Write" onPress={write} />
       </InsetGroup>
     ),
@@ -1379,7 +1379,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Access Password"
           detail={
@@ -1391,7 +1391,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           label="Code"
@@ -1403,7 +1403,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Lock" onPress={lock} />
       </InsetGroup>
     ),
@@ -1522,7 +1522,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Access Password"
           detail={
@@ -1534,7 +1534,7 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           label="EPC"
@@ -1546,15 +1546,15 @@ function RFIDUHFModuleScreen({
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item button label="Write and Lock" onPress={writeAndLock} />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           button
           label="Unlock and Reset"
           onPress={unlockAndReset}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Status" detail={writeAndLockStatus} />
       </InsetGroup>
     ),
@@ -1583,7 +1583,7 @@ function RFIDUHFModuleScreen({
           label="Play Success Sound"
           onPress={() => RFIDWithUHFModule.playSound('success')}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           button
           label="Play Error Sound"

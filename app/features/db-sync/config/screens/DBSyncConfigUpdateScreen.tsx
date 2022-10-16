@@ -269,7 +269,7 @@ function DBSyncConfigUpdateScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Username"
@@ -283,7 +283,7 @@ function DBSyncConfigUpdateScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Password"
@@ -315,7 +315,7 @@ function DBSyncConfigUpdateScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Same username/password"
@@ -328,7 +328,7 @@ function DBSyncConfigUpdateScreen({
           />
           {!attachmentsDbSameUser && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Username"
@@ -342,7 +342,7 @@ function DBSyncConfigUpdateScreen({
                   />
                 }
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Password"

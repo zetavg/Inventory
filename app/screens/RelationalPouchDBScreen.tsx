@@ -26,7 +26,7 @@ function RelationalPouchDBScreen({
                   navigation.push('RelationalPouchDBType', { type })
                 }
               />,
-              <InsetGroup.ItemSeperator key={`s-${type}`} />,
+              <InsetGroup.ItemSeparator key={`s-${type}`} />,
             ])
             .slice(0, -1)}
         </InsetGroup>

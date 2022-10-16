@@ -48,7 +48,7 @@ function DBSyncConfigScreen({
                     rootNavigation?.push('DBSyncConfigUpdate', { name })
                   }
                 />,
-                <InsetGroup.ItemSeperator key={`s-${name}`} />,
+                <InsetGroup.ItemSeparator key={`s-${name}`} />,
               ])
               .slice(0, -1)}
           </InsetGroup>

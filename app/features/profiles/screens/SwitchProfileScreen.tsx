@@ -65,7 +65,7 @@ function SwitchProfileScreen({
                 selected={activeProfileName === profileName}
                 onPress={() => handleSwitchProfile(profileName)}
               />,
-              <InsetGroup.ItemSeperator key={`s-${profileName}`} />,
+              <InsetGroup.ItemSeparator key={`s-${profileName}`} />,
             ])
             .slice(0, -1)}
         </InsetGroup>

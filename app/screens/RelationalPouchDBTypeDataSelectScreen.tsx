@@ -59,7 +59,7 @@ function RelationalPouchDBTypeScreen({
                   detail={d.id?.toLowerCase()}
                   onPress={() => handleSelect(d.id || '')}
                 />,
-                <InsetGroup.ItemSeperator key={`s-${d.id}`} />,
+                <InsetGroup.ItemSeparator key={`s-${d.id}`} />,
               ])
               .slice(0, -1)
           ) : (

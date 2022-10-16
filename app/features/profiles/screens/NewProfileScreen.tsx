@@ -117,7 +117,7 @@ function NewProfileScreen({
               selected={color === c}
               onPress={() => setColor(c)}
             />,
-            <InsetGroup.ItemSeperator key={`s-${c}`} />,
+            <InsetGroup.ItemSeparator key={`s-${c}`} />,
           ]).slice(0, -1)}
         </InsetGroup>
       </ScrollView>

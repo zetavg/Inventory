@@ -111,7 +111,7 @@ function ReduxScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             // arrow
             button
@@ -125,7 +125,7 @@ function ReduxScreen({
               })
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             destructive
@@ -170,7 +170,7 @@ function ReduxScreen({
                       })
                     }
                   />,
-                  <InsetGroup.ItemSeperator key={`s-${i}`} />,
+                  <InsetGroup.ItemSeparator key={`s-${i}`} />,
                 ];
               })
               .slice(0, -1)}

@@ -125,7 +125,7 @@ function SelectCollectionScreen({
                   arrow={false}
                   selected={collection.id === value}
                 />,
-                <InsetGroup.ItemSeperator
+                <InsetGroup.ItemSeparator
                   key={`s-${collection.id}`}
                   // leftInset={50}
                   leftInset={60}

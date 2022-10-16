@@ -117,7 +117,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Title"
             detail={
@@ -131,7 +131,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Show Search"
             detail={
@@ -149,7 +149,7 @@ function SampleScreen({
           />
           {showSearch && (
             <>
-              {/*<InsetGroup.ItemSeperator />
+              {/*<InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Auto Focus Search"
                 detail={
@@ -165,7 +165,7 @@ function SampleScreen({
                   />
                 }
               />*/}
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 label="Search Text"
                 detail={searchText || '(None)'}
@@ -196,7 +196,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="SF Symbol"
             detail={
@@ -210,7 +210,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Material Icon"
             detail={
@@ -240,7 +240,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="SF Symbol"
             detail={
@@ -254,7 +254,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Material Icon"
             detail={
@@ -284,7 +284,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="SF Symbol"
             detail={
@@ -298,7 +298,7 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Material Icon"
             detail={

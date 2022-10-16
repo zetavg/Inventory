@@ -232,7 +232,7 @@ function DemoComponent({
   );
 }
 
-export const Defalut = ({}: React.ComponentProps<typeof TableView>) => {
+export const Default = ({}: React.ComponentProps<typeof TableView>) => {
   return <DemoComponent />;
 };
 

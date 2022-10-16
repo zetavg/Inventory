@@ -56,7 +56,7 @@ export type ReadOptions = BasicOptions & {
 };
 
 export type WriteOptions = BasicOptions & {
-  /** Memory bank for which data is to be writed to */
+  /** Memory bank for which data is to be written to */
   memoryBank: MemoryBank;
   /** Password to be used for the write operation */
   accessPassword?: string;

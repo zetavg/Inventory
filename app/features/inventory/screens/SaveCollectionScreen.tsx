@@ -157,7 +157,7 @@ function SaveCollectionScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Icon"
@@ -172,7 +172,7 @@ function SaveCollectionScreen({
               </TouchableOpacity>
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Reference Number"
@@ -213,7 +213,7 @@ function SaveCollectionScreen({
           {/*{(!data.collectionReferenceNumber ||
             referenceNumberIsRandomlyGenerated) && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 button
                 label="Generate Random Number"
@@ -253,7 +253,7 @@ function SaveCollectionScreen({
               )}
             </TouchableOpacity>
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item compactLabel label="Icon Color">
             <ColorSelect
               value={data.iconColor as ColorSelectColor}

@@ -68,7 +68,7 @@ function RelationalPouchDBTypeScreen({
                     })
                   }
                 />,
-                <InsetGroup.ItemSeperator key={`s-${d.id}`} />,
+                <InsetGroup.ItemSeparator key={`s-${d.id}`} />,
               ])
               .slice(0, -1)
           ) : (

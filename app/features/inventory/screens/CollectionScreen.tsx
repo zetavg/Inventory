@@ -136,7 +136,7 @@ function CollectionScreen({
           </TouchableWithoutFeedback>
           {devModeCounter > 10 && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="ID"
@@ -145,7 +145,7 @@ function CollectionScreen({
               />
             </>
           )}
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             vertical2
             label="Reference Number"
@@ -207,11 +207,11 @@ function CollectionScreen({
                     })
                   }
                 />,
-                <InsetGroup.ItemSeperator key={`s-${item.id}`} />,
+                <InsetGroup.ItemSeparator key={`s-${item.id}`} />,
               ])
               .slice(0, -1);
           })()}
-          {/*<InsetGroup.ItemSeperator />
+          {/*<InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Add New Item"

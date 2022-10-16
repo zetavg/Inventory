@@ -174,7 +174,7 @@ function RelationalPouchDBTypeDataDetailScreen({
                               );
                           }
                         })(),
-                        <InsetGroup.ItemSeperator key={`s-${field}`} />,
+                        <InsetGroup.ItemSeparator key={`s-${field}`} />,
                       ])
                       .slice(0, -1)}
                   </InsetGroup>
@@ -217,7 +217,7 @@ function RelationalPouchDBTypeDataDetailScreen({
                                 )
                               }
                             />,
-                            <InsetGroup.ItemSeperator key={`s-${rData.id}`} />,
+                            <InsetGroup.ItemSeparator key={`s-${rData.id}`} />,
                           ];
                         })
                         .slice(0, -1);
@@ -238,7 +238,7 @@ function RelationalPouchDBTypeDataDetailScreen({
                           )}
                           {relationType === 'hasMany' && queryInverse && (
                             <>
-                              <InsetGroup.ItemSeperator />
+                              <InsetGroup.ItemSeparator />
                               <InsetGroup.Item
                                 button
                                 label={`Add ${titleCase(

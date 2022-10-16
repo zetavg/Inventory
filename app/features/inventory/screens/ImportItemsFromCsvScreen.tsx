@@ -597,7 +597,7 @@ function ImportItemsFromCsvScreen({
             if (loading) {
               return (
                 <>
-                  <InsetGroup.ItemSeperator key="s-loading" />
+                  <InsetGroup.ItemSeparator key="s-loading" />
                   <InsetGroup.Item
                     disabled
                     key="loading"
@@ -610,7 +610,7 @@ function ImportItemsFromCsvScreen({
 
             if (loadedItems && loadedItems.length > 0) {
               return loadedItems.flatMap(({ itemData, errorMessage }, i) => [
-                <InsetGroup.ItemSeperator key={`s-${i}`} />,
+                <InsetGroup.ItemSeparator key={`s-${i}`} />,
                 <ItemItem
                   key={i}
                   item={itemData}
@@ -697,7 +697,7 @@ function ImportItemsFromCsvScreen({
               </View>
             </TouchableOpacity>
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Container"
@@ -751,7 +751,7 @@ function ImportItemsFromCsvScreen({
               </View>
             </TouchableOpacity>
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             compactLabel
             label="Icon"
@@ -781,7 +781,7 @@ function ImportItemsFromCsvScreen({
               )}
             </TouchableOpacity>
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item compactLabel label="Icon Color">
             <ColorSelect
               value={defaultIconColor as ColorSelectColor}

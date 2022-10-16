@@ -138,7 +138,7 @@ function PouchDBPutDataModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item compactLabel label="Data (JSON)">
             <InsetGroup.TextInput
               multiline
@@ -152,7 +152,7 @@ function PouchDBPutDataModalScreen({
               autoCapitalize="none"
             />
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Add Field"
             button

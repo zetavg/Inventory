@@ -292,7 +292,7 @@ function SearchScreen({
                         );
                       }}
                     />,
-                    <InsetGroup.ItemSeperator key={`s-${i}`} />,
+                    <InsetGroup.ItemSeparator key={`s-${i}`} />,
                   ])
                   .slice(0, -1)}
               </InsetGroup>
@@ -319,7 +319,7 @@ function SearchScreen({
                                 })
                               }
                             />,
-                            <InsetGroup.ItemSeperator
+                            <InsetGroup.ItemSeparator
                               key={`s-item-${item.id}`}
                               leftInset={60}
                             />,
@@ -423,7 +423,7 @@ function SearchScreen({
 
                     return null;
                   })(),
-                  <InsetGroup.ItemSeperator
+                  <InsetGroup.ItemSeparator
                     key={`s-${row.id}`}
                     leftInset={60}
                   />,

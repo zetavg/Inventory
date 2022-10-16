@@ -115,7 +115,7 @@ function PouchDBItemScreen({
           <InsetGroup.Item vertical2 label="ID" detail={id} />
           {data && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Data"

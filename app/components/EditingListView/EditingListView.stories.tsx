@@ -46,7 +46,7 @@ function DemoComponent(props: React.ComponentProps<typeof EditingListView>) {
   );
 }
 
-export const Defalut = (
+export const Default = (
   props: React.ComponentProps<typeof EditingListView>,
 ) => {
   return <DemoComponent {...props} />;

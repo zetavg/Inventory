@@ -424,11 +424,11 @@ function InsetGroupItem({
 
 InsetGroup.Item = InsetGroupItem;
 
-function InsetGroupItemSeperator({ leftInset }: { leftInset?: number }) {
-  const { insetGroupSeperatorColor } = useColors();
+function InsetGroupItemSeparator({ leftInset }: { leftInset?: number }) {
+  const { insetGroupSeparatorColor } = useColors();
   const backgroundColorStyle = useMemo(
-    () => ({ backgroundColor: insetGroupSeperatorColor }),
-    [insetGroupSeperatorColor],
+    () => ({ backgroundColor: insetGroupSeparatorColor }),
+    [insetGroupSeparatorColor],
   );
   const leftInsetStyle = useMemo(
     () => (leftInset ? { marginLeft: leftInset } : undefined),
@@ -438,7 +438,7 @@ function InsetGroupItemSeperator({ leftInset }: { leftInset?: number }) {
   return (
     <View
       style={[
-        styles.insetGroupItemSeperator,
+        styles.insetGroupItemSeparator,
         backgroundColorStyle,
         leftInsetStyle,
       ]}
@@ -446,7 +446,7 @@ function InsetGroupItemSeperator({ leftInset }: { leftInset?: number }) {
   );
 }
 
-InsetGroup.ItemSeperator = InsetGroupItemSeperator;
+InsetGroup.ItemSeparator = InsetGroupItemSeparator;
 
 function InsetGroupTextInput(
   {
@@ -474,7 +474,7 @@ function InsetGroupTextInput(
         selectable
         style={[
           styles.insetGroupTextInput,
-          alignRight ? styles.insetGroupTextInputAlighRight : {},
+          alignRight ? styles.insetGroupTextInputAlignRight : {},
           { color: contentDisabledTextColor },
           style,
         ]}
@@ -490,7 +490,7 @@ function InsetGroupTextInput(
       ref={ref}
       style={[
         styles.insetGroupTextInput,
-        alignRight ? styles.insetGroupTextInputAlighRight : {},
+        alignRight ? styles.insetGroupTextInputAlignRight : {},
         { color: contentTextColor },
         style,
       ]}
@@ -691,7 +691,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'stretch',
   },
-  insetGroupItemSeperator: {
+  insetGroupItemSeparator: {
     marginTop: -StyleSheet.hairlineWidth * 2,
     height: StyleSheet.hairlineWidth,
     width: 'auto',
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: FONT_SIZE,
   },
-  insetGroupTextInputAlighRight: {
+  insetGroupTextInputAlignRight: {
     textAlign: 'right',
   },
   insetGroupItemAffix: {

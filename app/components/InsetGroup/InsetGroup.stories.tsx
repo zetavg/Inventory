@@ -113,16 +113,16 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
     <InsetGroup.Container>
       <InsetGroup>
         <InsetGroup.Item label="Name" detail="iPhone" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Software Version" detail="15.5" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Model Name" detail="iPhone 12 mini" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Model Number"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
@@ -131,7 +131,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
 
       <InsetGroup>
         <InsetGroup.Item label="Hello World" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Hello Worlddddddddddddddddddddddddddddd" />
       </InsetGroup>
 
@@ -149,7 +149,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           }
           label="With Left Element"
         />
-        <InsetGroup.ItemSeperator leftInset={60} />
+        <InsetGroup.ItemSeparator leftInset={60} />
         <InsetGroup.Item
           vertical
           leftElement={
@@ -169,13 +169,13 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
 
       <InsetGroup>
         <InsetGroup.Item arrow label="Arrow" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           arrow
           label="Arrow with onPress"
           onPress={action('press')}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item selected label="Selected" />
       </InsetGroup>
       <InsetGroup>
@@ -199,21 +199,21 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
       </InsetGroup>
       <InsetGroup label="Compact Label">
         <InsetGroup.Item compactLabel label="Name" detail="iPhone" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item compactLabel label="Software Version" detail="15.5" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Model Name"
           detail="iPhone 12 mini"
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Model Number"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
@@ -233,7 +233,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Quantity"
@@ -248,7 +248,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
             </>
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Disabled"
@@ -262,7 +262,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
             />
           }
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           compactLabel
           label="Tags"
@@ -288,7 +288,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
             </Chip>
           </>
         </InsetGroup.Item>
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item compactLabel label="Notes">
           <InsetGroup.TextInput
             multiline
@@ -299,9 +299,9 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
       </InsetGroup>
       <InsetGroup label="Vertical">
         <InsetGroup.Item vertical label="Name" detail="iPhone" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item vertical label="Software Version" detail="15.5" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical
           arrow
@@ -309,13 +309,13 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           detail="iPhone 12 mini"
           onPress={action('press')}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical
           label="Model Number"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical
           label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
@@ -324,9 +324,9 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
       </InsetGroup>
       <InsetGroup label="Vertical 2">
         <InsetGroup.Item vertical2 label="Name" detail="iPhone" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item vertical2 label="Software Version" detail="15.5" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           arrow
@@ -334,13 +334,13 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           detail="iPhone 12 mini"
           onPress={action('press')}
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           label="Model Number"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item
           vertical2
           label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
@@ -349,12 +349,12 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
       </InsetGroup>
       <InsetGroup label="This is label">
         <InsetGroup.Item label="Hello World" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Hello World" />
       </InsetGroup>
       <InsetGroup label="This is large label" labelVariant="large">
         <InsetGroup.Item label="Hello World" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Hello World" />
       </InsetGroup>
       <InsetGroup
@@ -367,7 +367,7 @@ export const WithItem = (args: React.ComponentProps<typeof InsetGroup>) => (
           aliquip ex ea commodo consequat."
       >
         <InsetGroup.Item label="Hello World" />
-        <InsetGroup.ItemSeperator />
+        <InsetGroup.ItemSeparator />
         <InsetGroup.Item label="Hello World" />
       </InsetGroup>
     </InsetGroup.Container>

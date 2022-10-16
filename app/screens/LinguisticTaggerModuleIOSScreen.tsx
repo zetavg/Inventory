@@ -50,7 +50,7 @@ function GenericTextDetailsScreen({
               onChangeText={setTextToCut}
             />
           </InsetGroup.Item>
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item button label="Cut" onPress={handleCut} />
         </InsetGroup>
       </ScrollView>

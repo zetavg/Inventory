@@ -90,7 +90,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Title"
             detail={
@@ -104,7 +104,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Show Back Button"
             detail={
@@ -114,7 +114,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Back Button Label"
             detail={
@@ -140,7 +140,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Close Modal"
             button
@@ -162,7 +162,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Material Icon"
             detail={
@@ -183,13 +183,13 @@ function SampleModalScreen({
             selected={action1Variant === 'normal'}
             onPress={() => setAction1Variant('normal')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Variant: Strong"
             selected={action1Variant === 'strong'}
             onPress={() => setAction1Variant('strong')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Variant: Destructive"
             selected={action1Variant === 'destructive'}
@@ -211,7 +211,7 @@ function SampleModalScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Material Icon"
             detail={
@@ -232,13 +232,13 @@ function SampleModalScreen({
             selected={action2Variant === 'normal'}
             onPress={() => setAction2Variant('normal')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Variant: Strong"
             selected={action2Variant === 'strong'}
             onPress={() => setAction2Variant('strong')}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Variant: Destructive"
             selected={action2Variant === 'destructive'}

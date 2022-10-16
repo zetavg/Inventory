@@ -33,7 +33,7 @@ function SearchOptionsScreen({
       await new Promise(resolve => setTimeout(resolve, 1000));
       Alert.alert(
         'Reset Index Done',
-        'Index has been reseted, the first search may take some more time to wait for the index to be built up.',
+        'Index has been reset, the first search may take some more time to wait for the index to be built up.',
       );
     } catch (e: any) {
       Alert.alert(e?.message, JSON.stringify(e?.stack));
@@ -90,7 +90,7 @@ function SearchOptionsScreen({
         <View style={commonStyles.mt16} />
         <InsetGroup
           loading={resetIndexLoading}
-          footerLabel="Resetting the search index might resolve some search issues. After reseting the index, the first search may take some more time to wait for the index to be built up."
+          footerLabel="Resetting the search index might resolve some search issues. After resetting the index, the first search may take some more time to wait for the index to be built up."
           style={commonStyles.mh0}
         >
           <InsetGroup.Item

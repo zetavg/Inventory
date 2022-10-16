@@ -323,7 +323,7 @@ function ItemScreen({
                     <RNText
                       onPress={() =>
                         Alert.alert(
-                          'Comfirm',
+                          'Confirm',
                           "Do you want to treat this item as it's EPC has been written to the RFID tag?",
                           [
                             {
@@ -372,7 +372,7 @@ function ItemScreen({
                     <RNText
                       onPress={() =>
                         Alert.alert(
-                          'Comfirm',
+                          'Confirm',
                           'Are you sure you\'ve done with the RFID tag update? After pressing "Yes", you will not be able to locate or scan this item with the old and outdated EPC number.',
                           [
                             {
@@ -422,14 +422,14 @@ function ItemScreen({
           </TouchableWithoutFeedback>
           {devModeCounter > 10 && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="ID"
                 detailTextStyle={commonStyles.monospaced}
                 detail={item?.id}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Created At"
@@ -440,7 +440,7 @@ function ItemScreen({
                     : '(null)'
                 }
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Updated At"
@@ -455,7 +455,7 @@ function ItemScreen({
           )}
           {item?.dedicatedContainer && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <TouchableHighlight
                 style={[commonStyles.row, commonStyles.centerChildren]}
                 onPress={
@@ -497,7 +497,7 @@ function ItemScreen({
               </TouchableHighlight>
             </>
           )}
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <TouchableHighlight
             style={[commonStyles.row, commonStyles.centerChildren]}
             onPress={
@@ -530,7 +530,7 @@ function ItemScreen({
           </TouchableHighlight>
           {item?.itemReferenceNumber && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <View style={[commonStyles.row, commonStyles.centerChildren]}>
                 <TouchableWithoutFeedback
                   style={commonStyles.flex1}
@@ -658,14 +658,14 @@ function ItemScreen({
           )}
           {devModeCounter > 10 && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Computed RFID Tag EPC Contents"
                 detailTextStyle={commonStyles.monospaced}
                 detail={item?.computedRfidTagEpcMemoryBankContents || '(null)'}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Actual RFID Tag EPC Contents"
@@ -783,11 +783,11 @@ function ItemScreen({
                         })
                       }
                     />,
-                    <InsetGroup.ItemSeperator key={`s-${it.id}`} />,
+                    <InsetGroup.ItemSeparator key={`s-${it.id}`} />,
                   ])
                   .slice(0, -1);
               })()}
-              {/*<InsetGroup.ItemSeperator />
+              {/*<InsetGroup.ItemSeparator />
             <InsetGroup.Item
               button
               label="Add New Item"
@@ -817,10 +817,10 @@ function ItemScreen({
                   })
                 }
               />,
-              <InsetGroup.ItemSeperator key={`s-${item.id}`} />,
+              <InsetGroup.ItemSeparator key={`s-${item.id}`} />,
             ])
             .slice(0, -1)}
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Add New Item"
@@ -904,7 +904,7 @@ function ItemScreen({
           return (
             <InsetGroup label="Details" labelVariant="large">
               {detailElements
-                .flatMap(element => [element, <InsetGroup.ItemSeperator />])
+                .flatMap(element => [element, <InsetGroup.ItemSeparator />])
                 .slice(0, -1)}
             </InsetGroup>
           );

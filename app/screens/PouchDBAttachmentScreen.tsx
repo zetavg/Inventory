@@ -65,13 +65,13 @@ function PouchDBAttachmentScreen({
           <InsetGroup.Item vertical2 label="ID" detail={id} />
           {attachment && (
             <>
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="File Name"
                 detail={attachment.file_name}
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Dimensions"
@@ -81,7 +81,7 @@ function PouchDBAttachmentScreen({
                     : '(undefined)'
                 }
               />
-              <InsetGroup.ItemSeperator />
+              <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Data"
@@ -94,7 +94,7 @@ function PouchDBAttachmentScreen({
                   />
                 }
               />
-              {/*<InsetGroup.ItemSeperator />
+              {/*<InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 vertical2
                 label="Timestamp"

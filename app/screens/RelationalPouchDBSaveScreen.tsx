@@ -215,7 +215,7 @@ function RelationalPouchDBSaveScreen({
                     );
                 }
               })(),
-              <InsetGroup.ItemSeperator key={`s-${field}`} />,
+              <InsetGroup.ItemSeparator key={`s-${field}`} />,
             ])
             .slice(0, -1)}
         </InsetGroup>

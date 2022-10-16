@@ -124,7 +124,7 @@ function PouchDBSyncScreen({
                         })
                       }
                     />,
-                    <InsetGroup.ItemSeperator key={`s-${name}`} />,
+                    <InsetGroup.ItemSeparator key={`s-${name}`} />,
                   ];
                 })
                 .slice(0, -1)}
@@ -156,7 +156,7 @@ function PouchDBSyncScreen({
               />
               {!!syncSettings.loggingEnabled && (
                 <>
-                  <InsetGroup.ItemSeperator />
+                  <InsetGroup.ItemSeparator />
                   <InsetGroup.Item
                     label="Logs"
                     arrow

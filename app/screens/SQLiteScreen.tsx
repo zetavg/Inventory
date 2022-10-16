@@ -77,7 +77,7 @@ function SQLiteScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Query"
             vertical2
@@ -107,13 +107,13 @@ function SQLiteScreen({
             vertical2
             detail={status === undefined ? '(undefined)' : status.toString()}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Message"
             vertical2
             detail={message === undefined ? '(undefined)' : message}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Rows"
             vertical2

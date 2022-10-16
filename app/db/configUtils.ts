@@ -21,7 +21,7 @@ export async function getConfigInDB(db: Database): Promise<ConfigStoredInDB> {
       ...data,
     };
   } catch (e) {
-    // TODO: Handle errors that arn't 404
+    // TODO: Handle errors that are not 404
     return DEFAULT_CONFIG;
   }
 }

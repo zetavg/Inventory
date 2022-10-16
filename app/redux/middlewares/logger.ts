@@ -18,7 +18,7 @@ export function addCallback(cb: Callback) {
 
 export const loggerMiddleware =
   (storeAPI: { getState: () => any }) =>
-  (next: (acrion: any) => any) =>
+  (next: (action: any) => any) =>
   (action: any) => {
     if (callbacks.length <= 0) return next(action);
 

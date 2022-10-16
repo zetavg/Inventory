@@ -45,7 +45,7 @@ function CounterScreen({
             label="Increase"
             onPress={() => dispatch(increment())}
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Decrease"
@@ -66,7 +66,7 @@ function CounterScreen({
               />
             }
           />
-          <InsetGroup.ItemSeperator />
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Increase By Amount"

@@ -13,7 +13,7 @@ function useColors() {
   const iosHeaderTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
   const iosTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
   const iosDestructiveColor = isDarkMode ? '#EB5545' : '#EB4D3D';
-  const insetGroupSeperatorColor = isDarkMode ? '#3E3E40' : '#C7C7C9';
+  const insetGroupSeparatorColor = isDarkMode ? '#3E3E40' : '#C7C7C9';
 
   const white = '#fff';
 
@@ -76,7 +76,7 @@ function useColors() {
     iosHeaderTintColor,
     iosTintColor,
     iosDestructiveColor,
-    insetGroupSeperatorColor,
+    insetGroupSeparatorColor,
     white,
     red,
     orange,
