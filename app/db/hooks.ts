@@ -192,8 +192,8 @@ export function useRelationalData<T extends TypeName>(
             ...(sort
               ? {
                   sort: [
-                    { type: 'asc' as const },
-                    { [`data.${queryInverse}`]: 'asc' as const },
+                    { type: sort.order },
+                    { [`data.${queryInverse}`]: sort.order },
                     { [`data.${sort.field}`]: sort.order },
                   ],
                 }

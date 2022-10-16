@@ -720,6 +720,10 @@ export const ICONS = {
     sfSymbolName: 'exclamationmark.triangle.fill',
     materialIconName: 'exclamation-thick',
   },
+  'app-info': {
+    sfSymbolName: 'info.circle.fill',
+    materialIconName: 'information',
+  },
   'app-reorder': {
     sfSymbolName: 'list.bullet.indent',
     materialIconName: 'sort',

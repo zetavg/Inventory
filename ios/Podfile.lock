@@ -306,6 +306,8 @@ PODS:
     - glog
   - react-native-blur (4.2.0):
     - React-Core
+  - react-native-document-picker (8.1.2):
+    - React-Core
   - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-image-picker (4.8.5):
@@ -438,6 +440,8 @@ PODS:
   - RNScreens (3.15.0):
     - React-Core
     - React-RCTImage
+  - RNShare (7.9.1):
+    - React-Core
   - RNSVG (13.0.0):
     - React-Core
   - RNTableView (3.1.0):
@@ -502,6 +506,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
@@ -531,6 +536,7 @@ DEPENDENCIES:
   - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNTableView (from `../node_modules/react-native-tableview`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -602,6 +608,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-document-picker:
+    :path: "../node_modules/react-native-document-picker"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
@@ -660,6 +668,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNTableView:
@@ -708,6 +718,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 1363be638eccfe1aea1b10dd42e632b0397e5ec8
   React-logger: 7bd569e3857d74ed412ce0a5c51f421ff7d4ca7f
   react-native-blur: 3e9c8e8e9f7d17fa1b94e1a0ae9fd816675f5382
+  react-native-document-picker: f5ec1a712ca2a975c233117f044817bb8393cad4
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-image-picker: cd420f97f6ed6ff74fc4686d27dbcfdbd051db91
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
@@ -737,6 +748,7 @@ SPEC CHECKSUMS:
   RNReactNativeHapticFeedback: 1e3efeca9628ff9876ee7cdd9edec1b336913f8c
   RNReanimated: 60e291d42c77752a0f6d6f358387bdf225a87c6e
   RNScreens: 4a1af06327774490d97342c00aee0c2bafb497b7
+  RNShare: a5dc3b9c53ddc73e155b8cd9a94c70c91913c43c
   RNSVG: 42a0c731b11179ebbd27a3eeeafa7201ebb476ff
   RNTableView: 296188cd689281c71285ec30b57747b16f6ed971
   RNVectorIcons: fcc2f6cb32f5735b586e66d14103a74ce6ad61f8

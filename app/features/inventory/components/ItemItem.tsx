@@ -26,7 +26,7 @@ export default function ItemItem({
 }: {
   item: DataTypeWithID<'item'>;
   onPress?: () => void;
-  additionalDetails?: string | number;
+  additionalDetails?: string | number | JSX.Element;
   hideDetails?: boolean;
   hideCollectionDetails?: boolean;
   hideDedicatedContainerDetails?: boolean;
@@ -45,6 +45,8 @@ export default function ItemItem({
   const [collectionData, setCollectionData] =
     useState<DataType<'collection'> | null>(null);
   const loadCollectionData = useCallback(async () => {
+    if (!item.collection) return;
+
     const results: any = await db.get(`collection-2-${item.collection}`);
     item._collectionData = results.data;
     setCollectionData(results.data);
@@ -106,16 +108,19 @@ export default function ItemItem({
       ? undefined
       : [
           additionalDetails,
-          dedicatedItemsCount !== null &&
-            (() => {
-              switch (item.isContainerType) {
-                case 'item-with-parts':
-                  return `+${dedicatedItemsCount} parts`;
+          dedicatedItemsCount !== null && (
+            <Text key="containerInfo">
+              {(() => {
+                switch (item.isContainerType) {
+                  case 'item-with-parts':
+                    return `+${dedicatedItemsCount} parts`;
 
-                default:
-                  return `${dedicatedItemsCount} items`;
-              }
-            })(),
+                  default:
+                    return `${dedicatedItemsCount} items`;
+                }
+              })()}
+            </Text>
+          ),
           !hideCollectionDetails && collectionData && (
             <Text key="collectionData">
               <Icon
@@ -138,7 +143,16 @@ export default function ItemItem({
               {dedicatedContainerData.name}
             </Text>
           ),
-          item.individualAssetReference,
+          <React.Fragment key="individualAssetReference">
+            {item.computedRfidTagEpcMemoryBankContents &&
+              item.computedRfidTagEpcMemoryBankContents !==
+                item.actualRfidTagEpcMemoryBankContents && (
+                <>
+                  <Icon name="app-exclamation" size={11} />{' '}
+                </>
+              )}
+            {item.individualAssetReference}
+          </React.Fragment>,
           // itemsCount !== null && `${itemsCount} items`,
         ]
           .filter(s => s)
@@ -153,6 +167,8 @@ export default function ItemItem({
     hideCollectionDetails,
     hideDedicatedContainerDetails,
     hideDetails,
+    item.actualRfidTagEpcMemoryBankContents,
+    item.computedRfidTagEpcMemoryBankContents,
     item.individualAssetReference,
     item.isContainerType,
   ]);
@@ -162,7 +178,7 @@ export default function ItemItem({
       key={item.id}
       arrow
       vertical={!hideDetails}
-      label={item.name}
+      label={item.name || '(null)'}
       leftElement={
         <View>
           <Icon

@@ -170,7 +170,7 @@ export const schema = s({
         purchasedFrom: { type: 'string' },
         // relations
         dedicatedContainer: { type: 'string' },
-        container: { type: 'string' },
+        // container: { type: 'string' },
       },
       additionalProperties: true,
     }),

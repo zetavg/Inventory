@@ -234,32 +234,6 @@ export async function save<T extends TypeName>(
 
   await validate(db, type, data);
 
-  // Additional validations
-  switch (type) {
-    case 'item': {
-      const d: DataType<'item'> = data;
-      if (!d.isContainer) {
-        const results = await db.query(
-          'relational_data_index/item_by_dedicatedContainer',
-          {
-            startkey: d.id,
-            endkey: d.id,
-            include_docs: false,
-          },
-        );
-        if (results.rows.length > 0) {
-          throw new Error(
-            "Can't set isContainer to false since this item still has contents.",
-          );
-        }
-      }
-
-      if (d.id === d.dedicatedContainer) {
-        throw new Error("Can't set dedicatedContainer to self.");
-      }
-    }
-  }
-
   // Pre-process before save
   switch (type) {
     case 'item': {
@@ -409,7 +383,13 @@ export async function validate<T extends TypeName>(
 
   if (!validateData(type, data)) {
     const error: any = new Error(
-      validateData.errors.map(e => e.message).join(', '),
+      validateData.errors
+        .map(
+          e =>
+            (e.instancePath ? e.instancePath.replace(/^\//, '') + ' ' : '') +
+            e.message,
+        )
+        .join(', '),
     );
     error.errors = validateData.errors;
     throw error;
@@ -471,6 +451,27 @@ export async function validate<T extends TypeName>(
           }" is already used in the same collection`,
         );
       }
+
+      if (item.id && !item.isContainer) {
+        const results = await db.query(
+          'relational_data_index/item_by_dedicatedContainer',
+          {
+            startkey: item.id,
+            endkey: item.id,
+            include_docs: false,
+          },
+        );
+        if (results.rows.length > 0) {
+          throw new Error(
+            "Can't set isContainer to false since this item still has contents.",
+          );
+        }
+      }
+
+      if (item.id && item.id === item.dedicatedContainer) {
+        throw new Error("Can't set dedicatedContainer to self.");
+      }
+
       break;
     }
   }

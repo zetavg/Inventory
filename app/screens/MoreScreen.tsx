@@ -175,15 +175,17 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="database-import"
             iosImage="ios-menu.import.png"
+            onPress={() => rootNavigation?.push('ImportItemsFromCsv')}
           >
-            Import
+            Import from CSV
           </TableView.Item>
           <TableView.Item
             arrow
             icon="database-export"
             iosImage="ios-menu.export.png"
+            onPress={() => rootNavigation?.push('ExportItemsToCsv')}
           >
-            Export
+            Export to CSV
           </TableView.Item>
         </TableView.Section>
         <TableView.Section>

@@ -51,6 +51,8 @@ import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollection
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
 import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
+import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
+import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
 
 import { TypeName } from '@app/db/schema';
 import { IconName } from '@app/consts/icons';
@@ -98,6 +100,8 @@ export type RootStackParamList = {
     callback: (value: string) => void;
     defaultValue?: string;
   };
+  ImportItemsFromCsv: undefined;
+  ExportItemsToCsv: undefined;
   SelectIcon: {
     callback: (iconName: IconName) => void;
     defaultValue?: IconName;
@@ -242,6 +246,14 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
             <Stack.Screen
               name="SearchOptions"
               component={SearchOptionsScreen}
+            />
+            <Stack.Screen
+              name="ImportItemsFromCsv"
+              component={ImportItemsFromCsvScreen}
+            />
+            <Stack.Screen
+              name="ExportItemsToCsv"
+              component={ExportItemsToCsvScreen}
             />
           </Stack.Navigator>
           <RFIDSheet
