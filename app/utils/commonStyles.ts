@@ -268,6 +268,9 @@ const commonStyles = StyleSheet.create({
   alignItemsCenter: {
     alignItems: 'center',
   },
+  alignItemsFlexStart: {
+    alignItems: 'flex-start',
+  },
   touchableSFSymbolContainer: {
     width: 44,
     height: 44,

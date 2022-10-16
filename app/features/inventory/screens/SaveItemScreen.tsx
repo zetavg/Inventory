@@ -71,7 +71,14 @@ function SaveItemScreen({
 
   const [selectedDedicatedContainerData, setSelectedDedicatedContainerData] =
     useState<
-      null | string | { name: string; iconName: string; iconColor: string }
+      | null
+      | string
+      | {
+          name: string;
+          iconName: string;
+          iconColor: string;
+          itemReferenceNumber?: string;
+        }
     >(null);
   const loadSelectedDedicatedContainerData = useCallback(async () => {
     if (!data.dedicatedContainer) return;
@@ -119,6 +126,15 @@ function SaveItemScreen({
     setData(d => ({ ...d, itemReferenceNumber: number.toString() }));
     setReferenceNumberIsRandomlyGenerated(true);
   }, []);
+  const copyReferenceNumberFromContainer = useCallback(() => {
+    if (typeof selectedDedicatedContainerData !== 'object') return;
+    const itemReferenceNumber =
+      selectedDedicatedContainerData?.itemReferenceNumber;
+    if (!itemReferenceNumber) return;
+
+    setData(d => ({ ...d, itemReferenceNumber }));
+    setReferenceNumberIsRandomlyGenerated(true);
+  }, [selectedDedicatedContainerData]);
 
   const handleOpenSelectIcon = useCallback(
     () =>
@@ -265,7 +281,9 @@ function SaveItemScreen({
                   style={commonStyles.flex1}
                   onPress={handleOpenSelectDedicatedContainer}
                 >
-                  <View style={commonStyles.row}>
+                  <View
+                    style={[commonStyles.row, commonStyles.alignItemsFlexStart]}
+                  >
                     {selectedDedicatedContainerData &&
                       typeof selectedDedicatedContainerData === 'object' && (
                         <Icon
@@ -286,6 +304,7 @@ function SaveItemScreen({
                         (!selectedDedicatedContainerData ||
                           typeof selectedDedicatedContainerData !== 'object') &&
                           commonStyles.opacity02,
+                        commonStyles.flex1,
                         { fontSize: InsetGroup.FONT_SIZE },
                       ]}
                     >
@@ -317,7 +336,9 @@ function SaveItemScreen({
               style={commonStyles.flex1}
               onPress={handleOpenSelectCollection}
             >
-              <View style={commonStyles.row}>
+              <View
+                style={[commonStyles.row, commonStyles.alignItemsFlexStart]}
+              >
                 {selectedCollectionData &&
                   typeof selectedCollectionData === 'object' && (
                     <Icon
@@ -334,6 +355,7 @@ function SaveItemScreen({
                     (!selectedCollectionData ||
                       typeof selectedCollectionData !== 'object') &&
                       commonStyles.opacity02,
+                    commonStyles.flex1,
                     { fontSize: InsetGroup.FONT_SIZE },
                   ]}
                 >
@@ -425,11 +447,22 @@ function SaveItemScreen({
                 {(!data.itemReferenceNumber ||
                   referenceNumberIsRandomlyGenerated) && (
                   <>
-                    <InsetGroup.ItemDetailButton
-                      style={commonStyles.ml4}
-                      label="Generate"
-                      onPress={randomGenerateReferenceNumber}
-                    />
+                    {!data.itemReferenceNumber &&
+                    typeof selectedDedicatedContainerData === 'object' &&
+                    selectedDedicatedContainerData?.itemReferenceNumber ? (
+                      <InsetGroup.ItemDetailButton
+                        style={[commonStyles.ml4, { maxWidth: 80 }]}
+                        textStyle={{ textAlign: 'right' }}
+                        label="Copy from container"
+                        onPress={copyReferenceNumberFromContainer}
+                      />
+                    ) : (
+                      <InsetGroup.ItemDetailButton
+                        style={commonStyles.ml4}
+                        label="Generate"
+                        onPress={randomGenerateReferenceNumber}
+                      />
+                    )}
                   </>
                 )}
               </>
@@ -544,7 +577,9 @@ function SaveItemScreen({
               style={commonStyles.flex1}
               onPress={handleOpenSelectDedicatedContainer}
             >
-              <View style={commonStyles.row}>
+              <View
+                style={[commonStyles.row, commonStyles.alignItemsFlexStart]}
+              >
                 {selectedDedicatedContainerData &&
                   typeof selectedDedicatedContainerData === 'object' && (
                     <Icon
@@ -563,6 +598,7 @@ function SaveItemScreen({
                     (!selectedDedicatedContainerData ||
                       typeof selectedDedicatedContainerData !== 'object') &&
                       commonStyles.opacity02,
+                    commonStyles.flex1,
                     { fontSize: InsetGroup.FONT_SIZE },
                   ]}
                 >

@@ -532,11 +532,13 @@ function InsetGroupItemDetailButton({
   label,
   onPress,
   style,
+  textStyle,
   destructive,
 }: {
   label: string;
   onPress: () => void;
   style?: React.ComponentProps<typeof TouchableOpacity>['style'];
+  textStyle?: React.ComponentProps<typeof Text>['style'];
   destructive?: boolean;
 }) {
   const { iosTintColor, iosDestructiveColor } = useColors();
@@ -546,6 +548,7 @@ function InsetGroupItemDetailButton({
         style={[
           styles.insetGroupItemDetailButtonText,
           { color: destructive ? iosDestructiveColor : iosTintColor },
+          textStyle,
         ]}
       >
         {label}
