@@ -1260,6 +1260,11 @@ function RFIDSheet(
                             style={{
                               backgroundColor: insetGroupBackgroundColor,
                             }}
+                            footerLabel={
+                              useDefaultFilterFallback
+                                ? 'Will only scan tags that are likely to be recognizable by this app.'
+                                : undefined
+                            }
                           >
                             <InsetGroup.Item
                               label="Use Default Filter"
