@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -27,11 +27,14 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
+import { getDataFromDocs } from '@app/db/hooks';
+import { DataTypeWithID } from '@app/db/relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 
 import EPCUtils from '@app/modules/EPCUtils';
 
 import ItemItem from '../components/ItemItem';
+import ChecklistItem from '../components/ChecklistItem';
 import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
@@ -130,6 +133,41 @@ function ItemScreen({
       }),
     [collection, item, navigation, rootNavigation],
   );
+
+  const checklistItems = data?.getRelated('checklistItems', {
+    arrElementType: 'checklistItem',
+  });
+  const [checklists, setChecklists] = useState<null | ReadonlyArray<
+    DataTypeWithID<'checklist'>
+  >>(null);
+  const loadChecklists = useCallback(async () => {
+    if (!checklistItems) return;
+
+    const promises = checklistItems.map(async checklistItem => {
+      try {
+        const doc = await db.get(`checklist-2-${checklistItem.checklist}`);
+        if (doc.type !== 'checklist') return null;
+        const [d] = getDataFromDocs('checklist', [doc]);
+        if (!d) return null;
+
+        return d;
+      } catch (e) {
+        // Handle non-404 errors
+        return null;
+      }
+    });
+    const cls = (await Promise.all(promises)).filter(
+      (i): i is DataTypeWithID<'checklist'> => !!i,
+    );
+    setChecklists(cls);
+  }, [checklistItems, db]);
+  useEffect(() => {
+    loadChecklists();
+  }, [loadChecklists]);
+  const { orderedData: orderedChecklists } = useOrderedData({
+    data: checklists,
+    settingName: 'checklists',
+  });
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
@@ -788,6 +826,30 @@ function ItemScreen({
             </InsetGroup>
           );
         })()}
+
+        {!!orderedChecklists && orderedChecklists.length > 0 && (
+          <InsetGroup labelVariant="large" label="Included In">
+            {orderedChecklists
+              .flatMap(checklist => [
+                <ChecklistItem
+                  key={checklist.id}
+                  checklist={checklist}
+                  reloadCounter={reloadCounter}
+                  onPress={() =>
+                    navigation.push('Checklist', {
+                      id: checklist.id || '',
+                      initialTitle: checklist.name,
+                    })
+                  }
+                />,
+                <InsetGroup.ItemSeparator
+                  key={`s-${checklist.id}`}
+                  leftInset={60}
+                />,
+              ])
+              .slice(0, -1)}
+          </InsetGroup>
+        )}
       </ScrollView>
     </ScreenContent>
   );

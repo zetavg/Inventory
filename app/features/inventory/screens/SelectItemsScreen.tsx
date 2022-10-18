@@ -41,7 +41,6 @@ function SelectItemsScreen({
         ...SEARCH_ITEMS_OPTIONS,
         query: search,
       });
-      console.log(result);
       setData(
         getDataFromDocs(
           'item',

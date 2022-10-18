@@ -222,6 +222,15 @@ export const schema = s({
     }),
     relations: {
       collection: { belongsTo: 'collection' },
+      checklistItems: {
+        hasMany: {
+          type: 'checklistItem',
+          options: {
+            queryInverse: 'item',
+            sort: { field: 'createdAt', order: 'asc' },
+          },
+        },
+      },
       // container
       dedicatedContainer: { belongsTo: 'item' },
       container: { belongsTo: 'item' },
