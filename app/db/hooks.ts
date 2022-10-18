@@ -96,6 +96,7 @@ export function useRelationalData<T extends TypeName>(
 
       try {
         isDataLoading.current = true;
+        setCachedRelatedData({});
         // const d = await find(db, type);
         // Faster
         setData(
