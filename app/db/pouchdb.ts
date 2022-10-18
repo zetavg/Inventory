@@ -54,6 +54,9 @@ export function getDatabase(name: string): Database {
       item_by_dedicatedContainer: {
         map: "function (doc) { emit(doc && doc.type === 'item' && doc.data && doc.data.dedicatedContainer); }",
       },
+      checklistItem_by_checklist: {
+        map: "function (doc) { emit(doc && doc.type === 'checklistItem' && doc.data && doc.data.checklist); }",
+      },
     },
   };
   db.get('_design/relational_data_index')
@@ -113,6 +116,18 @@ export function getDatabase(name: string): Database {
       index: {
         ddoc: 'index-item-isContainer',
         fields: ['type', 'data.isContainer', 'data.updatedAt'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-checklistItem-checklist',
+        fields: ['type', 'data.checklist', 'data.createdAt'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
+        ddoc: 'index-checklistItem-item',
+        fields: ['type', 'data.item', 'data.createdAt'],
       },
     }),
   ]);

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-const SEARCH_OPTIONS = {
+export const SEARCH_OPTIONS = {
   fields: {
     'data.name': 10,
     'data.notes': 2,
@@ -17,6 +17,13 @@ const SEARCH_OPTIONS = {
   language: Platform.OS === 'ios' ? 'zh' : 'en',
   include_docs: true,
   limit: 100,
+};
+
+export const SEARCH_ITEMS_OPTIONS = {
+  ...SEARCH_OPTIONS,
+  filter: function (doc: any) {
+    return doc.type === 'item';
+  },
 };
 
 export default SEARCH_OPTIONS;

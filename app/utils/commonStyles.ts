@@ -194,6 +194,33 @@ const commonStyles = StyleSheet.create({
   mt36: {
     marginTop: 36,
   },
+  mb2: {
+    marginBottom: 2,
+  },
+  mb4: {
+    marginBottom: 4,
+  },
+  mb8: {
+    marginBottom: 8,
+  },
+  mb12: {
+    marginBottom: 12,
+  },
+  mb16: {
+    marginBottom: 16,
+  },
+  mb20: {
+    marginBottom: 20,
+  },
+  mb24: {
+    marginBottom: 24,
+  },
+  mb28: {
+    marginBottom: 28,
+  },
+  mb32: {
+    marginBottom: 32,
+  },
   mbm2: {
     marginBottom: -2,
   },
@@ -276,6 +303,9 @@ const commonStyles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  fs16: {
+    fontSize: 16,
   },
   fs8: {
     fontSize: 8,

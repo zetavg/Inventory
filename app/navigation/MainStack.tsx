@@ -35,6 +35,8 @@ import NewAppScreen from '@app/screens/NewAppScreen';
 import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
 import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
+import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
+import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
@@ -50,6 +52,8 @@ export type StackParamList = {
   Collections: undefined;
   Collection: { id: string; initialTitle?: string };
   Item: { id: string; initialTitle?: string };
+  Checklists: undefined;
+  Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
   TmpInventoryTab: undefined;
   Settings: undefined;
@@ -213,6 +217,8 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Collections" component={CollectionsScreen} />
       <Stack.Screen name="Collection" component={CollectionScreen} />
       <Stack.Screen name="Item" component={ItemScreen} />
+      <Stack.Screen name="Checklists" component={ChecklistsScreen} />
+      <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />

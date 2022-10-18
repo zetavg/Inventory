@@ -783,7 +783,10 @@ function ItemScreen({
                         })
                       }
                     />,
-                    <InsetGroup.ItemSeparator key={`s-${it.id}`} />,
+                    <InsetGroup.ItemSeparator
+                      key={`s-${it.id}`}
+                      leftInset={60}
+                    />,
                   ])
                   .slice(0, -1);
               })()}

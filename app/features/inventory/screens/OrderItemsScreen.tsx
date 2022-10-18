@@ -8,12 +8,14 @@ import EditingListView from '@app/components/EditingListView';
 
 import commonStyles from '@app/utils/commonStyles';
 import moveItemInArray from '@app/utils/moveItemInArray';
+import { Alert } from 'react-native';
 
 function OrderItemsScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'OrderItems'>) {
-  const { orderedItems, updateOrderFunctionRef } = route.params;
+  const { orderedItems, updateOrderFunctionRef, itemDeleteFunctionRef, title } =
+    route.params;
   const [orderedItemsMap] = useState(
     Object.fromEntries(orderedItems.map(item => [item.id, item])),
   );
@@ -31,14 +33,24 @@ function OrderItemsScreen({
   );
   const [editingListViewKey, setEditingListViewKey] = useState(0);
   const handleItemDelete = useCallback(
-    () => setEditingListViewKey(v => v + 1),
-    [],
+    async (index: number) => {
+      const id = newOrder[index];
+
+      if (itemDeleteFunctionRef) {
+        const isSuccess = await itemDeleteFunctionRef.current(id);
+        if (!isSuccess) setEditingListViewKey(v => v + 1);
+      } else {
+        Alert.alert("Can't delete item", "Items can't be deleted from here.");
+        setEditingListViewKey(v => v + 1);
+      }
+    },
+    [newOrder, itemDeleteFunctionRef],
   );
 
   return (
     <ModalContent
       navigation={navigation}
-      title="Order Items"
+      title={title || 'Order Items'}
       backButtonLabel="Done"
     >
       <EditingListView

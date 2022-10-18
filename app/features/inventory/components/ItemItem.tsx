@@ -15,6 +15,7 @@ import { SFSymbol } from 'react-native-sfsymbols';
 export default function ItemItem({
   item,
   onPress,
+  onLongPress,
   additionalDetails,
   hideDetails,
   hideCollectionDetails,
@@ -143,16 +144,18 @@ export default function ItemItem({
               {dedicatedContainerData.name}
             </Text>
           ),
-          <React.Fragment key="individualAssetReference">
-            {item.computedRfidTagEpcMemoryBankContents &&
-              item.computedRfidTagEpcMemoryBankContents !==
-                item.actualRfidTagEpcMemoryBankContents && (
-                <>
-                  <Icon name="app-exclamation" size={11} />{' '}
-                </>
-              )}
-            {item.individualAssetReference}
-          </React.Fragment>,
+          item.individualAssetReference && (
+            <React.Fragment key="individualAssetReference">
+              {item.computedRfidTagEpcMemoryBankContents &&
+                item.computedRfidTagEpcMemoryBankContents !==
+                  item.actualRfidTagEpcMemoryBankContents && (
+                  <>
+                    <Icon name="app-exclamation" size={11} />{' '}
+                  </>
+                )}
+              {item.individualAssetReference}
+            </React.Fragment>
+          ),
           // itemsCount !== null && `${itemsCount} items`,
         ]
           .filter(s => s)
@@ -205,6 +208,7 @@ export default function ItemItem({
         grayOut && styles.itemItemDetailTextGrayOut,
       ]}
       onPress={onPress}
+      onLongPress={onLongPress}
       detailAsText
       detail={
         hideDetails

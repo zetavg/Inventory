@@ -47,8 +47,10 @@ import SelectIconScreen from '@app/screens/SelectIconScreen';
 
 import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
 import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
+import SelectItemsScreen from '@app/features/inventory/screens/SelectItemsScreen';
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
+import SaveChecklistScreen from '@app/features/inventory/screens/SaveChecklistScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
 import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
 import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
@@ -84,6 +86,10 @@ export type RootStackParamList = {
     callback: (value: string) => void;
     defaultValue?: string;
   };
+  SelectItems: {
+    callback: (value: ReadonlyArray<string>) => void;
+    defaultValue?: ReadonlyArray<string>;
+  };
   SaveCollection: {
     initialData?: Partial<DataTypeWithID<'collection'>>;
   };
@@ -92,9 +98,14 @@ export type RootStackParamList = {
     afterSave?: (data: Partial<DataTypeWithID<'item'>>) => void;
     afterDelete?: () => void;
   };
+  SaveChecklist: {
+    initialData?: Partial<DataTypeWithID<'checklist'>>;
+  };
   OrderItems: {
     orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;
     updateOrderFunctionRef: { current: (newOrder: string[]) => void };
+    itemDeleteFunctionRef?: { current: (id: string) => Promise<boolean> };
+    title?: string;
   };
   SearchOptions: {
     callback: (value: string) => void;
@@ -237,11 +248,16 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               name="SelectContainer"
               component={SelectContainerScreen}
             />
+            <Stack.Screen name="SelectItems" component={SelectItemsScreen} />
             <Stack.Screen
               name="SaveCollection"
               component={SaveCollectionScreen}
             />
             <Stack.Screen name="SaveItem" component={SaveItemScreen} />
+            <Stack.Screen
+              name="SaveChecklist"
+              component={SaveChecklistScreen}
+            />
             <Stack.Screen name="OrderItems" component={OrderItemsScreen} />
             <Stack.Screen
               name="SearchOptions"

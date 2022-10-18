@@ -11,7 +11,7 @@ import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 
 import useDB from '@app/hooks/useDB';
-import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
+import SEARCH_OPTIONS, { SEARCH_ITEMS_OPTIONS } from '../consts/SEARCH_OPTIONS';
 
 function SearchOptionsScreen({
   navigation,
@@ -28,6 +28,10 @@ function SearchOptionsScreen({
       setResetIndexLoading(true);
       await (db as any).search({
         ...SEARCH_OPTIONS,
+        destroy: true,
+      });
+      await (db as any).search({
+        ...SEARCH_ITEMS_OPTIONS,
         destroy: true,
       });
       await new Promise(resolve => setTimeout(resolve, 1000));

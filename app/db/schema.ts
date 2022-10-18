@@ -121,6 +121,52 @@ export const schema = s({
     },
     titleField: 'name',
   },
+  checklist: {
+    plural: 'checklists',
+    dataSchema: jtdSchema({
+      properties: {
+        type: { type: 'string' },
+        name: { type: 'string', metadata: { trimAndNotEmpty: true } },
+        iconName: { type: 'string' /* , enum: ICON_NAMES */ },
+        iconColor: { type: 'string' /* , enum: ICON_COLORS */ },
+      },
+      optionalProperties: {
+        description: { type: 'string' },
+      },
+      additionalProperties: true,
+    }),
+    relations: {
+      checklistItems: {
+        hasMany: {
+          type: 'checklistItem',
+          options: {
+            queryInverse: 'checklist',
+            sort: { field: 'createdAt', order: 'asc' },
+          },
+        },
+      },
+    },
+    titleField: 'name',
+  },
+  checklistItem: {
+    plural: 'checklistItems',
+    dataSchema: jtdSchema({
+      properties: {
+        // relations
+        checklist: { type: 'string' },
+        item: { type: 'string' },
+      },
+      optionalProperties: {
+        createdAt: { type: 'uint32' },
+      },
+      additionalProperties: true,
+    }),
+    relations: {
+      checklist: { belongsTo: 'checklist' },
+      item: { belongsTo: 'item' },
+    },
+    titleField: 'name',
+  },
   item: {
     plural: 'items',
     dataSchema: jtdSchema({

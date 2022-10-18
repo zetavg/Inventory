@@ -289,6 +289,14 @@ export async function save<T extends TypeName>(
 
       break;
     }
+    case 'checklistItem': {
+      const d: DataType<'checklistItem'> = data;
+
+      const timestamp = Math.floor(Date.now() / 1000);
+      if (!d.createdAt) d.createdAt = timestamp;
+
+      break;
+    }
   }
 
   await db.rel.save(type, data);

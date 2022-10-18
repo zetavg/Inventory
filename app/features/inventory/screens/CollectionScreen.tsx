@@ -207,7 +207,10 @@ function CollectionScreen({
                     })
                   }
                 />,
-                <InsetGroup.ItemSeparator key={`s-${item.id}`} />,
+                <InsetGroup.ItemSeparator
+                  key={`s-${item.id}`}
+                  leftInset={60}
+                />,
               ])
               .slice(0, -1);
           })()}
