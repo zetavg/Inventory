@@ -80,6 +80,13 @@ export default function useCheckItems({
           ignoreNextCheckContentsRfidSheetClose.current = false;
           return;
         }
+        if (
+          (checkContentsResultSeenIdsRef.current?.size || 0) <= 0 &&
+          (checkContentsResultManuallyCheckedIdsRef.current?.size || 0) <= 0
+        ) {
+          return;
+        }
+
         showActionSheetWithOptions(
           {
             title: 'Save the check results?',
