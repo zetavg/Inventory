@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, ScrollView, Alert } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
+import { useFocusEffect } from '@react-navigation/native';
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-import { useFocusEffect } from '@react-navigation/native';
 
 import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
+import Button from '@app/components/Button';
 import Text from '@app/components/Text';
 import Icon from '@app/components/Icon';
 
@@ -22,6 +23,7 @@ import { getDataFromDocs } from '@app/db/hooks';
 import { DataTypeWithID, del, save } from '@app/db/relationalUtils';
 
 import ItemItem from '../components/ItemItem';
+import useCheckItems from '../hooks/useCheckItems';
 
 function ChecklistScreen({
   navigation,
@@ -164,6 +166,12 @@ function ChecklistScreen({
     [showActionSheetWithOptions, handleDeleteItem],
   );
 
+  const [handleCheckItems] = useCheckItems({
+    scanName: `container-${id}-scan`,
+    items: items || [],
+    navigation,
+  });
+
   const [reloadCounter, setReloadCounter] = useState(0);
   useFocusEffect(
     useCallback(() => {
@@ -236,6 +244,18 @@ function ChecklistScreen({
           </InsetGroup>
         )}
         <View style={commonStyles.mt16} />
+        {items && items.length > 0 && (
+          <InsetGroup backgroundTransparent>
+            <Button mode="text" onPress={handleCheckItems}>
+              <Icon
+                name="checklist"
+                sfSymbolWeight="bold"
+                color={iosTintColor}
+              />{' '}
+              Check Items
+            </Button>
+          </InsetGroup>
+        )}
         <InsetGroup
           label="Items"
           labelVariant="large"
