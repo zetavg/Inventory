@@ -551,16 +551,18 @@ function ItemScreen({
         </InsetGroup>
         {item?.isContainer && (
           <>
-            <InsetGroup backgroundTransparent>
-              <Button mode="text" onPress={handleCheckContents}>
-                <Icon
-                  name="checklist"
-                  sfSymbolWeight="bold"
-                  color={iosTintColor}
-                />{' '}
-                Check {dedicatedItemsName}
-              </Button>
-            </InsetGroup>
+            {(orderedDedicatedContents || []).length > 0 && (
+              <InsetGroup backgroundTransparent>
+                <Button mode="text" onPress={handleCheckContents}>
+                  <Icon
+                    name="checklist"
+                    sfSymbolWeight="bold"
+                    color={iosTintColor}
+                  />{' '}
+                  Check {dedicatedItemsName}
+                </Button>
+              </InsetGroup>
+            )}
             <InsetGroup
               label={
                 (() => {
