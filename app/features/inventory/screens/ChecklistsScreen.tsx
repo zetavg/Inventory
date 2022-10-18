@@ -111,7 +111,7 @@ function ChecklistsScreen({
       showSearch
       onSearchChangeText={setSearchText}
       action1Label={editing ? 'Done' : 'Add'}
-      action1SFSymbolName={editing ? undefined : 'note.text.badge.plus'}
+      action1SFSymbolName={editing ? undefined : 'plus.square'}
       action1MaterialIconName={editing ? undefined : 'plus'}
       onAction1Press={() =>
         editing ? endEdit() : rootNavigation?.navigate('SaveChecklist', {})

@@ -128,19 +128,19 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           </TableView.Item>
           <TableView.Item
             arrow
-            icon="format-list-checks"
-            iosImage="ios-menu.checklists.png"
-            onPress={() => navigation.push('Checklists')}
-          >
-            Checklists
-          </TableView.Item>
-          <TableView.Item
-            arrow
             icon="tag"
             iosImage="ios-menu.tag.png"
             onPress={() => navigation.push('Checklists')}
           >
             Tags
+          </TableView.Item>
+          <TableView.Item
+            arrow
+            icon="format-list-checks"
+            iosImage="ios-menu.checklists.png"
+            onPress={() => navigation.push('Checklists')}
+          >
+            Checklists
           </TableView.Item>
         </TableView.Section>
         <TableView.Section label="RFID Tools">
