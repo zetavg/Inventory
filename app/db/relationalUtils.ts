@@ -162,7 +162,7 @@ export async function findWithRelations<T extends TypeName>(
       relationDataTypeNameAndDef;
 
     const relatedRelations = Object.entries(typeDef.relations || {}).filter(
-      ([_field, relation]) =>
+      ([_field, relation]: [string, any]) =>
         relation?.belongsTo === relationDataTypeName ||
         relation?.belongsTo?.type === relationDataTypeName ||
         relation?.hasMany === relationDataTypeName ||
