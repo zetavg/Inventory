@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -32,6 +32,16 @@ function CollectionsScreen({
     data,
     settingName: 'collections',
   });
+
+  const [searchText, setSearchText] = useState('');
+  const filteredAndOrderedData = useMemo(() => {
+    if (!orderedData) return orderedData;
+    if (!searchText) return orderedData;
+
+    return orderedData.filter(d =>
+      `${d.name} ${d.collectionReferenceNumber}`.match(searchText),
+    );
+  }, [searchText, orderedData]);
 
   const [reloadCounter, setReloadCounter] = useState(0);
   useFocusEffect(
@@ -101,6 +111,8 @@ function CollectionsScreen({
     <ScreenContent
       navigation={navigation}
       title="Collections"
+      showSearch
+      onSearchChangeText={setSearchText}
       action1Label={editing ? 'Done' : 'Add'}
       action1SFSymbolName={editing ? undefined : 'rectangle.stack.badge.plus'}
       action1MaterialIconName={editing ? undefined : 'plus'}
@@ -145,26 +157,33 @@ function CollectionsScreen({
             <InsetGroup loading={!orderedData}>
               {orderedData &&
                 (orderedData.length > 0 ? (
-                  orderedData
-                    .flatMap(collection => [
-                      <CollectionItem
-                        key={collection.id}
-                        reloadCounter={reloadCounter}
-                        collection={collection}
-                        onPress={() =>
-                          navigation.push('Collection', {
-                            id: collection.id || '',
-                            initialTitle: collection.name,
-                          })
-                        }
-                      />,
-                      <InsetGroup.ItemSeparator
-                        key={`s-${collection.id}`}
-                        // leftInset={50}
-                        leftInset={60}
-                      />,
-                    ])
-                    .slice(0, -1)
+                  filteredAndOrderedData &&
+                  filteredAndOrderedData.length > 0 ? (
+                    filteredAndOrderedData
+                      .flatMap(collection => [
+                        <CollectionItem
+                          key={collection.id}
+                          reloadCounter={reloadCounter}
+                          collection={collection}
+                          onPress={() =>
+                            navigation.push('Collection', {
+                              id: collection.id || '',
+                              initialTitle: collection.name,
+                            })
+                          }
+                        />,
+                        <InsetGroup.ItemSeparator
+                          key={`s-${collection.id}`}
+                          // leftInset={50}
+                          leftInset={60}
+                        />,
+                      ])
+                      .slice(0, -1)
+                  ) : (
+                    <Text style={styles.emptyText}>
+                      No matching collection.
+                    </Text>
+                  )
                 ) : (
                   <Text style={styles.emptyText}>
                     You do not have any collections yet.
