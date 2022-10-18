@@ -168,7 +168,7 @@ function ChecklistScreen({
 
   const [handleCheckItems] = useCheckItems({
     scanName: `container-${id}-scan`,
-    items: items || [],
+    items: orderedItems || [],
     navigation,
   });
 
