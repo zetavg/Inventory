@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -19,7 +19,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import Color from 'color';
 import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
-import useActionSheet from '@app/hooks/useActionSheet';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
@@ -28,23 +27,19 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
-import { DataTypeWithID } from '@app/db/relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 
 import EPCUtils from '@app/modules/EPCUtils';
-import { RenderScannedItemsFn } from '@app/features/rfid/RFIDSheet';
 
 import ItemItem from '../components/ItemItem';
-import CheckItems from '../components/CheckItems';
-import getChildrenDedicatedItemIds from '../utils/getChildrenDedicatedItemIds';
+import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Item'>) {
   const rootNavigation = useRootNavigation();
-  const { openRfidSheet, rfidSheet } = useRootBottomSheets();
-  const { showActionSheetWithOptions } = useActionSheet();
+  const { openRfidSheet } = useRootBottomSheets();
   const { id, initialTitle } = route.params;
   const { db } = useDB();
   const { data, reloadData } = useRelationalData('item', id);
@@ -147,132 +142,11 @@ function ItemScreen({
       writeActualEpcContent();
   };
 
-  const renderCheckContentsScannedItemsRef =
-    useRef<RenderScannedItemsFn | null>(null);
-  const checkContentsLoadedItemsMapRef = useRef<null | Map<
-    string,
-    DataTypeWithID<'item'>
-  >>(null);
-  const dedicatedIdsMapRef = useRef<null | Record<string, Array<string>>>(null);
-  const loadChildrenDedicatedItemIdsPromiseRef = useRef<null | Promise<any>>(
-    null,
-  );
-  const checkContentsResultSeenIdsRef = useRef<Set<string> | null>(null);
-  const checkContentsResultManuallyCheckedIdsRef = useRef<Set<string> | null>(
-    null,
-  );
-  const checkContentsResultSaved = useRef(false);
-  const handleCheckContentsDone = useCallback(() => {
-    console.warn(
-      'Check results',
-      JSON.stringify(
-        {
-          seen: [...(checkContentsResultSeenIdsRef.current || [])],
-          manuallyChecked: [
-            ...(checkContentsResultManuallyCheckedIdsRef.current || []),
-          ],
-        },
-        null,
-        2,
-      ),
-    );
-    checkContentsResultSaved.current = true;
-  }, []);
-  const ignoreNextCheckContentsRfidSheetClose = useRef(false);
-  const handleCheckContents = useCallback(async () => {
-    // Data will be loaded via useEffect but we need to wait until it's ready
-    if (loadChildrenDedicatedItemIdsPromiseRef.current) {
-      await loadChildrenDedicatedItemIdsPromiseRef.current;
-    }
-    openRfidSheet({
-      functionality: 'scan' as const,
-      scanName: `container-${id}-scan`,
-      resetData: checkContentsResultSaved.current,
-      renderScannedItemsRef: renderCheckContentsScannedItemsRef,
-      playSoundOnlyForEpcs: [
-        ...(dedicatedContents || []),
-        ...Array.from(checkContentsLoadedItemsMapRef.current?.values() || []),
-      ]
-        .map(it => it.actualRfidTagEpcMemoryBankContents)
-        .filter((epc): epc is string => !!epc),
-      onDone: handleCheckContentsDone,
-      onClose: () => {
-        if (ignoreNextCheckContentsRfidSheetClose.current) {
-          ignoreNextCheckContentsRfidSheetClose.current = false;
-          return;
-        }
-        showActionSheetWithOptions(
-          {
-            title: 'Save the check results?',
-            // message: 'Save?',
-            options: ['Save', 'Do not save'],
-            cancelButtonIndex: 1,
-          },
-          buttonIndex => {
-            if (buttonIndex === 1) {
-              // cancel action
-              return;
-            }
-
-            handleCheckContentsDone();
-          },
-        );
-      },
-    });
-    checkContentsResultSaved.current = false;
-  }, [
-    dedicatedContents,
-    handleCheckContentsDone,
-    id,
-    openRfidSheet,
-    showActionSheetWithOptions,
-  ]);
-  const handleCheckItemsOnViewItemPress = useCallback(
-    (itemId: string) => {
-      ignoreNextCheckContentsRfidSheetClose.current = true;
-      rfidSheet.current?.close();
-      navigation.push('Item', {
-        id: itemId,
-        ...({ beforeRemove: handleCheckContents } as any),
-      });
-    },
-    [navigation, rfidSheet, handleCheckContents],
-  );
-  renderCheckContentsScannedItemsRef.current =
-    useCallback<RenderScannedItemsFn>(
-      (items, { contentBackgroundColor, clearScannedDataCounter }) => {
-        return (
-          <CheckItems
-            items={orderedDedicatedContents || []}
-            scannedItems={items}
-            contentBackgroundColor={contentBackgroundColor}
-            dedicatedIdsMap={dedicatedIdsMapRef.current || {}}
-            loadedItemsMapRef={checkContentsLoadedItemsMapRef}
-            onViewItemPress={handleCheckItemsOnViewItemPress}
-            resultSeenIdsRef={checkContentsResultSeenIdsRef}
-            resultManuallyCheckedIdsRef={
-              checkContentsResultManuallyCheckedIdsRef
-            }
-            clearScannedDataCounter={clearScannedDataCounter}
-          />
-        );
-      },
-      [handleCheckItemsOnViewItemPress, orderedDedicatedContents],
-    );
-  useEffect(() => {
-    if (!item?.isContainer) return;
-
-    if (!checkContentsLoadedItemsMapRef.current)
-      checkContentsLoadedItemsMapRef.current = new Map();
-    loadChildrenDedicatedItemIdsPromiseRef.current =
-      getChildrenDedicatedItemIds(
-        db,
-        (dedicatedContents || [])
-          .filter(it => it.isContainer)
-          .map(it => it.id || ''),
-        checkContentsLoadedItemsMapRef,
-      ).then(obj => (dedicatedIdsMapRef.current = obj));
-  }, [db, dedicatedContents, item?.isContainer]);
+  const [handleCheckContents] = useCheckItems({
+    scanName: `container-${id}-scan`,
+    items: dedicatedContents || [],
+    navigation,
+  });
 
   return (
     <ScreenContent
