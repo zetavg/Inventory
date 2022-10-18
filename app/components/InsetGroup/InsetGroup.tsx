@@ -344,7 +344,7 @@ function InsetGroupItem({
                     detailTextStyle,
                   ]}
                   numberOfLines={vertical2 ? undefined : 1}
-                  selectable
+                  selectable={!onLongPress}
                 >
                   {detail}
                 </Text>
