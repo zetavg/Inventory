@@ -1,4 +1,5 @@
-import type { DataType } from './schema';
+import { schema } from './schema';
+import type { TypeName, DataType } from './schema';
 
 export type ConfigStoredInDB = {
   epcCompanyPrefix: string;
@@ -7,15 +8,15 @@ export type ConfigStoredInDB = {
   epcPrefix: number;
 };
 
-export type DBContent =
-  | {
-      type: 'collection';
-      data: DataType<'collection'>;
-    }
-  | {
-      type: 'item';
-      data: DataType<'item'>;
-    };
+/**
+ * PouchDB doc type for schema data using distributive conditional types.
+ * @see: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-8.html#distributive-conditional-types
+ */
+type DocType<U extends TypeName> = U extends TypeName
+  ? { type: U; data: DataType<U> }
+  : never;
+
+export type DBContent = DocType<keyof typeof schema>;
 
 export type AttachmentsDBThumbnailType = 's128' | 's64';
 
