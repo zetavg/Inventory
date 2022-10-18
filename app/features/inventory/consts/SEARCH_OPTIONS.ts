@@ -3,13 +3,18 @@ import { Platform } from 'react-native';
 export const SEARCH_OPTIONS = {
   fields: {
     'data.name': 10,
+    'data.description': 4,
     'data.notes': 2,
     'data.individualAssetReference': 8,
     'data.modelName': 8,
     'data.purchasedFrom': 2,
   },
   filter: function (doc: any) {
-    return doc.type === 'collection' || doc.type === 'item';
+    return (
+      doc.type === 'collection' ||
+      doc.type === 'item' ||
+      doc.type === 'checklist'
+    );
   },
   // TODO: support zh searching on Android
   // `language: ['zh', 'en']` will not work well

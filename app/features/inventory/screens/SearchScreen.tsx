@@ -40,6 +40,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
 import ItemItem from '@app/features/inventory/components/ItemItem';
 import CollectionItem from '@app/features/inventory/components/CollectionItem';
+import ChecklistItem from '@app/features/inventory/components/ChecklistItem';
 
 import {
   addRecentSearchQuery,
@@ -419,7 +420,30 @@ function SearchScreen({
                           />
                         );
                       }
-                    }
+
+                      case 'checklist': {
+                        const [checklist] = getDataFromDocs('checklist', [
+                          row.doc,
+                        ]);
+                        return (
+                          <ChecklistItem
+                            key={row.id}
+                            checklist={checklist}
+                            reloadCounter={reloadCounter}
+                            onPress={() => {
+                              dispatch(
+                                addRecentSearchQuery({ query: searchText }),
+                              );
+                              if (!checklist.id) return;
+                              navigation.push('Checklist', {
+                                id: checklist.id,
+                                initialTitle: checklist.name,
+                              });
+                            }}
+                          />
+                        );
+                      }
+                    } // End of switch
 
                     return null;
                   })(),
