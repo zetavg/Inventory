@@ -30,6 +30,7 @@ import { useRelationalData } from '@app/db';
 import { getDataFromDocs } from '@app/db/hooks';
 import { DataTypeWithID } from '@app/db/relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
+import useActionSheet from '@app/hooks/useActionSheet';
 
 import EPCUtils from '@app/modules/EPCUtils';
 
@@ -43,6 +44,7 @@ function ItemScreen({
 }: StackScreenProps<StackParamList, 'Item'>) {
   const rootNavigation = useRootNavigation();
   const { openRfidSheet } = useRootBottomSheets();
+  const { showActionSheetWithOptions } = useActionSheet();
   const { id, initialTitle } = route.params;
   const { db } = useDB();
   const { data, reloadData } = useRelationalData('item', id);
@@ -186,6 +188,54 @@ function ItemScreen({
     navigation,
   });
 
+  const handleMoreActionsPress = useCallback(() => {
+    const options = [item && 'duplicate'].filter((s): s is string => !!s);
+    const optionNames: Record<string, string> = {
+      duplicate: 'Duplicate',
+    };
+    const shownOptions = options.map(v => optionNames[v]);
+    showActionSheetWithOptions(
+      {
+        options: [...shownOptions, 'Cancel'],
+        cancelButtonIndex: shownOptions.length,
+      },
+      buttonIndex => {
+        if (buttonIndex === shownOptions.length) {
+          // cancel action
+          return;
+        }
+
+        const selectedOption =
+          typeof buttonIndex === 'number' ? options[buttonIndex] : null;
+        switch (selectedOption) {
+          case 'duplicate':
+            if (!item) return;
+            rootNavigation?.navigate('SaveItem', {
+              initialData: {
+                ...Object.fromEntries(
+                  Object.entries(item).filter(
+                    ([k]) =>
+                      !k.startsWith('computed') &&
+                      k !== 'actualRfidTagEpcMemoryBankContents' &&
+                      k !== 'rfidTagAccessPassword' &&
+                      k !== 'createdAt' &&
+                      k !== 'updatedAt',
+                  ),
+                ),
+                id: undefined,
+                rev: undefined,
+              },
+              afterDelete: () => navigation.goBack(),
+            });
+            return;
+          default:
+            Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
+            return;
+        }
+      },
+    );
+  }, [item, navigation, rootNavigation, showActionSheetWithOptions]);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -203,10 +253,10 @@ function ItemScreen({
               })
           : undefined
       }
-      // action2Label={(data && 'Delete') || undefined}
-      // action2SFSymbolName={(data && 'trash') || undefined}
-      // action2MaterialIconName={(data && 'delete') || undefined}
-      // onAction2Press={handleDelete}
+      action2Label={(data && 'Actions') || undefined}
+      action2SFSymbolName={(data && 'ellipsis.circle') || undefined}
+      action2MaterialIconName={(data && 'dots-horizontal') || undefined}
+      onAction2Press={handleMoreActionsPress}
     >
       <ScrollView keyboardDismissMode="interactive">
         <InsetGroup
