@@ -77,7 +77,7 @@ function SelectItemsScreen({
         $and: [{ type: 'item' }, { 'data.updatedAt': { $gt: null } }],
       },
       sort: [{ type: 'desc' }, { 'data.updatedAt': 'desc' }],
-      limit: 30,
+      limit: 50,
       use_index: 'index-type-updatedAt',
     });
     const { docs } = result;
