@@ -2,6 +2,8 @@ import React from 'react';
 import { Platform, View } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import Fontisto from 'react-native-vector-icons/Fontisto';
 import Color from 'color';
 import useColors from '@app/hooks/useColors';
 import { IconColor, IconName, ICONS } from '@app/consts/icons';
@@ -44,7 +46,8 @@ export default function Icon({
     if (!icon) return <View style={{ width: iconSize, height: iconSize }} />;
 
     if (Platform.OS === 'ios') {
-      const { sfSymbolName } = icon as any;
+      const { sfSymbolName, fa5IconName, materialIconName, fontistoIconName } =
+        icon as any;
 
       if (sfSymbolName) {
         return (
@@ -66,38 +69,113 @@ export default function Icon({
         );
       }
 
+      if (fa5IconName) {
+        let size = iconSize * 0.84;
+
+        if (fa5IconName === 'box-open') {
+          size = iconSize * 0.8;
+        } else if (fa5IconName === 'band-aid') {
+          size = iconSize * 0.8;
+        }
+
+        return (
+          <View
+            style={[
+              { width: iconSize, height: iconSize, overflow: 'visible' },
+              commonStyles.centerChildren,
+              !showBackground && style,
+            ]}
+          >
+            <FontAwesome5
+              name={fa5IconName}
+              size={size}
+              color={color}
+              style={style}
+              solid
+            />
+          </View>
+        );
+      }
+
+      if (materialIconName) {
+        return (
+          <View
+            style={[
+              { width: iconSize, height: iconSize, overflow: 'visible' },
+              commonStyles.centerChildren,
+              !showBackground && style,
+            ]}
+          >
+            <MaterialCommunityIcon
+              name={materialIconName}
+              size={iconSize * 1.16}
+              color={color}
+              style={{
+                position: 'absolute',
+                top: iconSize * -0.08,
+                bottom: iconSize * -0.08,
+                left: iconSize * -0.08,
+                right: iconSize * -0.08,
+              }}
+            />
+          </View>
+        );
+      }
+
+      if (fontistoIconName) {
+        return (
+          <View
+            style={[
+              { width: iconSize, height: iconSize, overflow: 'visible' },
+              commonStyles.centerChildren,
+              !showBackground && style,
+            ]}
+          >
+            <Fontisto name={fontistoIconName} size={iconSize} color={color} />
+          </View>
+        );
+      }
+
+      return <></>;
+    }
+
+    const { fa5IconName, materialIconName, fontistoIconName } = icon as any;
+
+    if (fa5IconName) {
       return (
-        <View
-          style={[
-            { width: iconSize, height: iconSize, overflow: 'visible' },
-            commonStyles.centerChildren,
-            !showBackground && style,
-          ]}
-        >
-          <MaterialCommunityIcon
-            name={icon.materialIconName}
-            size={iconSize * 1.16}
-            color={color}
-            style={{
-              position: 'absolute',
-              top: iconSize * -0.08,
-              bottom: iconSize * -0.08,
-              left: iconSize * -0.08,
-              right: iconSize * -0.08,
-            }}
-          />
-        </View>
+        <FontAwesome5
+          name={fa5IconName}
+          size={iconSize * 0.84}
+          color={color}
+          style={[!showBackground && style]}
+          solid
+        />
       );
     }
 
-    return (
-      <MaterialCommunityIcon
-        name={icon.materialIconName}
-        size={iconSize}
-        color={color}
-        style={[!showBackground && style]}
-      />
-    );
+    if (materialIconName) {
+      return (
+        <MaterialCommunityIcon
+          name={materialIconName}
+          size={iconSize}
+          color={color}
+          style={[!showBackground && style]}
+        />
+      );
+    }
+
+    if (fontistoIconName) {
+      return (
+        <Fontisto
+          name={fontistoIconName}
+          size={iconSize}
+          color={color}
+          style={[!showBackground && style]}
+        />
+      );
+    }
+
+    return <></>;
   })();
 
   if (showBackground) {

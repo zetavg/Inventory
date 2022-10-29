@@ -27,6 +27,11 @@ export const ICONS = {
     materialIconName: 'archive',
     keywords: 'box archive',
   },
+  'box-open': {
+    fa5IconName: 'box-open',
+    materialIconName: 'cube',
+    keywords: '',
+  },
   'shipping-box': {
     sfSymbolName: 'shippingbox.fill',
     materialIconName: 'cube',
@@ -70,25 +75,54 @@ export const ICONS = {
     materialIconName: 'sofa-single',
     keywords: 'chair sofa lounge',
   },
+  chair: {
+    // sfSymbolName: 'chair.fill',
+    fa5IconName: 'chair',
+    keywords: 'seat',
+  },
   bed: {
     sfSymbolName: 'bed.double.fill',
     materialIconName: 'bed-double',
     keywords: 'bed sleep',
   },
+  'art-frame': {
+    sfSymbolName: 'photo.artframe',
+    fa5IconName: 'image',
+    keywords: 'painting photo',
+  },
   sink: {
     // sfSymbolName: 'sink.fill',
     materialIconName: 'countertop',
+    fa5IconName: 'sink',
     keywords: 'countertop sink bathroom toilet',
+  },
+  toilet: {
+    fa5IconName: 'toilet',
+  },
+  'toilet-paper': {
+    fa5IconName: 'toilet-paper',
   },
   bathtub: {
     // sfSymbolName: 'bathtub.fill',
+    fa5IconName: 'bath',
     materialIconName: 'bathtub',
     keywords: 'bathtub bathroom toilet',
   },
   shower: {
     // sfSymbolName: 'shower.fill',
+    fa5IconName: 'shower',
     materialIconName: 'shower-head',
     keywords: 'shower bathroom toilet',
+  },
+  spigot: {
+    // sfSymbolName: 'spigot.fill',
+    fa5IconName: 'faucet',
+    keywords: 'faucet water',
+  },
+  'pump-soap': {
+    // sfSymbolName: 'shower.fill',
+    fa5IconName: 'pump-soap',
+    keywords: 'bathroom toilet bottle',
   },
   lamp: {
     // sfSymbolName: 'lamp.table.fill',
@@ -103,7 +137,7 @@ export const ICONS = {
   bin: {
     // sfSymbolName: 'bin',
     materialIconName: 'delete',
-    keywords: 'delete',
+    keywords: 'delete trash',
   },
   plant: {
     sfSymbolName: 'leaf.fill',
@@ -117,8 +151,12 @@ export const ICONS = {
     materialIconName: 'silverware-fork-knife',
     keywords: 'dining fork knife',
   },
+  'martini-glass': {
+    fa5IconName: 'glass-martini',
+  },
   wineglass: {
     // sfSymbolName: 'wineglass.fill',
+    fa5IconName: 'wine-glass',
     materialIconName: 'glass-wine',
     keywords: 'glass-wine',
   },
@@ -142,6 +180,12 @@ export const ICONS = {
   cup: {
     materialIconName: 'cup',
   },
+  beer: {
+    fa5IconName: 'beer',
+  },
+  'tissue-box': {
+    fa5IconName: 'box-tissue',
+  },
   food: {
     // sfSymbolName: 'carrot.fill',
     materialIconName: 'carrot',
@@ -152,10 +196,11 @@ export const ICONS = {
     materialIconName: 'kettle-steam',
     keywords: 'kettle-steam',
   },
-  hanger: {
-    // sfSymbolName: '',
-    materialIconName: 'hanger',
-    keywords: '',
+  bread: {
+    fa5IconName: 'bread-slice',
+  },
+  cookie: {
+    fa5IconName: 'cookie',
   },
   cupcake: {
     materialIconName: 'cupcake',
@@ -169,6 +214,16 @@ export const ICONS = {
     // sfSymbolName: 'pencil.and.ruler.fill',
     materialIconName: 'food-apple',
     keywords: 'food',
+  },
+  lemon: {
+    fa5IconName: 'lemon',
+  },
+  egg: {
+    fa5IconName: 'egg',
+  },
+  fish: {
+    // sfSymbolName: 'fish.fill',
+    fa5IconName: 'fish',
   },
 
   // Book
@@ -209,10 +264,31 @@ export const ICONS = {
     materialIconName: 'file-document',
     keywords: 'document paper',
   },
+  'sticky-note': {
+    fa5IconName: 'sticky-note',
+    materialIconName: 'file',
+    keywords: 'post-it post it',
+  },
+  receipt: {
+    fa5IconName: 'receipt',
+    keywords: 'paper',
+  },
+  stamp: {
+    fa5IconName: 'stamp',
+  },
   tray: {
     sfSymbolName: 'tray.fill',
     materialIconName: 'tray',
     keywords: 'tray',
+  },
+  paperclip: {
+    fa5IconName: 'paperclip',
+    materialIconName: 'file',
+    keywords: 'paper clip',
+  },
+  eraser: {
+    // sfSymbolName: 'eraser.fill',
+    materialIconName: 'eraser',
   },
   pencil: {
     materialIconName: 'pencil',
@@ -222,6 +298,13 @@ export const ICONS = {
   },
   'fountain-pen': {
     materialIconName: 'fountain-pen',
+  },
+  marker: {
+    fa5IconName: 'marker',
+  },
+  paintbrush: {
+    sfSymbolName: 'paintbrush.pointed.fill',
+    fa5IconName: 'paint-brush',
   },
   ruler: {
     sfSymbolName: 'ruler.fill',
@@ -233,15 +316,32 @@ export const ICONS = {
     materialIconName: 'content-cut',
     keywords: 'scissors cut cutter',
   },
+  'drafting-compass': {
+    fa5IconName: 'drafting-compass',
+  },
+  magnifier: {
+    sfSymbolName: 'magnifyingglass',
+    fa5IconName: 'search',
+  },
+  tape: {
+    fa5IconName: 'tape',
+    materialIconName: 'tape-measure',
+  },
   tag: {
     sfSymbolName: 'tag.fill',
     materialIconName: 'tag',
     keywords: 'tab label',
   },
+  magnet: {
+    fa5IconName: 'magnet',
+  },
   list: {
     sfSymbolName: 'list.bullet',
     materialIconName: 'format-list-bulleted',
     keywords: 'format-list-bulleted',
+  },
+  feather: {
+    fa5IconName: 'feather-alt',
   },
 
   // Personal Items
@@ -249,6 +349,11 @@ export const ICONS = {
     sfSymbolName: 'tshirt.fill',
     materialIconName: 'tshirt-crew',
     keywords: 'clothes tshirt t-shirt',
+  },
+  hanger: {
+    // sfSymbolName: '',
+    materialIconName: 'hanger',
+    keywords: '',
   },
   shoe: {
     // sfSymbolName: '',
@@ -265,6 +370,12 @@ export const ICONS = {
     materialIconName: 'shoe-sneaker',
     keywords: 'shoe-sneaker',
   },
+  socks: {
+    fa5IconName: 'socks',
+  },
+  slipper: {
+    fontistoIconName: 'beach-slipper',
+  },
   glasses: {
     sfSymbolName: 'eyeglasses',
     materialIconName: 'glasses',
@@ -272,6 +383,15 @@ export const ICONS = {
   },
   hat: {
     materialIconName: 'hat-fedora',
+  },
+  'cowboy-hat': {
+    fa5IconName: 'hat-cowboy-side',
+  },
+  'hard-hat': {
+    fa5IconName: 'hard-hat',
+  },
+  helmet: {
+    materialIconName: 'racing-helmet',
   },
   'face-mask': {
     sfSymbolName: 'facemask.fill',
@@ -303,18 +423,39 @@ export const ICONS = {
   },
   key: {
     sfSymbolName: 'key.fill',
+    fa5IconName: 'key',
     materialIconName: 'key',
     keywords: 'key',
   },
   wallet: {
-    sfSymbolName: 'wallet.pass.fill',
+    // sfSymbolName: 'wallet.pass.fill',
+    fa5IconName: 'wallet',
     materialIconName: 'wallet',
     keywords: 'wallet',
+  },
+  'id-card': {
+    fa5IconName: 'id-card',
+  },
+  'id-badge': {
+    fa5IconName: 'id-badge',
   },
   'credit-card': {
     sfSymbolName: 'creditcard.fill',
     materialIconName: 'credit-card',
     keywords: 'money wallet',
+  },
+  'money-bill': {
+    fa5IconName: 'money-bill',
+  },
+  'wallet-pass': {
+    sfSymbolName: 'wallet.pass.fill',
+    fa5IconName: 'ticket-alt',
+  },
+  ticket: {
+    fa5IconName: 'ticket-alt',
+  },
+  passport: {
+    fa5IconName: 'passport',
   },
   suitcase: {
     // sfSymbolName: 'suitcase.fill',
@@ -342,6 +483,7 @@ export const ICONS = {
     keywords: 'bag personal backpack',
   },
   'shopping-bag': {
+    fa5IconName: 'shopping-bag',
     materialIconName: 'shopping',
     keywords: 'bag personal',
   },
@@ -349,10 +491,19 @@ export const ICONS = {
     materialIconName: 'basket',
     keywords: 'bag personal',
   },
-  medication: {
-    sfSymbolName: 'cross.vial.fill',
-    materialIconName: 'pill',
-    keywords: 'medication',
+  medal: {
+    // sfSymbolName: 'medal.fill',
+    fa5IconName: 'medal',
+  },
+  trophy: {
+    // sfSymbolName: 'trophy.fill',
+    fa5IconName: 'trophy',
+  },
+  cross: {
+    fa5IconName: 'cross',
+  },
+  bible: {
+    fa5IconName: 'bible',
   },
   spray: {
     materialIconName: 'spray',
@@ -363,6 +514,72 @@ export const ICONS = {
   lipstick: {
     materialIconName: 'lipstick',
   },
+  lock: {
+    sfSymbolName: 'lock.fill',
+    fa5IconName: 'lock',
+  },
+  smoking: {
+    fa5IconName: 'smoking',
+  },
+
+  // Medication
+  medication: {
+    sfSymbolName: 'cross.vial.fill',
+    materialIconName: 'pill',
+    keywords: 'medication',
+  },
+  pill: {
+    // sfSymbolName: 'pill.fill',
+    fa5IconName: 'capsules',
+    materialIconName: 'pill',
+    keywords: 'medication',
+  },
+  'medicine-bottle': {
+    sfSymbolName: 'cross.vial.fill',
+    fa5IconName: 'prescription-bottle-alt',
+    materialIconName: 'pill',
+    keywords: 'medication',
+  },
+  'prescription-bottle': {
+    fa5IconName: 'prescription-bottle',
+  },
+  'eye-dropper': {
+    fa5IconName: 'eye-dropper',
+  },
+  'medical-thermometer': {
+    // sfSymbolName: 'medical.thermometer.fill',
+    fa5IconName: 'thermometer-half',
+  },
+  bandage: {
+    sfSymbolName: 'bandage.fill',
+    fa5IconName: 'band-aid',
+  },
+  'first-aid': {
+    fa5IconName: 'first-aid',
+  },
+  syringe: {
+    // sfSymbolName: 'syringe.fill',
+    fa5IconName: 'syringe',
+  },
+  cannabis: {
+    fa5IconName: 'cannabis',
+    keywords: 'weed',
+  },
+  'joint-cannabis': {
+    fa5IconName: 'joint',
+    keywords: 'weed smoke',
+  },
+  bong: {
+    fa5IconName: 'bong',
+    keywords: 'weed smoke',
+  },
+  biohazard: {
+    fa5IconName: 'biohazard',
+    keywords: 'biological hazard',
+  },
+  radiation: {
+    fa5IconName: 'radiation',
+  },
 
   // Electronics
   'phone-and-computer': {
@@ -372,6 +589,7 @@ export const ICONS = {
   },
   'laptop-computer': {
     sfSymbolName: 'laptopcomputer',
+    fa5IconName: 'laptop',
     materialIconName: 'laptop',
     keywords: '',
   },
@@ -397,6 +615,14 @@ export const ICONS = {
     materialIconName: 'monitor',
     keywords: 'screen',
   },
+  projector: {
+    materialIconName: 'projector',
+    keywords: 'screen',
+  },
+  'projector-screen': {
+    materialIconName: 'projector-screen',
+    keywords: 'screen',
+  },
   speaker: {
     sfSymbolName: 'hifispeaker.fill',
     materialIconName: 'speaker',
@@ -412,10 +638,20 @@ export const ICONS = {
     materialIconName: 'mouse',
     keywords: 'computermouse',
   },
+  'compact-disc': {
+    fa5IconName: 'compact-disc',
+  },
   'external-drive': {
     sfSymbolName: 'externaldrive.fill',
     materialIconName: 'harddisk',
     keywords: 'harddisk',
+  },
+  'wifi-router': {
+    // sfSymbolName: 'wifi.router.fill',
+    fa5IconName: 'wifi',
+  },
+  'sim-card': {
+    fa5IconName: 'sim-card',
   },
   'sd-card': {
     // sfSymbolName: '',
@@ -467,6 +703,12 @@ export const ICONS = {
     materialIconName: 'power-plug',
     keywords: 'powerplug',
   },
+  'satellite-dish': {
+    fa5IconName: 'satellite-dish',
+  },
+  satellite: {
+    fa5IconName: 'satellite',
+  },
 
   // Appliances
   tv: {
@@ -483,6 +725,9 @@ export const ICONS = {
     // sfSymbolName: 'oven.fill',
     materialIconName: 'toaster-oven',
     keywords: 'oven kitchen',
+  },
+  blender: {
+    fa5IconName: 'blender',
   },
   dishwasher: {
     // sfSymbolName: 'dishwasher.fill',
@@ -512,21 +757,70 @@ export const ICONS = {
     materialIconName: 'air-purifier',
   },
 
+  // Cleaning
+  broom: {
+    fa5IconName: 'broom',
+  },
+
   // Outdoors
   sun: {
     sfSymbolName: 'sun.max.fill',
     materialIconName: 'white-balance-sunny',
-    keywords: 'outdoor',
+    keywords: 'outdoor weather',
   },
   'cloud-sun': {
     sfSymbolName: 'cloud.sun.fill',
     materialIconName: 'weather-partly-cloudy',
-    keywords: 'outdoor',
+    keywords: 'outdoor weather',
+  },
+  cloud: {
+    sfSymbolName: 'cloud.fill',
+    materialIconName: 'cloud',
+    keywords: 'outdoor weather',
+  },
+  'cloud-rain': {
+    sfSymbolName: 'cloud.rain.fill',
+    materialIconName: 'weather-pouring',
+    keywords: 'outdoor weather',
+  },
+  'cloud-snow': {
+    sfSymbolName: 'cloud.snow.fill',
+    materialIconName: 'weather-snowy',
+    keywords: 'outdoor weather',
+  },
+  snowflake: {
+    sfSymbolName: 'snowflake',
+    fa5IconName: 'snowflake',
+    keywords: 'outdoor weather',
   },
   umbrella: {
     sfSymbolName: 'umbrella.fill',
     materialIconName: 'umbrella',
     keywords: 'umbrella',
+  },
+  compass: {
+    fa5IconName: 'compass',
+  },
+  binoculars: {
+    sfSymbolName: 'binoculars.fill',
+    fa5IconName: 'binoculars',
+    keywords: 'find finder search',
+  },
+  bullhorn: {
+    fa5IconName: 'bullhorn',
+  },
+  flag: {
+    sfSymbolName: 'flag.fill',
+    fa5IconName: 'flag',
+  },
+  tent: {
+    fa5IconName: 'campground',
+    keywords: 'camp',
+  },
+  fire: {
+    sfSymbolName: 'flame.fill',
+    fa5IconName: 'fire',
+    keywords: 'lighter',
   },
 
   // Transport
@@ -545,18 +839,29 @@ export const ICONS = {
     materialIconName: 'moped',
     keywords: 'scooter moped',
   },
-  // motorcycle: {
-  //   // sfSymbolName: 'scooter',
-  //   materialIconName: 'atv',
-  //   keywords: 'scooter motorcycle atv',
-  // },
+  motorcycle: {
+    // sfSymbolName: 'scooter',
+    // materialIconName: 'atv',
+    fa5IconName: 'motorcycle',
+    keywords: 'scooter motorcycle atv',
+  },
   car: {
     sfSymbolName: 'car.fill',
     materialIconName: 'car',
     keywords: 'car',
   },
+  truck: {
+    fa5IconName: 'truck',
+  },
+  helicopter: {
+    // fa5SymbolName: 'helicopter',
+    materialIconName: 'helicopter',
+  },
 
   // Activities
+  music: {
+    fa5IconName: 'music',
+  },
   gamecontroller: {
     sfSymbolName: 'gamecontroller.fill',
     materialIconName: 'microsoft-xbox-controller',
@@ -567,13 +872,27 @@ export const ICONS = {
     materialIconName: 'cards-playing-spade-multiple',
     keywords: '',
   },
+  chess: {
+    fa5IconName: 'chess-knight',
+  },
   piano: {
     sfSymbolName: 'pianokeys',
     materialIconName: 'piano',
     keywords: 'pianokeys',
   },
+  guitar: {
+    fa5IconName: 'guitar',
+  },
+  drum: {
+    fa5IconName: 'drum',
+  },
+  racket: {
+    // sfSymbolName: 'tennis.racket',
+    materialIconName: 'tennis',
+  },
   dumbbell: {
     // sfSymbolName: 'dumbbell',
+    fa5IconName: 'dumbbell',
     materialIconName: 'dumbbell',
     keywords: 'dumbbell sport workout',
   },
@@ -583,7 +902,29 @@ export const ICONS = {
   //   keywords: 'document paper file',
   // },
 
-  // Things for making things
+  // Matter of time
+  clock: {
+    sfSymbolName: 'clock.fill',
+    fa5IconName: 'clock',
+    keywords: 'time',
+  },
+  stopwatch: {
+    sfSymbolName: 'stopwatch.fill',
+    fa5IconName: 'stopwatch',
+    keywords: 'time timer',
+  },
+  alarm: {
+    sfSymbolName: 'alarm.fill',
+    materialIconName: 'alarm',
+    keywords: 'time',
+  },
+  calender: {
+    sfSymbolName: 'calendar',
+    fa5IconName: 'calendar-alt',
+    keywords: 'time date',
+  },
+
+  // Things for making things, tools
   camera: {
     sfSymbolName: 'camera.fill',
     materialIconName: 'camera',
@@ -618,6 +959,13 @@ export const ICONS = {
     materialIconName: 'scanner',
     keywords: '',
   },
+  microscope: {
+    fa5IconName: 'microscope',
+  },
+  swatchbook: {
+    fa5IconName: 'swatchbook',
+    keywords: 'samples',
+  },
   tools: {
     sfSymbolName: 'wrench.and.screwdriver.fill',
     materialIconName: 'hammer-screwdriver',
@@ -638,6 +986,9 @@ export const ICONS = {
     sfSymbolName: 'hammer.fill',
     materialIconName: 'hammer',
     keywords: 'tools hammer',
+  },
+  gavel: {
+    fa5IconName: 'gavel',
   },
   wrench: {
     // sfSymbolName: 'wrench.adjustable.fill',
@@ -672,13 +1023,40 @@ export const ICONS = {
     materialIconName: 'test-tube',
     keywords: '',
   },
+  flask: {
+    fa5IconName: 'flask',
+  },
+  funnel: {
+    fa5IconName: 'filter',
+  },
   ladder: {
     materialIconName: 'ladder',
     keywords: '',
   },
+  cart: {
+    fa5IconName: 'dolly-flatbed',
+  },
+  dolly: {
+    fa5IconName: 'dolly',
+  },
   shovel: {
     materialIconName: 'shovel',
     keywords: '',
+  },
+  brush: {
+    sfSymbolName: 'paintbrush.fill',
+    fa5IconName: 'brush',
+  },
+  'paint-roller': {
+    fa5IconName: 'paint-roller',
+  },
+  thermometer: {
+    fa5IconName: 'thermometer-half',
+    keywords: 'temperature',
+  },
+  tachometer: {
+    fa5IconName: 'tachometer-alt',
+    keywords: 'meter',
   },
   'fire-extinguisher': {
     materialIconName: 'fire-extinguisher',
