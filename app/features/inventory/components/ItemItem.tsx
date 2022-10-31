@@ -109,19 +109,24 @@ export default function ItemItem({
       ? undefined
       : [
           additionalDetails,
-          dedicatedItemsCount !== null && (
-            <Text key="containerInfo">
-              {(() => {
-                switch (item.isContainerType) {
-                  case 'item-with-parts':
-                    return `+${dedicatedItemsCount} parts`;
+          dedicatedItemsCount !== null &&
+            (() => {
+              switch (item.isContainerType) {
+                case 'generic-container':
+                  return dedicatedItemsCount ? (
+                    <Text key="containerInfo">{`+${dedicatedItemsCount} parts`}</Text>
+                  ) : undefined;
+                case 'item-with-parts':
+                  return (
+                    <Text key="containerInfo">{`+${dedicatedItemsCount} parts`}</Text>
+                  );
 
-                  default:
-                    return `${dedicatedItemsCount} items`;
-                }
-              })()}
-            </Text>
-          ),
+                default:
+                  return (
+                    <Text key="containerInfo">{`${dedicatedItemsCount} items`}</Text>
+                  );
+              }
+            })(),
           !hideCollectionDetails && collectionData && (
             <Text key="collectionData">
               <Icon

@@ -78,6 +78,7 @@ function SaveItemScreen({
           iconName: string;
           iconColor: string;
           itemReferenceNumber?: string;
+          isContainerType: string;
         }
     >(null);
   const loadSelectedDedicatedContainerData = useCallback(async () => {
@@ -259,7 +260,18 @@ function SaveItemScreen({
               <InsetGroup.ItemSeparator />
               <InsetGroup.Item
                 compactLabel
-                label="Dedicated Container"
+                label={(() => {
+                  switch (
+                    typeof selectedDedicatedContainerData === 'object' &&
+                    selectedDedicatedContainerData?.isContainerType
+                  ) {
+                    case 'generic-container':
+                    case 'item-with-parts':
+                      return 'Part of';
+                    default:
+                      return 'Dedicated Container';
+                  }
+                })()}
                 detail={
                   data.dedicatedContainer ? (
                     <InsetGroup.ItemDetailButton
@@ -403,6 +415,10 @@ function SaveItemScreen({
                     placeholder={{}}
                     items={[
                       { label: 'Container', value: 'container' },
+                      {
+                        label: 'Generic Container',
+                        value: 'generic-container',
+                      },
                       { label: 'Item With Parts', value: 'item-with-parts' },
                     ]}
                     useNativeAndroidPickerStyle={false}
@@ -555,7 +571,18 @@ function SaveItemScreen({
         <InsetGroup>
           <InsetGroup.Item
             compactLabel
-            label="Dedicated Container"
+            label={(() => {
+              switch (
+                typeof selectedDedicatedContainerData === 'object' &&
+                selectedDedicatedContainerData?.isContainerType
+              ) {
+                case 'generic-container':
+                case 'item-with-parts':
+                  return 'Part of';
+                default:
+                  return 'Dedicated Container';
+              }
+            })()}
             detail={
               data.dedicatedContainer ? (
                 <InsetGroup.ItemDetailButton
