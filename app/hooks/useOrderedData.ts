@@ -6,10 +6,12 @@ export default function useOrderedData<T extends { id?: string }>({
   data,
   settingName,
   settingPriority,
+  unorderedOnTop,
 }: {
   data: ReadonlyArray<T> | null;
   settingName: string;
   settingPriority?: string;
+  unorderedOnTop?: boolean;
 }): {
   orderedData: ReadonlyArray<T> | null;
   reloadOrder: () => void;
@@ -44,22 +46,20 @@ export default function useOrderedData<T extends { id?: string }>({
       data.map(d => [d.id, d]),
     );
 
-    return [
-      ...orderData.data
-        .map((id: string) => {
-          const d = dataMap[id];
-          delete dataMap[id];
-          return d;
-        })
-        .filter((v: any): v is T => v),
-      ...Object.values(dataMap),
-      // This is now handled by .find queries
-      // .sort(
-      //   (a: any, b: any) =>
-      //     ((a && a.createdAt) || 0) - ((b && b.createdAt) || 0),
-      // )
-    ];
-  }, [data, orderData]);
+    const explicitlyOrderedData = orderData.data
+      .map((id: string) => {
+        const d = dataMap[id];
+        delete dataMap[id];
+        return d;
+      })
+      .filter((v: any): v is T => v);
+    const notExplicitlyOrderedData = Object.values(dataMap);
+
+    if (unorderedOnTop)
+      return [...notExplicitlyOrderedData, ...explicitlyOrderedData];
+
+    return [...explicitlyOrderedData, ...notExplicitlyOrderedData];
+  }, [data, unorderedOnTop, orderData]);
 
   const updateOrder = useCallback(
     (newOrder: string[]) => {
