@@ -132,6 +132,7 @@ export const schema = s({
       },
       optionalProperties: {
         description: { type: 'string' },
+        createdAt: { type: 'uint32' },
       },
       additionalProperties: true,
     }),

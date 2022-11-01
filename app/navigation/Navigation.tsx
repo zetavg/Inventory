@@ -100,6 +100,7 @@ export type RootStackParamList = {
   };
   SaveChecklist: {
     initialData?: Partial<DataTypeWithID<'checklist'>>;
+    afterDelete?: () => void;
   };
   OrderItems: {
     orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;

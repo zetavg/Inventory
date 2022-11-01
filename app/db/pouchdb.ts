@@ -72,6 +72,12 @@ export function getDatabase(name: string): Database {
     }),
     relDB.createIndex({
       index: {
+        ddoc: 'index-type-createdAt',
+        fields: ['type', 'data.createdAt'],
+      },
+    }),
+    relDB.createIndex({
+      index: {
         ddoc: 'index-type-updatedAt',
         fields: ['type', 'data.updatedAt'],
       },

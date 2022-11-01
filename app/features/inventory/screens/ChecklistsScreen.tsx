@@ -27,10 +27,24 @@ function ChecklistsScreen({
   const rootNavigation = useRootNavigation();
 
   const { db } = useDB();
-  const { data, reloadData } = useRelationalData('checklist');
+  const { data, reloadData } = useRelationalData(
+    'checklist',
+    useMemo(
+      () =>
+        ({
+          use_index: 'index-type-createdAt',
+          selector: {
+            $and: [{ 'data.createdAt': { $exists: true } }],
+          },
+          sort: [{ type: 'desc' }, { 'data.createdAt': 'desc' }],
+        } as const),
+      [],
+    ),
+  );
   const { orderedData, reloadOrder, updateOrder } = useOrderedData({
     data,
     settingName: 'checklists',
+    unorderedOnTop: true,
   });
 
   const [searchText, setSearchText] = useState('');

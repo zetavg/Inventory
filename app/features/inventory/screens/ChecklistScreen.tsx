@@ -194,6 +194,7 @@ function ChecklistScreen({
           ? () =>
               rootNavigation?.navigate('SaveChecklist', {
                 initialData: checklist,
+                afterDelete: () => navigation.goBack(),
               })
           : undefined
       }

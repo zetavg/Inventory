@@ -12,7 +12,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, save } from '@app/db/relationalUtils';
+import { DataTypeWithID, del, save } from '@app/db/relationalUtils';
 
 import {
   applyWhitespaceFix,
@@ -217,6 +217,44 @@ function SaveChecklistScreen({
             />
           </InsetGroup.Item>
         </InsetGroup>
+
+        {initialData && initialData.id && (
+          <InsetGroup>
+            <InsetGroup.Item
+              button
+              destructive
+              label={`Delete "${initialData.name}"`}
+              onPress={() =>
+                Alert.alert(
+                  'Confirm',
+                  `Are you sure you want to delete item ${initialData.name}?`,
+                  [
+                    { text: 'No', style: 'cancel', onPress: () => {} },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: async () => {
+                        if (!initialData.id) return;
+
+                        try {
+                          await del(db, 'checklist', initialData.id);
+                          // if (route.params.afterDelete)
+                          //   route.params.afterDelete();
+                          navigation.goBack();
+                        } catch (e: any) {
+                          Alert.alert(
+                            `Can't delete ${initialData.name}`,
+                            e.message,
+                          );
+                        }
+                      },
+                    },
+                  ],
+                )
+              }
+            />
+          </InsetGroup>
+        )}
       </ScrollView>
     </ModalContent>
   );
