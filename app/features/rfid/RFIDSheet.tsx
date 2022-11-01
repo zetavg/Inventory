@@ -15,6 +15,7 @@ import {
   useWindowDimensions,
   TouchableWithoutFeedback,
   Alert,
+  LayoutAnimation,
 } from 'react-native';
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
 import Slider from '@react-native-community/slider';
@@ -64,6 +65,7 @@ import RFIDWithUHFBLEModule, {
 import ItemItem from '../inventory/components/ItemItem';
 import { DataTypeWithID } from '@app/db/relationalUtils';
 import { getDataFromDocs } from '@app/db/hooks';
+import useActionSheet from '@app/hooks/useActionSheet';
 
 export type OnScannedItemPressFn = (
   data: ScanData,
@@ -651,6 +653,14 @@ function RFIDSheet(
   }, [options, clearScannedData]);
 
   const scannedItems = scannedData[scanName] || {};
+  const removeScannedItem = useCallback(
+    (epc: string) => {
+      const currentScannedItems = scannedData[scanName] || {};
+      delete currentScannedItems[epc];
+      setScannedData(d => ({ ...d, [scanName]: { ...currentScannedItems } }));
+    },
+    [scanName, scannedData],
+  );
 
   const [locateReaderSoundEnabled, setLocateReaderSoundEnabled] =
     usePersistedState('RFIDSheet-locateReaderSoundEnabled', true);
@@ -1245,6 +1255,7 @@ function RFIDSheet(
                                   key={d.epc}
                                   item={d}
                                   onPressRef={options?.onScannedItemPressRef}
+                                  removeScannedItem={removeScannedItem}
                                 />,
                                 <InsetGroup.ItemSeparator
                                   key={`s-${d.epc}`}
@@ -1928,11 +1939,14 @@ function RFIDSheet(
 function ScannedItem({
   item,
   onPressRef,
+  removeScannedItem,
 }: {
   item: ScanData;
   onPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
+  removeScannedItem?: (epc: string) => void;
 }) {
   const { db } = useDB();
+  const { showActionSheetWithOptions } = useActionSheet();
 
   const [loadedItem, setLoadedItem] = useState<DataTypeWithID<any> | null>(
     null,
@@ -1957,6 +1971,62 @@ function ScannedItem({
   useEffect(() => {
     loadItem();
   }, [loadItem]);
+  const handleItemLongPress = useCallback(() => {
+    const options = [
+      loadedItem && onPressRef?.current && 'view',
+      removeScannedItem && 'remove',
+    ].filter((s): s is string => !!s);
+    if (options.length <= 0) return;
+    const optionNames: Record<string, string> = {
+      view: 'View Item',
+      remove: 'Remove From List',
+    };
+    const destructiveOptions: ReadonlyArray<string> = ['remove'];
+    const shownOptions = options.map(v => optionNames[v]);
+    showActionSheetWithOptions(
+      {
+        options: [...shownOptions, 'Cancel'],
+        cancelButtonIndex: shownOptions.length,
+        destructiveButtonIndex: destructiveOptions
+          .map(opt => {
+            const i = options.findIndex(v => v === opt);
+            return i >= 0 ? i : null;
+          })
+          .filter((i): i is number => typeof i === 'number'),
+      },
+      buttonIndex => {
+        if (buttonIndex === shownOptions.length) {
+          // cancel action
+          return;
+        }
+
+        const selectedOption =
+          typeof buttonIndex === 'number' ? options[buttonIndex] : null;
+        switch (selectedOption) {
+          case 'view':
+            onPressRef?.current &&
+              onPressRef.current(item, 'item', loadedItem?.id || null);
+            return;
+          case 'remove':
+            if (!removeScannedItem) return;
+            LayoutAnimation.configureNext(
+              LayoutAnimation.Presets.easeInEaseOut,
+            );
+            removeScannedItem(item.epc);
+            return;
+          default:
+            Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
+            return;
+        }
+      },
+    );
+  }, [
+    item,
+    loadedItem,
+    onPressRef,
+    removeScannedItem,
+    showActionSheetWithOptions,
+  ]);
 
   if (loadedItem) {
     if (loadedItemType === 'item') {
@@ -1973,6 +2043,7 @@ function ScannedItem({
                 }
               : undefined
           }
+          onLongPress={handleItemLongPress}
         />
       );
     }
@@ -2029,6 +2100,7 @@ function ScannedItem({
             }
           : undefined
       }
+      onLongPress={handleItemLongPress}
     />
   );
 }
