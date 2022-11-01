@@ -1,5 +1,6 @@
 import useDB from '@app/hooks/useDB';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { DeepReadonly } from '@app/utils/DeepReadonly';
 import {
   DataTypeWithID,
   find,
@@ -7,6 +8,7 @@ import {
   FindWithRelationsReturnedData,
 } from './relationalUtils';
 import schema, { TypeName } from './schema';
+import { DBContent } from './types';
 
 // const log = console.log;
 const log = (..._args: any) => {};
@@ -25,6 +27,9 @@ export function getDataFromDocs<T extends TypeName>(
 
 export function useRelationalData<T1 extends TypeName>(
   type: T1,
+  additionalRequestParams?: DeepReadonly<
+    Partial<PouchDB.Find.FindRequest<DBContent>>
+  >,
 ): { data: DataTypeWithID<T1>[] | null; reloadData: () => Promise<void> };
 export function useRelationalData<T2 extends TypeName>(
   type: T2,
@@ -35,7 +40,7 @@ export function useRelationalData<T2 extends TypeName>(
 };
 export function useRelationalData<T extends TypeName>(
   type: T,
-  id?: string,
+  id?: string | DeepReadonly<Partial<PouchDB.Find.FindRequest<DBContent>>>,
 ): {
   data: DataTypeWithID<T>[] | FindWithRelationsReturnedData<T> | null;
   reloadData: () => Promise<void>;
@@ -54,7 +59,7 @@ export function useRelationalData<T extends TypeName>(
   const cachedRelatedDataKeysRef = useRef<any>(null);
   cachedRelatedDataKeysRef.current = Object.keys(cachedRelatedData);
 
-  if (id) {
+  if (typeof id === 'string') {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [data, setData] = useState<FindWithRelationsReturnedData<T> | null>(
       null,
@@ -86,6 +91,7 @@ export function useRelationalData<T extends TypeName>(
     }, [loadData]);
     returnData = { data: { data }, reloadData: loadData } as any;
   } else {
+    const additionalRequestParams = id;
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const [data, setData] = useState<DataTypeWithID<T>[] | null>(null);
     // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -94,30 +100,31 @@ export function useRelationalData<T extends TypeName>(
 
       if (isDataLoading.current) return;
 
+      const findRequest = {
+        use_index: 'index-type',
+        ...additionalRequestParams,
+        selector: {
+          ...additionalRequestParams?.selector,
+          $and: [{ type }, ...(additionalRequestParams?.selector?.$and || [])],
+        },
+      };
       try {
         isDataLoading.current = true;
         setCachedRelatedData({});
         // const d = await find(db, type);
         // Faster
-        setData(
-          getDataFromDocs(
-            type,
-            (
-              await db.find({
-                selector: {
-                  $and: [{ type }],
-                },
-                use_index: 'index-type',
-              })
-            ).docs,
-          ),
-        );
-      } catch (e) {
+        setData(getDataFromDocs(type, (await db.find(findRequest)).docs));
+      } catch (e: any) {
+        if (e?.error === 'no_usable_index') {
+          e.message = `${e.message} Request: ${JSON.stringify(findRequest)}`;
+          e.request = findRequest;
+        }
+
         throw e;
       } finally {
         isDataLoading.current = false;
       }
-    }, [db, id, type]);
+    }, [additionalRequestParams, db, id, type]);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
       loadData();
