@@ -313,24 +313,49 @@ export async function del<T extends TypeName>(
   type: T,
   id: string,
 ): Promise<void> {
-  const data = await findWithRelations(db, type, id);
-
-  if (!data.data)
-    throw new Error(`Can't find ${type} with ID ${id}. Is it already deleted?`);
+  const data = await db.get(`${type}-2-${id}`);
 
   // Validate
   switch (type) {
     case 'collection': {
-      const relatedItems = data.getRelated('items', { arrElementType: 'item' });
+      const rd = await findWithRelations(db, type, id);
+      if (!rd.data)
+        throw new Error(
+          `Can't find ${type} with ID ${id}. Is it already deleted?`,
+        );
+      const relatedItems = rd.getRelated('items', { arrElementType: 'item' });
       if (relatedItems && relatedItems.length > 0) {
         throw new Error(
-          `Can't delete collection ${data.data.name} as it still has items in it. Remove all items from the collection and try again.`,
+          `Can't delete collection ${rd.data.name} as it still has items in it. Remove all items from the collection and try again.`,
         );
       }
+      break;
     }
+
+    case 'checklist': {
+      console.warn('hi');
+      const { docs } = await db.find({
+        selector: {
+          $and: [{ type: 'checklistItem' }, { 'data.checklist': id }],
+        },
+        use_index: 'index-checklistItem-checklist',
+      });
+      if (docs && docs.length > 0) {
+        throw new Error(
+          "Can't delete checklist as it still has items on it. Remove all items from the checklist and try again.",
+        );
+      }
+      break;
+    }
+
+    case 'checklistItem':
+      break;
+
+    default:
+      throw new Error('Not implemented');
   }
 
-  await db.rel.del(type, data.data);
+  await db.remove(data);
 }
 
 export async function calculateRfidTagEpcMemoryBankContentsForItem(
