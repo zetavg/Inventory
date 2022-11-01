@@ -1110,6 +1110,10 @@ export const ICONS = {
     sfSymbolName: 'questionmark',
     materialIconName: 'help',
   },
+  'app-rfid-scan': {
+    sfSymbolName: 'dot.radiowaves.forward',
+    materialIconName: 'cellphone-wireless',
+  },
   add: {
     sfSymbolName: 'plus',
     materialIconName: 'plus',

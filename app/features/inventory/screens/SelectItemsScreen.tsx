@@ -1,31 +1,38 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, ScrollView, View } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
 import SearchBar from 'react-native-platform-searchbar';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '@app/navigation/Navigation';
+import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
+import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
 import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
+import Icon from '@app/components/Icon';
 
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 import useDB from '@app/hooks/useDB';
 import { getDataFromDocs } from '@app/db/hooks';
 import { DataTypeWithID } from '@app/db/relationalUtils';
+
+import type { CallbackPayload } from '@app/features/rfid/RFIDSheet';
+
 import ItemItem from '../components/ItemItem';
 
 import { SEARCH_ITEMS_OPTIONS } from '../consts/SEARCH_OPTIONS';
-import commonStyles from '@app/utils/commonStyles';
 
 function SelectItemsScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'SelectItems'>) {
+  const { gray, iosTintColor } = useColors();
+  const { openRfidSheet } = useRootBottomSheets();
   const { callback, defaultValue } = route.params;
   const [value, setValue] = useState(() => ({ set: new Set(defaultValue) }));
   const { db } = useDB();
@@ -115,6 +122,37 @@ function SelectItemsScreen({
     navigation.goBack();
   }, [navigation]);
 
+  const [searchBarFocused, setSearchBarFocused] = useState(false);
+
+  const handleScanPress = useCallback(() => {
+    const cb = (payload?: CallbackPayload) => {
+      if (!payload) return;
+
+      const { scannedTags } = payload;
+      const itemIds = Object.values(scannedTags || {})
+        .map(i => i.itemData?.id)
+        .filter((id): id is string => !!id);
+      if (itemIds.length <= 0) return;
+
+      const { set } = value;
+      itemIds.forEach(id => set.add(id));
+      setValue({ set });
+      setShowSelected(true);
+    };
+    const rfidSheetScanOptions = {
+      functionality: 'scan' as const,
+      scanName: 'select-items',
+      resetData: true,
+      // ignoreScannedChildren: true,
+      autoScroll: true,
+      power: 12,
+      useDefaultFilter: true,
+      onDone: cb,
+      onClose: cb,
+    };
+    openRfidSheet(rfidSheetScanOptions);
+  }, [openRfidSheet, value]);
+
   return (
     <ModalContent
       navigation={navigation}
@@ -131,7 +169,7 @@ function SelectItemsScreen({
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        // automaticallyAdjustKeyboardInsets
       >
         <View style={styles.searchBarContainer}>
           <SearchBar
@@ -139,8 +177,33 @@ function SelectItemsScreen({
             value={search}
             onChangeText={setSearch}
             placeholder="Search"
-            onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
+            onFocus={() => {
+              setSearchBarFocused(true);
+              scrollViewRef?.current?.scrollTo({ y: -9999 });
+            }}
+            onCancel={() => {
+              setSearchBarFocused(false);
+            }}
+            style={commonStyles.flex1}
           />
+          {!searchBarFocused && !search && (
+            <TouchableOpacity
+              style={styles.searchBarScanButtonContainer}
+              onPress={handleScanPress}
+            >
+              <View style={styles.searchBarScanButtonContent}>
+                <Text
+                  style={[
+                    { color: iosTintColor, fontWeight: '500' },
+                    commonStyles.mr4,
+                  ]}
+                >
+                  Scan
+                </Text>
+                <Icon name="app-rfid-scan" size={24} color={iosTintColor} />
+              </View>
+            </TouchableOpacity>
+          )}
         </View>
         <InsetGroup
           loading={!data}
@@ -203,6 +266,22 @@ const styles = StyleSheet.create({
     marginTop: InsetGroup.MARGIN_HORIZONTAL,
     marginHorizontal: InsetGroup.MARGIN_HORIZONTAL,
     marginBottom: InsetGroup.MARGIN_HORIZONTAL,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchBarScanButtonContainer: {
+    // right: -8,
+    // position: 'absolute',
+    // height: 50,
+    // paddingRight: 16,
+    paddingLeft: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchBarScanButtonContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   iconsContainer: {
     marginHorizontal: 'auto',

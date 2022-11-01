@@ -66,6 +66,7 @@ import ItemItem from '../inventory/components/ItemItem';
 import { DataTypeWithID } from '@app/db/relationalUtils';
 import { getDataFromDocs } from '@app/db/hooks';
 import useActionSheet from '@app/hooks/useActionSheet';
+import getChildrenDedicatedItemIds from '../inventory/utils/getChildrenDedicatedItemIds';
 
 export type OnScannedItemPressFn = (
   data: ScanData,
@@ -78,15 +79,23 @@ export type RenderScannedItemsFn = (
   options: { contentBackgroundColor: string; clearScannedDataCounter: number },
 ) => JSX.Element;
 
+export type CallbackPayload = {
+  scannedTags?: Record<
+    string,
+    ScanData & { itemData?: DataType<'item'> & { id: string } }
+  >;
+};
+
 export type RFIDSheetOptions = {
   power?: number;
-  onDone?: () => void;
-  onClose?: () => void;
+  onDone?: (payload?: CallbackPayload) => void;
+  onClose?: (payload?: CallbackPayload) => void;
 } & (
   | {
       functionality: 'scan';
       scanName?: string;
       resetData?: boolean;
+      // ignoreScannedChildren?: boolean;
       playSoundOnlyForEpcs?: string[];
       useDefaultFilter?: boolean;
       autoScroll?: boolean;
@@ -120,6 +129,8 @@ const ACTION_BUTTON_PRESS_RETENTION_OFFSET = {
   left: 32,
   right: 32,
 };
+
+const EMPTY_OBJ = {} as const;
 
 function RFIDSheet(
   { rfidSheetPassOptionsFnRef }: Props,
@@ -178,36 +189,11 @@ function RFIDSheet(
   const scrollViewRef = useRef<BottomSheetScrollViewMethods>(null);
   // #endregion //
 
-  // #region Sheet Open/Close Handlers //
+  // #region Sheet Open/Close States //
   const [sheetOpened, setSheetOpened] = useState(false);
   const [sheetHalfClosed, setSheetHalfClosed] = useState(false);
   const [devShowDetailsCounter, setDevShowDetailsCounter] = useState(0);
   const closeByDone = useRef(false);
-  const handleChange = useCallback(
-    (index: number) => {
-      if (index >= 0) {
-        setSheetOpened(true);
-        closeByDone.current = false;
-      }
-
-      if (index < 0) {
-        setSheetOpened(false);
-        setDevShowDetailsCounter(0);
-        if (!closeByDone.current && options?.onClose) options?.onClose();
-      }
-
-      if (index >= 0 && index < initialSnapPoints.length - 1) {
-        setSheetHalfClosed(true);
-      } else {
-        setSheetHalfClosed(false);
-      }
-    },
-    [initialSnapPoints.length, options],
-  );
-
-  const handleDismiss = useCallback(() => {
-    //   console.warn('Dismiss');
-  }, []);
   // #endregion //
 
   // #region RFID Device Connect & Power Control //
@@ -492,7 +478,13 @@ function RFIDSheet(
     return options.scanName || 'default';
   }, [options]);
   const [scannedData, setScannedData] = useState<
-    Record<string, Record<string, ScanData>>
+    Record<
+      string,
+      Record<
+        string,
+        ScanData & { itemData?: DataType<'item'> & { id: string } }
+      >
+    >
   >({});
   const [clearScannedDataCounter, setClearScannedDataCounter] = useState<
     Record<string, number | undefined>
@@ -563,6 +555,9 @@ function RFIDSheet(
     prevScannedDataLengths.current[scanName] = scannedDataLength;
   }, [options, scanName, scannedDataLength]);
 
+  const scannedTags = scannedData[scanName] || EMPTY_OBJ;
+
+  const scanInProgress = useRef(false);
   const startScan = useCallback(async () => {
     if (options?.functionality !== 'scan') return;
 
@@ -589,6 +584,7 @@ function RFIDSheet(
     try {
       setIsWorking(true);
       setScanStatus('Scan starting...');
+      scanInProgress.current = true;
       const scannedEpcs = Object.keys(scannedData[scanName] || {});
       if (scannedEpcs.length <= 0) scannedEpcs.push('z'); // Must have at least 1 item to work
       await RFIDModule.startScan({
@@ -601,7 +597,7 @@ function RFIDSheet(
         playSoundOnlyForEpcs: options.playSoundOnlyForEpcs,
         scannedEpcs,
       });
-      setScanStatus('Scanning...');
+      if (scanInProgress.current) setScanStatus('Scanning...');
     } catch (e: any) {
       setScanStatus(`Error: ${e?.message}`);
       setIsWorking(false);
@@ -623,6 +619,7 @@ function RFIDSheet(
 
   const stopScan = useCallback(async () => {
     try {
+      scanInProgress.current = false;
       setScanStatus('Stopping...');
       await RFIDModule.stopScan();
       setScanStatus('');
@@ -652,7 +649,6 @@ function RFIDSheet(
     setTimeout(() => clearScannedData(), 500);
   }, [options, clearScannedData]);
 
-  const scannedItems = scannedData[scanName] || {};
   const removeScannedItem = useCallback(
     (epc: string) => {
       const currentScannedItems = scannedData[scanName] || {};
@@ -841,6 +837,41 @@ function RFIDSheet(
   ]);
 
   const [dCounter, setDCounter] = useState(1);
+  // #endregion //
+
+  // #region Sheet Open/Close Handlers //
+  const handleChange = useCallback(
+    (index: number) => {
+      if (index >= 0) {
+        setSheetOpened(true);
+        closeByDone.current = false;
+      }
+
+      if (index < 0) {
+        setSheetOpened(false);
+        setDevShowDetailsCounter(0);
+        if (!closeByDone.current && options?.onClose) {
+          if (options?.functionality === 'scan') {
+            console.log('close scannedTags', scannedTags);
+            options?.onClose({ scannedTags: scannedTags });
+          } else {
+            options?.onClose();
+          }
+        }
+      }
+
+      if (index >= 0 && index < initialSnapPoints.length - 1) {
+        setSheetHalfClosed(true);
+      } else {
+        setSheetHalfClosed(false);
+      }
+    },
+    [initialSnapPoints.length, options, scannedTags],
+  );
+
+  const handleDismiss = useCallback(() => {
+    //   console.warn('Dismiss');
+  }, []);
   // #endregion //
 
   // #region Shared Event Handlers //
@@ -1087,6 +1118,19 @@ function RFIDSheet(
               <View style={styles.secondaryButtonContainer}>
                 {(() => {
                   switch (options?.functionality) {
+                    case 'scan':
+                      return (
+                        <SecondaryButton
+                          title="Done"
+                          onPress={() => {
+                            if (options?.onDone)
+                              options?.onDone({ scannedTags: scannedTags });
+                            closeByDone.current = true;
+                            innerRef.current?.dismiss();
+                          }}
+                        />
+                      );
+
                     default:
                       return (
                         <SecondaryButton
@@ -1114,7 +1158,6 @@ function RFIDSheet(
       handleActionButtonPressIn,
       handleActionButtonPressOut,
       safeAreaInsets.bottom,
-      sheetHalfClosed,
       rfidReaderDeviceReady,
       useBuiltinReader,
       bleDeviceBatteryLevel,
@@ -1122,6 +1165,7 @@ function RFIDSheet(
       options,
       red2,
       yellow2,
+      sheetHalfClosed,
       scanStatus,
       locateStatus,
       writeAndLockStatus,
@@ -1129,6 +1173,7 @@ function RFIDSheet(
       clearScannedData,
       unlockAndReset,
       pairedBleDeviceName,
+      scannedTags,
       innerRef,
     ],
   );
@@ -1192,7 +1237,7 @@ function RFIDSheet(
         {(() => {
           switch (options?.functionality) {
             case 'scan': {
-              const scannedItemsCount = Object.keys(scannedItems).length;
+              const scannedItemsCount = Object.keys(scannedTags).length;
               const renderScannedItems = options.renderScannedItemsRef?.current;
               return (
                 <BottomSheetScrollView
@@ -1210,7 +1255,7 @@ function RFIDSheet(
                     onLayout={handleContentLayout}
                   >
                     {renderScannedItems ? (
-                      renderScannedItems(scannedItems, {
+                      renderScannedItems(scannedTags, {
                         contentBackgroundColor: insetGroupBackgroundColor,
                         clearScannedDataCounter:
                           clearScannedDataCounter[scanName] || 0,
@@ -1249,13 +1294,19 @@ function RFIDSheet(
                             //   />
                             // }
                           >
-                            {Object.values(scannedItems)
+                            {Object.values(scannedTags)
                               .flatMap(d => [
-                                <ScannedItem
+                                <ScannedTag
                                   key={d.epc}
-                                  item={d}
+                                  tag={d}
                                   onPressRef={options?.onScannedItemPressRef}
                                   removeScannedItem={removeScannedItem}
+                                  onItemLoad={async itemData => {
+                                    if (scannedData[scanName][d.epc]) {
+                                      scannedData[scanName][d.epc].itemData =
+                                        itemData;
+                                    }
+                                  }}
                                 />,
                                 <InsetGroup.ItemSeparator
                                   key={`s-${d.epc}`}
@@ -1936,12 +1987,14 @@ function RFIDSheet(
   // #endregion //
 }
 
-function ScannedItem({
-  item,
+function ScannedTag({
+  tag,
+  onItemLoad,
   onPressRef,
   removeScannedItem,
 }: {
-  item: ScanData;
+  tag: ScanData;
+  onItemLoad?: (item: DataType<'item'> & { id: string }) => void;
   onPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
   removeScannedItem?: (epc: string) => void;
 }) {
@@ -1957,17 +2010,25 @@ function ScannedItem({
       const data = await db.find({
         use_index: 'index-field-actualRfidTagEpcMemoryBankContents',
         selector: {
-          'data.actualRfidTagEpcMemoryBankContents': { $eq: item.epc },
+          'data.actualRfidTagEpcMemoryBankContents': { $eq: tag.epc },
         },
       });
       const doc = (data as any)?.docs && (data as any)?.docs[0];
 
-      setLoadedItemType((doc as any).type || null);
-      setLoadedItem(getDataFromDocs((doc as any).type, [doc])[0]);
+      const lItemType = (doc as any).type || null;
+      setLoadedItemType(lItemType);
+      if (!['item'].includes(lItemType)) return;
+
+      const lItem = getDataFromDocs(lItemType, [doc])[0];
+      setLoadedItem(lItem);
+
+      if (lItemType === 'item') {
+        onItemLoad && onItemLoad(lItem as any);
+      }
     } catch (e) {
       // TODO: Handle other error
     }
-  }, [db, item.epc]);
+  }, [db, tag.epc, onItemLoad]);
   useEffect(() => {
     loadItem();
   }, [loadItem]);
@@ -2005,14 +2066,14 @@ function ScannedItem({
         switch (selectedOption) {
           case 'view':
             onPressRef?.current &&
-              onPressRef.current(item, 'item', loadedItem?.id || null);
+              onPressRef.current(tag, 'item', loadedItem?.id || null);
             return;
           case 'remove':
             if (!removeScannedItem) return;
             LayoutAnimation.configureNext(
               LayoutAnimation.Presets.easeInEaseOut,
             );
-            removeScannedItem(item.epc);
+            removeScannedItem(tag.epc);
             return;
           default:
             Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
@@ -2021,7 +2082,7 @@ function ScannedItem({
       },
     );
   }, [
-    item,
+    tag,
     loadedItem,
     onPressRef,
     removeScannedItem,
@@ -2033,13 +2094,13 @@ function ScannedItem({
       return (
         <ItemItem
           item={loadedItem as any}
-          additionalDetails={item.rssi && `RSSI: ${item.rssi}`}
+          additionalDetails={tag.rssi && `RSSI: ${tag.rssi}`}
           arrow={false}
           onPress={
             onPressRef
               ? () => {
                   onPressRef.current &&
-                    onPressRef.current(item, 'item', loadedItem.id || null);
+                    onPressRef.current(tag, 'item', loadedItem.id || null);
                 }
               : undefined
           }
@@ -2075,13 +2136,10 @@ function ScannedItem({
 
   return (
     <InsetGroup.Item
-      key={item.epc}
-      label={item.epc}
+      key={tag.epc}
+      label={tag.epc}
       vertical
-      detail={[
-        item.rssi && `RSSI: ${item.rssi}`,
-        item.tid && `TID: ${item.tid}`,
-      ]
+      detail={[tag.rssi && `RSSI: ${tag.rssi}`, tag.tid && `TID: ${tag.tid}`]
         .filter(s => s)
         .join(', ')}
       leftElement={
@@ -2096,7 +2154,7 @@ function ScannedItem({
       onPress={
         onPressRef
           ? () => {
-              onPressRef.current && onPressRef.current(item, null, null);
+              onPressRef.current && onPressRef.current(tag, null, null);
             }
           : undefined
       }
