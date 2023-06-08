@@ -1,6 +1,6 @@
 # Inventory
 
-An RFID asset management solution for home or small businesses. https://youtu.be/CQt-VyFoBVI
+An RFID asset management solution for home or small businesses. https://youtu.be/SPdiQ89HPxo
 
 ![](./images/preview.jpg)
 
