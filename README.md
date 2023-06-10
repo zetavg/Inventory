@@ -7,7 +7,7 @@ An RFID asset management solution for home or small businesses. https://youtu.be
 
 ## Get notified when the app is released
 
-https://forms.gle/2gpQgXFeggUMXfoY6
+Waitlist (?): https://forms.gle/2gpQgXFeggUMXfoY6
 
 
 ## Download
