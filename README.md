@@ -5,6 +5,11 @@ An RFID asset management solution for home or small businesses. https://youtu.be
 ![](./images/preview.jpg)
 
 
+## Get notified when the app is released
+
+https://forms.gle/2gpQgXFeggUMXfoY6
+
+
 ## Download
 
 This app is in early development and might have breaking changes. To try it out, [contact @zetavg](#contact) for the `.apk` file for Android or TestFlight installation for iOS.
