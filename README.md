@@ -7,11 +7,15 @@ An RFID asset management solution for home or small businesses. https://youtu.be
 
 ## Download
 
-This app is in early development and might have breaking changes. To try it out, contact @zetavg for the `.apk` file for Android or TestFlight installation for iOS.
+This app is in early development and might have breaking changes. To try it out, [contact @zetavg](#contact) for the `.apk` file for Android or TestFlight installation for iOS.
 
 
 ## Build
 
 The app is written with React Native (TypeScript), with native modules written in Java and Objective-C to handle UART/Bluetooth communications and full-text searching.
 
-The source code is not ready for public release yet. If you are interested in the development, please contact @zetavg.
+The source code is not ready for public release yet. If you are interested in the development, please [contact @zetavg](#contact).
+
+## Contact
+
+Via [Twitter (@zetavg)](https://twitter.com/zetavg), Telegram or Discord (zetavg#9110). Feel free to ping me multiple times if you didn't get a reply.
