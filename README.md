@@ -2,7 +2,9 @@
 
 ## Setup
 
-See https://reactnative.dev/docs/environment-setup, "React Native CLI Quickstart".
+See https://reactnative.dev/docs/environment-setup, select "React Native CLI Quickstart".
+
+And, run `yarn install`.
 
 ## Develop
 
@@ -12,6 +14,12 @@ First, start Metro:
 yarn start
 ```
 
+### For iOS
+
+1. `cp ios/config.xcconfig.sample ios/config.xcconfig` and modify the content of `ios/config.xcconfig` to fit your setup.
+2. `open ios/Inventory.xcworkspace`.
+3. In Xcode, select a scheme and target, then run.
+
 ### For Android
 
 ```bash
@@ -19,6 +27,12 @@ npx react-native run-android
 ```
 
 ## Build
+
+### iOS
+
+1. Setup iOS project by going through the steps in "Develop" "For iOS" section.
+2. In Xcode, select a scheme and choose "Any iOS Device" as the target, then select "Product" → "Archive" from the app menu.
+3. After the build is complete, the Organizer window will open (or select "Window" → "Organizer" from the app menu to open it). Select your archive and click "Distribute App" (or right-click on it and select "Show in Finder").
 
 ### Android
 
