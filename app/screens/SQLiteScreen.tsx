@@ -21,8 +21,8 @@ function SQLiteScreen({
   const [query, setQuery] = useState(
     "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
   );
-  const [status, setStatus] = useState<undefined | 0 | 1>(undefined);
-  const [message, setMessage] = useState<undefined | string>(undefined);
+  // const [status, setStatus] = useState<undefined | 0 | 1>(undefined);
+  // const [message, setMessage] = useState<undefined | string>(undefined);
   const [rows, setRows] = useState<undefined | Object>(undefined);
 
   const handleExecute = useCallback(() => {
@@ -38,14 +38,18 @@ function SQLiteScreen({
           text: 'Execute',
           style: 'destructive',
           onPress: () => {
-            const {
-              status: s,
-              message: m,
-              rows: r,
-            } = QuickSQLite.executeSql(database, query, []);
-            setStatus(s);
-            setMessage(m);
-            setRows(r);
+            try {
+              const {
+                // status: s,
+                // message: m,
+                rows: r,
+              } = QuickSQLite.execute(database, query, []);
+              // setStatus(s);
+              // setMessage(m);
+              setRows(r);
+            } catch (e: any) {
+              Alert.alert('An error occurred', e.message);
+            }
           },
         },
       ],
@@ -59,7 +63,7 @@ function SQLiteScreen({
     <ScreenContent navigation={navigation} title="SQLite">
       <ScrollView
         ref={scrollViewRef}
-        keyboardDismissMode="interactive"
+        keyboardDismissMode="interacti`ve"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
@@ -102,7 +106,7 @@ function SQLiteScreen({
         </InsetGroup>
 
         <InsetGroup label="Query Results">
-          <InsetGroup.Item
+          {/*<InsetGroup.Item
             label="Status"
             vertical2
             detail={status === undefined ? '(undefined)' : status.toString()}
@@ -113,7 +117,7 @@ function SQLiteScreen({
             vertical2
             detail={message === undefined ? '(undefined)' : message}
           />
-          <InsetGroup.ItemSeparator />
+          <InsetGroup.ItemSeparator />*/}
           <InsetGroup.Item
             label="Rows"
             vertical2

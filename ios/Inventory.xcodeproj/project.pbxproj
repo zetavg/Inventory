@@ -611,9 +611,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_NAME = Inventory;
 				PRODUCT_BUNDLE_DISPLAY_NAME = "$(APP_NAME_DEBUG)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER_DEBUG)";
+				PRODUCT_NAME = Inventory;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -647,9 +647,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_NAME = Inventory;
 				PRODUCT_BUNDLE_DISPLAY_NAME = "$(APP_NAME_RELEASE)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER_RELEASE)";
+				PRODUCT_NAME = Inventory;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -748,9 +748,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_NAME = Inventory;
 				PRODUCT_BUNDLE_DISPLAY_NAME = "$(APP_NAME_STAGING)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER_STAGING)";
+				PRODUCT_NAME = Inventory;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -783,7 +783,7 @@
 					"$(inherited)",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
-				PRODUCT_NAME = "Inventory";
+				PRODUCT_NAME = Inventory;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Inventory.app/Inventory";
 			};
 			name = Staging;
