@@ -2905,11 +2905,6 @@
     "@types/react" "*"
     hoist-non-react-statics "^3.3.0"
 
-"@types/invariant@^2.2.35":
-  version "2.2.35"
-  resolved "https://registry.yarnpkg.com/@types/invariant/-/invariant-2.2.35.tgz#cd3ebf581a6557452735688d8daba6cf0bd5a3be"
-  integrity sha512-DxX1V9P8zdJPYQat1gHyY0xj3efl8gnMVjiM9iCY6y27lj+PoQWkgjt8jDqmovPqULkKVpKRg8J36iQiA+EtEg==
-
 "@types/is-function@^1.0.0":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/is-function/-/is-function-1.0.1.tgz#2d024eace950c836d9e3335a66b97960ae41d022"
@@ -11627,10 +11622,10 @@ react-native-fs@^2.20.0:
     base-64 "^0.1.0"
     utf8 "^3.0.0"
 
-react-native-gesture-handler@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.6.0.tgz#8eeb25a2be9718db2e241084f4a337bec0e30ed1"
-  integrity sha512-IwdYdt5FKjjbRSrSqh8hoNctlYZl5DFnqSJ6buKtrl4A4gyzkrtW6WcmOFl5LnCa6Bcw+znSD77O6UiZ8qda7g==
+react-native-gesture-handler@^2.9.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-2.11.0.tgz#cc325430369030ec420d3d455eb2ea2e3fe2c27a"
+  integrity sha512-qiGS2HFnuxxA067kcC4PHfp5hzB8pn6K9UqI5kdkM48DLkzv3vUJptdPlffRSvUJggsfwIyAMYVM+xM4sxg2/A==
   dependencies:
     "@egjs/hammerjs" "^2.0.17"
     hoist-non-react-statics "^3.3.0"
@@ -11753,14 +11748,13 @@ react-native-quick-websql@^0.2.0:
   dependencies:
     websql "^2.0.3"
 
-react-native-reanimated@^2.10.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.10.0.tgz#ed53be66bbb553b5b5e93e93ef4217c87b8c73db"
-  integrity sha512-jKm3xz5nX7ABtHzzuuLmawP0pFWP77lXNdIC6AWOceBs23OHUaJ29p4prxr/7Sb588GwTbkPsYkDqVFaE3ezNQ==
+react-native-reanimated@^2.14.0:
+  version "2.17.0"
+  resolved "https://registry.yarnpkg.com/react-native-reanimated/-/react-native-reanimated-2.17.0.tgz#eae2308235961cdd79810e01dfdd7e88b1ae5b5c"
+  integrity sha512-bVy+FUEaHXq4i+aPPqzGeor1rG4scgVNBbBz21ohvC7iMpB9IIgvGsmy1FAoodZhZ5sa3EPF67Rcec76F1PXlQ==
   dependencies:
     "@babel/plugin-transform-object-assign" "^7.16.7"
     "@babel/preset-typescript" "^7.16.7"
-    "@types/invariant" "^2.2.35"
     invariant "^2.2.4"
     lodash.isequal "^4.5.0"
     setimmediate "^1.0.5"
