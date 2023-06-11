@@ -92,7 +92,7 @@
     "react-native-timeago": "^0.5.0",
     "react-native-ui-lib": "^6.19.2",
     "react-native-vector-icons": "^9.2.0",
-    "react-native-vision-camera": "^2.14.1",
+    "react-native-vision-camera": "^2.15.4",
     "react-redux": "^8.0.2",
     "redux": "^4.2.0",
     "redux-persist": "^6.0.0",
