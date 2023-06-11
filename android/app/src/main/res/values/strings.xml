@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Inventory</string>
+    <!-- This is now set by android/app/build.gradle -->
+    <!-- <string name="app_name">Inventory</string> -->
 </resources>

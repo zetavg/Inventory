@@ -235,9 +235,12 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            applicationIdSuffix '.dev'
+            resValue "string", "app_name", "Inventory (Dev)"
         }
         release {
             signingConfig signingConfigs.release
+            resValue "string", "app_name", "Inventory"
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

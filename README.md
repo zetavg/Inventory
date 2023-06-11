@@ -55,4 +55,4 @@ cd android
 ./gradlew assembleRelease
 ```
 
-The built APK file can be found at `android/app/build/outputs/apk/release/app-release.apk`
+The built APK file can be found at `android/app/build/outputs/apk/release/app-release.apk`. You can use `adb install -r path/to/app-release.apk` to install it on a connected device (use `adb -s <device_serial> install ...` if you have more than one device connected, use `adb devices` to list devices).
