@@ -11,6 +11,12 @@ Waitlist (?): https://forms.gle/2gpQgXFeggUMXfoY6
 
 Or also watch this repo for updates.
 
+## Compatible RFID UHF Devices
+
+See: https://hackmd.io/@Inventory/RFID-Readers
+
+Recommendations for adding new devices are welcome!
+
 
 ## Download
 
