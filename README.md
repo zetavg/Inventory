@@ -9,6 +9,8 @@ An RFID asset management solution for home or small businesses. https://youtu.be
 
 Waitlist (?): https://forms.gle/2gpQgXFeggUMXfoY6
 
+Or also watch this repo for updates.
+
 
 ## Download
 
@@ -19,7 +21,7 @@ This app is in early development and might have breaking changes. To try it out,
 
 The app is written with React Native (TypeScript), with native modules written in Java and Objective-C to handle UART/Bluetooth communications and full-text searching.
 
-The source code is not ready for public release yet. If you are interested in the development, please [contact @zetavg](#contact).
+The source code is not ready for public release yet. I still need some time to check and remove sensitive information from the repo. If you are interested in the development, please [contact @zetavg](#contact).
 
 ## Contact
 
