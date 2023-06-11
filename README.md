@@ -23,7 +23,7 @@ yarn start
 ### For Android
 
 ```bash
-npx react-native run-android
+npx react-native run-android --appIdSuffix dev
 ```
 
 ## Build
