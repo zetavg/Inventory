@@ -1,24 +1,23 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { persistStore } from 'redux-persist';
 
-import logger from './middlewares/logger';
-
 import {
-  reducer as counterReducer,
   actions as counterActions,
+  reducer as counterReducer,
   selectors as counterSelectors,
 } from '@app/features/counter/slice';
 import {
-  reducer as countersReducer,
   actions as countersActions,
+  reducer as countersReducer,
   selectors as countersSelectors,
 } from '@app/features/counters/slice';
-import profilesReducer from '@app/features/profiles/slice';
-import settingsReducer from '@app/features/settings/slice';
 import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
 import inventoryReducer from '@app/features/inventory/slice';
+import profilesReducer from '@app/features/profiles/slice';
+import settingsReducer from '@app/features/settings/slice';
 
-import { combineAndPersistReducers, mapSelectors, combine } from './utils';
+import logger from './middlewares/logger';
+import { combine, combineAndPersistReducers, mapSelectors } from './utils';
 
 const reducer = combineAndPersistReducers({
   // counter: counterReducer,

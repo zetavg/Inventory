@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
 import { PersistableReducer } from '@app/redux/types';
 
 // Define a type for the slice state

@@ -1,17 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { PersistableReducer } from '@app/redux/types';
+import { combine, mapActionReducers, mapSelectors } from '@app/redux/utils';
 import {
+  actions as counterActions,
   CounterState,
   initialState as counterInitialState,
   reducer as counterReducer,
-  actions as counterActions,
   selectors as counterSelectors,
 } from '@app/features/counter/slice';
-import { mapActionReducers, mapSelectors, combine } from '@app/redux/utils';
-import { PersistableReducer } from '@app/redux/types';
+
 import mapObjectValues from '@app/utils/mapObjectValues';
 
-// In this slice, we will define a slice that manages multiple counters.
+// Here we will define a slice that manages multiple counters.
 // We will use the counter slice we defined earlier, and compose them.
 
 // Define a type for the slice state

@@ -1,18 +1,23 @@
 import React, { useEffect, useRef } from 'react';
-import { PouchDB } from '@app/db';
+
+import { useAppDispatch, useAppSelector } from '@app/redux';
 import {
-  selectActiveProfileNameOrThrowError,
-  selectActiveProfileConfig,
-} from './features/profiles';
-import { useAppSelector, useAppDispatch } from '@app/redux';
-import useDB from '@app/hooks/useDB';
-import {
-  selectDBSyncSettings,
-  reportDBSyncStatus,
   clearDBSyncStatus,
+  reportDBSyncStatus,
+  selectDBSyncSettings,
 } from '@app/features/db-sync/manage';
+
+import { PouchDB } from '@app/db';
+
 import insertTimestampIdRecord from '@app/utils/insertTimestampIdRecord';
+
+import useDB from '@app/hooks/useDB';
+
 import { updateV } from './features/db-sync/manage/statusSlice';
+import {
+  selectActiveProfileConfig,
+  selectActiveProfileNameOrThrowError,
+} from './features/profiles';
 
 const debugLog = console.warn;
 // const debugLog = (_s: string) => {};

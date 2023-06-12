@@ -1,36 +1,37 @@
 import React, { useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
-import { StatusBar, StyleSheet, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Provider as PaperProvider } from 'react-native-paper';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { changeBarColors } from 'react-native-immersive-bars';
-import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { Provider as PaperProvider } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { store, persistor, useAppSelector, useAppDispatch } from '@app/redux';
+import { persistor, store, useAppDispatch, useAppSelector } from '@app/redux';
+import {
+  createProfile,
+  prepareProfile,
+  selectActiveProfileConfig,
+  selectActiveProfileName,
+  selectActiveProfileRuntimeData,
+  switchProfile,
+} from '@app/features/profiles';
 
 import Navigation from '@app/navigation';
-import { usePersistedState } from '@app/hooks/usePersistedState';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
+
 import useColors from '@app/hooks/useColors';
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import { usePersistedState } from '@app/hooks/usePersistedState';
+
 import { darkTheme, lightTheme } from '@app/theme';
 
 import StorybookUIRoot, {
   SetStorybookModeFunctionContext,
 } from '@app/StorybookUIRoot';
 
-import SplashScreen from './SplashScreen';
-import {
-  selectActiveProfileName,
-  selectActiveProfileConfig,
-  selectActiveProfileRuntimeData,
-  createProfile,
-  prepareProfile,
-  switchProfile,
-} from '@app/features/profiles';
-
 import DBSyncManager from './DBSyncManager';
+import SplashScreen from './SplashScreen';
 
 function App() {
   const isDarkMode = useIsDarkMode();
