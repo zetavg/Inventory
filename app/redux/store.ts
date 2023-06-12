@@ -26,13 +26,27 @@ const reducer = combineAndPersistReducers({
 });
 
 export const store = configureStore({
-  middleware: getDefaultMiddleware =>
-    getDefaultMiddleware({
+  middleware: getDefaultMiddleware => {
+    const middleware = getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST'],
         ignoredPaths: ['profiles.runtimeData'],
       },
-    }).concat(logger),
+    }).concat(logger);
+
+    if (__DEV__) {
+      const reduxDebugger = require('redux-middleware-flipper').default;
+      middleware.push(
+        reduxDebugger({
+          actionsBlacklist: [],
+          actionsWhitelist: [],
+          actionReplayDelay: 500,
+        }),
+      );
+    }
+
+    return middleware;
+  },
   reducer,
 });
 

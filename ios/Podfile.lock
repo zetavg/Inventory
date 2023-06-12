@@ -335,6 +335,8 @@ PODS:
     - React-Core
   - react-native-document-picker (8.1.2):
     - React-Core
+  - react-native-flipper (0.194.0):
+    - React-Core
   - react-native-get-random-values (1.8.0):
     - React-Core
   - react-native-image-picker (5.4.0):
@@ -553,6 +555,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
@@ -656,6 +659,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/blur"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
+  react-native-flipper:
+    :path: "../node_modules/react-native-flipper"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-image-picker:
@@ -768,6 +773,7 @@ SPEC CHECKSUMS:
   React-logger: ef2269b3afa6ba868da90496c3e17a4ec4f4cee0
   react-native-blur: 3e9c8e8e9f7d17fa1b94e1a0ae9fd816675f5382
   react-native-document-picker: f5ec1a712ca2a975c233117f044817bb8393cad4
+  react-native-flipper: 728874c01666b8088b03334cb4efe61a7145592a
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a
   react-native-image-picker: 709d04e7df67bd3a90f376c3eedb2e8b8334dd04
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f

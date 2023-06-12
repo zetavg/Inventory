@@ -12663,6 +12663,11 @@ react-native-document-picker@^8.1.2:
   dependencies:
     invariant "^2.2.4"
 
+react-native-flipper@^0.194.0:
+  version "0.194.0"
+  resolved "https://registry.yarnpkg.com/react-native-flipper/-/react-native-flipper-0.194.0.tgz#ad7986b6c2f03f82b1892d562394bfe7dd2b9e07"
+  integrity sha512-/iVlfLq5ym3z3YeXGb86NVcIGHZXRSm3js/eCgDaBqYnTHvb8g1NZe5x+dHpMc58kNs+Cj1ND4Oics8oO45Xtw==
+
 react-native-fs@^2.20.0:
   version "2.20.0"
   resolved "https://registry.yarnpkg.com/react-native-fs/-/react-native-fs-2.20.0.tgz#05a9362b473bfc0910772c0acbb73a78dbc810f6"
@@ -13194,6 +13199,11 @@ recast@^0.20.4:
     esprima "~4.0.0"
     source-map "~0.6.1"
     tslib "^2.0.1"
+
+redux-middleware-flipper@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/redux-middleware-flipper/-/redux-middleware-flipper-1.0.9.tgz#cdcb21e1a6500c1c94d5d5a2d7ac02cb4382c60a"
+  integrity sha512-8TrWjHpnj/lFuy5VLVsidHwnOf5TGAxsJNaBCopx8Nreda6VjjSazfWF4WyIe8FVkOWiIyOkbrKilbVsuzUwlw==
 
 redux-persist-sensitive-storage@^1.0.0:
   version "1.0.0"
