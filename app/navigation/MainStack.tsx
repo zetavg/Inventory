@@ -41,6 +41,7 @@ import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
+import CountersScreen from '@app/features/counters/screens/CountersScreen';
 import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
 import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
 import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
@@ -95,6 +96,7 @@ export type StackParamList = {
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
   Counter: undefined;
+  Counters: undefined;
   Sample: {
     showAppbar?: boolean;
     showSearch?: boolean;
@@ -225,6 +227,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Search" component={SearchScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
+      <Stack.Screen name="Counters" component={CountersScreen} />
       <Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />
       <Stack.Screen
         name="PouchDBSyncDetails"

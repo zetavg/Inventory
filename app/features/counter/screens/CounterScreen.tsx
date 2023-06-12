@@ -4,7 +4,7 @@ import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 
-import { useAppSelector, useAppDispatch, selectors } from '@app/redux';
+import { useAppSelector, useAppDispatch, actions, selectors } from '@app/redux';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
@@ -12,8 +12,6 @@ import cs from '@app/utils/commonStyles';
 
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
-
-import { actions } from '../slice';
 
 function CounterScreen({
   navigation,

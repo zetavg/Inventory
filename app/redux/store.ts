@@ -3,22 +3,26 @@ import { persistStore } from 'redux-persist';
 
 import logger from './middlewares/logger';
 
-import mapObjectValues from '@app/utils/mapObjectValues';
-
 import {
   reducer as counterReducer,
+  actions as counterActions,
   selectors as counterSelectors,
 } from '@app/features/counter/slice';
+import {
+  reducer as countersReducer,
+  actions as countersActions,
+  selectors as countersSelectors,
+} from '@app/features/counters/slice';
 import profilesReducer from '@app/features/profiles/slice';
 import settingsReducer from '@app/features/settings/slice';
 import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
 import inventoryReducer from '@app/features/inventory/slice';
 
-import { combineAndPersistReducers } from './utils';
+import { combineAndPersistReducers, mapSelectors, combine } from './utils';
 
 const reducer = combineAndPersistReducers({
-  // Sample 1: Single counter
-  counter: counterReducer,
+  // counter: counterReducer,
+  counters: countersReducer,
   profiles: profilesReducer,
   settings: settingsReducer,
   dbSyncStatus: dbSyncStatusReducer,
@@ -57,13 +61,21 @@ export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
 
-export const selectors = {
-  // Sample 1: Single counter
-  ...mapObjectValues(
-    counterSelectors,
-    selector => (state: RootState) => selector(state.counter),
+export const actions = combine(
+  // counterActions,
+  countersActions,
+);
+
+export const selectors = combine(
+  // mapSelectors(
+  //   counterSelectors,
+  //   selector => (state: RootState) => selector(state.counter),
+  // ),
+  mapSelectors(
+    countersSelectors,
+    selector => (state: RootState) => selector(state.counters),
   ),
-};
+);
 
 export default store;
 
