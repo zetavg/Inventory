@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { persistReducer } from 'redux-persist';
+import { PersistableReducer } from '@app/redux/types';
 
 // Define a type for the slice state
 interface CounterState {
@@ -30,20 +29,26 @@ export const counterSlice = createSlice({
   },
 });
 
+// Export the reducer
+export const reducer: PersistableReducer<typeof counterSlice.reducer> =
+  counterSlice.reducer;
+
+// Export actions
 export const actions = counterSlice.actions;
 
+// Selectors can be used to retrieve a certain part of the state. The slice
+// should not know where it will be in the state tree, so this should only
+// select from the slice's own state, and it will be composed as we compose
+// reducers.
 export const selectors = {
   counterValue: (state: CounterState) => state.value,
 };
 
-export function getReducer(keySuffix?: string) {
-  return persistReducer(
-    {
-      key: ['counter', keySuffix].filter(s => s).join('-'),
-      storage: AsyncStorage,
-      whitelist: ['value'],
-      timeout: 50000,
-    },
-    counterSlice.reducer,
-  );
-}
+// Define how the state should be persisted. The slice will not be persisted
+// if `.dehydrate` and `.rehydrate` is not defined.
+
+// Filter out parts that shouldn't be persisted, and transform the state
+// (for example, convert sets to arrays) if needed.
+reducer.dehydrate = (state: CounterState) => ({ value: state.value });
+
+reducer.rehydrate = dehydratedState => dehydratedState;
