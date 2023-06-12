@@ -4,6 +4,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
 import GitInfo from 'react-git-info/macro';
 
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
+
 import commonStyles from '@app/utils/commonStyles';
 
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -29,6 +31,37 @@ function AboutScreen({
     manufacturerInfoStr += ` / ${deviceBrand}`;
   }
 
+  const dispatch = useAppDispatch();
+  const showDevTools = useAppSelector(selectors.showDevTools);
+  const [pressToBecomeDeveloperCounter, setPressToBecomeDeveloperCounter] =
+    React.useState(0);
+  const pressToBecomeDeveloperThreshold = 12;
+  const handleBecomeDeveloperPress = React.useCallback(() => {
+    setPressToBecomeDeveloperCounter(n =>
+      n >= pressToBecomeDeveloperThreshold
+        ? pressToBecomeDeveloperThreshold
+        : n + 1,
+    );
+  }, [pressToBecomeDeveloperThreshold]);
+  let pressToBecomeDeveloperMessage;
+
+  if (pressToBecomeDeveloperCounter >= pressToBecomeDeveloperThreshold) {
+    pressToBecomeDeveloperMessage = 'You are now a developer.';
+  } else if (
+    pressToBecomeDeveloperCounter >
+    pressToBecomeDeveloperThreshold / 2
+  ) {
+    pressToBecomeDeveloperMessage = `You are ${
+      pressToBecomeDeveloperThreshold - pressToBecomeDeveloperCounter
+    } steps away from becoming a developer.`;
+  }
+
+  React.useEffect(() => {
+    if (pressToBecomeDeveloperCounter >= pressToBecomeDeveloperThreshold) {
+      dispatch(actions.showDevTools());
+    }
+  }, [dispatch, pressToBecomeDeveloperCounter]);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -36,17 +69,18 @@ function AboutScreen({
       headerLargeTitle={false}
     >
       <TableView style={commonStyles.flex1}>
-        <TableView.Section label={DeviceInfo.getApplicationName()}>
+        <TableView.Section
+          label={DeviceInfo.getApplicationName()}
+          footerLabel={pressToBecomeDeveloperMessage}
+        >
           <TableView.Item
-            onPress={undefined}
+            onPress={showDevTools ? undefined : handleBecomeDeveloperPress}
             detail={`${DeviceInfo.getVersion()} (${DeviceInfo.getBuildNumber()})`}
             // detail={DeviceInfo.getVersion()}
           >
             App Version
           </TableView.Item>
-          <TableView.Item onPress={undefined} detail={gitInfoStr}>
-            Code Version
-          </TableView.Item>
+          <TableView.Item detail={gitInfoStr}>Code Version</TableView.Item>
           <TableView.Item
             arrow
             detail="zetavg/Inventory"

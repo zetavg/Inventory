@@ -1,13 +1,15 @@
-import Color from 'color';
-import React, { useRef, useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Platform, ScrollView, Text, View } from 'react-native';
 import {
-  RadioButton,
   Divider,
   List,
+  RadioButton,
   Switch,
   useTheme,
 } from 'react-native-paper';
+
+import Color from 'color';
+
 import TableViewIOS from './TableViewIOS';
 
 type Insets = {
@@ -33,7 +35,6 @@ function TableView({
   iosStyle,
   scrollViewRef,
 }: Props) {
-  // eslint-disable-next-line no-spaced-func
   const switchChangeValueHandlers = useRef<{
     [tag: number]: ((v: boolean) => void) | undefined;
   }>({});
@@ -62,100 +63,103 @@ function TableView({
 
     let cellCount = 0;
     let switchCount = 0;
-    const iosChildren = tableChildren.map((section: any) => {
-      if (section.type.n !== 'TableViewSection') {
-        throw new Error(
-          `TableView: children should be type of TableViewSection. Got: ${section.type}.`,
-        );
-      }
+    const iosChildren = tableChildren
+      .filter(s => s)
+      .map((section: any) => {
+        if (section.type.n !== 'TableViewSection') {
+          throw new Error(
+            `TableView: children should be type of TableViewSection. Got: ${section.type}.`,
+          );
+        }
 
-      const { label, footerLabel }: TableViewSectionProps = section.props;
-      let { children: sectionChildren }: TableViewSectionProps = section.props;
+        const { label, footerLabel }: TableViewSectionProps = section.props;
+        let { children: sectionChildren }: TableViewSectionProps =
+          section.props;
 
-      if (!Array.isArray(sectionChildren)) {
-        sectionChildren = [sectionChildren];
-      }
-      if (!Array.isArray(sectionChildren)) {
-        throw new Error('TableView: Impossible');
-      }
+        if (!Array.isArray(sectionChildren)) {
+          sectionChildren = [sectionChildren];
+        }
+        if (!Array.isArray(sectionChildren)) {
+          throw new Error('TableView: Impossible');
+        }
 
-      return (
-        <TableViewIOS.Section
-          key={section.key}
-          label={label}
-          footerLabel={footerLabel}
-        >
-          {sectionChildren.map(item => {
-            if (item.type.n !== 'TableViewItem') {
-              throw new Error(
-                `TableView.Section: children should be type of TableViewItem. Got: ${section.type}.`,
+        return (
+          <TableViewIOS.Section
+            key={section.key}
+            label={label}
+            footerLabel={footerLabel}
+          >
+            {sectionChildren.map(item => {
+              if (item.type.n !== 'TableViewItem') {
+                throw new Error(
+                  `TableView.Section: children should be type of TableViewItem. Got: ${section.type}.`,
+                );
+              }
+
+              const {
+                children: c,
+                label: l,
+                detail,
+                arrow,
+                selected,
+                switch: sw,
+                switchValue,
+                onSwitchChangeValue,
+                iosImage,
+                onPress,
+              }: TableViewItemProps = item.props;
+
+              if (sw) {
+                switchCount += 1;
+              }
+
+              const switchTag = sw ? switchCount : 0;
+
+              if (sw) {
+                switchChangeValueHandlers.current[switchTag] =
+                  onSwitchChangeValue;
+              }
+
+              let cellKey = '';
+              cellCount += 1;
+
+              if (section.key && item.key) {
+                cellKey = `${section.key}-${item.key}`;
+              }
+
+              if (!cellKey && sw) {
+                cellKey = `switch-${switchTag}`;
+              }
+
+              if (!cellKey) {
+                cellKey = `s${cellCount}`;
+              }
+
+              return (
+                <TableViewIOS.Item
+                  key={item.key}
+                  cellKey={cellKey}
+                  detail={detail}
+                  arrow={arrow}
+                  selected={selected}
+                  switch={sw}
+                  switchTag={switchTag}
+                  switchValue={switchValue}
+                  image={iosImage}
+                  onPress={onPress}
+                  selectionStyle={
+                    onPress
+                      ? TableViewIOS.Consts.CellSelectionStyle.Default
+                      : TableViewIOS.Consts.CellSelectionStyle.None
+                  }
+                >
+                  {l || c}
+                </TableViewIOS.Item>
               );
-            }
-
-            const {
-              children: c,
-              label: l,
-              detail,
-              arrow,
-              selected,
-              switch: sw,
-              switchValue,
-              onSwitchChangeValue,
-              iosImage,
-              onPress,
-            }: TableViewItemProps = item.props;
-
-            if (sw) {
-              switchCount += 1;
-            }
-
-            const switchTag = sw ? switchCount : 0;
-
-            if (sw) {
-              switchChangeValueHandlers.current[switchTag] =
-                onSwitchChangeValue;
-            }
-
-            let cellKey = '';
-            cellCount += 1;
-
-            if (section.key && item.key) {
-              cellKey = `${section.key}-${item.key}`;
-            }
-
-            if (!cellKey && sw) {
-              cellKey = `switch-${switchTag}`;
-            }
-
-            if (!cellKey) {
-              cellKey = `s${cellCount}`;
-            }
-
-            return (
-              <TableViewIOS.Item
-                key={item.key}
-                cellKey={cellKey}
-                detail={detail}
-                arrow={arrow}
-                selected={selected}
-                switch={sw}
-                switchTag={switchTag}
-                switchValue={switchValue}
-                image={iosImage}
-                onPress={onPress}
-                selectionStyle={
-                  onPress
-                    ? TableViewIOS.Consts.CellSelectionStyle.Default
-                    : TableViewIOS.Consts.CellSelectionStyle.None
-                }
-              >
-                {l || c}
-              </TableViewIOS.Item>
-            );
-          })}
-        </TableViewIOS.Section>
-      );
-    });
+            })}
+          </TableViewIOS.Section>
+        );
+      });
 
     return (
       <TableViewIOS

@@ -1,19 +1,17 @@
 import React, { useRef, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
-
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
 
-import { useAppSelector, useAppDispatch, selectors } from '@app/redux';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
 import cs from '@app/utils/commonStyles';
 
-import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
+import type { StackParamList } from '@app/navigation/MainStack';
 
-import { actions } from '../slice';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+
+import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
 
 function CountersScreen({
   navigation,

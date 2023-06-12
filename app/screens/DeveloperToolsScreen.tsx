@@ -1,16 +1,25 @@
 import React, { useCallback } from 'react';
-import { Alert, ScrollView } from 'react-native';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+import { Alert, ScrollView, Switch } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
+
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
+
 import commonStyles from '@app/utils/commonStyles';
-import ScreenContent from '@app/components/ScreenContent';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
 import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
+
 import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 
 function DeveloperToolsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'DeveloperTools'>) {
+  const dispatch = useAppDispatch();
+  const showDevTools = useAppSelector(selectors.showDevTools);
+
   const setStorybookMode = useSetStorybookModeFunction();
 
   const rootNavigation = useRootNavigation();
@@ -146,6 +155,19 @@ function DeveloperToolsScreen({
             label="React Native New App Screen"
             arrow
             onPress={() => navigation.push('NewAppScreen')}
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
+            label="Show Dev Tools"
+            detail={
+              <Switch
+                value={showDevTools}
+                onChange={() => {
+                  dispatch(actions.toggleShowDevTools());
+                }}
+              />
+            }
           />
         </InsetGroup>
       </ScrollView>

@@ -12,6 +12,11 @@ import {
   selectors as countersSelectors,
 } from '@app/features/counters/slice';
 import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
+import {
+  actions as devToolsActions,
+  reducer as devToolsReducer,
+  selectors as devToolsSelectors,
+} from '@app/features/dev-tools/slice';
 import inventoryReducer from '@app/features/inventory/slice';
 import profilesReducer from '@app/features/profiles/slice';
 import settingsReducer from '@app/features/settings/slice';
@@ -26,6 +31,7 @@ const reducer = combineAndPersistReducers({
   settings: settingsReducer,
   dbSyncStatus: dbSyncStatusReducer,
   inventory: inventoryReducer,
+  devTools: devToolsReducer,
 });
 
 export const store = configureStore({
@@ -63,6 +69,7 @@ export type AppDispatch = typeof store.dispatch;
 export const actions = combine(
   // counterActions,
   countersActions,
+  devToolsActions,
 );
 
 export const selectors = combine(
@@ -73,6 +80,10 @@ export const selectors = combine(
   mapSelectors(
     countersSelectors,
     selector => (state: RootState) => selector(state.counters),
+  ),
+  mapSelectors(
+    devToolsSelectors,
+    selector => (state: RootState) => selector(state.devTools),
   ),
 );
 

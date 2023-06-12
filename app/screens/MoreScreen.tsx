@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
 
-import { useAppSelector } from '@app/redux';
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
 import { selectActiveProfileConfig } from '@app/features/profiles';
 import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
@@ -20,6 +20,8 @@ import ScreenContent from '@app/components/ScreenContent';
 import TableView from '@app/components/TableView';
 
 function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
+  const showDevTools = useAppSelector(selectors.showDevTools);
+
   const rootNavigation = useRootNavigation();
   const colors = useColors();
 
@@ -221,16 +223,24 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           </TableView.Item>
         </TableView.Section>
 
-        <TableView.Section>
-          <TableView.Item
-            arrow
-            icon="hammer"
-            iosImage="ios-menu.developer.png"
-            onPress={() => navigation.push('DeveloperTools')}
-          >
-            Developer Tools
-          </TableView.Item>
-        </TableView.Section>
+        {(() => {
+          if (showDevTools) {
+            return (
+              <TableView.Section>
+                <TableView.Item
+                  arrow
+                  icon="hammer"
+                  iosImage="ios-menu.developer.png"
+                  onPress={() => navigation.push('DeveloperTools')}
+                >
+                  Developer Tools
+                </TableView.Item>
+              </TableView.Section>
+            );
+          }
+
+          return null;
+        })()}
       </TableView>
     </ScreenContent>
   );
