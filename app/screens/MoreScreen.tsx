@@ -1,20 +1,23 @@
 import React, { useRef, useState } from 'react';
+import { Linking } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
 
-import type { StackScreenProps } from '@react-navigation/stack';
+import { useAppSelector } from '@app/redux';
+import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
+import { selectActiveProfileConfig } from '@app/features/profiles';
+import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
+
+import commonStyles from '@app/utils/commonStyles';
+
 import type { StackParamList } from '@app/navigation/MainStack';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import useColors from '@app/hooks/useColors';
-import commonStyles from '@app/utils/commonStyles';
+
 import ScreenContent from '@app/components/ScreenContent';
 import TableView from '@app/components/TableView';
-
-import { useAppSelector } from '@app/redux';
-import { selectActiveProfileConfig } from '@app/features/profiles';
-import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
-import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
 
 function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const rootNavigation = useRootNavigation();
@@ -200,12 +203,25 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
         <TableView.Section>
           <TableView.Item
             arrow
+            icon="help-circle"
+            iosImage="ios-menu.questionmark.png"
+            onPress={() =>
+              Linking.openURL('https://hackmd.io/@Inventory/resource-center')
+            }
+          >
+            Resource Center
+          </TableView.Item>
+          <TableView.Item
+            arrow
             icon="information"
             iosImage="ios-menu.info.png"
             onPress={() => navigation.push('About')}
           >
             {`About ${DeviceInfo.getApplicationName()} v${DeviceInfo.getVersion()}`}
           </TableView.Item>
+        </TableView.Section>
+
+        <TableView.Section>
           <TableView.Item
             arrow
             icon="hammer"
