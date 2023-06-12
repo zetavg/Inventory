@@ -4,7 +4,7 @@ import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
 
-import { useAppSelector, useAppDispatch } from '@app/redux';
+import { useAppSelector, useAppDispatch, selectors } from '@app/redux';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
@@ -13,7 +13,7 @@ import cs from '@app/utils/commonStyles';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import { selectCount, increment, decrement, incrementByAmount } from '../slice';
+import { actions } from '../slice';
 
 function CounterScreen({
   navigation,
@@ -21,7 +21,7 @@ function CounterScreen({
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
-  const count = useAppSelector(selectCount);
+  const count = useAppSelector(selectors.counterValue);
   const dispatch = useAppDispatch();
 
   const [incrementAmount, setIncrementAmount] = useState('2');
@@ -43,13 +43,13 @@ function CounterScreen({
           <InsetGroup.Item
             button
             label="Increase"
-            onPress={() => dispatch(increment())}
+            onPress={() => dispatch(actions.increment())}
           />
           <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Decrease"
-            onPress={() => dispatch(decrement())}
+            onPress={() => dispatch(actions.decrement())}
           />
         </InsetGroup>
 
@@ -70,7 +70,7 @@ function CounterScreen({
           <InsetGroup.Item
             button
             label="Increase By Amount"
-            onPress={() => dispatch(incrementByAmount(incrementValue))}
+            onPress={() => dispatch(actions.incrementByAmount(incrementValue))}
           />
         </InsetGroup>
       </ScrollView>

@@ -3,7 +3,12 @@ import { persistStore } from 'redux-persist';
 
 import logger from './middlewares/logger';
 
-import counterReducer from '@app/features/counter/slice';
+import mapObjectValues from '@app/utils/mapObjectValues';
+
+import {
+  getReducer as getCounterReducer,
+  selectors as counterSelectors,
+} from '@app/features/counter/slice';
 import profilesReducer from '@app/features/profiles/slice';
 import settingsReducer from '@app/features/settings/slice';
 import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
@@ -18,7 +23,7 @@ export const store = configureStore({
       },
     }).concat(logger),
   reducer: {
-    counter: counterReducer,
+    counter: getCounterReducer(),
     profiles: profilesReducer,
     settings: settingsReducer,
     dbSyncStatus: dbSyncStatusReducer,
@@ -32,6 +37,13 @@ export const persistor = persistStore(store);
 export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
+
+export const selectors = {
+  ...mapObjectValues(
+    counterSelectors,
+    selector => (state: RootState) => selector(state.counter),
+  ),
+};
 
 export default store;
 

@@ -94,7 +94,7 @@ export type StackParamList = {
   LinguisticTaggerModuleIOS: undefined;
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
-  // Counter: undefined;
+  Counter: undefined;
   Sample: {
     showAppbar?: boolean;
     showSearch?: boolean;

@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { RootState } from '@app/redux/store';
 import { persistReducer } from 'redux-persist';
 
 // Define a type for the slice state
@@ -31,17 +30,20 @@ export const counterSlice = createSlice({
   },
 });
 
-export const { increment, decrement, incrementByAmount } = counterSlice.actions;
+export const actions = counterSlice.actions;
 
-// Other code such as selectors can use the imported `RootState` type
-export const selectCount = (state: RootState) => state.counter.value;
+export const selectors = {
+  counterValue: (state: CounterState) => state.value,
+};
 
-export default persistReducer(
-  {
-    key: 'counter',
-    storage: AsyncStorage,
-    whitelist: ['value'],
-    timeout: 50000,
-  },
-  counterSlice.reducer,
-);
+export function getReducer(keySuffix?: string) {
+  return persistReducer(
+    {
+      key: ['counter', keySuffix].filter(s => s).join('-'),
+      storage: AsyncStorage,
+      whitelist: ['value'],
+      timeout: 50000,
+    },
+    counterSlice.reducer,
+  );
+}
