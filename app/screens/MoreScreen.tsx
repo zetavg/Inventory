@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import DeviceInfo from 'react-native-device-info';
 
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { StackParamList } from '@app/navigation/MainStack';
@@ -78,7 +79,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   return (
     <ScreenContent
       navigation={navigation}
-      title="Inventory"
+      title={DeviceInfo.getApplicationName()}
       action1Label="Profile"
       action1SFSymbolName="person.circle.fill"
       action1MaterialIconName="account-circle"
@@ -197,6 +198,14 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           </TableView.Item>
         </TableView.Section>
         <TableView.Section>
+          <TableView.Item
+            arrow
+            icon="information"
+            iosImage="ios-menu.info.png"
+            onPress={() => navigation.push('About')}
+          >
+            {`About ${DeviceInfo.getApplicationName()} v${DeviceInfo.getVersion()}`}
+          </TableView.Item>
           <TableView.Item
             arrow
             icon="hammer"

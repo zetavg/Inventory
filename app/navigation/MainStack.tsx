@@ -13,6 +13,7 @@ import MoreScreen from '@app/screens/MoreScreen';
 import InventoryTabScreen from '@app/screens/InventoryTabScreen';
 import SettingsScreen from '@app/screens/SettingsScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
+import AboutScreen from '@app/screens/AboutScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
@@ -67,6 +68,7 @@ export type StackParamList = {
   };
   PouchDBSyncLogs: undefined;
   DBSyncConfig: undefined;
+  About: undefined;
   DeveloperTools: undefined;
   Redux: undefined;
   ReduxActionDetail: {
@@ -92,7 +94,7 @@ export type StackParamList = {
   LinguisticTaggerModuleIOS: undefined;
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
-  Counter: undefined;
+  // Counter: undefined;
   Sample: {
     showAppbar?: boolean;
     showSearch?: boolean;
@@ -163,6 +165,7 @@ function MainStack({ initialRouteName }: Props) {
         name="GenericTextDetails"
         component={GenericTextDetailsScreen}
       />
+      <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
       <Stack.Screen name="Redux" component={ReduxScreen} />
       <Stack.Screen
