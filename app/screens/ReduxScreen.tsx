@@ -2,33 +2,31 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Platform,
   ScrollView,
-  View,
-  TouchableOpacity,
   Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-
 import type { StackScreenProps } from '@react-navigation/stack';
+
+import { useAppDispatch, useAppSelector } from '@app/redux';
+import { ActionLog, addCallback } from '@app/redux/middlewares/logger';
+
+import cs from '@app/utils/commonStyles';
+import commonStyles from '@app/utils/commonStyles';
+import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
-import { useAppSelector, useAppDispatch } from '@app/redux';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 import useColors from '@app/hooks/useColors';
 import useScrollTo from '@app/hooks/useScrollTo';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import cs from '@app/utils/commonStyles';
-
-import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
-import { addCallback, ActionLog } from '@app/redux/middlewares/logger';
-import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
+import ScreenContent from '@app/components/ScreenContent';
 
-const INITIAL_ACTION_STR = `{
-  "type": "counter/incrementByAmount",
-  "payload": 2
-}`;
+const INITIAL_ACTION_STR = '';
 
 const ACTION_STR_PLACEHOLDER = `{
   "type": "",
@@ -89,13 +87,28 @@ function ReduxScreen({
             vertical2
             label="Current State"
             detail={removePasswordFromJSON(JSON.stringify(state, null, 2))}
+            detailTextStyle={[commonStyles.devToolsMonospacedDetails]}
           />
         </InsetGroup>
 
         <InsetGroup
           label="Dispatch Action"
-          footerLabel={isActionInvalid ? 'Invalid JSON' : undefined}
+          footerLabel={isActionInvalid ? '⚠ Invalid JSON' : undefined}
           ref={dispatchActionGroup}
+          labelVariant="large"
+          labelRight={
+            <InsetGroup.LabelButton
+              title="Select Action"
+              onPress={() =>
+                rootNavigation?.push('ReduxSelectCommonActions', {
+                  callback: (a: string) => {
+                    setActionStr(a);
+                    scrollTo(dispatchActionGroup);
+                  },
+                })
+              }
+            />
+          }
         >
           <InsetGroup.Item
             vertical2
@@ -108,11 +121,12 @@ function ReduxScreen({
                 placeholder={ACTION_STR_PLACEHOLDER}
                 value={actionStr}
                 onChangeText={setActionStr}
+                style={[commonStyles.devToolsMonospaced]}
               />
             }
           />
           <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          {/*<InsetGroup.Item
             // arrow
             button
             label="Select..."
@@ -125,7 +139,7 @@ function ReduxScreen({
               })
             }
           />
-          <InsetGroup.ItemSeparator />
+          <InsetGroup.ItemSeparator />*/}
           <InsetGroup.Item
             button
             destructive
@@ -138,18 +152,25 @@ function ReduxScreen({
         {actionLogs.length > 0 && (
           <InsetGroup
             label="Action Logs"
+            labelVariant="large"
             labelRight={
-              <TouchableOpacity onPress={() => setActionLogs([])}>
-                <Text
-                  style={{
-                    fontSize: InsetGroup.GROUP_LABEL_FONT_SIZE,
-                    color: iosTintColor,
-                  }}
-                >
-                  Clear
-                </Text>
-              </TouchableOpacity>
+              <InsetGroup.LabelButton
+                title="Clear"
+                onPress={() => setActionLogs([])}
+              />
             }
+            // labelRight={
+            //   <TouchableOpacity onPress={() => setActionLogs([])}>
+            //     <Text
+            //       style={{
+            //         fontSize: InsetGroup.GROUP_LABEL_FONT_SIZE,
+            //         color: iosTintColor,
+            //       }}
+            //     >
+            //       Clear
+            //     </Text>
+            //   </TouchableOpacity>
+            // }
           >
             {actionLogs
               .flatMap(({ action, prevState, nextState }: any, i) => {
@@ -160,6 +181,7 @@ function ReduxScreen({
                     key={i}
                     label={action?.type || stringifiedAction}
                     detail={action?.type && stringifiedAction}
+                    detailTextStyle={commonStyles.devToolsMonospacedDetails}
                     compactLabel
                     arrow
                     onPress={() =>

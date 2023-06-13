@@ -307,6 +307,9 @@ const commonStyles = StyleSheet.create({
   fs16: {
     fontSize: 16,
   },
+  fs14: {
+    fontSize: 14,
+  },
   fs8: {
     fontSize: 8,
   },
@@ -319,6 +322,14 @@ const commonStyles = StyleSheet.create({
   monospaced: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     opacity: 0.9,
+  },
+  devToolsMonospaced: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 14,
+  },
+  devToolsMonospacedDetails: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    fontSize: 12,
   },
 });
 

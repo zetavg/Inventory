@@ -6,13 +6,14 @@ import {
   Reducer,
   StateFromReducersMapObject,
 } from 'redux';
-import { createTransform, persistReducer } from 'redux-persist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ActionCreatorWithoutPayload,
   ActionCreatorWithPayload,
   PayloadAction,
 } from '@reduxjs/toolkit';
+import { createTransform, persistReducer } from 'redux-persist';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function combineAndPersistReducers<M>(
   reducers: M,
@@ -117,4 +118,20 @@ export function combine<T extends Array<Record<string, any>>>(
   }
 
   return Object.assign({}, ...objs);
+}
+
+export function annotateOriginalActionTypes<T extends Record<string, Action>>(
+  actions: T,
+  originalActions: ReadonlyArray<Record<string, Action>>,
+): T {
+  originalActions.forEach(acs => {
+    Object.entries(acs).forEach(([key, ac]) => {
+      const newAc = (actions as any)[key];
+      if (!newAc) return;
+
+      newAc.originalType = (ac as any).originalType || ac.type;
+    });
+  });
+
+  return actions;
 }

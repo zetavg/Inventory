@@ -1,17 +1,18 @@
 import React, { useRef } from 'react';
 import { ScrollView } from 'react-native';
-
-import { diff } from 'deep-object-diff';
-
 import type { StackScreenProps } from '@react-navigation/stack';
+
+import { detailedDiff } from 'deep-object-diff';
+
+import cs from '@app/utils/commonStyles';
+import commonStyles from '@app/utils/commonStyles';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import cs from '@app/utils/commonStyles';
-
-import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
 
 function ReduxActionDetailScreen({
   navigation,
@@ -38,13 +39,15 @@ function ReduxActionDetailScreen({
             vertical2
             label="Action"
             detail={JSON.stringify(action, null, 2)}
+            detailTextStyle={[commonStyles.devToolsMonospaced]}
           />
         </InsetGroup>
         <InsetGroup>
           <InsetGroup.Item
             vertical2
             label="State Diff"
-            detail={JSON.stringify(diff(prevState, nextState), null, 2)}
+            detail={JSON.stringify(detailedDiff(prevState, nextState), null, 2)}
+            detailTextStyle={[commonStyles.devToolsMonospaced]}
           />
         </InsetGroup>
         <InsetGroup>
@@ -52,6 +55,7 @@ function ReduxActionDetailScreen({
             vertical2
             label="Prev State"
             detail={JSON.stringify(prevState, null, 2)}
+            detailTextStyle={commonStyles.devToolsMonospacedDetails}
           />
         </InsetGroup>
         <InsetGroup>
@@ -59,6 +63,7 @@ function ReduxActionDetailScreen({
             vertical2
             label="Next State"
             detail={JSON.stringify(nextState, null, 2)}
+            detailTextStyle={commonStyles.devToolsMonospacedDetails}
           />
         </InsetGroup>
       </ScrollView>

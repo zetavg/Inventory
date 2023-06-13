@@ -1,7 +1,12 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { PersistableReducer } from '@app/redux/types';
-import { combine, mapActionReducers, mapSelectors } from '@app/redux/utils';
+import {
+  annotateOriginalActionTypes,
+  combine,
+  mapActionReducers,
+  mapSelectors,
+} from '@app/redux/utils';
 import {
   actions as counterActions,
   CounterState,
@@ -41,6 +46,8 @@ export const countersSlice = createSlice({
       state.counters[action.payload] = counterInitialState;
     },
     setCurrentCounter: (state, action: PayloadAction<string>) => {
+      if (!state.counters[action.payload]) return;
+
       state.currentCounter = action.payload;
     },
     deleteCounter: (state, action: PayloadAction<string>) => {
@@ -70,7 +77,9 @@ export const reducer: PersistableReducer<typeof countersSlice.reducer> =
   countersSlice.reducer;
 
 // Export actions
-export const actions = countersSlice.actions;
+export const actions = annotateOriginalActionTypes(countersSlice.actions, [
+  counterActions,
+]);
 
 // Selectors, the `combine` function can detect and prevent collisions.
 export const selectors = combine(

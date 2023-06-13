@@ -1,49 +1,53 @@
 import React, { useCallback, useRef } from 'react';
-import { ScrollView } from 'react-native';
-
+import { ScrollView, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+
+import { actions } from '@app/redux';
+
+import cs from '@app/utils/commonStyles';
+import commonStyles from '@app/utils/commonStyles';
+
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import cs from '@app/utils/commonStyles';
-
-import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
-import { dbSyncSettingsSlice } from '@app/features/db-sync/manage/settingsSlice';
+import ModalContent from '@app/components/ModalContent';
 
-const SWITCH_PROFILE_ACTION = `{
-  "type": "profiles/switchProfile",
-  "payload": "default"
-}`;
-const CREATE_PROFILE_ACTION = `{
-  "type": "profiles/createProfile",
-  "payload": {
-    "name": "NewProfile",
-    "color": "blue"
+function mapActionsToItems(acs: any, handleSelect: any) {
+  return Object.entries(acs)
+    .map(([key, ac]) => {
+      const mockPayload: any = null;
+      // const action =
+      //   (ac as any).length === 0 ? (ac as any)() : (ac as any)(mockPayload);
+      const action = (ac as any)(mockPayload);
+      const actionStr = JSON.stringify(action);
+      const actionStrPretty = JSON.stringify(action, null, 2);
+      return (
+        <InsetGroup.Item
+          key={key}
+          label={key}
+          detail={actionStr}
+          detailTextStyle={commonStyles.devToolsMonospaced}
+          onPress={() => handleSelect(actionStrPretty)}
+        />
+      );
+    })
+    .flatMap((element, i) => [element, <InsetGroup.ItemSeparator key={i} />])
+    .slice(0, -1);
+}
+
+const actionGroups: any = {};
+Object.entries(actions).forEach(([key, ac]: any) => {
+  if (!ac.type) {
+    if (!actionGroups.other) actionGroups.other = {};
+    actionGroups.other[key] = ac;
   }
-}`;
-const DELETE_PROFILE_ACTION = `{
-  "type": "profiles/deleteProfile",
-  "payload": {
-    "name": ""
-  }
-}`;
 
-const UPDATE_SETTINGS_ACTION = `{
-  "type": "settings/updateSettings",
-  "payload": {
-    "key": "value"
-  }
-}`;
-
-const RESET_SETTINGS_ACTION = '{ "type": "settings/resetSettings" }';
-
-const DB_SYNC_SET_DISABLED = JSON.stringify(
-  dbSyncSettingsSlice.actions.setDisabled(true),
-  null,
-  2,
-);
+  const group = (ac.originalType || ac.type).split('/')[0];
+  if (!actionGroups[group]) actionGroups[group] = {};
+  actionGroups[group][key] = ac;
+});
 
 function ReduxSelectCommonActionsScreen({
   navigation,
@@ -70,43 +74,12 @@ function ReduxSelectCommonActionsScreen({
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup style={cs.mt16}>
-          <InsetGroup.Item
-            label="Switch Profile"
-            detail={SWITCH_PROFILE_ACTION.replace(/\n */, '')}
-            onPress={() => handleSelect(SWITCH_PROFILE_ACTION)}
-          />
-          <InsetGroup.Item
-            label="Create Profile"
-            detail={CREATE_PROFILE_ACTION.replace(/\n */, '')}
-            onPress={() => handleSelect(CREATE_PROFILE_ACTION)}
-          />
-          <InsetGroup.Item
-            label="Delete Profile"
-            detail={DELETE_PROFILE_ACTION.replace(/\n */, '')}
-            onPress={() => handleSelect(DELETE_PROFILE_ACTION)}
-          />
-        </InsetGroup>
-        <InsetGroup>
-          <InsetGroup.Item
-            label="Update Settings"
-            detail={UPDATE_SETTINGS_ACTION.replace(/\n */, '')}
-            onPress={() => handleSelect(UPDATE_SETTINGS_ACTION)}
-          />
-          <InsetGroup.Item
-            label="Reset Settings"
-            detail={RESET_SETTINGS_ACTION.replace(/\n */, '')}
-            onPress={() => handleSelect(RESET_SETTINGS_ACTION)}
-          />
-        </InsetGroup>
-
-        <InsetGroup>
-          <InsetGroup.Item
-            label="DBSync Set Disabled"
-            detail={DB_SYNC_SET_DISABLED.replace(/\n */, '')}
-            onPress={() => handleSelect(DB_SYNC_SET_DISABLED)}
-          />
-        </InsetGroup>
+        <View style={cs.mt16} />
+        {Object.entries(actionGroups).map(([group, items]) => (
+          <InsetGroup key={group} label={group}>
+            {mapActionsToItems(items, handleSelect)}
+          </InsetGroup>
+        ))}
       </ScrollView>
     </ModalContent>
   );
