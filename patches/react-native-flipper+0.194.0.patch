@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-flipper/react-native.config.js b/node_modules/react-native-flipper/react-native.config.js
+new file mode 100644
+index 0000000..f1fa491
+--- /dev/null
++++ b/node_modules/react-native-flipper/react-native.config.js
+@@ -0,0 +1,10 @@
++// https://github.com/facebook/flipper/pull/4485
++module.exports = {
++  dependency: {
++    platforms: {
++      ios: {
++        configurations: ['Debug'],
++      },
++    },
++  },
++};
