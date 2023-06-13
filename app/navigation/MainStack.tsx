@@ -1,53 +1,54 @@
 import React, { useMemo } from 'react';
 import { Platform, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   createStackNavigator,
   TransitionPresets,
 } from '@react-navigation/stack';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import useColors from '@app/hooks/useColors';
-
-import MoreScreen from '@app/screens/MoreScreen';
-import InventoryTabScreen from '@app/screens/InventoryTabScreen';
-import SettingsScreen from '@app/screens/SettingsScreen';
-import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
-import AboutScreen from '@app/screens/AboutScreen';
-import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
-import ReduxScreen from '@app/screens/ReduxScreen';
-import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
-import PouchDBScreen from '@app/screens/PouchDBScreen';
-import SQLiteScreen from '@app/screens/SQLiteScreen';
-import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
-import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
-import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
-import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchDBTypeDataDetailScreen';
-import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
-import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
-import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
-import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
-import EPCTDSScreen from '@app/screens/EPCTDSScreen';
-import RFIDUHFModuleScreen from '@app/screens/RFIDUHFModuleScreen';
-import SampleScreen from '@app/screens/SampleScreen';
-import StorybookScreen from '@app/screens/StorybookScreen';
-import NewAppScreen from '@app/screens/NewAppScreen';
-
-import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
-import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
-import ItemScreen from '@app/features/inventory/screens/ItemScreen';
-import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
-import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
-import SearchScreen from '@app/features/inventory/screens/SearchScreen';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import CountersScreen from '@app/features/counters/screens/CountersScreen';
-import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
+import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
 import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
 import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
-import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
+import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
+import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
+import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
+import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
+import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
+import ItemScreen from '@app/features/inventory/screens/ItemScreen';
+import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
 import type { TypeName as DataTypeName } from '@app/db/schema';
+
+import AboutScreen from '@app/screens/AboutScreen';
+import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
+import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
+import EPCTDSScreen from '@app/screens/EPCTDSScreen';
+import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
+import InventoryTabScreen from '@app/screens/InventoryTabScreen';
+import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
+import MoreScreen from '@app/screens/MoreScreen';
+import NewAppScreen from '@app/screens/NewAppScreen';
+import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
+import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
+import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
+import PouchDBScreen from '@app/screens/PouchDBScreen';
+import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
+import ReduxScreen from '@app/screens/ReduxScreen';
+import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
+import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
+import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchDBTypeDataDetailScreen';
+import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
+import RFIDUHFModuleScreen from '@app/screens/RFIDUHFModuleScreen';
+import SampleScreen from '@app/screens/SampleScreen';
+import SettingsScreen from '@app/screens/SettingsScreen';
+import SQLiteScreen from '@app/screens/SQLiteScreen';
+import StorybookScreen from '@app/screens/StorybookScreen';
+
+import useColors from '@app/hooks/useColors';
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 export type StackParamList = {
   More: undefined;
@@ -95,6 +96,7 @@ export type StackParamList = {
   LinguisticTaggerModuleIOS: undefined;
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
+  DevChangeIcon: undefined;
   Counter: undefined;
   Counters: undefined;
   Sample: {
@@ -225,6 +227,8 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Checklists" component={ChecklistsScreen} />
       <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
+
+      <Stack.Screen name="DevChangeIcon" component={DevChangeIconScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
       <Stack.Screen name="Counters" component={CountersScreen} />

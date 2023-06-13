@@ -128,6 +128,14 @@ function DeveloperToolsScreen({
 
         <InsetGroup>
           <InsetGroup.Item
+            label="Change App Icon"
+            arrow
+            onPress={() => navigation.push('DevChangeIcon')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="Sample Screen"
             arrow
             onPress={() => navigation.push('Sample', {})}

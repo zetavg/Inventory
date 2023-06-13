@@ -12634,6 +12634,11 @@ react-native-auto-size-text@^1.1.1:
   dependencies:
     "@testing-library/react-native" "^7.2.0"
 
+react-native-change-icon@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-change-icon/-/react-native-change-icon-4.0.0.tgz#7d398dcf17f67f7301cc408d06cb075473605416"
+  integrity sha512-bH18dfNrZh+0f2SRXbU94foxDgNhnddTI4iMKolBF+bQdWv3HgNT1UQI+dSCVHR10pUVD3lvDL+XEydKbV1LTw==
+
 react-native-codegen@^0.71.5:
   version "0.71.5"
   resolved "https://registry.yarnpkg.com/react-native-codegen/-/react-native-codegen-0.71.5.tgz#454a42a891cd4ca5fc436440d301044dc1349c14"

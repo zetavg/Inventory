@@ -333,6 +333,8 @@ PODS:
     - glog
   - react-native-blur (4.2.0):
     - React-Core
+  - react-native-change-icon (4.0.0):
+    - React-Core
   - react-native-document-picker (8.1.2):
     - React-Core
   - react-native-flipper (0.194.0):
@@ -554,6 +556,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
+  - react-native-change-icon (from `../node_modules/react-native-change-icon`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
@@ -657,6 +660,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
+  react-native-change-icon:
+    :path: "../node_modules/react-native-change-icon"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
   react-native-flipper:
@@ -772,6 +777,7 @@ SPEC CHECKSUMS:
   React-jsinspector: cdc854f8b13abd202afa54bc12578e5afb9cfae1
   React-logger: ef2269b3afa6ba868da90496c3e17a4ec4f4cee0
   react-native-blur: 3e9c8e8e9f7d17fa1b94e1a0ae9fd816675f5382
+  react-native-change-icon: ea9bb7255b09e89f41cbf282df16eade91ab1833
   react-native-document-picker: f5ec1a712ca2a975c233117f044817bb8393cad4
   react-native-flipper: 728874c01666b8088b03334cb4efe61a7145592a
   react-native-get-random-values: a6ea6a8a65dc93e96e24a11105b1a9c8cfe1d72a

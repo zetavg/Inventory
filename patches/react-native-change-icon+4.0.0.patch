@@ -1,0 +1,125 @@
+diff --git a/node_modules/react-native-change-icon/android/src/main/java/com/reactnativechangeicon/ChangeIconModule.java b/node_modules/react-native-change-icon/android/src/main/java/com/reactnativechangeicon/ChangeIconModule.java
+index 07402bc..116b5a8 100644
+--- a/node_modules/react-native-change-icon/android/src/main/java/com/reactnativechangeicon/ChangeIconModule.java
++++ b/node_modules/react-native-change-icon/android/src/main/java/com/reactnativechangeicon/ChangeIconModule.java
+@@ -23,7 +23,7 @@ public class ChangeIconModule extends ReactContextBaseJavaModule implements Appl
+     public static final String NAME = "ChangeIcon";
+     private final String packageName;
+     private List<String> classesToKill = new ArrayList<>();
+-    private Boolean iconChanged = false;
++    private String iconChanged = "";
+     private String componentClass = "";
+
+     public ChangeIconModule(ReactApplicationContext reactContext, String packageName) {
+@@ -47,8 +47,8 @@ public class ChangeIconModule extends ReactContextBaseJavaModule implements Appl
+         if (this.componentClass.isEmpty()) {
+             this.componentClass = activity.getComponentName().getClassName();
+         }
+-        String currentIcon = this.componentClass.split("MainActivity")[1];
+-        promise.resolve(currentIcon.isEmpty() ? "default" : currentIcon);
++        String[] currentIcon = this.componentClass.split("MainActivity");
++        promise.resolve(currentIcon.length <= 1 || currentIcon[1].isEmpty() ? "default" : currentIcon[1]);
+         return;
+     }
+
+@@ -85,20 +85,26 @@ public class ChangeIconModule extends ReactContextBaseJavaModule implements Appl
+         this.classesToKill.add(this.componentClass);
+         this.componentClass = activeClass;
+         activity.getApplication().registerActivityLifecycleCallbacks(this);
+-        iconChanged = true;
++        iconChanged = activeClass;
+     }
+
+     private void completeIconChange() {
+-        if (!iconChanged) return;
++        if (iconChanged.isEmpty()) return;
+         final Activity activity = getCurrentActivity();
+         if (activity == null) return;
+-        classesToKill.forEach((cls) -> activity.getPackageManager().setComponentEnabledSetting(
+-            new ComponentName(this.packageName, cls),
+-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+-            PackageManager.DONT_KILL_APP
+-        ));
++        classesToKill.forEach((cls) -> {
++            if (cls.equals(iconChanged)) {
++                return;
++            }
++
++            activity.getPackageManager().setComponentEnabledSetting(
++                    new ComponentName(this.packageName, cls),
++                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
++                    PackageManager.DONT_KILL_APP
++            );
++        });
+         classesToKill.clear();
+-        iconChanged = false;
++        iconChanged = "";
+     }
+
+     @Override
+diff --git a/node_modules/react-native-change-icon/index.d.ts b/node_modules/react-native-change-icon/index.d.ts
+new file mode 100644
+index 0000000..059a2e2
+--- /dev/null
++++ b/node_modules/react-native-change-icon/index.d.ts
+@@ -0,0 +1,10 @@
++declare module 'react-native-change-icon' {
++    declare const changeIcon: (iconName: string | null) => Promise<string>;
++    declare const getIcon: () => Promise<string>;
++
++    declare const ChangeIconErrorCode: {
++        notSupported: string;
++        alreadyInUse: string;
++        systemError: string;
++    };
++}
+diff --git a/node_modules/react-native-change-icon/index.js b/node_modules/react-native-change-icon/index.js
+index eec5553..e8c7791 100644
+--- a/node_modules/react-native-change-icon/index.js
++++ b/node_modules/react-native-change-icon/index.js
+@@ -4,4 +4,10 @@ const changeIcon = (iconName) => NativeModules.ChangeIcon.changeIcon(iconName);
+
+ const getIcon = () => NativeModules.ChangeIcon.getIcon();
+
+-export { changeIcon, getIcon };
++const ChangeIconErrorCode = {
++  notSupported: "NOT_SUPPORTED",
++  alreadyInUse: "ALREADY_IN_USE",
++  systemError: "SYSTEM_ERROR",
++};
++
++export { changeIcon, ChangeIconErrorCode, getIcon };
+\ No newline at end of file
+diff --git a/node_modules/react-native-change-icon/ios/ChangeIcon.mm b/node_modules/react-native-change-icon/ios/ChangeIcon.mm
+index d5c6b57..2311e69 100644
+--- a/node_modules/react-native-change-icon/ios/ChangeIcon.mm
++++ b/node_modules/react-native-change-icon/ios/ChangeIcon.mm
+@@ -27,21 +27,24 @@ + (BOOL)requiresMainQueueSetup {
+         NSError *error = nil;
+
+         if ([[UIApplication sharedApplication] supportsAlternateIcons] == NO) {
+-            reject(@"Error", @"NOT_SUPPORTED", error);
++            reject(@"NOT_SUPPORTED", @"Alternate icon not supported", error);
+             return;
+         }
+
+         NSString *currentIcon = [[UIApplication sharedApplication] alternateIconName];
+
+         if ([iconName isEqualToString:currentIcon]) {
+-            reject(@"Error", @"ICON_ALREADY_USED", error);
++            reject(@"ICON_ALREADY_USED", @"Icon already in use", error);
+             return;
+         }
+
+-        resolve(iconName);
+
+         [[UIApplication sharedApplication] setAlternateIconName:iconName completionHandler:^(NSError * _Nullable error) {
+-            return;
++            if (error) {
++              reject(@"SYSTEM_ERROR", error.localizedDescription, error);
++            } else {
++              resolve(iconName);
++            }
+         }];
+     });
+ }
