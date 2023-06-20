@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js b/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
+index 06a6afa..1a25823 100644
+--- a/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
++++ b/node_modules/react-native/Libraries/LogBox/LogBoxNotificationContainer.js
+@@ -83,7 +83,9 @@ export function _LogBoxNotificationContainer(props: Props): React.Node {
+ 
+ const styles = StyleSheet.create({
+   list: {
+-    bottom: 20,
++    // bottom: 20,
++    // Let the message be above the bottom bar.
++    bottom: 84,
+     left: 10,
+     right: 10,
+     position: 'absolute',

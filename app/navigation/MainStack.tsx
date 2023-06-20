@@ -23,6 +23,7 @@ import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import type { TypeName as DataTypeName } from '@app/db/schema';
 
 import AboutScreen from '@app/screens/AboutScreen';
+import ConsoleLogScreen from '@app/screens/ConsoleLogScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -106,6 +107,7 @@ export type StackParamList = {
   };
   Storybook: undefined;
   NewAppScreen: undefined;
+  ConsoleLog: undefined;
   DemoHome: undefined;
   DemoDetails: { id: string };
 };
@@ -220,6 +222,8 @@ function MainStack({ initialRouteName }: Props) {
         component={NewAppScreen}
         options={SCREEN_OPTIONS.noHeader}
       />
+
+      <Stack.Screen name="ConsoleLog" component={ConsoleLogScreen} />
 
       <Stack.Screen name="Collections" component={CollectionsScreen} />
       <Stack.Screen name="Collection" component={CollectionScreen} />

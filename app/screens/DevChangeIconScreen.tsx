@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { changeIcon, getIcon } from 'react-native-change-icon';
+
+import ChangeAppIcon from '@app/modules/ChangeAppIcon';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 
@@ -40,9 +41,8 @@ function DevChangeIconScreen({
         >
           <InsetGroup.Item>
             <InsetGroup.TextInput
-              // alignRight
               placeholder="Enter icon name (e.g.: AppIcon-dark)"
-              autoCapitalize="words"
+              autoCapitalize="none"
               returnKeyType="done"
               onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
               value={iconName}
@@ -56,14 +56,13 @@ function DevChangeIconScreen({
             label="Set"
             onPress={async () => {
               try {
-                const result = await changeIcon(iconName || null);
+                const result = await ChangeAppIcon.set(iconName || null);
                 // Alert.alert('Ok', result);
               } catch (e: any) {
                 Alert.alert('Error', e.message);
               }
             }}
           />
-          <InsetGroup.ItemSeparator />
         </InsetGroup>
 
         <InsetGroup footerLabel={'Press "Get" to get the current icon name.'}>
@@ -72,7 +71,7 @@ function DevChangeIconScreen({
             label="Get"
             onPress={async () => {
               try {
-                const name = await getIcon();
+                const name = await ChangeAppIcon.get();
                 setIconName(name);
               } catch (e: any) {
                 Alert.alert('Error', e);

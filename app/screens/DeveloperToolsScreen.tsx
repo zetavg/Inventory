@@ -167,6 +167,13 @@ function DeveloperToolsScreen({
         </InsetGroup>
         <InsetGroup>
           <InsetGroup.Item
+            label="console.log"
+            arrow
+            onPress={() => navigation.push('ConsoleLog')}
+          />
+        </InsetGroup>
+        <InsetGroup>
+          <InsetGroup.Item
             label="Show Dev Tools"
             detail={
               <Switch
