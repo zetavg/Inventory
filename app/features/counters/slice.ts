@@ -2,7 +2,6 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { PersistableReducer } from '@app/redux/types';
 import {
-  annotateOriginalActionTypes,
   combine,
   mapActionReducers,
   mapSelectors,
@@ -41,27 +40,32 @@ export const countersSlice = createSlice({
   name: 'counters',
   // `createSlice` will infer the state type from the `initialState` argument
   initialState,
-  reducers: {
-    // Reducers for adding, deleting, and switching counters.
-    newCounter: (state, action: PayloadAction<string>) => {
-      state.counters[action.payload] = counterInitialState;
-    },
-    setCurrentCounter: (state, action: PayloadAction<string>) => {
-      if (!state.counters[action.payload]) return;
+  reducers: combine(
+    {
+      // Reducers for adding, deleting, and switching counters.
+      newCounter: (state: CountersState, action: PayloadAction<string>) => {
+        state.counters[action.payload] = counterInitialState;
+      },
+      setCurrentCounter: (
+        state: CountersState,
+        action: PayloadAction<string>,
+      ) => {
+        if (!state.counters[action.payload]) return;
 
-      state.currentCounter = action.payload;
-    },
-    deleteCounter: (state, action: PayloadAction<string>) => {
-      if (Object.keys(state.counters).length === 1) {
-        throw new Error('Cannot delete last counter');
-      }
-      delete state.counters[action.payload];
-      if (state.currentCounter === action.payload) {
-        state.currentCounter = Object.keys(state.counters)[0];
-      }
+        state.currentCounter = action.payload;
+      },
+      deleteCounter: (state: CountersState, action: PayloadAction<string>) => {
+        if (Object.keys(state.counters).length === 1) {
+          throw new Error('Cannot delete last counter');
+        }
+        delete state.counters[action.payload];
+        if (state.currentCounter === action.payload) {
+          state.currentCounter = Object.keys(state.counters)[0];
+        }
+      },
     },
     // Use the counter reducer to handle actions for the current counter.
-    ...mapActionReducers(
+    mapActionReducers(
       counterActions.counter,
       actionCreator => (state: CountersState, action: any) => {
         state.counters[state.currentCounter] = counterReducer(
@@ -70,7 +74,7 @@ export const countersSlice = createSlice({
         );
       },
     ),
-  },
+  ),
 });
 
 // Export the reducer
