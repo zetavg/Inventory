@@ -40,7 +40,7 @@ import DemoModalScreen from '@app/screens/DemoModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
 import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
-import ReduxSelectCommonActionsScreen from '@app/screens/ReduxSelectCommonActionsScreen';
+import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
 import SelectIconScreen from '@app/screens/SelectIconScreen';
@@ -118,7 +118,7 @@ export type RootStackParamList = {
     callback: (iconName: IconName) => void;
     defaultValue?: IconName;
   };
-  ReduxSelectCommonActions: {
+  ReduxSelectAction: {
     callback: (data: string) => void;
   };
   PouchDBPutDataModal: {
@@ -214,8 +214,8 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               }
             </Stack.Screen>
             <Stack.Screen
-              name="ReduxSelectCommonActions"
-              component={ReduxSelectCommonActionsScreen}
+              name="ReduxSelectAction"
+              component={ReduxSelectActionScreen}
             />
             <Stack.Screen
               name="SwitchProfile"

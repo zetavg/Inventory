@@ -93,14 +93,20 @@ function ReduxScreen({
 
         <InsetGroup
           label="Dispatch Action"
-          footerLabel={isActionInvalid ? '⚠ Invalid JSON' : undefined}
+          footerLabel={
+            !actionStr
+              ? 'Enter action JSON to dispatch'
+              : isActionInvalid
+              ? '⚠ Invalid JSON'
+              : undefined
+          }
           ref={dispatchActionGroup}
           labelVariant="large"
           labelRight={
             <InsetGroup.LabelButton
               title="Select Action"
               onPress={() =>
-                rootNavigation?.push('ReduxSelectCommonActions', {
+                rootNavigation?.push('ReduxSelectAction', {
                   callback: (a: string) => {
                     setActionStr(a);
                     scrollTo(dispatchActionGroup);
@@ -126,20 +132,6 @@ function ReduxScreen({
             }
           />
           <InsetGroup.ItemSeparator />
-          {/*<InsetGroup.Item
-            // arrow
-            button
-            label="Select..."
-            onPress={() =>
-              rootNavigation?.push('ReduxSelectCommonActions', {
-                callback: (a: string) => {
-                  setActionStr(a);
-                  scrollTo(dispatchActionGroup);
-                },
-              })
-            }
-          />
-          <InsetGroup.ItemSeparator />*/}
           <InsetGroup.Item
             button
             destructive
@@ -159,18 +151,6 @@ function ReduxScreen({
                 onPress={() => setActionLogs([])}
               />
             }
-            // labelRight={
-            //   <TouchableOpacity onPress={() => setActionLogs([])}>
-            //     <Text
-            //       style={{
-            //         fontSize: InsetGroup.GROUP_LABEL_FONT_SIZE,
-            //         color: iosTintColor,
-            //       }}
-            //     >
-            //       Clear
-            //     </Text>
-            //   </TouchableOpacity>
-            // }
           >
             {actionLogs
               .flatMap(({ action, prevState, nextState }: any, i) => {

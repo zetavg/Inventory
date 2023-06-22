@@ -37,10 +37,10 @@ function mapActionsToItems(acs: any, handleSelect: any) {
     .slice(0, -1);
 }
 
-function ReduxSelectCommonActionsScreen({
+function ReduxSelectActionScreen({
   navigation,
   route,
-}: StackScreenProps<RootStackParamList, 'ReduxSelectCommonActions'>) {
+}: StackScreenProps<RootStackParamList, 'ReduxSelectAction'>) {
   const { callback } = route.params;
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -73,4 +73,4 @@ function ReduxSelectCommonActionsScreen({
   );
 }
 
-export default ReduxSelectCommonActionsScreen;
+export default ReduxSelectActionScreen;

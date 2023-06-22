@@ -83,10 +83,6 @@ export const actions = {
   counter: override(counterActions.counter, countersSlice.actions),
 };
 
-// annotateOriginalActionTypes(countersSlice.actions, [
-//   counterActions,
-// ]);
-
 // Selectors, the `combine` function can detect and prevent collisions.
 export const selectors = {
   counters: {
