@@ -32,7 +32,7 @@ function AboutScreen({
   }
 
   const dispatch = useAppDispatch();
-  const showDevTools = useAppSelector(selectors.showDevTools);
+  const showDevTools = useAppSelector(selectors.devTools.showDevTools);
   const [pressToBecomeDeveloperCounter, setPressToBecomeDeveloperCounter] =
     React.useState(0);
   const pressToBecomeDeveloperThreshold = 12;
@@ -58,7 +58,7 @@ function AboutScreen({
 
   React.useEffect(() => {
     if (pressToBecomeDeveloperCounter >= pressToBecomeDeveloperThreshold) {
-      dispatch(actions.showDevTools());
+      dispatch(actions.devTools.showDevTools());
     }
   }, [dispatch, pressToBecomeDeveloperCounter]);
 

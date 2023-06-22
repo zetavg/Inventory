@@ -19,8 +19,8 @@ function CountersScreen({
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
-  const currentCounter = useAppSelector(selectors.currentCounter);
-  const counterNames = useAppSelector(selectors.counterNames);
+  const currentCounter = useAppSelector(selectors.counters.currentCounter);
+  const counterNames = useAppSelector(selectors.counters.counterNames);
   const dispatch = useAppDispatch();
 
   const [inputCounterName, setInputCounterName] = useState('');
@@ -40,7 +40,9 @@ function CountersScreen({
                 key={name}
                 label={name}
                 selected={name === currentCounter}
-                onPress={() => dispatch(actions.setCurrentCounter(name))}
+                onPress={() =>
+                  dispatch(actions.counters.setCurrentCounter(name))
+                }
               />
             ))
             .flatMap((element, i) => [
@@ -71,7 +73,7 @@ function CountersScreen({
                 return;
               }
 
-              dispatch(actions.newCounter(inputCounterName));
+              dispatch(actions.counters.newCounter(inputCounterName));
             }}
           />
           <InsetGroup.ItemSeparator />
@@ -86,7 +88,7 @@ function CountersScreen({
               }
 
               try {
-                dispatch(actions.deleteCounter(inputCounterName));
+                dispatch(actions.counters.deleteCounter(inputCounterName));
               } catch (e: any) {
                 Alert.alert('Error', e.message);
               }

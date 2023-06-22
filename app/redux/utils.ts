@@ -97,6 +97,37 @@ export function mapSelectors<S, T extends Record<string, (s: any) => any>>(
   ) as any;
 }
 
+export function mapGroupedSelectors<
+  S,
+  T extends Record<string, Record<string, (s: any) => any>>,
+>(
+  groupedSelectors: T,
+  fn: <U extends keyof T, UU extends keyof T[U]>(
+    selector: any /* TODO */,
+  ) => (state: S) => ReturnType<T[string][string]>,
+): { [K in keyof T]: { [KK in keyof T[K]]: (s: S) => ReturnType<T[K][KK]> } } {
+  return Object.fromEntries(
+    Object.entries(groupedSelectors).map(([key, selectors]) => [
+      key,
+      mapSelectors(selectors, fn as any),
+    ]),
+  ) as any;
+}
+
+export function override<T extends Record<string, unknown>>(
+  originalObj: T,
+  overrideObj: Record<string, unknown>,
+): T {
+  const returnObj = { ...originalObj };
+  for (const key in originalObj) {
+    if (overrideObj[key]) {
+      returnObj[key] = overrideObj[key] as any;
+    }
+  }
+
+  return returnObj;
+}
+
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
   k: infer I,
 ) => void

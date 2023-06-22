@@ -37,18 +37,6 @@ function mapActionsToItems(acs: any, handleSelect: any) {
     .slice(0, -1);
 }
 
-const actionGroups: any = {};
-Object.entries(actions).forEach(([key, ac]: any) => {
-  if (!ac.type) {
-    if (!actionGroups.other) actionGroups.other = {};
-    actionGroups.other[key] = ac;
-  }
-
-  const group = (ac.originalType || ac.type).split('/')[0];
-  if (!actionGroups[group]) actionGroups[group] = {};
-  actionGroups[group][key] = ac;
-});
-
 function ReduxSelectCommonActionsScreen({
   navigation,
   route,
@@ -75,9 +63,9 @@ function ReduxSelectCommonActionsScreen({
         automaticallyAdjustKeyboardInsets
       >
         <View style={cs.mt16} />
-        {Object.entries(actionGroups).map(([group, items]) => (
+        {Object.entries(actions).map(([group, actionItems]) => (
           <InsetGroup key={group} label={group}>
-            {mapActionsToItems(items, handleSelect)}
+            {mapActionsToItems(actionItems, handleSelect)}
           </InsetGroup>
         ))}
       </ScrollView>

@@ -22,7 +22,7 @@ import profilesReducer from '@app/features/profiles/slice';
 import settingsReducer from '@app/features/settings/slice';
 
 import logger from './middlewares/logger';
-import { combine, combineAndPersistReducers, mapSelectors } from './utils';
+import { combineAndPersistReducers, mapGroupedSelectors } from './utils';
 
 const reducer = combineAndPersistReducers({
   // counter: counterReducer,
@@ -66,26 +66,26 @@ export type RootState = ReturnType<typeof store.getState>;
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
 
-export const actions = combine(
-  // counterActions,
-  countersActions,
-  devToolsActions,
-);
+export const actions = {
+  ...counterActions,
+  ...countersActions,
+  ...devToolsActions,
+};
 
-export const selectors = combine(
-  // mapSelectors(
-  //   counterSelectors,
-  //   selector => (state: RootState) => selector(state.counter),
-  // ),
-  mapSelectors(
+export const selectors = {
+  ...mapGroupedSelectors(
+    counterSelectors,
+    selector => (state: RootState) => selector(state.counters),
+  ),
+  ...mapGroupedSelectors(
     countersSelectors,
     selector => (state: RootState) => selector(state.counters),
   ),
-  mapSelectors(
+  ...mapGroupedSelectors(
     devToolsSelectors,
     selector => (state: RootState) => selector(state.devTools),
   ),
-);
+};
 
 export default store;
 

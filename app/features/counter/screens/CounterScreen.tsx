@@ -19,7 +19,7 @@ function CounterScreen({
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
-  const count = useAppSelector(selectors.counterValue);
+  const count = useAppSelector(selectors.counter.counterValue);
   const dispatch = useAppDispatch();
 
   const [incrementAmount, setIncrementAmount] = useState('2');
@@ -41,13 +41,13 @@ function CounterScreen({
           <InsetGroup.Item
             button
             label="Increase"
-            onPress={() => dispatch(actions.increment())}
+            onPress={() => dispatch(actions.counter.increment())}
           />
           <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
             label="Decrease"
-            onPress={() => dispatch(actions.decrement())}
+            onPress={() => dispatch(actions.counter.decrement())}
           />
         </InsetGroup>
 
@@ -68,7 +68,9 @@ function CounterScreen({
           <InsetGroup.Item
             button
             label="Increase By Amount"
-            onPress={() => dispatch(actions.incrementByAmount(incrementValue))}
+            onPress={() =>
+              dispatch(actions.counter.incrementByAmount(incrementValue))
+            }
           />
         </InsetGroup>
       </ScrollView>

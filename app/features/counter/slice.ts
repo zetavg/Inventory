@@ -35,14 +35,18 @@ export const reducer: PersistableReducer<typeof counterSlice.reducer> =
   counterSlice.reducer;
 
 // Export actions
-export const actions = counterSlice.actions;
+export const actions = {
+  counter: counterSlice.actions,
+};
 
 // Selectors can be used to retrieve a certain part of the state. The slice
 // should not know where it will be in the state tree, so this should only
 // select from the slice's own state, and it will be composed as we compose
 // reducers.
 export const selectors = {
-  counterValue: (state: CounterState) => state.value,
+  counter: {
+    counterValue: (state: CounterState) => state.value,
+  },
 };
 
 // Define how the state should be persisted. The slice will not be persisted

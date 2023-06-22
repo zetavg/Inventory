@@ -18,7 +18,7 @@ function DeveloperToolsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'DeveloperTools'>) {
   const dispatch = useAppDispatch();
-  const showDevTools = useAppSelector(selectors.showDevTools);
+  const showDevTools = useAppSelector(selectors.devTools.showDevTools);
 
   const setStorybookMode = useSetStorybookModeFunction();
 
@@ -179,7 +179,7 @@ function DeveloperToolsScreen({
               <Switch
                 value={showDevTools}
                 onChange={() => {
-                  dispatch(actions.toggleShowDevTools());
+                  dispatch(actions.devTools.toggleShowDevTools());
                 }}
               />
             }

@@ -6,6 +6,7 @@ import {
   combine,
   mapActionReducers,
   mapSelectors,
+  override,
 } from '@app/redux/utils';
 import {
   actions as counterActions,
@@ -61,7 +62,7 @@ export const countersSlice = createSlice({
     },
     // Use the counter reducer to handle actions for the current counter.
     ...mapActionReducers(
-      counterActions,
+      counterActions.counter,
       actionCreator => (state: CountersState, action: any) => {
         state.counters[state.currentCounter] = counterReducer(
           state.counters[state.currentCounter],
@@ -77,23 +78,29 @@ export const reducer: PersistableReducer<typeof countersSlice.reducer> =
   countersSlice.reducer;
 
 // Export actions
-export const actions = annotateOriginalActionTypes(countersSlice.actions, [
-  counterActions,
-]);
+export const actions = {
+  counters: countersSlice.actions,
+  counter: override(counterActions.counter, countersSlice.actions),
+};
+
+// annotateOriginalActionTypes(countersSlice.actions, [
+//   counterActions,
+// ]);
 
 // Selectors, the `combine` function can detect and prevent collisions.
-export const selectors = combine(
-  {
+export const selectors = {
+  counters: {
     currentCounter: (state: CountersState) => state.currentCounter,
     counterNames: (state: CountersState) => Object.keys(state.counters),
   },
-  // Use `mapSelectors` to map selectors from the counter slice.
-  mapSelectors(
-    counterSelectors,
-    selector => (state: CountersState) =>
-      selector(state.counters[state.currentCounter]),
-  ),
-);
+  counter:
+    // Use `mapSelectors` to map selectors from the counter slice.
+    mapSelectors(
+      counterSelectors.counter,
+      selector => (state: CountersState) =>
+        selector(state.counters[state.currentCounter]),
+    ),
+};
 
 // Define how the state should be persisted. The slice will not be persisted
 // if `.dehydrate` and `.rehydrate` is not defined.

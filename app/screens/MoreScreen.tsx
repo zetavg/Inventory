@@ -20,7 +20,7 @@ import ScreenContent from '@app/components/ScreenContent';
 import TableView from '@app/components/TableView';
 
 function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
-  const showDevTools = useAppSelector(selectors.showDevTools);
+  const showDevTools = useAppSelector(selectors.devTools.showDevTools);
 
   const rootNavigation = useRootNavigation();
   const colors = useColors();
