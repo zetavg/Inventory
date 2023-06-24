@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Alert, RefreshControl, ScrollView } from 'react-native';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import useDB from '@app/hooks/useDB';
+
 import commonStyles from '@app/utils/commonStyles';
-import ScreenContent from '@app/components/ScreenContent';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useDB from '@app/hooks/useDB';
+
 import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
 
 function PouchDBItemScreen({
   navigation,
@@ -23,6 +27,7 @@ function PouchDBItemScreen({
   const rootNavigation = useRootNavigation();
 
   const getData = useCallback(async () => {
+    if (!db) return;
     setLoading(true);
     try {
       const results = await db.get(id);
@@ -32,7 +37,7 @@ function PouchDBItemScreen({
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [db, id]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -69,6 +74,10 @@ function PouchDBItemScreen({
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            if (!db) {
+              Alert.alert('Error', 'Database is not available.');
+              return;
+            }
             try {
               await db.remove(data._id, data._rev);
               navigation.goBack();
@@ -111,8 +120,14 @@ function PouchDBItemScreen({
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <InsetGroup style={commonStyles.mt16}>
-          <InsetGroup.Item vertical2 label="ID" detail={id} />
+        <View style={commonStyles.mt16} />
+        <InsetGroup loading={loading}>
+          <InsetGroup.Item
+            vertical2
+            label="ID"
+            detail={id}
+            detailTextStyle={[commonStyles.devToolsMonospaced]}
+          />
           {data && (
             <>
               <InsetGroup.ItemSeparator />
@@ -120,6 +135,7 @@ function PouchDBItemScreen({
                 vertical2
                 label="Data"
                 detail={JSON.stringify(data, null, 2)}
+                detailTextStyle={[commonStyles.devToolsMonospaced]}
               />
             </>
           )}

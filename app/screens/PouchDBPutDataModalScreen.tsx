@@ -1,14 +1,16 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
+
+import commonStyles from '@app/utils/commonStyles';
+
+import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useDB from '@app/hooks/useDB';
 
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/Navigation';
-
-import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
-import commonStyles from '@app/utils/commonStyles';
+import ModalContent from '@app/components/ModalContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 function PouchDBPutDataModalScreen({
   route,
@@ -54,6 +56,10 @@ function PouchDBPutDataModalScreen({
   const [loading, setLoading] = useState(false);
   const isDone = useRef(false);
   const handlePutData = useCallback(async () => {
+    if (!db) {
+      Alert.alert('Error', 'DB is not ready yet.');
+      return;
+    }
     setLoading(true);
     try {
       const doc = {
@@ -96,6 +102,18 @@ function PouchDBPutDataModalScreen({
     [loading],
   );
   const dataInputRef = useRef<any>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const idInputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (!route.params?.id) {
+      const timer = setTimeout(() => {
+        idInputRef.current?.focus();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [route]);
 
   return (
     <ModalContent
@@ -112,37 +130,33 @@ function PouchDBPutDataModalScreen({
       action2Label="Cancel"
       onAction2Press={loading ? undefined : () => navigation.goBack()}
     >
-      <ScrollView
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <InsetGroup
-          style={commonStyles.mt16}
-          footerLabel={isJsonInvalid ? 'Invalid JSON' : undefined}
-        >
+      <ScreenContentScrollView ref={scrollViewRef}>
+        <View style={commonStyles.mt16} />
+        <InsetGroup footerLabel={isJsonInvalid ? '⚠ Invalid JSON' : undefined}>
           <InsetGroup.Item
-            compactLabel
             label="ID"
+            vertical2
             detail={
               <InsetGroup.TextInput
-                alignRight
+                ref={idInputRef}
+                placeholder="Document ID"
                 returnKeyType="next"
                 autoCapitalize="none"
+                style={[commonStyles.devToolsMonospaced]}
                 disabled={!!route.params?.id || loading}
-                autoFocus={!route.params?.id}
                 value={id}
                 onChangeText={handleIdChangeText}
                 onBlur={() => setIdTouched(true)}
                 onSubmitEditing={() => dataInputRef.current?.focus()}
+                // onFocus={ScreenContentScrollView.stf(scrollViewRef, 0)}
               />
             }
           />
           <InsetGroup.ItemSeparator />
-          <InsetGroup.Item compactLabel label="Data (JSON)">
+          <InsetGroup.Item vertical2 label="Data (JSON)">
             <InsetGroup.TextInput
               multiline
-              style={styles.textBox}
+              style={[commonStyles.devToolsMonospaced, styles.textBox]}
               placeholder="{}"
               ref={dataInputRef}
               value={dataJson}
@@ -160,7 +174,7 @@ function PouchDBPutDataModalScreen({
             onPress={handleAddField}
           />
         </InsetGroup>
-      </ScrollView>
+      </ScreenContentScrollView>
     </ModalContent>
   );
 }

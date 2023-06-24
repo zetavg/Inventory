@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
-import useColors from '@app/hooks/useColors';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+
 import Color from 'color';
+
+import useColors from '@app/hooks/useColors';
 
 type Props = { show: boolean; fullBackground?: boolean };
 

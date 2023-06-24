@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -6,15 +6,19 @@ import {
   ScrollView,
   View,
 } from 'react-native';
-import { DataTable, ActivityIndicator } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import useDB from '@app/hooks/useDB';
-import useColors from '@app/hooks/useColors';
-import ScreenContent from '@app/components/ScreenContent';
+import { ActivityIndicator, DataTable } from 'react-native-paper';
+
 import commonStyles from '@app/utils/commonStyles';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useColors from '@app/hooks/useColors';
+import useDB from '@app/hooks/useDB';
+
+import ScreenContent from '@app/components/ScreenContent';
 
 function PouchDBScreen({
   navigation,
@@ -39,6 +43,8 @@ function PouchDBScreen({
   const [loading, setLoading] = useState(true);
 
   const getData = useCallback(async () => {
+    if (!db) return;
+
     setLoading(true);
     try {
       const results = await (searchText
