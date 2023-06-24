@@ -8,7 +8,8 @@ import {
 } from "@storybook/react-native";
 
 import "@storybook/addon-ondevice-controls/register";
-import "@storybook/addon-ondevice-actions/register";
+// Will cause Possible Unhandled Promise Rejection - RangeError: Maximum call stack size exceeded
+// import "@storybook/addon-ondevice-actions/register";
 
 import { argsEnhancers } from "@storybook/addon-actions/dist/modern/preset/addArgs";
 
