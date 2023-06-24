@@ -2,9 +2,19 @@ import { useEffect, useMemo } from 'react';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import { getDatabase, getLogsDatabase } from '../pouchdb';
+import {
+  Database,
+  getDatabase,
+  getLogsDatabase,
+  LogsDatabase,
+} from '../pouchdb';
 
-export default function useDB() {
+type ReturnType = {
+  db: Database | null;
+  logsDB: LogsDatabase | null;
+};
+
+export default function useDB(): ReturnType {
   const dispatch = useAppDispatch();
   const currentDbName = useAppSelector(selectors.profiles.currentDbName);
   const currentLogsDbName = useAppSelector(
@@ -63,5 +73,5 @@ export default function useDB() {
       logsDB,
     }),
     [db, logsDB],
-  );
+  ) as any;
 }
