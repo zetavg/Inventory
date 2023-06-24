@@ -1,0 +1,12 @@
+diff --git a/node_modules/readable-stream/lib/_stream_writable.js b/node_modules/readable-stream/lib/_stream_writable.js
+index b0b0220..95601ef 100644
+--- a/node_modules/readable-stream/lib/_stream_writable.js
++++ b/node_modules/readable-stream/lib/_stream_writable.js
+@@ -54,6 +54,7 @@ function CorkedRequest(state) {
+ /* </replacement> */
+ 
+ /*<replacement>*/
++var process = require('process'); // Fix `process.version` undefined error (Cannot read property 'slice' of undefined).
+ var asyncWrite = !process.browser && ['v0.10', 'v0.9.'].indexOf(process.version.slice(0, 5)) > -1 ? setImmediate : pna.nextTick;
+ /*</replacement>*/
+ 
