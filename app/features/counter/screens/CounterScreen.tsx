@@ -8,16 +8,14 @@ import cs from '@app/utils/commonStyles';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
-
 import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 function CounterScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'Counter'>) {
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
 
   const count = useAppSelector(selectors.counter.counterValue);
   const dispatch = useAppDispatch();
@@ -27,12 +25,7 @@ function CounterScreen({
 
   return (
     <ScreenContent navigation={navigation} title="Counter">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
+      <ScreenContentScrollView ref={scrollViewRef}>
         <InsetGroup style={cs.mt16}>
           <InsetGroup.Item label="Count" detail={count} />
         </InsetGroup>
@@ -73,7 +66,7 @@ function CounterScreen({
             }
           />
         </InsetGroup>
-      </ScrollView>
+      </ScreenContentScrollView>
     </ScreenContent>
   );
 }

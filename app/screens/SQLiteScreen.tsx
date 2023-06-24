@@ -1,29 +1,50 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
-
+import {
+  Alert,
+  ScrollView,
+  Switch,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+import { QuickSQLite } from 'react-native-quick-sqlite';
+
+import { deleteSqliteDb, getSqliteDbNames } from '@app/db/sqlite';
+
+import commonStyles from '@app/utils/commonStyles';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 
+import useActionSheet from '@app/hooks/useActionSheet';
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
-import Switch from '@app/components/Switch';
-import commonStyles from '@app/utils/commonStyles';
-import useDebouncedValue from '@app/hooks/useDebouncedValue';
-
-import { QuickSQLite } from 'react-native-quick-sqlite';
+import ScreenContent from '@app/components/ScreenContent';
+import { Link } from '@app/components/Text';
 
 function SQLiteScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'SQLite'>) {
-  const [database, setDatabase] = useState('default');
+  const { showActionSheet } = useActionSheet();
+
+  const [database, setDatabase] = useState('default.sqlite3');
   const [query, setQuery] = useState(
     "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
   );
-  // const [status, setStatus] = useState<undefined | 0 | 1>(undefined);
-  // const [message, setMessage] = useState<undefined | string>(undefined);
   const [rows, setRows] = useState<undefined | Object>(undefined);
+
+  const handleShowDbSelections = useCallback(async () => {
+    const dbNames = await getSqliteDbNames();
+
+    showActionSheet(
+      dbNames.map(name => ({
+        name,
+        onSelect: () => {
+          setDatabase(name);
+        },
+      })),
+    );
+  }, [showActionSheet]);
 
   const handleExecute = useCallback(() => {
     Alert.alert(
@@ -39,6 +60,7 @@ function SQLiteScreen({
           style: 'destructive',
           onPress: () => {
             try {
+              QuickSQLite.open(database);
               const {
                 // status: s,
                 // message: m,
@@ -56,6 +78,58 @@ function SQLiteScreen({
     );
   }, [database, query]);
 
+  const [deleteDbDryRun, setDeleteDbDryRun] = useState(true);
+
+  const handleDeleteDatabaseDryRun = useCallback(async () => {
+    try {
+      const result = await deleteSqliteDb(database, { dryRun: true });
+      Alert.alert('Dry Run Result', JSON.stringify(result, null, 2));
+    } catch (e: any) {
+      Alert.alert('Error', e.message);
+    }
+  }, [database]);
+
+  const handleDeleteDatabase = useCallback(() => {
+    Alert.alert(
+      'Confirmation',
+      `Are you sure you want to DELETE the database "${database}"? This action is irreversible!`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Double Confirmation',
+              `Are you really sure you want to DELETE the database "${database}"?`,
+              [
+                {
+                  text: 'Cancel',
+                  style: 'cancel',
+                },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      const result = await deleteSqliteDb(database);
+                      Alert.alert('Result', JSON.stringify(result, null, 2));
+                    } catch (e: any) {
+                      Alert.alert('Error', e.message);
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  }, [database]);
+
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
 
@@ -63,7 +137,7 @@ function SQLiteScreen({
     <ScreenContent navigation={navigation} title="SQLite">
       <ScrollView
         ref={scrollViewRef}
-        keyboardDismissMode="interacti`ve"
+        keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
@@ -72,13 +146,19 @@ function SQLiteScreen({
             label="Database"
             vertical2
             detail={
-              <InsetGroup.TextInput
-                placeholder={'default'}
-                autoCapitalize="none"
-                returnKeyType="done"
-                value={database}
-                onChangeText={setDatabase}
-              />
+              <View style={[commonStyles.row, commonStyles.alignItemsCenter]}>
+                <InsetGroup.TextInput
+                  style={commonStyles.devToolsMonospaced}
+                  placeholder={'default'}
+                  autoCapitalize="none"
+                  returnKeyType="done"
+                  value={database}
+                  onChangeText={setDatabase}
+                />
+                <TouchableOpacity onPress={handleShowDbSelections}>
+                  <Link>Select</Link>
+                </TouchableOpacity>
+              </View>
             }
           />
           <InsetGroup.ItemSeparator />
@@ -87,6 +167,7 @@ function SQLiteScreen({
             vertical2
             detail={
               <InsetGroup.TextInput
+                style={commonStyles.devToolsMonospaced}
                 placeholder="SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
                 autoCapitalize="none"
                 multiline
@@ -95,9 +176,7 @@ function SQLiteScreen({
               />
             }
           />
-        </InsetGroup>
-
-        <InsetGroup>
+          <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="Execute Query"
             button
@@ -106,25 +185,41 @@ function SQLiteScreen({
         </InsetGroup>
 
         <InsetGroup label="Query Results">
-          {/*<InsetGroup.Item
-            label="Status"
-            vertical2
-            detail={status === undefined ? '(undefined)' : status.toString()}
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            label="Message"
-            vertical2
-            detail={message === undefined ? '(undefined)' : message}
-          />
-          <InsetGroup.ItemSeparator />*/}
           <InsetGroup.Item
             label="Rows"
             vertical2
+            detailTextStyle={commonStyles.devToolsMonospaced}
             detail={
               rows === undefined ? '(undefined)' : JSON.stringify(rows, null, 2)
             }
           />
+        </InsetGroup>
+
+        <InsetGroup label="Delete Database">
+          <InsetGroup.Item
+            label="Dry Run"
+            detail={
+              <Switch
+                value={deleteDbDryRun}
+                onChange={() => setDeleteDbDryRun(v => !v)}
+              />
+            }
+          />
+          <InsetGroup.ItemSeparator />
+          {deleteDbDryRun ? (
+            <InsetGroup.Item
+              button
+              label="Delete Database (Dry Run)"
+              onPress={handleDeleteDatabaseDryRun}
+            />
+          ) : (
+            <InsetGroup.Item
+              button
+              destructive
+              label="Delete Database"
+              onPress={handleDeleteDatabase}
+            />
+          )}
         </InsetGroup>
       </ScrollView>
     </ScreenContent>

@@ -2,7 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { actions } from '@app/redux';
+import { actions, store } from '@app/redux';
+import { filterOutCacheFromState } from '@app/redux/utils';
 
 import cs from '@app/utils/commonStyles';
 import commonStyles from '@app/utils/commonStyles';
@@ -68,6 +69,29 @@ function ReduxSelectActionScreen({
             {mapActionsToItems(actionItems, handleSelect)}
           </InsetGroup>
         ))}
+
+        <InsetGroup
+          label="🚧 Developer Only 🚧"
+          footerLabel="⚠️ DANGER: This action can reset the entire app state! Use the entire new state as the payload. This has no foolproof protection against accidental use, and might cause data corruption if used incorrectly. Use with extreme caution."
+        >
+          <InsetGroup.Item
+            label="Global Set State"
+            detail={'{ type: "__GLOBAL_SET_STATE__", payload: ... }'}
+            detailTextStyle={commonStyles.devToolsMonospaced}
+            onPress={() =>
+              handleSelect(
+                JSON.stringify(
+                  {
+                    type: '__GLOBAL_SET_STATE__',
+                    payload: filterOutCacheFromState(store.getState()),
+                  },
+                  null,
+                  2,
+                ),
+              )
+            }
+          />
+        </InsetGroup>
       </ScrollView>
     </ModalContent>
   );

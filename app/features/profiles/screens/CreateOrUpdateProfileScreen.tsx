@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, TextInput } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
@@ -13,13 +13,18 @@ import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFi
 
 import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 import { COLORS, ProfileColor } from '../slice';
 
-function NewProfileScreen({
+function CreateOrUpdateProfileScreen({
   navigation,
-}: StackScreenProps<RootStackParamList, 'NewProfile'>) {
+  route,
+}: StackScreenProps<RootStackParamList, 'CreateOrUpdateProfile'>) {
   const scrollViewRef = useRef<ScrollView>(null);
+  const { uuid } = route.params;
+  const profiles = useAppSelector(selectors.profiles.profiles);
+
   useScrollViewContentInsetFix(scrollViewRef);
 
   useLayoutEffect(() => {
@@ -30,50 +35,54 @@ function NewProfileScreen({
     return () => clearTimeout(timer);
   }, []);
 
-  const handleNameInputFocus = useCallback(() => {
-    scrollViewRef.current?.scrollTo({ y: -80, animated: true });
-    for (let i = 1; i < 120; i++) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: -80, animated: true });
-      }, i * 10);
-    }
-  }, []);
-
   const dispatch = useAppDispatch();
   // const profilesState = useAppSelector(selectProfiles);
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState(profiles[uuid || '']?.name || '');
   const nameErrorMessage = (() => {
     if (!name) {
-      return 'Please enter a name';
+      return '⚠ Please enter a name';
     }
-    // if (!name.match(/^[a-zA-Z0-9]+$/) && name !== '/dev/null') {
-    //   return 'Invalid name';
-    // }
 
-    // if (Object.keys(profilesState.configs).includes(normalizeName(name))) {
-    //   return `"${name}" is already used`;
-    // }
+    if (
+      Object.entries(profiles)
+        .filter(([k]) => k !== uuid)
+        .map(([_, v]) => v.name)
+        .includes(name)
+    ) {
+      return `⚠ "${name}" is already used`;
+    }
   })();
   const isNameValid = !nameErrorMessage;
 
-  const [color, setColor] = useState<ProfileColor>('blue');
+  const [color, setColor] = useState<ProfileColor>(
+    profiles[uuid || '']?.color || 'blue',
+  );
 
   const handleCreate = useCallback(() => {
     dispatch(actions.profiles.newProfile({ name, color }));
     navigation.goBack();
   }, [color, dispatch, name, navigation]);
 
+  const handleUpdate = useCallback(() => {
+    dispatch(actions.profiles.updateProfile({ uuid: uuid || '', name, color }));
+    navigation.goBack();
+  }, [color, dispatch, name, navigation, uuid]);
+
+  const nameInputRef = useRef<TextInput>(null);
+
   return (
     <ModalContent
       navigation={navigation}
-      title="New Profile"
-      action1Label="Create"
+      title={uuid ? 'Edit Profile' : 'New Profile'}
+      action1Label={uuid ? 'Save' : 'Create'}
       action1MaterialIconName="check"
       action1Variant="strong"
-      onAction1Press={isNameValid ? handleCreate : undefined}
+      onAction1Press={
+        isNameValid ? (uuid ? handleUpdate : handleCreate) : undefined
+      }
     >
-      <ScrollView
+      <ScreenContentScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
@@ -85,11 +94,15 @@ function NewProfileScreen({
             label="Name"
             detail={
               <InsetGroup.TextInput
+                ref={nameInputRef}
                 value={name}
                 onChangeText={setName}
                 placeholder="Profile"
-                autoFocus
-                onFocus={handleNameInputFocus}
+                autoFocus={!uuid}
+                onFocus={ScreenContentScrollView.strf(
+                  scrollViewRef,
+                  nameInputRef,
+                )}
               />
             }
           />
@@ -106,9 +119,9 @@ function NewProfileScreen({
             <InsetGroup.ItemSeparator key={`s-${c}`} />,
           ]).slice(0, -1)}
         </InsetGroup>
-      </ScrollView>
+      </ScreenContentScrollView>
     </ModalContent>
   );
 }
 
-export default NewProfileScreen;
+export default CreateOrUpdateProfileScreen;

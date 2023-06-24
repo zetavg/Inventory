@@ -1,5 +1,5 @@
+import type { DataType, TypeName } from './schema';
 import { schema } from './schema';
-import type { TypeName, DataType } from './schema';
 
 export type ConfigStoredInDB = {
   epcCompanyPrefix: string;

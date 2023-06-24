@@ -1,14 +1,12 @@
 import React, { useContext } from 'react';
-import { Dimensions, SafeAreaView, View } from 'react-native';
-import {
-  Provider as PaperProvider,
-  Text,
-  Button,
-  Switch,
-} from 'react-native-paper';
-import StorybookUIRoot from '../.storybook/Storybook';
+import { Button, Dimensions, SafeAreaView, View } from 'react-native';
+import { Provider as PaperProvider } from 'react-native-paper';
+
 // import { usePersistedState } from '@app/hooks/usePersistedState';
-import { lightTheme, darkTheme } from '@app/theme';
+import { darkTheme, lightTheme } from '@app/theme';
+
+import StorybookUIRoot from '../.storybook/Storybook';
+
 import useIsDarkMode from './hooks/useIsDarkMode';
 
 type Props = {
@@ -34,10 +32,16 @@ function WrappedStorybookUIRoot({
 
   return (
     <PaperProvider theme={theme}>
-      <View style={{ overflow: 'hidden', flex: 1 }}>
+      <View
+        style={
+          // eslint-disable-next-line react-native/no-inline-styles
+          { overflow: 'hidden', flex: 1 }
+        }
+      >
         <StorybookUIRoot />
         {!hideAdditionalControls && (
           <SafeAreaView
+            // eslint-disable-next-line react-native/no-inline-styles
             style={{
               backgroundColor: darkTheme.colors.background,
               flexDirection: 'row',
@@ -45,15 +49,17 @@ function WrappedStorybookUIRoot({
               marginBottom: navbarHeight,
             }}
           >
-            <Button
-              compact
-              mode="outlined"
-              theme={darkTheme}
-              onPress={() => setStorybookMode && setStorybookMode(false)}
-              style={{ marginVertical: 8 }}
+            <View
+              style={
+                // eslint-disable-next-line react-native/no-inline-styles
+                { paddingVertical: 8 }
+              }
             >
-              Exit Storybook mode
-            </Button>
+              <Button
+                title="Exit Storybook mode"
+                onPress={() => setStorybookMode && setStorybookMode(false)}
+              />
+            </View>
             {/*<View
               style={{
                 flexDirection: 'row',
@@ -75,7 +81,6 @@ function WrappedStorybookUIRoot({
   );
 }
 
-// eslint-disable-next-line no-spaced-func
 export const SetStorybookModeFunctionContext = React.createContext<
   ((v: boolean) => void) | null
 >(null);

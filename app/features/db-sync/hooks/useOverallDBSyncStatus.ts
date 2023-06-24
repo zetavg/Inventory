@@ -12,6 +12,7 @@ const EMPTY_OBJECT = {};
 type ReturnValue = [string, DetailedStatus];
 
 export default function useOverallDBSyncStatus(): ReturnValue {
+  return 'TODO';
   const config = useAppSelector(selectConfig);
   const settings = useAppSelector(selectSettings);
   const syncStatus = useAppSelector(selectDBSyncStatus);

@@ -1,66 +1,69 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BlurView } from '@react-native-community/blur';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
-import color from 'color';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import useTheme from '@app/hooks/useTheme';
-import useColors from '@app/hooks/useColors';
-
 import {
-  NavigationContainer,
+  BottomTabBar,
+  createBottomTabNavigator as createTabNavigator,
+} from '@react-navigation/bottom-tabs';
+import {
   DefaultTheme,
+  NavigationContainer,
   useFocusEffect,
 } from '@react-navigation/native';
 import {
   createStackNavigator,
   TransitionPresets,
 } from '@react-navigation/stack';
-import {
-  createBottomTabNavigator as createTabNavigator,
-  BottomTabBar,
-} from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import {
   BottomSheetModal,
   BottomSheetModalProvider,
 } from '@gorhom/bottom-sheet';
+import { BlurView } from '@react-native-community/blur';
+import color from 'color';
 
-import RootNavigationContext from './RootNavigationContext';
-import RootBottomSheetsContext from './RootBottomSheetsContext';
+import { IconName } from '@app/consts/icons';
 
-import MainStack from './MainStack';
-
-import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
-import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
 import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
-import SampleModalScreen from '@app/screens/SampleModalScreen';
-import DemoModalScreen from '@app/screens/DemoModalScreen';
-import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
-import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
-import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
-import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
-import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
-
-import SelectIconScreen from '@app/screens/SelectIconScreen';
-
+import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
+import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
+import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
+import SaveChecklistScreen from '@app/features/inventory/screens/SaveChecklistScreen';
+import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
+import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
+import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
 import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
 import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
 import SelectItemsScreen from '@app/features/inventory/screens/SelectItemsScreen';
-import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
-import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
-import SaveChecklistScreen from '@app/features/inventory/screens/SaveChecklistScreen';
-import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
-import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
-import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
-import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
+import CreateOrUpdateProfileScreen from '@app/features/profiles/screens/CreateOrUpdateProfileScreen';
+import DeleteProfileScreen from '@app/features/profiles/screens/DeleteProfileScreen';
+import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
+import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProfileToEditScreen';
+import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
+import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
+import { DataTypeWithID } from '@app/db/relationalUtils';
 import { TypeName } from '@app/db/schema';
-import { IconName } from '@app/consts/icons';
 
 import commonStyles from '@app/utils/commonStyles';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+
+import DemoModalScreen from '@app/screens/DemoModalScreen';
+import OnboardingScreen from '@app/screens/OnboardingScreen';
+import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
+import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
+import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
+import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
+import SampleModalScreen from '@app/screens/SampleModalScreen';
+import SelectIconScreen from '@app/screens/SelectIconScreen';
+
+import useColors from '@app/hooks/useColors';
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useTheme from '@app/hooks/useTheme';
+
+import MainStack from './MainStack';
+import RootBottomSheetsContext from './RootBottomSheetsContext';
+import RootNavigationContext from './RootNavigationContext';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -73,8 +76,15 @@ const NAVIGATION_CONTAINER_THEME = {
 const Stack = createStackNavigator();
 export type RootStackParamList = {
   Main: undefined;
+  Blank: undefined;
+  Onboarding: undefined;
   SwitchProfile: undefined;
   NewProfile: undefined;
+  CreateOrUpdateProfile: {
+    uuid?: string;
+  };
+  SelectProfileToEdit: undefined;
+  DeleteProfile: undefined;
   DBSyncConfigUpdate: {
     name?: string;
   };
@@ -155,7 +165,13 @@ const DEFAULT_TAB_SCREEN_OPTIONS = {
 /**
  * Composed navigation
  */
-function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
+function Navigation({
+  onlyDevTools,
+}: {
+  onlyDevTools?: boolean;
+  // onboarding?: boolean;
+  // profileSwitcher?: boolean;
+}) {
   const isDarkMode = useIsDarkMode();
 
   const navigationTheme = useMemo(
@@ -193,16 +209,41 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
     [],
   );
 
+  // let initialRouteName = 'Main';
+  // let blankScreenSwitchTo: undefined | string | null;
+  // if (onboarding) {
+  //   initialRouteName = 'Main';
+  //   blankScreenSwitchTo = 'Onboarding';
+  // }
+  // if (profileSwitcher) {
+  //   initialRouteName = 'Blank';
+  //   blankScreenSwitchTo = 'SwitchProfile';
+  // }
+
   return (
     <NavigationContainer theme={navigationTheme}>
       <RootBottomSheetsContext.Provider
         value={rootBottomSheetsContextProviderValue}
       >
         <BottomSheetModalProvider>
-          <Stack.Navigator screenOptions={DEFAULT_ROOT_STACK_SCREEN_OPTIONS}>
+          <Stack.Navigator
+            screenOptions={DEFAULT_ROOT_STACK_SCREEN_OPTIONS}
+            // initialRouteName={initialRouteName}
+            initialRouteName="Main"
+          >
             <Stack.Screen name="Main">
-              {({ navigation }) =>
-                onlyDevTools ? (
+              {({ navigation }) => {
+                // if (blankScreenSwitchTo) {
+                //   const routeName = blankScreenSwitchTo;
+                //   setTimeout(() => {
+                //     navigation.push(routeName);
+                //   }, 0);
+                //   blankScreenSwitchTo = null;
+                // }
+
+                // if (onboarding) return null;
+
+                return onlyDevTools ? (
                   <RootNavigationContext.Provider value={navigation}>
                     <MainStack initialRouteName="DeveloperTools" />
                   </RootNavigationContext.Provider>
@@ -210,9 +251,23 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
                   <RootNavigationContext.Provider value={navigation}>
                     <TabNavigator />
                   </RootNavigationContext.Provider>
-                )
-              }
+                );
+              }}
             </Stack.Screen>
+            {/*<Stack.Screen name="Blank">
+              {({ navigation }) => {
+                if (blankScreenSwitchTo) {
+                  const routeName = blankScreenSwitchTo;
+                  setTimeout(() => {
+                    navigation.push(routeName);
+                  }, 0);
+                  blankScreenSwitchTo = null;
+                }
+
+                return null;
+              }}
+            </Stack.Screen>*/}
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen
               name="ReduxSelectAction"
               component={ReduxSelectActionScreen}
@@ -222,6 +277,18 @@ function Navigation({ onlyDevTools }: { onlyDevTools?: boolean }) {
               component={SwitchProfileScreen}
             />
             <Stack.Screen name="NewProfile" component={NewProfileScreen} />
+            <Stack.Screen
+              name="CreateOrUpdateProfile"
+              component={CreateOrUpdateProfileScreen}
+            />
+            <Stack.Screen
+              name="SelectProfileToEdit"
+              component={SelectProfileToEditScreen}
+            />
+            <Stack.Screen
+              name="DeleteProfile"
+              component={DeleteProfileScreen}
+            />
             <Stack.Screen
               name="DBSyncConfigUpdate"
               component={DBSyncConfigUpdateScreen}
@@ -289,48 +356,7 @@ function TabNavigator() {
   const { iosTintColor } = useColors();
   const theme = useTheme();
 
-  const defaultTabScreenOptions = useMemo(
-    () => ({
-      ...DEFAULT_TAB_SCREEN_OPTIONS,
-      tabBarActiveTintColor:
-        Platform.OS === 'ios' ? iosTintColor : theme.colors.primary,
-      tabBarInactiveTintColor: color(theme.colors.secondary)
-        .opaquer(isDarkMode ? -0.54 : -0.42)
-        .hexa(),
-      tabBarStyle:
-        Platform.OS === 'ios'
-          ? {
-              backgroundColor: 'transparent',
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: isDarkMode ? '#262626' : '#A9A9AD',
-            }
-          : {
-              backgroundColor: color(theme.colors.surface)
-                .mix(color(theme.colors.primary), 0.08)
-                .rgb()
-                .string(),
-              borderTopColor: theme.colors.background,
-              height: 54 + safeAreaInsets.bottom,
-            },
-      tabBarLabelStyle:
-        Platform.OS === 'android'
-          ? ({
-              fontSize: 12,
-              fontWeight: '500',
-              marginBottom: 2,
-            } as any)
-          : {},
-    }),
-    [
-      iosTintColor,
-      isDarkMode,
-      safeAreaInsets.bottom,
-      theme.colors.background,
-      theme.colors.primary,
-      theme.colors.secondary,
-      theme.colors.surface,
-    ],
-  );
+  const defaultTabScreenOptions = useDefaultTabScreenOptions();
 
   // Fix header stuck outside of safe area issue
   // when navigated back from root stack modals on iOS
@@ -356,20 +382,7 @@ function TabNavigator() {
       <Tab.Navigator
         backBehavior="none"
         screenOptions={defaultTabScreenOptions}
-        tabBar={
-          Platform.OS === 'ios'
-            ? (props: React.ComponentProps<typeof BottomTabBar>) => (
-                <BlurView
-                  style={styles.tabBarBlurView}
-                  blurType={isDarkMode ? 'extraDark' : 'xlight'}
-                >
-                  <BottomTabBar {...props} style={props.style} />
-                </BlurView>
-              )
-            : (props: React.ComponentProps<typeof BottomTabBar>) => (
-                <BottomTabBar {...props} />
-              )
-        }
+        tabBar={getTabBar(isDarkMode)}
       >
         <Tab.Screen
           name="DashboardTab"
@@ -479,6 +492,72 @@ function TabNavigator() {
       </Tab.Navigator>
     </View>
   );
+}
+
+export const getTabBar = (isDarkMode: boolean) =>
+  Platform.OS === 'ios'
+    ? (props: React.ComponentProps<typeof BottomTabBar>) => (
+        <BlurView
+          style={styles.tabBarBlurView}
+          blurType={isDarkMode ? 'extraDark' : 'xlight'}
+        >
+          <BottomTabBar {...props} style={props.style} />
+        </BlurView>
+      )
+    : (props: React.ComponentProps<typeof BottomTabBar>) => (
+        <BottomTabBar {...props} />
+      );
+
+export function useDefaultTabScreenOptions() {
+  const safeAreaInsets = useSafeAreaInsets();
+  const isDarkMode = useIsDarkMode();
+  const { iosTintColor } = useColors();
+  const theme = useTheme();
+
+  const defaultTabScreenOptions = useMemo(
+    () => ({
+      ...DEFAULT_TAB_SCREEN_OPTIONS,
+      tabBarActiveTintColor:
+        Platform.OS === 'ios' ? iosTintColor : theme.colors.primary,
+      tabBarInactiveTintColor: color(theme.colors.secondary)
+        .opaquer(isDarkMode ? -0.54 : -0.42)
+        .hexa(),
+      tabBarStyle:
+        Platform.OS === 'ios'
+          ? {
+              backgroundColor: 'transparent',
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: isDarkMode ? '#262626' : '#A9A9AD',
+            }
+          : {
+              backgroundColor: color(theme.colors.surface)
+                .mix(color(theme.colors.primary), 0.08)
+                .rgb()
+                .string(),
+              borderTopColor: theme.colors.background,
+              height: 54 + safeAreaInsets.bottom,
+            },
+      tabBarLabelStyle:
+        Platform.OS === 'android'
+          ? ({
+              fontSize: 12,
+              fontWeight: '500',
+              marginBottom: 2,
+            } as any)
+          : {},
+    }),
+    [
+      iosTintColor,
+      isDarkMode,
+      safeAreaInsets.bottom,
+      theme.colors.background,
+      theme.colors.primary,
+      theme.colors.secondary,
+      theme.colors.surface,
+    ],
+  );
+
+  return defaultTabScreenOptions;
 }
 
 const styles = StyleSheet.create({

@@ -1,89 +1,60 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createAction, Action } from '@reduxjs/toolkit';
-import { persistReducer } from 'redux-persist';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import {
-  deleteProfile,
-  selectActiveProfileConfig,
-} from '@app/features/profiles';
+import { PersistableReducer } from '@app/redux/types';
 
-import dbSyncSettingsReducer, {
-  dbSyncSettingsSlice,
-  DBSyncSettingsState,
-} from '@app/features/db-sync/manage/settingsSlice';
-
-const NAME = 'settings';
-
-export type Settings = {
-  dbSync?: DBSyncSettingsState;
-};
-
-type SettingsState = {
-  [profileName: string]: Settings;
-};
-
-const initialState: SettingsState = {};
-
-export const updateSettings = createAction<Partial<Settings>>(
-  `${NAME}/updateSettings`,
-);
-
-export const resetSettings = createAction<Partial<Settings>>(
-  `${NAME}/resetSettings`,
-);
-
-export function settingsReducer(
-  state = initialState,
-  action: Action,
-  rootState: any,
-) {
-  // Delete settings if the profile is deleted
-  if (deleteProfile.match(action)) {
-    const { name: profileName } = action.payload;
-    const newState = { ...state };
-    delete newState[profileName];
-    return newState;
-  }
-
-  // Actions handled below are specific to the active profile
-  const activeProfile = rootState?.profiles?.activeProfile;
-  if (!activeProfile) return state;
-
-  if (updateSettings.match(action)) {
-    return {
-      ...state,
-      [activeProfile]: {
-        ...state[activeProfile],
-        ...action.payload,
-      },
-    };
-  } else if (resetSettings.match(action)) {
-    return {
-      ...state,
-      [activeProfile]: {},
-    };
-  } else if (action.type.startsWith(dbSyncSettingsSlice.name)) {
-    // Immer may not work in these reducers
-    return {
-      ...state,
-      [activeProfile]: {
-        ...state[activeProfile],
-        dbSync: dbSyncSettingsSlice.reducer(
-          state[activeProfile]?.dbSync,
-          action,
-        ),
-      },
-    };
-  } else {
-    return state;
-  }
+export interface SettingsState {
+  devTestValue: number;
+  devTestSensitiveValue: number;
 }
 
-export default persistReducer(
-  {
-    key: 'settings',
-    storage: AsyncStorage,
-    timeout: 50000,
+export const initialState: SettingsState = {
+  devTestValue: 0,
+  devTestSensitiveValue: 0,
+};
+
+export const settingsSlice = createSlice({
+  name: 'settings',
+  initialState,
+  reducers: {
+    update: (state, action: PayloadAction<Partial<SettingsState>>) => {
+      Object.entries(action.payload).forEach(([key, value]) => {
+        (state as any)[key] = value;
+      });
+    },
+    devTestIncrement: state => {
+      state.devTestValue += 1;
+    },
+    devTestSensitiveIncrement: state => {
+      state.devTestSensitiveValue += 1;
+    },
+    reset: () => initialState,
   },
-  settingsReducer,
-);
+});
+
+export const name = settingsSlice.name;
+
+export const reducer: PersistableReducer<typeof settingsSlice.reducer> =
+  settingsSlice.reducer;
+
+export const actions = {
+  settings: settingsSlice.actions,
+};
+
+export const selectors = {
+  settings: {
+    devTestValue: (state: SettingsState) => state.devTestValue,
+    devTestSensitiveValue: (state: SettingsState) =>
+      state.devTestSensitiveValue,
+  },
+};
+
+reducer.dehydrate = (state: SettingsState) => ({
+  devTestValue: state?.devTestValue,
+});
+reducer.rehydrate = dehydratedState => dehydratedState;
+
+reducer.dehydrateSensitive = (state: SettingsState) => ({
+  // value: state?.value,
+  devTestSensitiveValue: state?.devTestSensitiveValue,
+});
+reducer.rehydrateSensitive = dehydratedState => dehydratedState;

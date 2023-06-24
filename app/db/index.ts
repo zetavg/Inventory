@@ -1,10 +1,8 @@
+export { useDB, useRelationalData } from './hooks';
+export type { AttachmentsDatabase, Database, LogsDatabase } from './pouchdb';
 export {
-  PouchDB,
-  getDatabase,
   getAttachmentsDatabase,
+  getDatabase,
   getLogsDatabase,
+  PouchDB,
 } from './pouchdb';
-
-export { useRelationalData } from './hooks';
-
-export type { Database, AttachmentsDatabase, LogsDatabase } from './pouchdb';

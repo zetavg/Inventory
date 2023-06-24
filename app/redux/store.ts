@@ -2,44 +2,109 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore } from 'redux-persist';
 
 import {
-  actions as counterActions,
+  actions as counterSliceActions,
   reducer as counterReducer,
-  selectors as counterSelectors,
+  selectors as counterSliceSelectors,
 } from '@app/features/counter/slice';
 import {
-  actions as countersActions,
+  actions as countersSliceActions,
   reducer as countersReducer,
-  selectors as countersSelectors,
+  selectors as countersSliceSelectors,
 } from '@app/features/counters/slice';
 import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
 import {
-  actions as devToolsActions,
+  actions as devToolsSliceActions,
   reducer as devToolsReducer,
-  selectors as devToolsSelectors,
+  selectors as devToolsSliceSelectors,
 } from '@app/features/dev-tools/slice';
 import inventoryReducer from '@app/features/inventory/slice';
-import profilesReducer from '@app/features/profiles/slice';
-import settingsReducer from '@app/features/settings/slice';
+import {
+  actions as profilesSliceActions,
+  reducer as profilesReducer,
+  selectors as profilesSliceSelectors,
+} from '@app/features/profiles/slice';
+import {
+  actions as settingsSliceActions,
+  reducer as settingsReducer,
+  selectors as settingsSliceSelectors,
+} from '@app/features/settings/slice';
 
 import logger from './middlewares/logger';
 import { combineAndPersistReducers, mapGroupedSelectors } from './utils';
 
-const reducer = combineAndPersistReducers({
-  // counter: counterReducer,
-  counters: countersReducer,
-  profiles: profilesReducer,
+export const reducers = {
   settings: settingsReducer,
-  dbSyncStatus: dbSyncStatusReducer,
-  inventory: inventoryReducer,
+  profiles: profilesReducer,
   devTools: devToolsReducer,
-});
+  // For development demonstration
+  // counter: counterReducer,
+  // counters: countersReducer,
+
+  // Old
+  // profiles: profilesReducer,
+  // dbSyncStatus: dbSyncStatusReducer,
+  // inventory: inventoryReducer,
+};
+
+// Combine all reducers.
+export const reducer = combineAndPersistReducers(reducers);
+
+// Collect actions from all slices.
+export const actions = {
+  ...counterSliceActions,
+  ...countersSliceActions,
+  ...settingsSliceActions,
+  ...profilesSliceActions,
+  ...devToolsSliceActions,
+};
+
+// Collect selectors from all slices.
+// We need to map the selectors to select values from the root state.
+export const selectors = {
+  ...mapGroupedSelectors(
+    counterSliceSelectors,
+    selector => (state: RootState) => selector((state as any).counter),
+  ),
+  ...mapGroupedSelectors(
+    countersSliceSelectors,
+    selector => (state: RootState) => selector((state as any).counters),
+  ),
+  ...mapGroupedSelectors(
+    settingsSliceSelectors,
+    selector => (state: RootState) => selector(state.settings),
+  ),
+  ...mapGroupedSelectors(
+    profilesSliceSelectors,
+    selector => (state: RootState) => selector(state.profiles),
+  ),
+  ...mapGroupedSelectors(
+    devToolsSliceSelectors,
+    selector => (state: RootState) => selector(state.devTools),
+  ),
+  rehydratedKeys: (state: RootState): ReadonlyArray<string> => {
+    const keys = (state as any)._rehydrated_keys;
+
+    if (Array.isArray(keys)) {
+      return keys;
+    } else if (typeof keys === 'object') {
+      return Object.values(keys);
+    }
+
+    return [];
+  },
+};
 
 export const store = configureStore({
   middleware: getDefaultMiddleware => {
     const middleware = getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST'],
-        ignoredPaths: ['profiles.runtimeData'],
+        ignoredActions: [
+          'persist/PERSIST',
+          'persist/REHYDRATE',
+          '_cache/set',
+          'profiles/_cache_set',
+        ],
+        ignoredPaths: [/_cache/],
       },
     }).concat(logger);
 
@@ -63,30 +128,9 @@ export const persistor = persistStore(store);
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
-
-export const actions = {
-  ...counterActions,
-  ...countersActions,
-  ...devToolsActions,
-};
-
-export const selectors = {
-  ...mapGroupedSelectors(
-    counterSelectors,
-    selector => (state: RootState) => selector(state.counters),
-  ),
-  ...mapGroupedSelectors(
-    countersSelectors,
-    selector => (state: RootState) => selector(state.counters),
-  ),
-  ...mapGroupedSelectors(
-    devToolsSelectors,
-    selector => (state: RootState) => selector(state.devTools),
-  ),
-};
 
 export default store;
 
+// Add the store to the global scope for debugging purposes.
 (global as any).reduxStore = store;

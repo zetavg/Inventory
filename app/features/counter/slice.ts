@@ -30,6 +30,8 @@ export const counterSlice = createSlice({
   },
 });
 
+export const name = counterSlice.name;
+
 // Export the reducer
 export const reducer: PersistableReducer<typeof counterSlice.reducer> =
   counterSlice.reducer;

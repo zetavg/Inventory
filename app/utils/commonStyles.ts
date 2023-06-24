@@ -28,6 +28,9 @@ const commonStyles = StyleSheet.create({
   flex8: {
     flex: 8,
   },
+  flexGrow1: {
+    flexGrow: 1,
+  },
   w2: {
     width: 2,
   },
@@ -194,6 +197,12 @@ const commonStyles = StyleSheet.create({
   mt36: {
     marginTop: 36,
   },
+  mt64: {
+    marginTop: 64,
+  },
+  mt128: {
+    marginTop: 128,
+  },
   mb2: {
     marginBottom: 2,
   },
@@ -322,6 +331,9 @@ const commonStyles = StyleSheet.create({
   monospaced: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     opacity: 0.9,
+  },
+  fontMonospaced: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   devToolsMonospaced: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',

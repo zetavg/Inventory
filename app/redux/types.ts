@@ -1,5 +1,7 @@
 import { Reducer } from 'redux';
 
+import { DeepPartial } from '@app/utils/types';
+
 export type PersistableReducer<R extends Reducer> = R extends Reducer<
   infer S
   // infer A,
@@ -7,6 +9,8 @@ export type PersistableReducer<R extends Reducer> = R extends Reducer<
 >
   ? R & {
       dehydrate?: (state: S) => any;
-      rehydrate?: (dehydratedState: any) => S;
+      rehydrate?: (dehydratedState: any) => DeepPartial<S>;
+      dehydrateSensitive?: (state: S) => any;
+      rehydrateSensitive?: (dehydratedState: any) => DeepPartial<S>;
     }
   : never;

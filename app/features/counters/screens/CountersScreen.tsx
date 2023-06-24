@@ -12,6 +12,7 @@ import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFi
 
 import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 function CountersScreen({
   navigation,
@@ -25,19 +26,21 @@ function CountersScreen({
 
   const [inputCounterName, setInputCounterName] = useState('');
 
+  const [counterNamesGroupHeight, setCounterNamesGroupHeight] = useState(0);
+
   return (
     <ScreenContent navigation={navigation} title="Counters">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <InsetGroup style={cs.mt16}>
+      <ScreenContentScrollView ref={scrollViewRef}>
+        <InsetGroup
+          onLayout={event =>
+            setCounterNamesGroupHeight(event.nativeEvent.layout.height)
+          }
+          style={cs.mt16}
+        >
           {counterNames
             .map(name => (
               <InsetGroup.Item
-                key={name}
+                key={`${name}-item`}
                 label={name}
                 selected={name === currentCounter}
                 onPress={() =>
@@ -60,6 +63,10 @@ function CountersScreen({
                 value={inputCounterName}
                 onChangeText={setInputCounterName}
                 placeholder="Enter name..."
+                onFocus={ScreenContentScrollView.stf(
+                  scrollViewRef,
+                  counterNamesGroupHeight,
+                )}
               />
             }
           />
@@ -95,7 +102,7 @@ function CountersScreen({
             }}
           />
         </InsetGroup>
-      </ScrollView>
+      </ScreenContentScrollView>
     </ScreenContent>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Platform,
   ScrollView,
   Text,
@@ -9,7 +10,7 @@ import {
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { useAppDispatch, useAppSelector } from '@app/redux';
+import { persistor, useAppDispatch, useAppSelector } from '@app/redux';
 import { ActionLog, addCallback } from '@app/redux/middlewares/logger';
 
 import cs from '@app/utils/commonStyles';
@@ -25,6 +26,7 @@ import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFi
 
 import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 const INITIAL_ACTION_STR = '';
 
@@ -76,7 +78,7 @@ function ReduxScreen({
         scrollTo(dispatchActionGroup);
       }}
     >
-      <ScrollView
+      <ScreenContentScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
@@ -89,16 +91,80 @@ function ReduxScreen({
             detail={removePasswordFromJSON(JSON.stringify(state, null, 2))}
             detailTextStyle={[commonStyles.devToolsMonospacedDetails]}
           />
+          <InsetGroup.ItemSeparator />
+          {/* Not working, IDK why. */}
+          {/*<InsetGroup.Item
+            button
+            label="Flush"
+            onPress={async () => {
+              try {
+                const response = await persistor.flush();
+                Alert.alert('Response', JSON.stringify(response));
+              } catch (e: any) {
+                Alert.alert('Error', e.message);
+              }
+            }}
+          />
+          <InsetGroup.ItemSeparator />*/}
+          <InsetGroup.Item
+            button
+            destructive
+            label="Purge"
+            onPress={() => {
+              Alert.alert(
+                '⚠️ Confirmation',
+                'Are you sure you want to purge the persisted Redux store? This will delete all the data and it cannot be undone!',
+                [
+                  {
+                    text: 'Cancel',
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Purge',
+                    style: 'destructive',
+                    onPress: () => {
+                      Alert.alert(
+                        '⚠️ Double Confirmation of Purge',
+                        'We ask for confirmation again as this action is destructive and cannot be undone! Do you really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really want to purge the persisted Redux store?',
+                        [
+                          {
+                            text: 'Cancel',
+                            style: 'cancel',
+                          },
+                          {
+                            text: 'Purge!',
+                            style: 'destructive',
+                            onPress: async () => {
+                              try {
+                                await persistor.purge();
+                                Alert.alert(
+                                  'Redux Store Purged',
+                                  "You'll need to force-quit the app to reset the Redux store.",
+                                );
+                              } catch (e: any) {
+                                console.error(e);
+                                Alert.alert('Error', e);
+                              }
+                            },
+                          },
+                        ],
+                      );
+                    },
+                  },
+                ],
+              );
+            }}
+          />
         </InsetGroup>
 
         <InsetGroup
           label="Dispatch Action"
           footerLabel={
             !actionStr
-              ? 'Enter action JSON to dispatch'
+              ? 'Enter action JSON to dispatch.'
               : isActionInvalid
-              ? '⚠ Invalid JSON'
-              : undefined
+              ? '⚠ Invalid JSON.'
+              : 'Note that the dispatched action can be destructive.'
           }
           ref={dispatchActionGroup}
           labelVariant="large"
@@ -128,13 +194,17 @@ function ReduxScreen({
                 value={actionStr}
                 onChangeText={setActionStr}
                 style={[commonStyles.devToolsMonospaced]}
+                onFocus={ScreenContentScrollView.strf(
+                  scrollViewRef,
+                  dispatchActionGroup,
+                )}
               />
             }
           />
           <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             button
-            destructive
+            // destructive
             label="Dispatch Action"
             disabled={isActionInvalid}
             onPress={() => dispatch(JSON.parse(actionStr))}
@@ -178,7 +248,7 @@ function ReduxScreen({
               .slice(0, -1)}
           </InsetGroup>
         )}
-      </ScrollView>
+      </ScreenContentScrollView>
     </ScreenContent>
   );
 }

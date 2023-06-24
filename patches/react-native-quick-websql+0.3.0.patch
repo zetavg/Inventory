@@ -1,0 +1,12 @@
+diff --git a/node_modules/react-native-quick-websql/src/sqlite-database.ts b/node_modules/react-native-quick-websql/src/sqlite-database.ts
+index c49d885..d38bf2f 100644
+--- a/node_modules/react-native-quick-websql/src/sqlite-database.ts
++++ b/node_modules/react-native-quick-websql/src/sqlite-database.ts
+@@ -50,6 +50,7 @@ class SQLiteDatabase {
+       }
+       callback(undefined, results);
+     } catch (e) {
++      console.warn('Queries that causes error:', queries);
+       callback(massageError(e as Error));
+     }
+   }

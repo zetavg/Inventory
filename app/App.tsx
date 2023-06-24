@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, StyleSheet } from 'react-native';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -8,15 +8,18 @@ import { changeBarColors } from 'react-native-immersive-bars';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { persistor, store, useAppDispatch, useAppSelector } from '@app/redux';
 import {
-  createProfile,
-  prepareProfile,
-  selectActiveProfileConfig,
-  selectActiveProfileName,
-  selectActiveProfileRuntimeData,
-  switchProfile,
-} from '@app/features/profiles';
+  actions,
+  persistor,
+  selectors,
+  store,
+  useAppDispatch,
+  useAppSelector,
+} from '@app/redux';
+
+import { useDB } from '@app/db';
+
+import { ExposeSafeAreaInsets } from '@app/utils/exposedSafeAreaInsets';
 
 import Navigation from '@app/navigation';
 
@@ -30,7 +33,7 @@ import StorybookUIRoot, {
   SetStorybookModeFunctionContext,
 } from '@app/StorybookUIRoot';
 
-import DBSyncManager from './DBSyncManager';
+// import DBSyncManager from './DBSyncManager';
 import SplashScreen from './SplashScreen';
 
 function App() {
@@ -67,7 +70,9 @@ function App() {
                       backgroundColor="rgba(0, 0, 0, 0.8)"
                       barStyle="light-content"
                     />
-                    <StorybookUIRoot />
+                    <SafeAreaProvider>
+                      <StorybookUIRoot />
+                    </SafeAreaProvider>
                   </>
                 );
               }
@@ -79,13 +84,14 @@ function App() {
                 >
                   <SafeAreaProvider>
                     <PaperProvider theme={theme}>
-                      <ProfileReadyGate>
+                      <AppReadyGate>
                         <>
                           <Navigation />
-                          <DBSyncManager />
+                          {/* <DBSyncManager /> */}
                         </>
-                      </ProfileReadyGate>
+                      </AppReadyGate>
                     </PaperProvider>
+                    <ExposeSafeAreaInsets />
                   </SafeAreaProvider>
                 </GestureHandlerRootView>
               );
@@ -97,35 +103,98 @@ function App() {
   );
 }
 
-function ProfileReadyGate({ children }: { children: JSX.Element }) {
-  const { ready, ignore } = useAppSelector(selectActiveProfileRuntimeData);
-  const profileName = useAppSelector(selectActiveProfileName);
-  const profileConfig = useAppSelector(selectActiveProfileConfig);
+function AppReadyGate({ children }: { children: JSX.Element }) {
+  const rehydratedKeys = useAppSelector(selectors.rehydratedKeys);
+  const profileUuidAndNames = useAppSelector(
+    selectors.profiles.profileUuidAndNames,
+  );
+  const currentProfileUuid = useAppSelector(
+    selectors.profiles.currentProfileUuid,
+  );
+  const currentProfileName = useAppSelector(
+    selectors.profiles.currentProfileName,
+  );
 
   const dispatch = useAppDispatch();
 
+  const stateRehydrated =
+    rehydratedKeys.includes('state') &&
+    rehydratedKeys.includes('state/profiles-sensitive');
+
   useEffect(() => {
-    if (!profileName) {
-      dispatch(switchProfile('default'));
-      return;
+    if (!stateRehydrated) return;
+
+    if (Object.keys(profileUuidAndNames).length <= 0) {
+      dispatch(actions.profiles.newProfile({ name: 'Default', color: 'blue' }));
+    } else if (!currentProfileName) {
+      dispatch(
+        actions.profiles.switchProfile(Object.keys(profileUuidAndNames)[0]),
+      );
     }
+  }, [stateRehydrated, profileUuidAndNames, dispatch, currentProfileName]);
 
-    if (!profileConfig) {
-      dispatch(createProfile({ name: profileName }));
-      return;
-    }
-
-    if (ignore) return;
-
-    if (!ready) {
-      dispatch(prepareProfile());
-      return;
-    }
-  }, [dispatch, ignore, profileConfig, profileName, ready]);
-
-  if (!ready) {
+  const dbs = useDB();
+  // To prevent race conditions with the DB initialization, we wait for the DB to be ready before rendering the app.
+  if (!dbs.db || !dbs.logsDB) {
     return <SplashScreen />;
   }
+
+  // const [dbReady, setDbReady] = useState(false);
+  // useEffect(() => {
+  //   if (!dbs.db || !dbs.logsDB) {
+  //     setDbReady(false);
+  //   }
+
+  //   const timer = setTimeout(() => {
+  //     setDbReady(true);
+  //   }, 10);
+
+  //   return () => {
+  //     clearTimeout(timer);
+  //   };
+  // }, [currentProfileUuid, dbs]);
+
+  // if (!stateRehydrated) {
+  //   return <SplashScreen />;
+  // }
+
+  // if (!currentProfileName) {
+  //   return <SplashScreen />;
+  // }
+
+  // To prevent race conditions with the DB initialization, we wait for the DB to be ready before rendering the app.
+  // if (!dbReady) {
+  //   return <SplashScreen />;
+  // }
+
+  // const { ready, ignore } = useAppSelector(selectActiveProfileRuntimeData);
+  // const profileName = useAppSelector(selectActiveProfileName);
+  // const profileConfig = useAppSelector(selectActiveProfileConfig);
+
+  // const dispatch = useAppDispatch();
+
+  // useEffect(() => {
+  //   if (!profileName) {
+  //     dispatch(switchProfile('default'));
+  //     return;
+  //   }
+
+  //   if (!profileConfig) {
+  //     dispatch(createProfile({ name: profileName }));
+  //     return;
+  //   }
+
+  //   if (ignore) return;
+
+  //   if (!ready) {
+  //     dispatch(prepareProfile());
+  //     return;
+  //   }
+  // }, [dispatch, ignore, profileConfig, profileName, ready]);
+
+  // if (!ready) {
+  //   return <SplashScreen />;
+  // }
 
   return children;
 }

@@ -3,6 +3,7 @@ import { Alert, ScrollView, Switch } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
+import { reducers } from '@app/redux/store';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -94,6 +95,12 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => navigation.push('SQLite')}
           />
+          <InsetGroup.ItemSeparator />
+          <InsetGroup.Item
+            label="RNFS"
+            arrow
+            onPress={() => navigation.push('RNFS')}
+          />
         </InsetGroup>
 
         <InsetGroup>
@@ -136,6 +143,14 @@ function DeveloperToolsScreen({
 
         <InsetGroup>
           <InsetGroup.Item
+            label="Onboarding Screen"
+            arrow
+            onPress={() => rootNavigation?.push('Onboarding')}
+          />
+        </InsetGroup>
+
+        <InsetGroup>
+          <InsetGroup.Item
             label="Sample Screen"
             arrow
             onPress={() => navigation.push('Sample', {})}
@@ -146,18 +161,36 @@ function DeveloperToolsScreen({
             arrow
             onPress={() => rootNavigation?.push('SampleModal', {})}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            label="Counter (Redux Sample)"
-            arrow
-            onPress={() => navigation.push('Counter')}
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            label="Counters (Redux Sample)"
-            arrow
-            onPress={() => navigation.push('Counters')}
-          />
+          {(() => {
+            if (reducers.hasOwnProperty('counter')) {
+              return (
+                <>
+                  <InsetGroup.ItemSeparator />
+                  <InsetGroup.Item
+                    label="Counter (Redux Sample)"
+                    arrow
+                    onPress={() => navigation.push('Counter')}
+                  />
+                </>
+              );
+            }
+            return null;
+          })()}
+          {(() => {
+            if (reducers.hasOwnProperty('counters')) {
+              return (
+                <>
+                  <InsetGroup.ItemSeparator />
+                  <InsetGroup.Item
+                    label="Counters (Redux Sample)"
+                    arrow
+                    onPress={() => navigation.push('Counters')}
+                  />
+                </>
+              );
+            }
+            return null;
+          })()}
           <InsetGroup.ItemSeparator />
           <InsetGroup.Item
             label="React Native New App Screen"

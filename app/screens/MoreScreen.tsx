@@ -3,8 +3,10 @@ import { Linking } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
 
+import { USER_DOCUMENTS_URL } from '@app/consts/info';
+
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
-import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
+// import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
 import { selectActiveProfileConfig } from '@app/features/profiles';
 import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
 
@@ -25,8 +27,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const rootNavigation = useRootNavigation();
   const colors = useColors();
 
-  const { color: profileColor } =
-    useAppSelector(selectActiveProfileConfig) || {};
+  const profileColor = useAppSelector(selectors.profiles.currentProfileColor);
 
   const profileColorHex = (() => {
     switch (profileColor) {
@@ -56,7 +57,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
   const { openRfidSheet, showRfidSheet, rfidSheet } = useRootBottomSheets();
 
   const [switchValue, setSwitchValue] = useState(false);
-  const [overallDBSyncStatus] = useOverallDBSyncStatus();
+  // const [overallDBSyncStatus] = useOverallDBSyncStatus();
 
   const onScannedItemPressRef = useRef<OnScannedItemPressFn | null>(null);
   const rfidSheetScanOptions = {
@@ -103,7 +104,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           <TableView.Item
             arrow
             label="Data Sync"
-            detail={overallDBSyncStatus}
+            // detail={overallDBSyncStatus}
             icon="sync"
             iosImage="ios-menu.sync.png"
             onPress={() => navigation.push('PouchDBSync')}
@@ -207,11 +208,9 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="help-circle"
             iosImage="ios-menu.questionmark.png"
-            onPress={() =>
-              Linking.openURL('https://hackmd.io/@Inventory/resource-center')
-            }
+            onPress={() => Linking.openURL(USER_DOCUMENTS_URL)}
           >
-            Resource Center
+            Documents
           </TableView.Item>
           <TableView.Item
             arrow

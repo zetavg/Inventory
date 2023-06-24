@@ -69,7 +69,8 @@ function SearchScreen({
   const rootNavigation = useRootNavigation();
   const { showActionSheetWithOptions } = useActionSheet();
 
-  const recentSearchQueries = useAppSelector(selectRecentSearchQueries);
+  // const recentSearchQueries = useAppSelector(selectRecentSearchQueries);
+  const recentSearchQueries: any = [];
   const dispatch = useAppDispatch();
 
   // const numberOfItemsPerPageList = [5, 10, 20, 50];

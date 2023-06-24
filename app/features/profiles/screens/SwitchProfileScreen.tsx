@@ -1,52 +1,23 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
-import titleCase from '@app/utils/titleCase';
-
+import React, { useRef } from 'react';
+import { ScrollView, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/Navigation';
-
-import { useAppSelector, useAppDispatch } from '@app/redux';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
 import cs from '@app/utils/commonStyles';
 
-import ModalContent from '@app/components/ModalContent';
-import InsetGroup from '@app/components/InsetGroup';
+import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import { switchProfile } from '../slice';
-import { selectActiveProfileName, selectProfiles } from '../selectors';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+
+import InsetGroup from '@app/components/InsetGroup';
+import ModalContent from '@app/components/ModalContent';
+
+import ProfileSwitcher from '../components/ProfileSwitcher';
 
 function SwitchProfileScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'SwitchProfile'>) {
-  const dispatch = useAppDispatch();
-  const profiles = useAppSelector(selectProfiles);
-  const activeProfileName = useAppSelector(selectActiveProfileName);
-
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);
-
-  const handleSwitchProfile = useCallback(
-    (profileName: string) => {
-      Alert.alert(
-        'Confirm',
-        'Are you sure you want to switch profile? The app will be unloaded and all your unsaved changes will be discarded.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel',
-          },
-          {
-            text: 'Switch Profile',
-            style: 'destructive',
-            onPress: () => dispatch(switchProfile(profileName)),
-          },
-        ],
-      );
-    },
-    [dispatch],
-  );
 
   return (
     <ModalContent navigation={navigation} title="Profiles">
@@ -56,24 +27,26 @@ function SwitchProfileScreen({
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup style={cs.mt16}>
-          {Object.keys(profiles.configs)
-            .flatMap(profileName => [
-              <InsetGroup.Item
-                key={profileName}
-                label={titleCase(profileName)}
-                selected={activeProfileName === profileName}
-                onPress={() => handleSwitchProfile(profileName)}
-              />,
-              <InsetGroup.ItemSeparator key={`s-${profileName}`} />,
-            ])
-            .slice(0, -1)}
+        <View style={cs.mt16} />
+        <ProfileSwitcher />
+        <InsetGroup>
+          <InsetGroup.Item
+            button
+            label="New Profile..."
+            onPress={() => navigation.push('CreateOrUpdateProfile', {})}
+          />
         </InsetGroup>
         <InsetGroup>
           <InsetGroup.Item
             button
-            label="New Profile"
-            onPress={() => navigation.push('NewProfile')}
+            label="Edit Profile..."
+            onPress={() => navigation.push('SelectProfileToEdit')}
+          />
+          <InsetGroup.ItemSeparator />
+          <InsetGroup.Item
+            button
+            label="Delete Profile..."
+            onPress={() => navigation.push('DeleteProfile')}
           />
         </InsetGroup>
       </ScrollView>

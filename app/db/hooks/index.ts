@@ -1,14 +1,19 @@
-import useDB from '@app/hooks/useDB';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { DeepReadonly } from '@app/utils/DeepReadonly';
+
 import {
   DataTypeWithID,
   find,
   findWithRelations,
   FindWithRelationsReturnedData,
-} from './relationalUtils';
-import schema, { TypeName } from './schema';
-import { DBContent } from './types';
+} from '../relationalUtils';
+import schema, { TypeName } from '../schema';
+import { DBContent } from '../types';
+
+import useDB from './useDB';
+
+export { useDB };
 
 // const log = console.log;
 const log = (..._args: any) => {};

@@ -1,7 +1,9 @@
-import type { Schema as JTDSchema } from 'jtd';
 import { JTDDataType } from 'ajv/dist/jtd';
-import EPCUtils from '@app/modules/EPCUtils';
+import type { Schema as JTDSchema } from 'jtd';
+
 import { ICON_COLORS, ICON_NAMES } from '@app/consts/icons';
+
+import EPCUtils from '@app/modules/EPCUtils';
 
 // ==== Type of Schema ==== //
 
@@ -390,7 +392,7 @@ export type TypeName = keyof typeof schema;
 //   DeepWriteable<typeof schema[T]['sample']>
 // >;
 export type DataType<T extends TypeName> = JTDDataType<
-  typeof schema[T]['dataSchema']
+  (typeof schema)[T]['dataSchema']
 >;
 
 export default schema;
