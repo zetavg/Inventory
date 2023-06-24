@@ -35,7 +35,11 @@ function SplashScreen() {
   const toDevToolsRemaining = DEV_TOOLS_ENABLE_THRESHOLD - pressCount;
 
   if (toDevToolsRemaining <= 0) {
-    return <Navigation onlyDevTools />;
+    return (
+      <SafeAreaProvider>
+        <Navigation onlyDevTools />
+      </SafeAreaProvider>
+    );
   }
 
   return (
