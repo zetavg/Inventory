@@ -196,7 +196,7 @@ function AppReadyGate({ children }: { children: JSX.Element }) {
   //   return <SplashScreen />;
   // }
 
-  return children;
+  return <React.Fragment key={currentProfileUuid}>{children}</React.Fragment>;
 }
 
 const styles = StyleSheet.create({
