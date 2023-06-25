@@ -8,10 +8,6 @@ import {
 } from "@storybook/react-native";
 
 import "@storybook/addon-ondevice-controls/register";
-// Will cause Possible Unhandled Promise Rejection - RangeError: Maximum call stack size exceeded
-// import "@storybook/addon-ondevice-actions/register";
-
-import { argsEnhancers } from "@storybook/addon-actions/dist/modern/preset/addArgs";
 
 import { decorators, parameters } from "./preview";
 
@@ -22,11 +18,6 @@ if (decorators) {
 if (parameters) {
   addParameters(parameters);
 }
-
-// temporary fix for https://github.com/storybookjs/react-native/issues/327 whilst the issue is investigated
-try {
-  argsEnhancers.forEach((enhancer) => addArgsEnhancer(enhancer));
-} catch {}
 
 const getStories = () => {
   return [
