@@ -1,17 +1,15 @@
 import React, { useCallback } from 'react';
-import { Alert, ScrollView, Switch } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import { reducers } from '@app/redux/store';
 
-import commonStyles from '@app/utils/commonStyles';
-
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
+import UIGroup from '@app/components/UIGroup';
 
 import { useSetStorybookModeFunction } from '@app/StorybookUIRoot';
 
@@ -51,124 +49,125 @@ function DeveloperToolsScreen({
   return (
     <ScreenContent navigation={navigation} title="Developer Tools">
       <ScrollView>
-        <InsetGroup style={commonStyles.mt16}>
-          <InsetGroup.Item
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup>
+          <UIGroup.ListItem
             label="Storybook"
-            arrow
+            navigable
             onPress={() => navigation.push('Storybook')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Enter Storybook Mode"
             button
             onPress={handleEnterStorybookMode}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="Redux"
-            arrow
+            navigable
             onPress={() => navigation.push('Redux')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="PouchDB"
-            arrow
+            navigable
             onPress={() => navigation.push('PouchDB')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Relational PouchDB"
-            arrow
+            navigable
             onPress={() => navigation.push('RelationalPouchDB')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Attachments DB"
-            arrow
+            navigable
             onPress={() => navigation.push('PouchDBAttachments')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="SQLite"
-            arrow
+            navigable
             onPress={() => navigation.push('SQLite')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="RNFS"
-            arrow
+            navigable
             onPress={() => navigation.push('RNFS')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="PouchDB Sync"
-            arrow
+            navigable
             onPress={() => navigation.push('PouchDBSync')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="LinguisticTaggerModuleIOS"
-            arrow
+            navigable
             onPress={() => navigation.push('LinguisticTaggerModuleIOS')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="EPC-TDS"
-            arrow
+            navigable
             onPress={() => navigation.push('EPCTDS')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="RFID UHF Module"
-            arrow
+            navigable
             onPress={() => navigation.push('RFIDUHFModule')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="Change App Icon"
-            arrow
+            navigable
             onPress={() => navigation.push('DevChangeIcon')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="Onboarding Screen"
-            arrow
+            navigable
             onPress={() => rootNavigation?.push('Onboarding')}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="Sample Screen"
-            arrow
+            navigable
             onPress={() => navigation.push('Sample', {})}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Sample Modal Screen"
-            arrow
+            navigable
             onPress={() => rootNavigation?.push('SampleModal', {})}
           />
           {(() => {
             if (reducers.hasOwnProperty('counter')) {
               return (
                 <>
-                  <InsetGroup.ItemSeparator />
-                  <InsetGroup.Item
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListItem
                     label="Counter (Redux Sample)"
-                    arrow
+                    navigable
                     onPress={() => navigation.push('Counter')}
                   />
                 </>
@@ -180,10 +179,10 @@ function DeveloperToolsScreen({
             if (reducers.hasOwnProperty('counters')) {
               return (
                 <>
-                  <InsetGroup.ItemSeparator />
-                  <InsetGroup.Item
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListItem
                     label="Counters (Redux Sample)"
-                    arrow
+                    navigable
                     onPress={() => navigation.push('Counters')}
                   />
                 </>
@@ -191,25 +190,25 @@ function DeveloperToolsScreen({
             }
             return null;
           })()}
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="React Native New App Screen"
-            arrow
+            navigable
             onPress={() => navigation.push('NewAppScreen')}
           />
-        </InsetGroup>
-        <InsetGroup>
-          <InsetGroup.Item
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             label="console.log"
-            arrow
+            navigable
             onPress={() => navigation.push('ConsoleLog')}
           />
-        </InsetGroup>
-        <InsetGroup>
-          <InsetGroup.Item
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             label="Show Dev Tools"
             detail={
-              <Switch
+              <UIGroup.ListItem.Switch
                 value={showDevTools}
                 onChange={() => {
                   dispatch(actions.devTools.toggleShowDevTools());
@@ -217,7 +216,7 @@ function DeveloperToolsScreen({
               />
             }
           />
-        </InsetGroup>
+        </UIGroup>
       </ScrollView>
     </ScreenContent>
   );

@@ -615,7 +615,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   groupTitleLargeContainer: {
-    marginHorizontal: 16,
+    // marginHorizontal: 16,
+    marginHorizontal: 20,
     marginTop: 0,
     marginBottom: 12,
     flexDirection: 'row',

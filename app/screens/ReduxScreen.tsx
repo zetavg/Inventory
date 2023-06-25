@@ -1,32 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, ScrollView, TextInput, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { persistor, useAppDispatch, useAppSelector } from '@app/redux';
 import { ActionLog, addCallback } from '@app/redux/middlewares/logger';
 
-import cs from '@app/utils/commonStyles';
 import commonStyles from '@app/utils/commonStyles';
 import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
-import useColors from '@app/hooks/useColors';
 import useScrollTo from '@app/hooks/useScrollTo';
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
 import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
+import UIGroup from '@app/components/UIGroup';
 
 const INITIAL_ACTION_STR = '';
 
@@ -39,10 +28,6 @@ function ReduxScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'Redux'>) {
   const rootNavigation = useRootNavigation();
-  const { iosTintColor } = useColors();
-
-  const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
 
   const state = useAppSelector(s => s);
   const dispatch = useAppDispatch();
@@ -61,10 +46,10 @@ function ReduxScreen({
   }, []);
   useEffect(() => addCallback(logAction), [logAction]);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollTo = useScrollTo(scrollViewRef);
   const dispatchActionGroup = useRef<View>(null);
   const dispatchActionInput = useRef<TextInput>(null);
-
-  const scrollTo = useScrollTo(scrollViewRef);
 
   return (
     <ScreenContent
@@ -74,26 +59,24 @@ function ReduxScreen({
       action1SFSymbolName="arrow.forward.square.fill"
       action1MaterialIconName="arrow-right-bold-box"
       onAction1Press={() => {
-        dispatchActionInput.current?.focus();
+        // dispatchActionInput.current?.focus();
         scrollTo(dispatchActionGroup);
       }}
     >
-      <ScreenContentScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <InsetGroup style={cs.mt16}>
-          <InsetGroup.Item
-            vertical2
+      <ScreenContentScrollView ref={scrollViewRef}>
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup>
+          <UIGroup.ListTextInputItem
             label="Current State"
-            detail={removePasswordFromJSON(JSON.stringify(state, null, 2))}
-            detailTextStyle={[commonStyles.devToolsMonospacedDetails]}
+            monospaced
+            small
+            multiline
+            value={removePasswordFromJSON(JSON.stringify(state, null, 2))}
+            showSoftInputOnFocus={false}
           />
-          <InsetGroup.ItemSeparator />
+          <UIGroup.ListItemSeparator />
           {/* Not working, IDK why. */}
-          {/*<InsetGroup.Item
+          {/*<UIGroup.Item
             button
             label="Flush"
             onPress={async () => {
@@ -105,61 +88,19 @@ function ReduxScreen({
               }
             }}
           />
-          <InsetGroup.ItemSeparator />*/}
-          <InsetGroup.Item
+          <UIGroup.ItemSeparator />*/}
+          <UIGroup.ListItem
             button
             destructive
             label="Purge"
-            onPress={() => {
-              Alert.alert(
-                '⚠️ Confirmation',
-                'Are you sure you want to purge the persisted Redux store? This will delete all the data and it cannot be undone!',
-                [
-                  {
-                    text: 'Cancel',
-                    style: 'cancel',
-                  },
-                  {
-                    text: 'Purge',
-                    style: 'destructive',
-                    onPress: () => {
-                      Alert.alert(
-                        '⚠️ Double Confirmation of Purge',
-                        'We ask for confirmation again as this action is destructive and cannot be undone! Do you really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really want to purge the persisted Redux store?',
-                        [
-                          {
-                            text: 'Cancel',
-                            style: 'cancel',
-                          },
-                          {
-                            text: 'Purge!',
-                            style: 'destructive',
-                            onPress: async () => {
-                              try {
-                                await persistor.purge();
-                                Alert.alert(
-                                  'Redux Store Purged',
-                                  "You'll need to force-quit the app to reset the Redux store.",
-                                );
-                              } catch (e: any) {
-                                console.error(e);
-                                Alert.alert('Error', e);
-                              }
-                            },
-                          },
-                        ],
-                      );
-                    },
-                  },
-                ],
-              );
-            }}
+            onPress={handlePurgeReduxStore}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup
-          label="Dispatch Action"
-          footerLabel={
+        <UIGroup
+          largeTitle
+          header="Dispatch Action"
+          footer={
             !actionStr
               ? 'Enter action JSON to dispatch.'
               : isActionInvalid
@@ -167,10 +108,8 @@ function ReduxScreen({
               : 'Note that the dispatched action can be destructive.'
           }
           ref={dispatchActionGroup}
-          labelVariant="large"
-          labelRight={
-            <InsetGroup.LabelButton
-              title="Select Action"
+          headerRight={
+            <UIGroup.TitleButton
               onPress={() =>
                 rootNavigation?.push('ReduxSelectAction', {
                   callback: (a: string) => {
@@ -179,61 +118,57 @@ function ReduxScreen({
                   },
                 })
               }
-            />
+            >
+              Select Action
+            </UIGroup.TitleButton>
           }
         >
-          <InsetGroup.Item
-            vertical2
+          <UIGroup.ListTextInputItem
             label="Action"
-            detail={
-              <InsetGroup.TextInput
-                ref={dispatchActionInput}
-                multiline
-                scrollEnabled={false}
-                placeholder={ACTION_STR_PLACEHOLDER}
-                value={actionStr}
-                onChangeText={setActionStr}
-                style={[commonStyles.devToolsMonospaced]}
-                onFocus={ScreenContentScrollView.strf(
-                  scrollViewRef,
-                  dispatchActionGroup,
-                )}
-              />
-            }
+            ref={dispatchActionInput}
+            multiline
+            scrollEnabled={false}
+            placeholder={ACTION_STR_PLACEHOLDER}
+            value={actionStr}
+            onChangeText={setActionStr}
+            style={[commonStyles.devToolsMonospaced]}
+            onFocus={ScreenContentScrollView.strf(
+              scrollViewRef,
+              dispatchActionGroup,
+            )}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             button
-            // destructive
+            destructive
             label="Dispatch Action"
             disabled={isActionInvalid}
             onPress={() => dispatch(JSON.parse(actionStr))}
           />
-        </InsetGroup>
+        </UIGroup>
 
         {actionLogs.length > 0 && (
-          <InsetGroup
-            label="Action Logs"
-            labelVariant="large"
-            labelRight={
-              <InsetGroup.LabelButton
-                title="Clear"
-                onPress={() => setActionLogs([])}
-              />
+          <UIGroup
+            largeTitle
+            header="Action Logs"
+            headerRight={
+              <UIGroup.TitleButton onPress={() => setActionLogs([])}>
+                Clear
+              </UIGroup.TitleButton>
             }
           >
-            {actionLogs
-              .flatMap(({ action, prevState, nextState }: any, i) => {
+            {UIGroup.ListItemSeparator.insertBetween(
+              actionLogs.map(({ action, prevState, nextState }: any, i) => {
                 const stringifiedAction = JSON.stringify(action);
 
-                return [
-                  <InsetGroup.Item
+                return (
+                  <UIGroup.ListItem
                     key={i}
                     label={action?.type || stringifiedAction}
                     detail={action?.type && stringifiedAction}
                     detailTextStyle={commonStyles.devToolsMonospacedDetails}
-                    compactLabel
-                    arrow
+                    verticalArrangedIOS
+                    navigable
                     onPress={() =>
                       navigation.push('ReduxActionDetail', {
                         action,
@@ -241,15 +176,59 @@ function ReduxScreen({
                         nextState,
                       })
                     }
-                  />,
-                  <InsetGroup.ItemSeparator key={`s-${i}`} />,
-                ];
-              })
-              .slice(0, -1)}
-          </InsetGroup>
+                  />
+                );
+              }),
+            )}
+          </UIGroup>
         )}
       </ScreenContentScrollView>
     </ScreenContent>
+  );
+}
+
+function handlePurgeReduxStore() {
+  Alert.alert(
+    '⚠️ Confirmation',
+    'Are you sure you want to purge the persisted Redux store? This will delete all the data and it cannot be undone!',
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Purge',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            '⚠️ Double Confirmation of Purge',
+            'We ask for confirmation again as this action is destructive and cannot be undone! Do you really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really, really want to purge the persisted Redux store?',
+            [
+              {
+                text: 'Cancel',
+                style: 'cancel',
+              },
+              {
+                text: 'Purge!',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await persistor.purge();
+                    Alert.alert(
+                      'Redux Store Purged',
+                      "You'll need to force-quit the app to reset the Redux store.",
+                    );
+                  } catch (e: any) {
+                    console.error(e);
+                    Alert.alert('Error', e);
+                  }
+                },
+              },
+            ],
+          );
+        },
+      },
+    ],
   );
 }
 

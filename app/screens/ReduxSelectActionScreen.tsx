@@ -12,12 +12,12 @@ import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
 
 function mapActionsToItems(acs: any, handleSelect: any) {
-  return Object.entries(acs)
-    .map(([key, ac]) => {
+  return UIGroup.ListItemSeparator.insertBetween(
+    Object.entries(acs).map(([key, ac]) => {
       const mockPayload: any = null;
       // const action =
       //   (ac as any).length === 0 ? (ac as any)() : (ac as any)(mockPayload);
@@ -25,7 +25,7 @@ function mapActionsToItems(acs: any, handleSelect: any) {
       const actionStr = JSON.stringify(action);
       const actionStrPretty = JSON.stringify(action, null, 2);
       return (
-        <InsetGroup.Item
+        <UIGroup.ListItem
           key={key}
           label={key}
           detail={actionStr}
@@ -33,9 +33,8 @@ function mapActionsToItems(acs: any, handleSelect: any) {
           onPress={() => handleSelect(actionStrPretty)}
         />
       );
-    })
-    .flatMap((element, i) => [element, <InsetGroup.ItemSeparator key={i} />])
-    .slice(0, -1);
+    }),
+  );
 }
 
 function ReduxSelectActionScreen({
@@ -65,16 +64,16 @@ function ReduxSelectActionScreen({
       >
         <View style={cs.mt16} />
         {Object.entries(actions).map(([group, actionItems]) => (
-          <InsetGroup key={group} label={group}>
+          <UIGroup key={group} header={group}>
             {mapActionsToItems(actionItems, handleSelect)}
-          </InsetGroup>
+          </UIGroup>
         ))}
 
-        <InsetGroup
-          label="🚧 Developer Only 🚧"
-          footerLabel="⚠️ DANGER: This action can reset the entire app state! Use the entire new state as the payload. This has no foolproof protection against accidental use, and might cause data corruption if used incorrectly. Use with extreme caution."
+        <UIGroup
+          header="🚧 Developer Only 🚧"
+          footer="⚠️ DANGER: This action can reset the entire app state! Use the entire new state as the payload. This has no foolproof protection against accidental use, and might cause data corruption if used incorrectly. Use with extreme caution."
         >
-          <InsetGroup.Item
+          <UIGroup.ListItem
             label="Global Set State"
             detail={'{ type: "__GLOBAL_SET_STATE__", payload: ... }'}
             detailTextStyle={commonStyles.devToolsMonospaced}
@@ -91,7 +90,7 @@ function ReduxSelectActionScreen({
               )
             }
           />
-        </InsetGroup>
+        </UIGroup>
       </ScrollView>
     </ModalContent>
   );

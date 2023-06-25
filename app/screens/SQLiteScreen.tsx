@@ -1,11 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-  Alert,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { QuickSQLite } from 'react-native-quick-sqlite';
 
@@ -18,9 +12,23 @@ import type { StackParamList } from '@app/navigation/MainStack';
 import useActionSheet from '@app/hooks/useActionSheet';
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import InsetGroup from '@app/components/InsetGroup';
+import Icon from '@app/components/Icon';
 import ScreenContent from '@app/components/ScreenContent';
-import { Link } from '@app/components/Text';
+import UIGroup from '@app/components/UIGroup';
+
+const SAMPLE_QUERIES: ReadonlyArray<string> = [
+  "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
+  'SELECT * FROM "document-store" LIMIT 10 OFFSET 0;',
+  'SELECT * FROM "test_sqlite" LIMIT 10 OFFSET 0;',
+  `CREATE TABLE "test_sqlite" (
+  id INTEGER PRIMARY KEY,
+  string STRING,
+  text TEXT
+);`,
+  `INSERT INTO "test_sqlite" (string, text)
+VALUES ('This is a string', 'This is a text');`,
+  'DROP TABLE IF EXISTS "test_sqlite";',
+];
 
 function SQLiteScreen({
   navigation,
@@ -28,10 +36,13 @@ function SQLiteScreen({
   const { showActionSheet } = useActionSheet();
 
   const [database, setDatabase] = useState('default.sqlite3');
-  const [query, setQuery] = useState(
-    "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
-  );
+  const [query, setQuery] = useState(SAMPLE_QUERIES[0]);
+
   const [rows, setRows] = useState<undefined | Object>(undefined);
+  const [insertId, setInsertId] = useState<undefined | number>(undefined);
+  const [rowsAffected, setRowsAffected] = useState<undefined | number>(
+    undefined,
+  );
 
   const handleShowDbSelections = useCallback(async () => {
     const dbNames = await getSqliteDbNames();
@@ -46,10 +57,21 @@ function SQLiteScreen({
     );
   }, [showActionSheet]);
 
+  const handleShowQuerySelections = useCallback(() => {
+    showActionSheet(
+      SAMPLE_QUERIES.map(q => ({
+        name: q,
+        onSelect: () => {
+          setQuery(q);
+        },
+      })),
+    );
+  }, [showActionSheet]);
+
   const handleExecute = useCallback(() => {
     Alert.alert(
       'Confirmation',
-      `Are you sure you want to execute SQL query "${query}"" on database "${database}"?`,
+      `Are you sure you want to execute SQL query:\n\n${query}\n\non database "${database}"?`,
       [
         {
           text: 'Cancel',
@@ -62,12 +84,12 @@ function SQLiteScreen({
             try {
               QuickSQLite.open(database);
               const {
-                // status: s,
-                // message: m,
+                insertId: iId,
+                rowsAffected: ra,
                 rows: r,
               } = QuickSQLite.execute(database, query, []);
-              // setStatus(s);
-              // setMessage(m);
+              setInsertId(iId);
+              setRowsAffected(ra);
               setRows(r);
             } catch (e: any) {
               Alert.alert('An error occurred', e.message);
@@ -139,88 +161,109 @@ function SQLiteScreen({
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup style={commonStyles.mt16}>
-          <InsetGroup.Item
+        <UIGroup style={commonStyles.mt16}>
+          <UIGroup.ListTextInputItem
             label="Database"
-            vertical2
-            detail={
-              <View style={[commonStyles.row, commonStyles.alignItemsCenter]}>
-                <InsetGroup.TextInput
-                  style={commonStyles.devToolsMonospaced}
-                  placeholder={'default'}
-                  autoCapitalize="none"
-                  returnKeyType="done"
-                  value={database}
-                  onChangeText={setDatabase}
-                />
-                <TouchableOpacity onPress={handleShowDbSelections}>
-                  <Link>Select</Link>
-                </TouchableOpacity>
-              </View>
+            monospaced
+            small
+            placeholder="db_..."
+            autoCapitalize="none"
+            returnKeyType="done"
+            value={database}
+            onChangeText={setDatabase}
+            rightElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={handleShowDbSelections}
+              >
+                Select
+              </UIGroup.ListTextInputItem.Button>
             }
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Query"
-            vertical2
-            detail={
-              <InsetGroup.TextInput
-                style={commonStyles.devToolsMonospaced}
-                placeholder="SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
-                autoCapitalize="none"
-                multiline
-                value={query}
-                onChangeText={setQuery}
-              />
+            monospaced
+            small
+            placeholder="SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;"
+            autoCapitalize="none"
+            multiline
+            value={query}
+            onChangeText={setQuery}
+            rightElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={handleShowQuerySelections}
+              >
+                {({ iconProps }) => <Icon {...iconProps} name="list" />}
+              </UIGroup.ListTextInputItem.Button>
             }
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Execute Query"
             button
             onPress={handleExecute}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Query Results">
-          <InsetGroup.Item
-            label="Rows"
-            vertical2
-            detailTextStyle={commonStyles.devToolsMonospaced}
-            detail={
-              rows === undefined ? '(undefined)' : JSON.stringify(rows, null, 2)
-            }
+        <UIGroup header="Query Results">
+          <UIGroup.ListTextInputItem
+            label="Insert ID"
+            horizontalLabel
+            monospaced
+            small
+            placeholder="(undefined)"
+            value={insertId === undefined ? '' : insertId.toString()}
+            showSoftInputOnFocus={false}
           />
-        </InsetGroup>
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Rows Affected"
+            horizontalLabel
+            monospaced
+            small
+            placeholder="(undefined)"
+            value={rowsAffected === undefined ? '' : rowsAffected.toString()}
+            showSoftInputOnFocus={false}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Rows"
+            monospaced
+            small
+            multiline
+            placeholder="(undefined)"
+            value={rows === undefined ? '' : JSON.stringify(rows, null, 2)}
+            showSoftInputOnFocus={false}
+          />
+        </UIGroup>
 
-        <InsetGroup label="Delete Database">
-          <InsetGroup.Item
+        <UIGroup header="Delete Database">
+          <UIGroup.ListItem
             label="Dry Run"
             detail={
-              <Switch
+              <UIGroup.ListItem.Switch
                 value={deleteDbDryRun}
                 onChange={() => setDeleteDbDryRun(v => !v)}
               />
             }
           />
-          <InsetGroup.ItemSeparator />
+          <UIGroup.ListItemSeparator />
           {deleteDbDryRun ? (
-            <InsetGroup.Item
+            <UIGroup.ListItem
               button
               label="Delete Database (Dry Run)"
               onPress={handleDeleteDatabaseDryRun}
             />
           ) : (
-            <InsetGroup.Item
+            <UIGroup.ListItem
               button
               destructive
               label="Delete Database"
               onPress={handleDeleteDatabase}
             />
           )}
-        </InsetGroup>
+        </UIGroup>
       </ScrollView>
     </ScreenContent>
   );

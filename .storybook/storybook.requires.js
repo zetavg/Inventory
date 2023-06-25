@@ -43,6 +43,7 @@ const getStories = () => {
     require("../app/components/TableView/TableView.stories.tsx"),
     require("../app/components/Text/Text.stories.tsx"),
     require("../app/components/TextInput/TextInput.stories.tsx"),
+    require("../app/components/UIGroup/UIGroup.stories.tsx"),
   ];
 };
 
