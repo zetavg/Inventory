@@ -1,13 +1,13 @@
 import React from 'react';
-import { action } from '@storybook/addon-actions';
-import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
-import StorybookSection from '@app/components/StorybookSection';
-
-import Text from './Text';
 import { ScrollView, useWindowDimensions } from 'react-native';
 
+import StorybookSection from '@app/components/StorybookSection';
+import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
+
+import Text from './Text';
+
 export default {
-  title: 'Text',
+  title: '[B] Text',
   component: Text,
   parameters: {
     notes: 'Text',

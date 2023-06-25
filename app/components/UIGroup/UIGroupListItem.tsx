@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, Switch } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import InsetGroup from '@app/components/InsetGroup';
+import Switch from '@app/components/Switch';
 
 import { ListItemProps } from './types';
 

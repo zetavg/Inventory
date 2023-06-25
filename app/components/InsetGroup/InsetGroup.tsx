@@ -1,21 +1,25 @@
 import React, { useMemo } from 'react';
 import {
+  Image,
   Platform,
-  useWindowDimensions,
   StyleSheet,
-  View,
-  TouchableHighlight,
-  TouchableOpacity,
   Text,
   TextInput,
-  Image,
+  TouchableHighlight,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from 'react-native';
+
 import Color from 'color';
+
+import commonStyles from '@app/utils/commonStyles';
+import isTextContent from '@app/utils/isTextContent';
+
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import isTextContent from '@app/utils/isTextContent';
+
 import LoadingOverlay from '../LoadingOverlay';
-import commonStyles from '@app/utils/commonStyles';
 
 const FONT_SIZE = 17;
 const GROUP_LABEL_FONT_SIZE = 13;
@@ -214,6 +218,7 @@ InsetGroup.LabelButton = InsetGroupLabelButton;
 type InsetGroupItemProps = {
   containerStyle?: React.ComponentProps<typeof View>['style'];
   leftElement?: JSX.Element;
+  labelRightElement?: JSX.Element;
   label?: string;
   labelTextStyle?: React.ComponentProps<typeof Text>['style'];
   detail?: string | React.ReactNode;
@@ -235,6 +240,7 @@ function InsetGroupItem({
   containerStyle,
   style,
   leftElement,
+  labelRightElement,
   label,
   labelTextStyle,
   detail,
@@ -289,39 +295,52 @@ function InsetGroupItem({
               ...(Array.isArray(style) ? style : [style]),
             ]}
           >
-            <Text
+            <View
               style={[
+                styles.insetGroupItemLabelContainer,
                 vertical2
-                  ? styles.insetGroupItemVertical2Text
+                  ? styles.insetGroupItemVertical2TextContainer
                   : vertical
-                  ? styles.insetGroupItemVerticalText
-                  : styles.insetGroupItemText,
-                compactLabel ? styles.insetGroupItemCompactLabelText : {},
-                {
-                  color: (() => {
-                    if (disabled) return contentDisabledTextColor;
-
-                    if (button) {
-                      if (destructive) return iosDestructiveColor;
-
-                      return iosTintColor;
-                    }
-
-                    if (vertical2 && !compactLabel)
-                      return contentSecondaryTextColor;
-
-                    return contentTextColor;
-                  })(),
-                },
+                  ? styles.insetGroupItemVerticalTextContainer
+                  : styles.insetGroupItemTextContainer,
                 detail && !(vertical || vertical2)
-                  ? styles.insetGroupItemWithDetailText
+                  ? styles.insetGroupItemWithDetailTextContainer
                   : {},
                 labelTextStyle,
               ]}
-              numberOfLines={1}
             >
-              {label}
-            </Text>
+              <Text
+                style={[
+                  vertical2
+                    ? styles.insetGroupItemVertical2Text
+                    : vertical
+                    ? {}
+                    : styles.insetGroupItemText,
+                  compactLabel ? styles.insetGroupItemCompactLabelText : {},
+                  {
+                    color: (() => {
+                      if (disabled) return contentDisabledTextColor;
+
+                      if (button) {
+                        if (destructive) return iosDestructiveColor;
+
+                        return iosTintColor;
+                      }
+
+                      if (vertical2 && !compactLabel)
+                        return contentSecondaryTextColor;
+
+                      return contentTextColor;
+                    })(),
+                  },
+                  labelTextStyle,
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
+              {labelRightElement || null}
+            </View>
             <View
               style={
                 vertical || vertical2
@@ -664,21 +683,28 @@ const styles = StyleSheet.create({
   },
   insetGroupItemText: {
     fontSize: FONT_SIZE,
+  },
+  insetGroupItemTextContainer: {
     maxWidth: '95%',
   },
   insetGroupItemVertical2Text: {
     fontSize: FONT_SIZE * 0.8,
-    fontWeight: '500',
-    maxWidth: '95%',
+    flex: 1,
   },
-  insetGroupItemVerticalText: {
+  insetGroupItemLabelContainer: {
+    flexDirection: 'row',
+  },
+  insetGroupItemVertical2TextContainer: {
+    // maxWidth: '95%',
+  },
+  insetGroupItemVerticalTextContainer: {
     maxWidth: '95%',
   },
   insetGroupItemCompactLabelText: {
     fontSize: FONT_SIZE * 0.85,
     fontWeight: '500',
   },
-  insetGroupItemWithDetailText: {
+  insetGroupItemWithDetailTextContainer: {
     maxWidth: '60%',
   },
   insetGroupItemDetail: {

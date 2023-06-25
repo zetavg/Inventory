@@ -20,7 +20,8 @@ if (parameters) {
 }
 
 const getStories = () => {
-  return [
+  const s = [
+    require("../app/components/_README/README.stories.tsx"),
     require("../app/components/ActionSheet/ActionSheet.stories.tsx"),
     require("../app/components/Button/Button.stories.tsx"),
     require("../app/components/EditingListView/EditingListView.stories.tsx"),
@@ -36,6 +37,8 @@ const getStories = () => {
     require("../app/components/TextInput/TextInput.stories.tsx"),
     require("../app/components/UIGroup/UIGroup.stories.tsx"),
   ];
+
+  return s.sort((a, b) => a.default.title.localeCompare(b.default.title));
 };
 
 configure(getStories, module, false);

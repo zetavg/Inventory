@@ -63,6 +63,7 @@ export type ListTextInputItemProps = {
   rightElement?: React.ReactNode;
   monospaced?: boolean;
   small?: boolean;
+  inputElement?: JSX.Element;
 } & React.ComponentProps<typeof TextInput>;
 
 export type ListTextInputItemButtonProps = {

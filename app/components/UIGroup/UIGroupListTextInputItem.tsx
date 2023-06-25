@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   Platform,
   StyleSheet,
@@ -31,6 +31,7 @@ export default function UIGroupListTextInputItem(
     rightElement,
     monospaced,
     small,
+    inputElement,
     ...restProps
   } = props;
 
@@ -93,20 +94,31 @@ export default function UIGroupListTextInputItem(
       compactLabel={compactLabel}
       label={label}
       labelTextStyle={{ color: contentSecondaryTextColor }}
+      labelRightElement={
+        rightElement && vertical2 ? (
+          <View style={styles.insetGroupTextInputRightElementContainer}>
+            {rightElement}
+          </View>
+        ) : undefined
+      }
       detail={
         <View style={styles.insetGroupTextInputContainer}>
-          <InsetGroup.TextInput
-            ref={ref}
-            textAlign={textAlign}
-            {...restProps}
-            style={[
-              monospaced && styles.monospaced,
-              small && styles.small,
-              restProps.style,
-            ]}
-          />
+          {inputElement ? (
+            inputElement
+          ) : (
+            <InsetGroup.TextInput
+              ref={ref}
+              textAlign={textAlign}
+              {...restProps}
+              style={[
+                monospaced && styles.monospaced,
+                small && styles.small,
+                restProps.style,
+              ]}
+            />
+          )}
           {unit ? <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix> : null}
-          {rightElement ? (
+          {rightElement && !vertical2 ? (
             <View style={styles.insetGroupTextInputRightElementContainer}>
               {rightElement}
             </View>

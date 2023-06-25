@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
+
 import { action } from '@storybook/addon-actions';
 
-import TableView from './TableView';
-import useColors from '@app/hooks/useColors';
 import commonStyles from '@app/utils/commonStyles';
+
+import useColors from '@app/hooks/useColors';
+
+import TableView from './TableView';
 
 export default {
   title: 'TableView',

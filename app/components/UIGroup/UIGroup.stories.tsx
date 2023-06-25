@@ -10,7 +10,7 @@ import {
 } from './examples';
 
 export default {
-  title: 'UIGroup',
+  title: '[A] UIGroup',
   component: View,
 };
 

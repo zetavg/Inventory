@@ -2,7 +2,7 @@ import React from 'react';
 
 import SampleComponent from './Sample';
 export default {
-  title: 'ActionSheet',
+  title: '[B] ActionSheet',
 };
 
 export const Sample = () => <SampleComponent />;

@@ -1,14 +1,18 @@
 import React from 'react';
 import { Platform, View } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Fontisto from 'react-native-vector-icons/Fontisto';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import Color from 'color';
-import useColors from '@app/hooks/useColors';
+
 import { IconColor, IconName, ICONS } from '@app/consts/icons';
+
 import commonStyles from '@app/utils/commonStyles';
 import titleCase from '@app/utils/titleCase';
+
+import useColors from '@app/hooks/useColors';
 
 type Props = {
   name: IconName;
@@ -200,4 +204,4 @@ export default function Icon({
   return iconElement;
 }
 
-export type { IconName, IconColor };
+export type { IconColor, IconName };

@@ -1,12 +1,14 @@
 import React from 'react';
+
 import { action } from '@storybook/addon-actions';
-import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
+
 import StorybookSection from '@app/components/StorybookSection';
+import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
 
 import Switch from './Switch';
 
 export default {
-  title: 'Switch',
+  title: '[B] Switch',
   component: Switch,
   args: {
     disabled: false,

@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, Switch, Text } from 'react-native';
+import {
+  Alert,
+  Button,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+
+import UIText from '@app/components/Text';
 
 import Icon from '../Icon';
 
@@ -296,6 +305,54 @@ export function WithListItems() {
           label="Multiline"
           multiline
           placeholder="Multiline input."
+        />
+      </UIGroup>
+
+      <UIGroup header="Custom Input Element">
+        <UIGroup.ListTextInputItem
+          label="With Custom Input Element"
+          inputElement={
+            <TouchableOpacity
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{ flexDirection: 'row', flexWrap: 'wrap' }}
+              onPress={() => Alert.alert('Pressed')}
+            >
+              {'A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element.'
+                .split('')
+                .map((c, i) => (
+                  <UIText key={i}>{c}</UIText>
+                ))}
+            </TouchableOpacity>
+          }
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          label="With Custom Input Element And Button"
+          rightElement={
+            <UIGroup.ListTextInputItem.Button
+              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
+            >
+              {({ iconProps, textProps }) => (
+                <>
+                  <Icon {...iconProps} name="add" />
+                  <Text {...textProps}>Add</Text>
+                </>
+              )}
+            </UIGroup.ListTextInputItem.Button>
+          }
+          inputElement={
+            <TouchableOpacity
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{ flexDirection: 'row', flexWrap: 'wrap' }}
+              onPress={() => Alert.alert('Pressed')}
+            >
+              {'A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element. A Custom Element.'
+                .split('')
+                .map((c, i) => (
+                  <UIText key={i}>{c}</UIText>
+                ))}
+            </TouchableOpacity>
+          }
         />
       </UIGroup>
 

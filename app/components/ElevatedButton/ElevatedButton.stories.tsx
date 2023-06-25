@@ -1,13 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { action } from '@storybook/addon-actions';
-import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
-import StorybookSection from '@app/components/StorybookSection';
 
-import ElevatedButton from './ElevatedButton';
+import { action } from '@storybook/addon-actions';
+
 import useColors from '@app/hooks/useColors';
 
+import StorybookSection from '@app/components/StorybookSection';
+import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
+
+import ElevatedButton from './ElevatedButton';
+
 export default {
-  title: 'ElevatedButton',
+  title: '[B] ElevatedButton',
   component: ElevatedButton,
   parameters: {
     notes: 'Default ElevatedButton',

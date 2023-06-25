@@ -1,10 +1,12 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Appbar as PaperAppbar } from 'react-native-paper';
 import { StackScreenProps } from '@react-navigation/stack';
-import { StackParamList } from '@app/navigation/MainStack';
+import { Appbar as PaperAppbar } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import type { Optional } from '@app/utils/types';
+
+import { StackParamList } from '@app/navigation/MainStack';
 
 type Props = {
   title?: string;

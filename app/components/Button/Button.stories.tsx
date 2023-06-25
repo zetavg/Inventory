@@ -6,7 +6,7 @@ import StorybookSection from '@app/components/StorybookSection';
 import Button from './Button';
 
 export default {
-  title: 'Button',
+  title: '[B] Button',
   component: Button,
   parameters: {
     notes: 'Default Button',

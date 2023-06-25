@@ -1,0 +1,15 @@
+diff --git a/node_modules/@storybook/react-native/scripts/loader.js b/node_modules/@storybook/react-native/scripts/loader.js
+index bba60f1..164f499 100644
+--- a/node_modules/@storybook/react-native/scripts/loader.js
++++ b/node_modules/@storybook/react-native/scripts/loader.js
+@@ -103,7 +103,9 @@ function writeRequires({ configPath, absolute = false }) {
+       ${enhancers}
+ 
+       const getStories=() => {
+-        return ${path_array_str};
++        const s = ${path_array_str};
++
++        return s.sort((a, b) => a.default.title.localeCompare(b.default.title));
+       }
+ 
+       configure(getStories, module, false)

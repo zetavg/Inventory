@@ -6,7 +6,7 @@ import { Alert } from 'react-native';
 import ScreenContentScrollView from './ScreenContentScrollView';
 
 export default {
-  title: 'ScreenContentScrollView',
+  title: '[L] ScreenContentScrollView',
   component: ScreenContentScrollView,
   // args: {
   // },

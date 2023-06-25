@@ -1,15 +1,18 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { ScrollView } from 'react-native';
+
+import { ICONS } from '@app/consts/icons';
+
+import objectEntries from '@app/utils/objectEntries';
+
 import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
 import Text from '@app/components/Text';
 
 import Icon from './Icon';
-import { ScrollView } from 'react-native';
-import { ICONS } from '@app/consts/icons';
-import objectEntries from '@app/utils/objectEntries';
 
 export default {
-  title: 'Icon',
+  title: '[B] Icon',
   component: Icon,
 };
 
