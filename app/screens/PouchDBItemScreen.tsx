@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { Alert, RefreshControl, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
@@ -10,8 +10,9 @@ import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import useDB from '@app/hooks/useDB';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
+import UIGroup from '@app/components/UIGroup';
 
 function PouchDBItemScreen({
   navigation,
@@ -90,7 +91,7 @@ function PouchDBItemScreen({
     );
   }, [data, db, navigation]);
 
-  const jsonData = (() => {
+  const jsonDataWithoutId = (() => {
     if (!data) return undefined;
 
     const { _id: _, ...d } = data;
@@ -107,7 +108,7 @@ function PouchDBItemScreen({
       onAction1Press={() =>
         rootNavigation?.navigate('PouchDBPutDataModal', {
           id,
-          jsonData,
+          jsonData: jsonDataWithoutId,
         })
       }
       action2Label={(data && 'Remove') || undefined}
@@ -115,32 +116,35 @@ function PouchDBItemScreen({
       action2MaterialIconName={(data && 'delete') || undefined}
       onAction2Press={handleRemove}
     >
-      <ScrollView
+      <ScreenContentScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         <View style={commonStyles.mt16} />
-        <InsetGroup loading={loading}>
-          <InsetGroup.Item
-            vertical2
+        <UIGroup loading={loading}>
+          <UIGroup.ListTextInputItem
             label="ID"
-            detail={id}
-            detailTextStyle={[commonStyles.devToolsMonospaced]}
+            value={id}
+            small
+            monospaced
+            showSoftInputOnFocus={false}
           />
           {data && (
             <>
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
                 label="Data"
-                detail={JSON.stringify(data, null, 2)}
-                detailTextStyle={[commonStyles.devToolsMonospaced]}
+                value={JSON.stringify(data, null, 2)}
+                multiline
+                small
+                monospaced
+                showSoftInputOnFocus={false}
               />
             </>
           )}
-        </InsetGroup>
-      </ScrollView>
+        </UIGroup>
+      </ScreenContentScrollView>
     </ScreenContent>
   );
 }

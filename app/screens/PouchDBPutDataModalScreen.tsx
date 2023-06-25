@@ -8,9 +8,9 @@ import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useDB from '@app/hooks/useDB';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
 import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
+import UIGroup from '@app/components/UIGroup';
 
 function PouchDBPutDataModalScreen({
   route,
@@ -47,7 +47,29 @@ function PouchDBPutDataModalScreen({
   const handleAddField = useCallback(() => {
     try {
       const json = JSON.parse(dataJson);
-      setDataJson(JSON.stringify({ ...json, _: '' }, null, 2));
+      let newFieldName = 'newField';
+      const newFieldKeys = Object.keys(json).filter(k =>
+        k.startsWith(newFieldName),
+      );
+      if (newFieldKeys.length > 0) {
+        const maxNewFieldI = Math.max(
+          ...newFieldKeys
+            .map(k => {
+              const match = k.match(/^newField([0-9]+)?/);
+              if (!match) return '';
+              return match[1];
+            })
+            .map(s => {
+              const n = parseInt(s, 10);
+              if (isNaN(n)) return 0;
+              return n;
+            }),
+        );
+        newFieldName = `newField${maxNewFieldI + 1}`;
+      }
+      setDataJson(
+        JSON.stringify({ ...json, [newFieldName]: 'value' }, null, 2),
+      );
     } catch (e: any) {
       Alert.alert(e.message);
     }
@@ -101,14 +123,20 @@ function PouchDBPutDataModalScreen({
     },
     [loading],
   );
-  const dataInputRef = useRef<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const idInputRef = useRef<TextInput>(null);
+  const dataInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (!route.params?.id) {
       const timer = setTimeout(() => {
         idInputRef.current?.focus();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    } else {
+      const timer = setTimeout(() => {
+        dataInputRef.current?.focus();
       }, 500);
 
       return () => clearTimeout(timer);
@@ -132,48 +160,42 @@ function PouchDBPutDataModalScreen({
     >
       <ScreenContentScrollView ref={scrollViewRef}>
         <View style={commonStyles.mt16} />
-        <InsetGroup footerLabel={isJsonInvalid ? '⚠ Invalid JSON' : undefined}>
-          <InsetGroup.Item
+        <UIGroup footer={isJsonInvalid ? '⚠ Invalid JSON' : undefined}>
+          <UIGroup.ListTextInputItem
             label="ID"
-            vertical2
-            detail={
-              <InsetGroup.TextInput
-                ref={idInputRef}
-                placeholder="Document ID"
-                returnKeyType="next"
-                autoCapitalize="none"
-                style={[commonStyles.devToolsMonospaced]}
-                disabled={!!route.params?.id || loading}
-                value={id}
-                onChangeText={handleIdChangeText}
-                onBlur={() => setIdTouched(true)}
-                onSubmitEditing={() => dataInputRef.current?.focus()}
-                // onFocus={ScreenContentScrollView.stf(scrollViewRef, 0)}
-              />
-            }
+            monospaced
+            small
+            ref={idInputRef}
+            placeholder="Document ID"
+            returnKeyType="next"
+            autoCapitalize="none"
+            disabled={!!route.params?.id || loading}
+            value={id}
+            onChangeText={handleIdChangeText}
+            onBlur={() => setIdTouched(true)}
+            onSubmitEditing={() => dataInputRef.current?.focus()}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item vertical2 label="Data (JSON)">
-            <InsetGroup.TextInput
-              multiline
-              style={[commonStyles.devToolsMonospaced, styles.textBox]}
-              placeholder="{}"
-              ref={dataInputRef}
-              value={dataJson}
-              onChangeText={handleDataJsonChangeText}
-              disabled={loading}
-              autoFocus={!!route.params?.id}
-              autoCapitalize="none"
-            />
-          </InsetGroup.Item>
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Data (JSON)"
+            multiline
+            monospaced
+            small
+            placeholder="{}"
+            ref={dataInputRef}
+            value={dataJson}
+            onChangeText={handleDataJsonChangeText}
+            disabled={loading}
+            autoCapitalize="none"
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Add Field"
             button
             disabled={isJsonInvalid}
             onPress={handleAddField}
           />
-        </InsetGroup>
+        </UIGroup>
       </ScreenContentScrollView>
     </ModalContent>
   );

@@ -134,34 +134,54 @@ export default function UIGroupListTextInputItem(
 export function UIGroupListTextInputItemButton(
   props: ListTextInputItemButtonProps,
 ) {
-  const { iosTintColor } = useColors();
-  const { children, ...restProps } = props;
+  const { iosTintColor, contentDisabledTextColor } = useColors();
+  const { children, disabled, ...restProps } = props;
+
+  const content = (() => {
+    if (typeof children === 'function') {
+      return (
+        <View style={styles.iosRenderedListTextInputItemButtonContainer}>
+          {children({
+            textProps: {
+              style: { color: iosTintColor },
+            },
+            iconProps: {
+              color: iosTintColor,
+              size: 16,
+              sfSymbolWeight: 'regular',
+              style: undefined,
+            },
+          })}
+        </View>
+      );
+    }
+
+    return (
+      <Text
+        style={{ color: disabled ? contentDisabledTextColor : iosTintColor }}
+      >
+        {children}
+      </Text>
+    );
+  })();
+
+  if (disabled) {
+    return (
+      <View
+        {...(restProps as any)}
+        style={[styles.iosListTextInputItemButtonContainer, restProps.style]}
+      >
+        {content}
+      </View>
+    );
+  }
+
   return (
     <TouchableOpacity
       {...restProps}
       style={[styles.iosListTextInputItemButtonContainer, restProps.style]}
     >
-      {(() => {
-        if (typeof children === 'function') {
-          return (
-            <View style={styles.iosRenderedListTextInputItemButtonContainer}>
-              {children({
-                textProps: {
-                  style: { color: iosTintColor },
-                },
-                iconProps: {
-                  color: iosTintColor,
-                  size: 16,
-                  sfSymbolWeight: 'regular',
-                  style: undefined,
-                },
-              })}
-            </View>
-          );
-        }
-
-        return <Text style={{ color: iosTintColor }}>{children}</Text>;
-      })()}
+      {content}
     </TouchableOpacity>
   );
 }
@@ -175,6 +195,8 @@ const styles = StyleSheet.create({
   },
   insetGroupTextInputRightElementContainer: {
     paddingLeft: 8,
+    flexDirection: 'row',
+    gap: 8,
   },
   iosListTextInputItemButtonContainer: {
     // backgroundColor: 'red',

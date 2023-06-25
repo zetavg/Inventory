@@ -19,6 +19,8 @@ import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
 
 import ScreenContent from '@app/components/ScreenContent';
+import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
+import UIGroup from '@app/components/UIGroup';
 
 function PouchDBScreen({
   navigation,
@@ -28,7 +30,7 @@ function PouchDBScreen({
 
   const numberOfItemsPerPageList = [5, 10, 20, 50];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
-  const [page, setPage] = React.useState<number>(0);
+  const [page, setPage] = React.useState<number>(1);
 
   const [searchText, setSearchText] = useState('');
 
@@ -38,7 +40,7 @@ function PouchDBScreen({
   const totalRows = data ? data.total_rows : 0;
   const numberOfPages = Math.ceil(totalRows / perPage);
 
-  const skip = perPage * page;
+  const skip = perPage * (page - 1);
   const limit = perPage;
   const [loading, setLoading] = useState(true);
 
@@ -50,24 +52,7 @@ function PouchDBScreen({
       const results = await (searchText
         ? (db as any).search({
             query: searchText,
-            fields: [
-              'a',
-              'b',
-              'c',
-              'name',
-              'title',
-              'description',
-              'keywords',
-              'data.a',
-              'data.b',
-              'data.c',
-              'data.name',
-              'data.title',
-              'data.description',
-              'data.keywords',
-              'e',
-              'f',
-            ],
+            fields: [],
             // TODO: support zh searching on Android
             // `language: ['zh', 'en']` will not work well
             // See: patches/pouchdb-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
@@ -98,7 +83,8 @@ function PouchDBScreen({
     setRefreshing(true);
     try {
       await getData();
-    } catch (e) {
+    } catch (e: any) {
+      Alert.alert('An Error Occurred', e.message);
     } finally {
       setRefreshing(false);
     }
@@ -119,16 +105,120 @@ function PouchDBScreen({
       action2MaterialIconName="cog"
       onAction2Press={() => {}}
     >
-      <ScrollView
-        keyboardDismissMode="interactive"
+      <ScreenContentScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <DataTable>
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup
+          loading={loading}
+          footer={`Showing ${skip + 1}-${Math.max(
+            Math.min(skip + perPage, totalRows),
+            skip + 1,
+          )} of ${totalRows}.`}
+          placeholder="No items to show."
+        >
+          {data &&
+            data.rows.length > 0 &&
+            UIGroup.ListItemSeparator.insertBetween(
+              data.rows.map(d => (
+                <UIGroup.ListItem
+                  key={d.id}
+                  label={d.id}
+                  detail={JSON.stringify(d.doc)}
+                  verticalArrangedIOS
+                  navigable
+                  onPress={() => navigation.push('PouchDBItem', { id: d.id })}
+                />
+              )),
+            )}
+        </UIGroup>
+
+        <UIGroup footer={`Skip: ${skip}, limit: ${limit}.`}>
+          <UIGroup.ListTextInputItem
+            label="Page"
+            horizontalLabel
+            keyboardType="number-pad"
+            returnKeyType="done"
+            value={page.toString()}
+            unit={`/ ${numberOfPages}`}
+            onChangeText={t => {
+              const n = parseInt(t, 10);
+              if (isNaN(n)) return;
+              if (n <= 0) return;
+
+              setPage(n);
+            }}
+            selectTextOnFocus
+            rightElement={
+              <>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() =>
+                    setPage(i => {
+                      if (i <= 1) return i;
+                      if (i > numberOfPages) return numberOfPages;
+                      return i - 1;
+                    })
+                  }
+                  disabled={page <= 1}
+                >
+                  ‹ Prev
+                </UIGroup.ListTextInputItem.Button>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => setPage(i => i + 1)}
+                  disabled={page >= numberOfPages}
+                >
+                  Next ›
+                </UIGroup.ListTextInputItem.Button>
+              </>
+            }
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Per Page"
+            horizontalLabel
+            keyboardType="number-pad"
+            returnKeyType="done"
+            value={perPage.toString()}
+            onChangeText={t => {
+              const n = parseInt(t, 10);
+              if (isNaN(n)) return;
+              if (n <= 0) return;
+
+              setPerPage(n);
+            }}
+            selectTextOnFocus
+            rightElement={
+              <>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => setPerPage(10)}
+                >
+                  10
+                </UIGroup.ListTextInputItem.Button>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => setPerPage(20)}
+                >
+                  20
+                </UIGroup.ListTextInputItem.Button>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => setPerPage(50)}
+                >
+                  50
+                </UIGroup.ListTextInputItem.Button>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => setPerPage(100)}
+                >
+                  100
+                </UIGroup.ListTextInputItem.Button>
+              </>
+            }
+          />
+        </UIGroup>
+
+        {/*<DataTable>
           <DataTable.Header>
             <DataTable.Title>ID</DataTable.Title>
-            {/*<DataTable.Title>Key</DataTable.Title>*/}
             <DataTable.Title>Value</DataTable.Title>
           </DataTable.Header>
 
@@ -140,7 +230,6 @@ function PouchDBScreen({
                   onPress={() => navigation.push('PouchDBItem', { id: d.id })}
                 >
                   <DataTable.Cell>{d.id}</DataTable.Cell>
-                  {/*<DataTable.Cell>{d.key}</DataTable.Cell>*/}
                   <DataTable.Cell>{JSON.stringify(d.doc)}</DataTable.Cell>
                 </DataTable.Row>
               ))}
@@ -162,8 +251,8 @@ function PouchDBScreen({
             numberOfItemsPerPage={perPage}
             onItemsPerPageChange={setPerPage}
           />
-        </DataTable>
-      </ScrollView>
+        </DataTable>*/}
+      </ScreenContentScrollView>
     </ScreenContent>
   );
 }
