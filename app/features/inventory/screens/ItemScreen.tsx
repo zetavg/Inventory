@@ -28,7 +28,7 @@ import Icon, { IconName, IconColor } from '@app/components/Icon';
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
 import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 import useActionSheet from '@app/hooks/useActionSheet';
 

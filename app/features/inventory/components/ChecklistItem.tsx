@@ -5,7 +5,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import Icon, { IconName } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
 export default function ChecklistItem({
   checklist,

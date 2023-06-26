@@ -1,6 +1,6 @@
 import { Database } from '@app/db';
 import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
 export default async function getChildrenDedicatedItemIds(
   db: Database,

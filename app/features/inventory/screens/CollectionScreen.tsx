@@ -24,7 +24,7 @@ import { useRelationalData } from '@app/db';
 import ItemItem from '../components/ItemItem';
 import useOrderedData from '@app/hooks/useOrderedData';
 import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
 function CollectionScreen({
   navigation,

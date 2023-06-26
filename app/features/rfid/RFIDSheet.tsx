@@ -53,7 +53,7 @@ import { getConfigInDB } from '@app/db/configUtils';
 import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
 import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
 import EPCUtils from '@app/modules/EPCUtils';
-import { DataType } from '@app/db/schema';
+import { DataType } from '@app/db/old_schema';
 
 import { getTagAccessPassword } from './utils';
 import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
@@ -63,7 +63,7 @@ import RFIDWithUHFBLEModule, {
   ScanDevicesData,
 } from '@app/modules/RFIDWithUHFBLEModule';
 import ItemItem from '../inventory/components/ItemItem';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { getDataFromDocs } from '@app/db/hooks';
 import useActionSheet from '@app/hooks/useActionSheet';
 import getChildrenDedicatedItemIds from '../inventory/utils/getChildrenDedicatedItemIds';

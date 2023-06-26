@@ -22,7 +22,7 @@ import Icon, { IconColor, IconName } from '@app/components/Icon';
 
 import { v4 as uuidv4 } from 'uuid';
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, del, save } from '@app/db/relationalUtils';
+import { DataTypeWithID, del, save } from '@app/db/old_relationalUtils';
 
 import randomInt from '@app/utils/randomInt';
 import {

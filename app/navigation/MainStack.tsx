@@ -20,7 +20,7 @@ import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
-import type { TypeName as DataTypeName } from '@app/db/schema';
+import type { TypeName as DataTypeName } from '@app/db/old_schema';
 
 import AboutScreen from '@app/screens/AboutScreen';
 import ConsoleLogScreen from '@app/screens/ConsoleLogScreen';

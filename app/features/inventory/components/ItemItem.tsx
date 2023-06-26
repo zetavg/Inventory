@@ -7,8 +7,8 @@ import InsetGroup from '@app/components/InsetGroup';
 import Icon, { IconName } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
-import { DataType } from '@app/db/schema';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataType } from '@app/db/old_schema';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SFSymbol } from 'react-native-sfsymbols';
 

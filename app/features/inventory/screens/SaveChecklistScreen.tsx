@@ -12,7 +12,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, del, save } from '@app/db/relationalUtils';
+import { DataTypeWithID, del, save } from '@app/db/old_relationalUtils';
 
 import {
   applyWhitespaceFix,

@@ -19,7 +19,7 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 import useDB from '@app/hooks/useDB';
 import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
 import type { CallbackPayload } from '@app/features/rfid/RFIDSheet';
 

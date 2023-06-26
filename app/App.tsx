@@ -135,7 +135,11 @@ function AppReadyGate({ children }: { children: JSX.Element }) {
 
   const dbs = useDB();
   // To prevent race conditions with the DB initialization, we wait for the DB to be ready before rendering the app.
-  if (!dbs.db || !dbs.logsDB) {
+  if (
+    Object.entries(dbs)
+      .filter(([k]) => !k.startsWith('_'))
+      .filter(([_, v]) => !v).length > 0
+  ) {
     return <SplashScreen />;
   }
 

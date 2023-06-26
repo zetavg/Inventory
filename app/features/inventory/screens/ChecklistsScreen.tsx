@@ -14,7 +14,7 @@ import Text from '@app/components/Text';
 
 import useDB from '@app/hooks/useDB';
 import { useRelationalData } from '@app/db';
-import { del } from '@app/db/relationalUtils';
+import { del } from '@app/db/old_relationalUtils';
 import useOrderedData from '@app/hooks/useOrderedData';
 
 import moveItemInArray from '@app/utils/moveItemInArray';

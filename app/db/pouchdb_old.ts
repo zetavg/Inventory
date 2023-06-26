@@ -5,8 +5,8 @@ import rel from 'relational-pouch';
 import PouchDBAuthentication from 'pouchdb-authentication';
 import WebSQLite from 'react-native-quick-websql';
 import LinguisticTaggerModuleIOS from '@app/modules/LinguisticTaggerModuleIOS';
-import { DBContent, AttachmentsDBContent, LogsDBContent } from './types';
-import schema from './schema';
+import { DBContent, AttachmentsDBContent, LogsDBContent } from './old_types';
+import schema from './old_schema';
 import { translateSchema } from './relationalUtils';
 
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);

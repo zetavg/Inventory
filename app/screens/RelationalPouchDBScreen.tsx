@@ -5,7 +5,7 @@ import type { StackParamList } from '@app/navigation/MainStack';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import schema from '@app/db/schema';
+import schema from '@app/db/old_schema';
 import titleCase from '@app/utils/titleCase';
 import objectEntries from '@app/utils/objectEntries';
 

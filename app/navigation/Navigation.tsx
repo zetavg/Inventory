@@ -43,8 +43,8 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import { DataTypeWithID } from '@app/db/relationalUtils';
-import { TypeName } from '@app/db/schema';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
+import { TypeName } from '@app/db/old_schema';
 
 import commonStyles from '@app/utils/commonStyles';
 

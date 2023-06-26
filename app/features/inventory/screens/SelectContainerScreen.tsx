@@ -20,7 +20,7 @@ import InsetGroup from '@app/components/InsetGroup';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import ItemItem from '../components/ItemItem';
 
 function SelectContainerScreen({

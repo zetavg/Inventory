@@ -7,9 +7,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import ScreenContent from '@app/components/ScreenContent';
 import InsetGroup from '@app/components/InsetGroup';
 
-import schema from '@app/db/schema';
+import schema from '@app/db/old_schema';
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, find } from '@app/db/relationalUtils';
+import { DataTypeWithID, find } from '@app/db/old_relationalUtils';
 import titleCase from '@app/utils/titleCase';
 
 function RelationalPouchDBTypeScreen({

@@ -15,17 +15,5 @@ export async function getDatabase(name: string): Promise<Database> {
   });
   return db;
 }
-export async function getLogsDatabase(name: string): Promise<LogsDatabase> {
-  const db = new PouchDB(name, {
-    adapter: 'react-native-sqlite',
-    auto_compaction: true,
-  });
-
-  // db.createIndex({
-  //   index: { fields: ['timestamp', 'type', 'ok', 'event', 'server'] },
-  // });
-
-  return db;
-}
 
 // export const PouchDB = PouchDBCore;

@@ -7,13 +7,15 @@ import {
   find,
   findWithRelations,
   FindWithRelationsReturnedData,
-} from '../relationalUtils';
-import schema, { TypeName } from '../schema';
+} from '../old_relationalUtils';
+import schema, { TypeName } from '../old_schema';
 import { DBContent } from '../types';
 
 import useDB from './useDB';
 
 export { useDB };
+
+// Below are all old stuff
 
 // const log = console.log;
 const log = (..._args: any) => {};

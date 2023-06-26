@@ -7,9 +7,9 @@ import ModalContent from '@app/components/ModalContent';
 import InsetGroup from '@app/components/InsetGroup';
 import commonStyles from '@app/utils/commonStyles';
 
-import schema from '@app/db/schema';
+import schema from '@app/db/old_schema';
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, find } from '@app/db/relationalUtils';
+import { DataTypeWithID, find } from '@app/db/old_relationalUtils';
 import titleCase from '@app/utils/titleCase';
 
 function RelationalPouchDBTypeScreen({

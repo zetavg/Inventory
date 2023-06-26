@@ -17,7 +17,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { SFSymbol } from 'react-native-sfsymbols';
 
 import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
 import Color from 'color';
 import useColors from '@app/hooks/useColors';

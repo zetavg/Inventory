@@ -7,7 +7,7 @@ import { StackParamList } from '@app/navigation/MainStack';
 import useActionSheet from '@app/hooks/useActionSheet';
 import useDB from '@app/hooks/useDB';
 
-import { DataTypeWithID } from '@app/db/relationalUtils';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { RenderScannedItemsFn } from '@app/features/rfid/RFIDSheet';
 
 import getChildrenDedicatedItemIds from '../utils/getChildrenDedicatedItemIds';

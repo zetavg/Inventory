@@ -1,25 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import { useFocusEffect } from '@react-navigation/native';
-import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
-import commonStyles from '@app/utils/commonStyles';
-import camelToSnakeCase from '@app/utils/camelToSnakeCase';
-import titleCase from '@app/utils/titleCase';
+import type { StackScreenProps } from '@react-navigation/stack';
 
-import schema from '@app/db/schema';
-import useDB from '@app/hooks/useDB';
+import relationDataAdditionalUI from '@app/db/old_relationDataAdditionalUI';
 import {
   findWithRelations,
   FindWithRelationsReturnedData,
   getDataTypeNameFromRelation,
   getQueryInverseFromRelation,
   getTypeFromRelation,
-} from '@app/db/relationalUtils';
-import relationDataAdditionalUI from '@app/db/relationDataAdditionalUI';
+} from '@app/db/old_relationalUtils';
+import schema from '@app/db/old_schema';
+
+import camelToSnakeCase from '@app/utils/camelToSnakeCase';
+import commonStyles from '@app/utils/commonStyles';
+import titleCase from '@app/utils/titleCase';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useDB from '@app/hooks/useDB';
+
+import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
 
 function RelationalPouchDBTypeDataDetailScreen({
   navigation,

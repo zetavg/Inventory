@@ -51,8 +51,8 @@ import {
 
 import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
 import { runOnJS } from 'react-native-reanimated';
-import { DataTypeWithID } from '@app/db/relationalUtils';
-import { TypeName } from '@app/db/schema';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
+import { TypeName } from '@app/db/old_schema';
 
 const LAYOUT_ANIMATION_CONFIG = {
   ...LayoutAnimation.Presets.easeInEaseOut,

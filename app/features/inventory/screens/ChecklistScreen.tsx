@@ -20,7 +20,7 @@ import { useRelationalData } from '@app/db';
 import useActionSheet from '@app/hooks/useActionSheet';
 import useOrderedData from '@app/hooks/useOrderedData';
 import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID, del, save } from '@app/db/relationalUtils';
+import { DataTypeWithID, del, save } from '@app/db/old_relationalUtils';
 
 import ItemItem from '../components/ItemItem';
 import useCheckItems from '../hooks/useCheckItems';

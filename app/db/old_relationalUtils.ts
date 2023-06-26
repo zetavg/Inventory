@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import EPCUtils from '@app/modules/EPCUtils';
 import { getConfigInDB } from './configUtils';
 import { Database } from './pouchdb';
-import schema, { Schema, TypeName, DataType, RelationDef } from './schema';
+import schema, { Schema, TypeName, DataType, RelationDef } from './old_schema';
 
 // ==== Validators ==== //
 

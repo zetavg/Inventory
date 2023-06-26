@@ -7,9 +7,9 @@ import InsetGroup from '@app/components/InsetGroup';
 import commonStyles from '@app/utils/commonStyles';
 import titleCase from '@app/utils/titleCase';
 
-import schema from '@app/db/schema';
+import schema from '@app/db/old_schema';
 import useDB from '@app/hooks/useDB';
-import { save } from '@app/db/relationalUtils';
+import { save } from '@app/db/old_relationalUtils';
 import { applyWhitespaceFix, removeWhitespaceFix } from '@app/utils/text-input-whitespace-fix';
 
 function RelationalPouchDBSaveScreen({

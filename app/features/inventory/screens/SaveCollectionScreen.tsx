@@ -13,7 +13,7 @@ import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 import Icon, { IconColor, IconName } from '@app/components/Icon';
 
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID, save } from '@app/db/relationalUtils';
+import { DataTypeWithID, save } from '@app/db/old_relationalUtils';
 
 import randomInt from '@app/utils/randomInt';
 import {

@@ -26,8 +26,8 @@ import Text from '@app/components/Text';
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
 
 import useDB from '@app/hooks/useDB';
-import schema from '@app/db/schema';
-import { save, validate } from '@app/db/relationalUtils';
+import schema from '@app/db/old_schema';
+import { save, validate } from '@app/db/old_relationalUtils';
 
 import camelToSnakeCase from '@app/utils/camelToSnakeCase';
 import titleCase from '@app/utils/titleCase';
