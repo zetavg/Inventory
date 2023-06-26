@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { LOG_SEVERITIES } from '@app/logger';
+import { LOG_LEVELS } from '@app/logger';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
@@ -51,26 +51,24 @@ function AppLogsFilterScreen({
             }
           />
         </UIGroup>
-        <UIGroup header="Severities">
+        <UIGroup header="Levels">
           {UIGroup.ListItemSeparator.insertBetween(
-            LOG_SEVERITIES.map(severity => (
+            LOG_LEVELS.map(level => (
               <UIGroup.ListItem
-                key={severity}
-                label={severity}
-                selected={state.severities.includes(severity)}
+                key={level}
+                label={level}
+                selected={state.levels.includes(level)}
                 onPress={() =>
                   setState(s => {
-                    let newSeverities = [...s.severities];
-                    if (newSeverities.includes(severity)) {
-                      newSeverities = newSeverities.filter(
-                        ss => ss !== severity,
-                      );
+                    let newLevels = [...s.levels];
+                    if (newLevels.includes(level)) {
+                      newLevels = newLevels.filter(ss => ss !== level);
                     } else {
-                      newSeverities.push(severity);
+                      newLevels.push(level);
                     }
                     return {
                       ...s,
-                      severities: [...newSeverities],
+                      levels: [...newLevels],
                     };
                   })
                 }

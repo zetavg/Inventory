@@ -4,8 +4,6 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import logger from '@app/logger';
 
-import commonStyles from '@app/utils/commonStyles';
-
 import type { StackParamList } from '@app/navigation/MainStack';
 
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
@@ -73,12 +71,11 @@ function LoggerLogScreen({
           />
         </UIGroup>
         <UIGroup>
-          <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             button
-            label="logger.log"
+            label="logger.debug"
             onPress={() => {
-              logger.log(message, args);
+              logger.debug(message, args);
             }}
           />
           <UIGroup.ListItemSeparator />
@@ -87,6 +84,14 @@ function LoggerLogScreen({
             label="logger.info"
             onPress={() => {
               logger.info(message, args);
+            }}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            button
+            label="logger.log"
+            onPress={() => {
+              logger.log(message, args);
             }}
           />
           <UIGroup.ListItemSeparator />
@@ -103,14 +108,6 @@ function LoggerLogScreen({
             label="logger.error"
             onPress={() => {
               logger.error(message, args);
-            }}
-          />
-          <UIGroup.ListItemSeparator />
-          <UIGroup.ListItem
-            button
-            label="logger.debug"
-            onPress={() => {
-              logger.debug(message, args);
             }}
           />
         </UIGroup>

@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 
 import { insertLog } from './logsDB';
-import { LogSeverity } from './types';
+import { LogLevel } from './types';
 
 type LoggerD = {
   user?: string;
@@ -15,7 +15,7 @@ type LoggerD = {
 };
 
 export function logger(
-  severity: LogSeverity,
+  level: LogLevel,
   msg: unknown,
   { user, module, error, err, e, details, timestamp, showAlert }: LoggerD = {},
 ) {
@@ -35,13 +35,15 @@ export function logger(
   })();
   if (showAlert) {
     const alertTitle = (() => {
-      switch (severity) {
+      switch (level) {
         case 'error':
           return 'An Error Occurred';
         case 'warn':
           return 'Warning';
+        case 'success':
+          return 'Success';
         default:
-          return severity;
+          return level;
       }
     })();
     Alert.alert(alertTitle, message);
@@ -61,7 +63,7 @@ export function logger(
     }
   }
 
-  insertLog(severity, user, module, message, details, callStack, timestamp);
+  insertLog(level, user, module, message, details, callStack, timestamp);
 
   const consoleMessage = [
     [user && `[user:${user}]`, module && `[${module}]`].filter(m => m).join(''),
@@ -75,7 +77,7 @@ export function logger(
     consoleArgs.push(error);
   }
 
-  switch (severity) {
+  switch (level) {
     case 'debug':
       console.debug(...consoleArgs);
       break;
@@ -92,8 +94,8 @@ export function logger(
       console.error(...consoleArgs);
       break;
     default: {
-      const s: never = severity;
-      throw new Error(`Unknown severity ${s}`);
+      const s: never = level;
+      throw new Error(`Unknown level ${s}`);
     }
   }
 }
@@ -105,8 +107,8 @@ logger.warn = logger.bind(null, 'warn');
 logger.error = logger.bind(null, 'error');
 
 logger.for = function (t: { user?: string; module?: string }): typeof logger {
-  function l(severity: LogSeverity, message: unknown, tt?: LoggerD) {
-    return logger(severity, message, { ...t, ...tt });
+  function l(level: LogLevel, message: unknown, tt?: LoggerD) {
+    return logger(level, message, { ...t, ...tt });
   }
 
   l.debug = l.bind(null, 'debug');

@@ -1,15 +1,16 @@
-export const LOG_SEVERITIES = [
+export const LOG_LEVELS = [
   'debug',
   'info',
   'log',
+  'success',
   'warn',
   'error',
 ] as const;
 
-export type LogSeverity = (typeof LOG_SEVERITIES)[number];
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export type Log = {
-  severity: LogSeverity;
+  level: LogLevel;
   user?: string;
   module?: string;
   message: string;

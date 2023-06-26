@@ -12,7 +12,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import { ActivityIndicator, DataTable } from 'react-native-paper';
 
 import { getLogs, getLogsDBErrors, Log, logger } from '@app/logger';
-import { LogSeverity } from '@app/logger/types';
+import { LogLevel } from '@app/logger/types';
 
 import commonStyles from '@app/utils/commonStyles';
 import timeAgo from '@app/utils/timeAgo';
@@ -36,8 +36,8 @@ function AppLogDetailScreen({
 
   const colors = useColors();
 
-  const severityColor = (severity: LogSeverity) => {
-    switch (severity) {
+  const levelColor = (level: LogLevel) => {
+    switch (level) {
       case 'debug':
         return colors.gray;
       case 'info':
@@ -49,8 +49,8 @@ function AppLogDetailScreen({
       case 'error':
         return colors.red;
       default: {
-        const s: never = severity;
-        throw new Error(`Unknown severity ${s}`);
+        const s: never = level;
+        throw new Error(`Unknown level ${s}`);
       }
     }
   };
@@ -61,8 +61,8 @@ function AppLogDetailScreen({
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup>
           <UIGroup.ListTextInputItem
-            label="Severity"
-            value={log.severity}
+            label="Level"
+            value={log.level}
             placeholder="(undefined)"
             showSoftInputOnFocus={false}
             monospaced
@@ -91,6 +91,18 @@ function AppLogDetailScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
+            label="Timestamp"
+            // value={log.timestamp.toString()}
+            value={`${new Date(log.timestamp).toLocaleString()} (${
+              log.timestamp
+            })`}
+            multiline
+            // monospaced
+            placeholder="(undefined)"
+            showSoftInputOnFocus={false}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Details"
             value={log.details}
             multiline
@@ -104,15 +116,6 @@ function AppLogDetailScreen({
             multiline
             monospaced
             small
-            placeholder="(undefined)"
-            showSoftInputOnFocus={false}
-          />
-          <UIGroup.ListItemSeparator />
-          <UIGroup.ListTextInputItem
-            label="Timestamp"
-            value={log.timestamp.toString()}
-            multiline
-            monospaced
             placeholder="(undefined)"
             showSoftInputOnFocus={false}
           />

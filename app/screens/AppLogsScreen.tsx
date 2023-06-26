@@ -96,21 +96,21 @@ function AppLogsScreen({
 
   const colors = useColors();
 
-  const severityColor = (severity: LogSeverity) => {
-    switch (severity) {
+  const levelColor = (level: LogSeverity) => {
+    switch (level) {
       case 'debug':
-        return colors.gray;
+        return colors.indigo;
       case 'info':
-        return colors.green;
-      case 'log':
         return colors.blue;
+      case 'log':
+        return colors.gray;
       case 'warn':
         return colors.yellow;
       case 'error':
         return colors.red;
       default: {
-        const s: never = severity;
-        throw new Error(`Unknown severity ${s}`);
+        const s: never = level;
+        throw new Error(`Unknown level ${s}`);
       }
     }
   };
@@ -171,7 +171,7 @@ function AppLogsScreen({
                       onPress={() =>
                         navigation.push('AppLogDetail', {
                           log: {
-                            severity: 'error',
+                            level: 'error',
                             message: err.message,
                             stack: err.stack,
                             timestamp: 0,
@@ -218,7 +218,7 @@ function AppLogsScreen({
                   style={[
                     styles.logListItem,
                     {
-                      borderLeftColor: severityColor(log.severity),
+                      borderLeftColor: levelColor(log.level),
                     },
                   ]}
                 />
@@ -296,27 +296,6 @@ function AppLogsScreen({
         </UIGroup>
       </ScreenContentScrollView>
     </ScreenContent>
-  );
-}
-
-function TableLoadingOverlay({ show }: { show: boolean }) {
-  const { backgroundColor } = useColors();
-
-  return (
-    <View
-      style={[commonStyles.overlay, commonStyles.centerChildren]}
-      pointerEvents={show ? 'auto' : 'none'}
-    >
-      <View
-        style={[
-          commonStyles.overlay,
-          commonStyles.opacity05,
-          show && { backgroundColor },
-        ]}
-        pointerEvents={show ? 'auto' : 'none'}
-      />
-      <ActivityIndicator animating={show} hidesWhenStopped size="large" />
-    </View>
   );
 }
 

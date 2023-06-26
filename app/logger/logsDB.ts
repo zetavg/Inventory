@@ -1,6 +1,6 @@
 import { QuickSQLite } from 'react-native-quick-sqlite';
 
-import { Log, LOG_SEVERITIES, LogSeverity } from './types';
+import { Log, LOG_LEVELS, LogLevel } from './types';
 
 const logsDBErrors: Array<any> = [];
 
@@ -13,7 +13,7 @@ const CREATE_TABLE_SQLS = [
   `
 CREATE TABLE IF NOT EXISTS "${LOG_DB_TABLE_NAME}" (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  severity TEXT,
+  level TEXT,
   user TEXT,
   module TEXT,
   message TEXT,
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS "${LOG_DB_TABLE_NAME}" (
 );
 `,
   `
-CREATE INDEX IF NOT EXISTS "index-severity" ON "${LOG_DB_TABLE_NAME}" (severity);
+CREATE INDEX IF NOT EXISTS "index-level" ON "${LOG_DB_TABLE_NAME}" (level);
 `,
   `
 CREATE INDEX IF NOT EXISTS "index-user" ON "${LOG_DB_TABLE_NAME}" (user);
@@ -54,7 +54,7 @@ function setupLogsDB() {
 setupLogsDB();
 
 export async function insertLog(
-  severity?: string,
+  level?: string,
   user?: string,
   module?: string,
   message?: string,
@@ -67,10 +67,10 @@ export async function insertLog(
       LOG_DB_NAME,
       `
         INSERT INTO "${LOG_DB_TABLE_NAME}" (
-          severity, user, module, message, details, stack, timestamp
+          level, user, module, message, details, stack, timestamp
         )
         VALUES(
-          '${severity || ''}',
+          '${level || ''}',
           '${user || ''}',
           '${module || ''}',
           '${message || ''}',
@@ -98,22 +98,21 @@ export async function insertLog(
 export async function getLogs({
   limit = 100,
   offset = 0,
-  severities = [],
+  levels = [],
   module,
   user,
   search,
 }: {
   limit?: number;
   offset?: number;
-  severities?: ReadonlyArray<LogSeverity>;
+  levels?: ReadonlyArray<LogLevel>;
   module?: string;
   user?: string;
   search?: string;
 } = {}): Promise<ReadonlyArray<Log> & { count?: number }> {
   try {
     const whereConditions = [
-      severities.length > 0 &&
-        `severity IN (${severities.map(s => `'${s}'`).join(',')})`,
+      levels.length > 0 && `level IN (${levels.map(s => `'${s}'`).join(',')})`,
       module && `module = '${module}'`,
       user && `user = '${user}'`,
       search &&
@@ -133,9 +132,9 @@ export async function getLogs({
       .map((r: unknown): Log | null => {
         if (!r || typeof r !== 'object') return null;
 
-        let severity = (r as any).severity;
-        if (!LOG_SEVERITIES.includes(severity)) {
-          severity = 'log';
+        let level = (r as any).level;
+        if (!LOG_LEVELS.includes(level)) {
+          level = 'log';
         }
 
         // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -171,7 +170,7 @@ export async function getLogs({
         }
 
         return {
-          severity,
+          level,
           user,
           module,
           message,

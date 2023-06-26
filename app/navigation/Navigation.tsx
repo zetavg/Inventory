@@ -23,7 +23,7 @@ import {
 import { BlurView } from '@react-native-community/blur';
 import color from 'color';
 
-import { LogSeverity } from '@app/logger/types';
+import { LogLevel } from '@app/logger/types';
 
 import { IconName } from '@app/consts/icons';
 
@@ -136,12 +136,12 @@ export type RootStackParamList = {
     initialState: {
       module?: string | undefined;
       user?: string | undefined;
-      severities: ReadonlyArray<LogSeverity>;
+      levels: ReadonlyArray<LogLevel>;
     };
     callback: (data: {
       module?: string | undefined;
       user?: string | undefined;
-      severities: ReadonlyArray<LogSeverity>;
+      levels: ReadonlyArray<LogLevel>;
     }) => void;
   };
   ReduxSelectAction: {
