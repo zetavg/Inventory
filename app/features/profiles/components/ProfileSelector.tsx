@@ -17,6 +17,7 @@ function ProfileSelector({ label, onSelect }: Props) {
   return (
     <InsetGroup label={label}>
       {Object.entries(profileUuidAndNames)
+        .filter(([uuid, name]) => [uuid, name || ''])
         .sort(([, a], [, b]) => a.localeCompare(b))
         .flatMap(([profileUuid, profileName]) => [
           <InsetGroup.Item
