@@ -26,6 +26,7 @@ function LoggerLogScreen({
         user: null,
         details: null,
         timestamp: null,
+        showAlert: false,
       },
       null,
       2,
@@ -49,7 +50,7 @@ function LoggerLogScreen({
         keyboardShouldPersistTaps="handled"
       >
         <UIGroup.FirstGroupSpacing iosLargeTitle />
-        <UIGroup footer={argsErrorMessage}>
+        <UIGroup header="Insert Log" footer={argsErrorMessage}>
           <UIGroup.ListTextInputItem
             label="Message"
             multiline
@@ -69,8 +70,32 @@ function LoggerLogScreen({
             value={argsStr}
             onChangeText={setArgsStr}
           />
-        </UIGroup>
-        <UIGroup>
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            button
+            label="Bump Message"
+            onPress={() => {
+              setMessage(msg => {
+                const regex = /([0-9]+)(\.?)$/m;
+                const match = msg.match(regex);
+                if (match) {
+                  return msg.replace(
+                    regex,
+                    `${parseInt(match[1], 10) + 1}${match[2]}`,
+                  );
+                }
+
+                const regex2 = /(\.?)$/m;
+                const match2 = msg.match(regex2);
+                if (match2) {
+                  return msg.replace(regex2, ` 0${match2[1]}`);
+                }
+
+                return msg;
+              });
+            }}
+          />
+          <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             button
             label="logger.debug"
@@ -97,6 +122,14 @@ function LoggerLogScreen({
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             button
+            label="logger.success"
+            onPress={() => {
+              logger.success(message, args);
+            }}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            button
             label="logger.warn"
             onPress={() => {
               logger.warn(message, args);
@@ -108,32 +141,6 @@ function LoggerLogScreen({
             label="logger.error"
             onPress={() => {
               logger.error(message, args);
-            }}
-          />
-        </UIGroup>
-        <UIGroup>
-          <UIGroup.ListItem
-            button
-            label="Bump Message"
-            onPress={() => {
-              setMessage(msg => {
-                const regex = /([0-9]+)(\.?)$/m;
-                const match = msg.match(regex);
-                if (match) {
-                  return msg.replace(
-                    regex,
-                    `${parseInt(match[1], 10) + 1}${match[2]}`,
-                  );
-                }
-
-                const regex2 = /(\.?)$/m;
-                const match2 = msg.match(regex2);
-                if (match2) {
-                  return msg.replace(regex2, ` 0${match2[1]}`);
-                }
-
-                return msg;
-              });
             }}
           />
         </UIGroup>

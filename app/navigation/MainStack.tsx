@@ -29,6 +29,7 @@ import type { TypeName as DataTypeName } from '@app/db/old_schema';
 import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
+import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -73,6 +74,7 @@ export type StackParamList = {
     details: string;
   };
   AppLogs: undefined;
+  AppLogsSettings: undefined;
   AppLogDetail: { log: Log };
   // PouchDBSync: undefined;
   // PouchDBSyncDetails: {
@@ -186,6 +188,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
       <Stack.Screen name="AppLogs" component={AppLogsScreen} />
+      <Stack.Screen name="AppLogsSettings" component={AppLogsSettingsScreen} />
       <Stack.Screen name="AppLogDetail" component={AppLogDetailScreen} />
       <Stack.Screen name="Redux" component={ReduxScreen} />
       <Stack.Screen

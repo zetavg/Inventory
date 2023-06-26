@@ -1,27 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Alert, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { ActivityIndicator, DataTable } from 'react-native-paper';
 
-import { getLogs, getLogsDBErrors, Log, logger } from '@app/logger';
-import { LOG_SEVERITIES, LogLevel } from '@app/logger/types';
+import { getLogs, getLogsDBErrors, Log } from '@app/logger';
+import { LOG_LEVELS, LogLevel } from '@app/logger/types';
 
-import commonStyles from '@app/utils/commonStyles';
 import timeAgo from '@app/utils/timeAgo';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import useColors from '@app/hooks/useColors';
-import useDB from '@app/hooks/useDB';
 
 import ScreenContent from '@app/components/ScreenContent';
 import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
@@ -30,14 +20,13 @@ import UIGroup from '@app/components/UIGroup';
 function AppLogsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'AppLogs'>) {
-  const { db } = useDB();
   const rootNavigation = useRootNavigation();
 
   const numberOfItemsPerPageList = [20, 50, 100, 500];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
-  const [filterSeverities, setFilterSeverities] =
-    useState<ReadonlyArray<LogLevel>>(LOG_SEVERITIES);
+  const [filterLevels, setFilterLevels] =
+    useState<ReadonlyArray<LogLevel>>(LOG_LEVELS);
   const [filterModule, setFilterModule] = useState<string | undefined>();
   const [filterUser, setFilterUser] = useState<string | undefined>();
 
@@ -58,7 +47,7 @@ function AppLogsScreen({
       const ls = await getLogs({
         offset,
         limit,
-        severities: filterSeverities,
+        levels: filterLevels,
         module: filterModule || undefined,
         user: filterUser || undefined,
         search: searchText,
@@ -71,7 +60,7 @@ function AppLogsScreen({
     } finally {
       setLoading(false);
     }
-  }, [filterModule, filterSeverities, filterUser, limit, offset, searchText]);
+  }, [filterModule, filterLevels, filterUser, limit, offset, searchText]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -101,15 +90,17 @@ function AppLogsScreen({
       case 'debug':
         return colors.indigo;
       case 'info':
-        return colors.blue;
+        return colors.gray;
       case 'log':
         return colors.gray;
+      case 'success':
+        return colors.green;
       case 'warn':
         return colors.yellow;
       case 'error':
         return colors.red;
       default: {
-        const s: never = level;
+        const s: never = level; // If this line has type error, that means we have unhandled cases!
         throw new Error(`Unknown level ${s}`);
       }
     }
@@ -129,21 +120,27 @@ function AppLogsScreen({
       onAction1Press={() => {
         rootNavigation?.push('AppLogsFilter', {
           initialState: {
-            severities: filterSeverities,
+            levels: filterLevels,
             module: filterModule,
             user: filterUser,
           },
-          callback: ({ severities, module, user }) => {
-            setFilterSeverities(severities);
+          callback: ({ levels, module, user }) => {
+            setFilterLevels(levels);
             setFilterModule(module);
             setFilterUser(user);
           },
         });
       }}
       action2Label="Settings"
-      action2SFSymbolName="text.badge.plus"
-      action2MaterialIconName="playlist-plus"
+      action2SFSymbolName="gearshape.fill"
+      action2MaterialIconName="cog"
       onAction2Press={() => {
+        navigation.push('AppLogsSettings');
+      }}
+      action3Label="Log (Test)"
+      action3SFSymbolName="text.badge.plus"
+      action3MaterialIconName="playlist-plus"
+      onAction3Press={() => {
         navigation.push('LoggerLog');
       }}
     >

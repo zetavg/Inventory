@@ -5,9 +5,21 @@ import { Log, LOG_LEVELS, LogLevel } from './types';
 const logsDBErrors: Array<any> = [];
 
 const LOG_DB_NAME = 'logs.sqlite';
+const LOG_DB_CONFIG_TABLE_NAME = 'config';
 const LOG_DB_TABLE_NAME = 'logs';
+const LOG_DB_LEVELS_TO_LOG_TABLE_NAME = 'logs_level_to_log';
 
-const logsCountToKeep = 1000;
+const DEFAULT_LEVELS_TO_LOG: ReadonlyArray<LogLevel> = [
+  'info',
+  'log',
+  'success',
+  'warn',
+  'error',
+];
+const DEFAULT_LOGS_TO_KEEP = 1000;
+
+let levelsToLog = DEFAULT_LEVELS_TO_LOG;
+let logsToKeep = 1000;
 
 const CREATE_TABLE_SQLS = [
   `
@@ -20,6 +32,17 @@ CREATE TABLE IF NOT EXISTS "${LOG_DB_TABLE_NAME}" (
   details TEXT,
   stack TEXT,
   timestamp UNSIGNED INTEGER
+);
+`,
+  `
+CREATE TABLE IF NOT EXISTS "${LOG_DB_CONFIG_TABLE_NAME}" (
+  key TEXT PRIMARY KEY,
+  value TEXT
+);
+`,
+  `
+CREATE TABLE IF NOT EXISTS "${LOG_DB_LEVELS_TO_LOG_TABLE_NAME}" (
+  level TEXT PRIMARY KEY
 );
 `,
   `
@@ -46,12 +69,96 @@ function setupLogsDB() {
         return;
       }
     }
+    fetchLogsToKeep();
+    fetchLevelsToLog();
   } catch (e: any) {
     logsDBErrors.push(e);
     console.error(`[LogDB]: ${e}`, e);
   }
 }
 setupLogsDB();
+
+function fetchLogsToKeep() {
+  const { rows } = QuickSQLite.execute(
+    LOG_DB_NAME,
+    `
+      SELECT value FROM "${LOG_DB_CONFIG_TABLE_NAME}" WHERE key = 'logs_to_keep';
+    `,
+  );
+  if (rows?.length) {
+    logsToKeep = parseInt(rows.item(0).value, 10);
+    if (isNaN(logsToKeep)) {
+      logsToKeep = DEFAULT_LOGS_TO_KEEP * 10;
+    }
+  }
+}
+
+function fetchLevelsToLog() {
+  const { rows } = QuickSQLite.execute(
+    LOG_DB_NAME,
+    `
+      SELECT level FROM "${LOG_DB_LEVELS_TO_LOG_TABLE_NAME}";
+    `,
+  );
+  if (rows?.length) {
+    levelsToLog = rows._array.map(r => r.level);
+  }
+}
+
+export function getLogsToKeep(): number {
+  return logsToKeep;
+}
+
+export function setLogsToKeep(n: number) {
+  try {
+    if (n < 0) return;
+    QuickSQLite.execute(
+      LOG_DB_NAME,
+      `
+        INSERT OR REPLACE INTO "${LOG_DB_CONFIG_TABLE_NAME}" (key, value) values
+        ('logs_to_keep', '${n}');
+
+      `,
+    );
+    fetchLogsToKeep();
+  } catch (e) {
+    logsDBErrors.push(e);
+    console.error(`[LogDB]: ${e}`, e);
+  }
+}
+
+export function getLevelsToLog(): ReadonlyArray<LogLevel> {
+  return levelsToLog;
+}
+
+export function setLevelsToLog(levels: ReadonlyArray<LogLevel>) {
+  levels = levels
+    .filter(l => typeof l === 'string')
+    .filter((value, index, array) => array.indexOf(value) === index);
+  try {
+    QuickSQLite.execute(
+      LOG_DB_NAME,
+      `
+        DELETE FROM "${LOG_DB_LEVELS_TO_LOG_TABLE_NAME}";
+      `,
+    );
+    if (levels.length > 0) {
+      QuickSQLite.execute(
+        LOG_DB_NAME,
+        `
+          INSERT INTO "${LOG_DB_LEVELS_TO_LOG_TABLE_NAME}" (level) VALUES ${levels.map(
+          l => `("${l}")`,
+        )};
+        `,
+      );
+    }
+
+    fetchLevelsToLog();
+  } catch (e) {
+    logsDBErrors.push(e);
+    console.error(`[LogDB]: ${e}`, e);
+  }
+}
 
 export async function insertLog(
   level?: string,
@@ -81,7 +188,7 @@ export async function insertLog(
       `,
     );
     if (insertId) {
-      const deleteBefore = insertId - logsCountToKeep;
+      const deleteBefore = insertId - getLogsToKeep();
       if (deleteBefore > 0) {
         await QuickSQLite.executeAsync(
           LOG_DB_NAME,

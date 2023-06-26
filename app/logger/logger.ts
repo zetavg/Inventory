@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 
-import { insertLog } from './logsDB';
+import { getLevelsToLog, insertLog } from './logsDB';
 import { LogLevel } from './types';
 
 type LoggerD = {
@@ -19,6 +19,9 @@ export function logger(
   msg: unknown,
   { user, module, error, err, e, details, timestamp, showAlert }: LoggerD = {},
 ) {
+  const lLevelsToLog = getLevelsToLog();
+  if (level && !lLevelsToLog.includes(level as any)) return;
+
   const message: string = (() => {
     if (typeof msg === 'string') {
       return msg;
@@ -110,6 +113,7 @@ export function logger(
 logger.debug = logger.bind(null, 'debug');
 logger.info = logger.bind(null, 'info');
 logger.log = logger.bind(null, 'log');
+logger.success = logger.bind(null, 'success');
 logger.warn = logger.bind(null, 'warn');
 logger.error = logger.bind(null, 'error');
 
@@ -121,6 +125,7 @@ logger.for = function (t: { user?: string; module?: string }): typeof logger {
   l.debug = l.bind(null, 'debug');
   l.info = l.bind(null, 'info');
   l.log = l.bind(null, 'log');
+  l.success = l.bind(null, 'success');
   l.warn = l.bind(null, 'warn');
   l.error = l.bind(null, 'error');
   l.for = logger.for;
