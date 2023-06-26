@@ -23,6 +23,8 @@ import {
 import { BlurView } from '@react-native-community/blur';
 import color from 'color';
 
+import { LogSeverity } from '@app/logger/types';
+
 import { IconName } from '@app/consts/icons';
 
 import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
@@ -48,6 +50,7 @@ import { TypeName } from '@app/db/old_schema';
 
 import commonStyles from '@app/utils/commonStyles';
 
+import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
@@ -127,6 +130,18 @@ export type RootStackParamList = {
   SelectIcon: {
     callback: (iconName: IconName) => void;
     defaultValue?: IconName;
+  };
+  AppLogsFilter: {
+    initialState: {
+      module?: string | undefined;
+      user?: string | undefined;
+      severities: ReadonlyArray<LogSeverity>;
+    };
+    callback: (data: {
+      module?: string | undefined;
+      user?: string | undefined;
+      severities: ReadonlyArray<LogSeverity>;
+    }) => void;
   };
   ReduxSelectAction: {
     callback: (data: string) => void;
@@ -268,6 +283,10 @@ function Navigation({
               }}
             </Stack.Screen>*/}
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen
+              name="AppLogsFilter"
+              component={AppLogsFilterScreen}
+            />
             <Stack.Screen
               name="ReduxSelectAction"
               component={ReduxSelectActionScreen}

@@ -48,7 +48,7 @@ export type ListItemProps = {
   button?: boolean;
   destructive?: boolean;
   disabled?: boolean;
-};
+} & React.ComponentProps<typeof View>;
 
 export type ListItemSeparatorProps = {
   leftInsetIOS?: number;

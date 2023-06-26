@@ -7,6 +7,8 @@ import {
 } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 
+import { Log } from '@app/logger';
+
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import CountersScreen from '@app/features/counters/screens/CountersScreen';
 import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
@@ -23,13 +25,15 @@ import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import type { TypeName as DataTypeName } from '@app/db/old_schema';
 
 import AboutScreen from '@app/screens/AboutScreen';
-import ConsoleLogScreen from '@app/screens/ConsoleLogScreen';
+import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
+import AppLogsScreen from '@app/screens/AppLogsScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
 import InventoryTabScreen from '@app/screens/InventoryTabScreen';
 import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
+import LoggerLogScreen from '@app/screens/LoggerLogScreen';
 import MoreScreen from '@app/screens/MoreScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
@@ -66,6 +70,8 @@ export type StackParamList = {
     title?: string;
     details: string;
   };
+  AppLogs: undefined;
+  AppLogDetail: { log: Log };
   PouchDBSync: undefined;
   PouchDBSyncDetails: {
     serverName: string;
@@ -109,7 +115,7 @@ export type StackParamList = {
   };
   Storybook: undefined;
   NewAppScreen: undefined;
-  ConsoleLog: undefined;
+  LoggerLog: undefined;
   DemoHome: undefined;
   DemoDetails: { id: string };
 };
@@ -175,6 +181,8 @@ function MainStack({ initialRouteName }: Props) {
       />
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="DeveloperTools" component={DeveloperToolsScreen} />
+      <Stack.Screen name="AppLogs" component={AppLogsScreen} />
+      <Stack.Screen name="AppLogDetail" component={AppLogDetailScreen} />
       <Stack.Screen name="Redux" component={ReduxScreen} />
       <Stack.Screen
         name="ReduxActionDetail"
@@ -226,7 +234,7 @@ function MainStack({ initialRouteName }: Props) {
         options={SCREEN_OPTIONS.noHeader}
       />
 
-      <Stack.Screen name="ConsoleLog" component={ConsoleLogScreen} />
+      <Stack.Screen name="LoggerLog" component={LoggerLogScreen} />
 
       <Stack.Screen name="Collections" component={CollectionsScreen} />
       <Stack.Screen name="Collection" component={CollectionScreen} />

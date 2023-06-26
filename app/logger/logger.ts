@@ -1,14 +1,5 @@
-export type LogSeverity = 'debug' | 'info' | 'log' | 'warn' | 'error';
-
-export type Log = {
-  severity: LogSeverity;
-  user?: string;
-  module?: string;
-  message: string;
-  details?: string;
-  stack?: string;
-  timestamp: number;
-};
+import { insertLog } from './logsDB';
+import { LogSeverity } from './types';
 
 type LoggerD = {
   user?: string;
@@ -26,6 +17,7 @@ export function logger(
   { user, module, error, err, e, details, timestamp }: LoggerD,
 ) {
   if (!error) error = err || e;
+  if (!timestamp) timestamp = new Date().getTime();
   let callStack: string | undefined;
   if (error instanceof Error) {
     callStack = error.stack;
@@ -37,6 +29,8 @@ export function logger(
       details = `(Note: Error on JSON.stringify the error object: ${jsonStringifyError})`;
     }
   }
+
+  insertLog(severity, user, module, message, details, callStack, timestamp);
 
   const consoleMessage = [
     [user && `[user:${user}]`, module && `[${module}]`].filter(m => m).join(''),

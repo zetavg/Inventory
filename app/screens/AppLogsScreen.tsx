@@ -4,13 +4,18 @@ import {
   Platform,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { ActivityIndicator, DataTable } from 'react-native-paper';
 
+import { getLogs, getLogsDBErrors, Log, logger } from '@app/logger';
+import { LOG_SEVERITIES, LogSeverity } from '@app/logger/types';
+
 import commonStyles from '@app/utils/commonStyles';
+import timeAgo from '@app/utils/timeAgo';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
@@ -22,53 +27,51 @@ import ScreenContent from '@app/components/ScreenContent';
 import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
-function PouchDBScreen({
+function AppLogsScreen({
   navigation,
-}: StackScreenProps<StackParamList, 'PouchDB'>) {
+}: StackScreenProps<StackParamList, 'AppLogs'>) {
   const { db } = useDB();
   const rootNavigation = useRootNavigation();
 
-  const numberOfItemsPerPageList = [5, 10, 20, 50];
+  const numberOfItemsPerPageList = [20, 50, 100, 500];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
+  const [filterSeverities, setFilterSeverities] =
+    useState<ReadonlyArray<LogSeverity>>(LOG_SEVERITIES);
+  const [filterModule, setFilterModule] = useState<string | undefined>();
+  const [filterUser, setFilterUser] = useState<string | undefined>();
 
   const [searchText, setSearchText] = useState('');
 
-  const [data, setData] = useState<PouchDB.Core.AllDocsResponse<{}> | null>(
-    null,
-  );
-  const totalRows = data ? data.total_rows : 0;
-  const numberOfPages = Math.ceil(totalRows / perPage);
+  const [logs, setLogs] = useState<ReadonlyArray<Log> | null>(null);
+  const [logsCount, setLogsCount] = useState(22);
+  const numberOfPages = Math.ceil(logsCount / perPage);
 
-  const skip = perPage * (page - 1);
+  const offset = perPage * (page - 1);
   const limit = perPage;
+
   const [loading, setLoading] = useState(true);
 
   const getData = useCallback(async () => {
-    if (!db) return;
-
     setLoading(true);
     try {
-      const results = await (searchText
-        ? (db as any).search({
-            query: searchText,
-            fields: [],
-            // TODO: support zh searching on Android
-            // `language: ['zh', 'en']` will not work well
-            // See: patches/pouchdb-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
-            language: Platform.OS === 'ios' ? 'zh' : 'en',
-            include_docs: true,
-            skip,
-            limit,
-          })
-        : db.allDocs({ include_docs: true, skip, limit }));
-      setData(results);
+      const ls = await getLogs({
+        offset,
+        limit,
+        severities: filterSeverities,
+        module: filterModule || undefined,
+        user: filterUser || undefined,
+        search: searchText,
+      });
+      setLogs(ls);
+      setLogsCount(ls.count || 0);
     } catch (e: any) {
-      Alert.alert(e?.message, JSON.stringify(e?.stack));
+      console.error(e);
+      Alert.alert('An Error Occurred', e.message);
     } finally {
       setLoading(false);
     }
-  }, [db, limit, searchText, skip]);
+  }, [filterModule, filterSeverities, filterUser, limit, offset, searchText]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -84,26 +87,65 @@ function PouchDBScreen({
     try {
       await getData();
     } catch (e: any) {
+      console.error(e);
       Alert.alert('An Error Occurred', e.message);
     } finally {
       setRefreshing(false);
     }
   }, [getData]);
 
+  const colors = useColors();
+
+  const severityColor = (severity: LogSeverity) => {
+    switch (severity) {
+      case 'debug':
+        return colors.gray;
+      case 'info':
+        return colors.green;
+      case 'log':
+        return colors.blue;
+      case 'warn':
+        return colors.yellow;
+      case 'error':
+        return colors.red;
+      default: {
+        const s: never = severity;
+        throw new Error(`Unknown severity ${s}`);
+      }
+    }
+  };
+
+  const logsDBErrors = getLogsDBErrors();
+
   return (
     <ScreenContent
       navigation={navigation}
-      title="PouchDB"
+      title="Logs"
       showSearch
       onSearchChangeText={setSearchText}
-      action1Label="Put Data"
-      action1SFSymbolName="plus.square.fill"
-      action1MaterialIconName="square-edit-outline"
-      onAction1Press={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
+      action1Label="Filter"
+      action1SFSymbolName="line.3.horizontal.decrease.circle"
+      action1MaterialIconName="filter"
+      onAction1Press={() => {
+        rootNavigation?.push('AppLogsFilter', {
+          initialState: {
+            severities: filterSeverities,
+            module: filterModule,
+            user: filterUser,
+          },
+          callback: ({ severities, module, user }) => {
+            setFilterSeverities(severities);
+            setFilterModule(module);
+            setFilterUser(user);
+          },
+        });
+      }}
       action2Label="Settings"
-      action2SFSymbolName="gearshape.fill"
-      action2MaterialIconName="cog"
-      onAction2Press={() => {}}
+      action2SFSymbolName="text.badge.plus"
+      action2MaterialIconName="playlist-plus"
+      onAction2Press={() => {
+        navigation.push('LoggerLog');
+      }}
     >
       <ScreenContentScrollView
         refreshControl={
@@ -111,35 +153,80 @@ function PouchDBScreen({
         }
       >
         <UIGroup.FirstGroupSpacing iosLargeTitle />
+        {(() => {
+          if (
+            logsDBErrors &&
+            Array.isArray(logsDBErrors) &&
+            logsDBErrors.length > 0
+          ) {
+            return (
+              <UIGroup header="Logs Database Errors ⚠">
+                {UIGroup.ListItemSeparator.insertBetween(
+                  logsDBErrors.map((err, i) => (
+                    <UIGroup.ListItem
+                      key={i}
+                      label={err.message}
+                      navigable
+                      labelTextStyle={styles.smallText}
+                      onPress={() =>
+                        navigation.push('AppLogDetail', {
+                          log: {
+                            severity: 'error',
+                            message: err.message,
+                            stack: err.stack,
+                            timestamp: 0,
+                          },
+                        })
+                      }
+                    />
+                  )),
+                )}
+              </UIGroup>
+            );
+          }
+        })()}
         <UIGroup
           loading={loading}
           footer={
-            totalRows
-              ? `Showing ${skip + 1}-${Math.max(
-                  Math.min(skip + perPage, totalRows),
-                  skip + 1,
-                )} of ${totalRows}.`
+            logsCount
+              ? `Showing ${offset + 1}-${Math.max(
+                  Math.min(offset + perPage, logsCount),
+                  offset + 1,
+                )} of ${logsCount}.`
               : undefined
           }
           placeholder="No items to show."
         >
-          {data &&
-            data.rows.length > 0 &&
+          {logs &&
+            logs.length > 0 &&
             UIGroup.ListItemSeparator.insertBetween(
-              data.rows.map(d => (
+              logs.map((log, i) => (
                 <UIGroup.ListItem
-                  key={d.id}
-                  label={d.id}
-                  detail={JSON.stringify(d.doc)}
+                  key={i}
+                  label={log.message}
+                  detail={[
+                    log.module && `[${log.module}]`,
+                    log.timestamp && timeAgo.format(log.timestamp),
+                  ]
+                    .filter(d => d)
+                    .join(' ')}
                   verticalArrangedIOS
                   navigable
-                  onPress={() => navigation.push('PouchDBItem', { id: d.id })}
+                  labelTextStyle={styles.smallText}
+                  detailTextStyle={styles.smallText}
+                  onPress={() => navigation.push('AppLogDetail', { log })}
+                  style={[
+                    styles.logListItem,
+                    {
+                      borderLeftColor: severityColor(log.severity),
+                    },
+                  ]}
                 />
               )),
             )}
         </UIGroup>
 
-        <UIGroup footer={`Skip: ${skip}, limit: ${limit}.`}>
+        <UIGroup footer={`Offset: ${offset}, limit: ${limit}.`}>
           <UIGroup.ListTextInputItem
             label="Page"
             horizontalLabel
@@ -207,43 +294,6 @@ function PouchDBScreen({
             }
           />
         </UIGroup>
-
-        {/*<DataTable>
-          <DataTable.Header>
-            <DataTable.Title>ID</DataTable.Title>
-            <DataTable.Title>Value</DataTable.Title>
-          </DataTable.Header>
-
-          <View>
-            {data &&
-              data.rows.map(d => (
-                <DataTable.Row
-                  key={d.id}
-                  onPress={() => navigation.push('PouchDBItem', { id: d.id })}
-                >
-                  <DataTable.Cell>{d.id}</DataTable.Cell>
-                  <DataTable.Cell>{JSON.stringify(d.doc)}</DataTable.Cell>
-                </DataTable.Row>
-              ))}
-
-            <TableLoadingOverlay show={loading} />
-          </View>
-
-          <DataTable.Pagination
-            page={page}
-            numberOfPages={numberOfPages}
-            onPageChange={p => setPage(p)}
-            label={`${skip + 1}-${Math.min(
-              skip + perPage,
-              totalRows,
-            )} of ${totalRows}`}
-            selectPageDropdownLabel="Per page:"
-            showFastPaginationControls
-            numberOfItemsPerPageList={numberOfItemsPerPageList}
-            numberOfItemsPerPage={perPage}
-            onItemsPerPageChange={setPerPage}
-          />
-        </DataTable>*/}
       </ScreenContentScrollView>
     </ScreenContent>
   );
@@ -270,4 +320,13 @@ function TableLoadingOverlay({ show }: { show: boolean }) {
   );
 }
 
-export default PouchDBScreen;
+const styles = StyleSheet.create({
+  logListItem: {
+    borderLeftWidth: 4,
+  },
+  smallText: {
+    fontSize: 12,
+  },
+});
+
+export default AppLogsScreen;

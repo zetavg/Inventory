@@ -199,9 +199,9 @@ function DeveloperToolsScreen({
         </UIGroup>
         <UIGroup>
           <UIGroup.ListItem
-            label="console.log"
+            label="Logs"
             navigable
-            onPress={() => navigation.push('ConsoleLog')}
+            onPress={() => navigation.push('AppLogs')}
           />
         </UIGroup>
         <UIGroup>
