@@ -1,27 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React from 'react';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { ActivityIndicator, DataTable } from 'react-native-paper';
-
-import { getLogs, getLogsDBErrors, Log, logger } from '@app/logger';
-import { LogLevel } from '@app/logger/types';
-
-import commonStyles from '@app/utils/commonStyles';
-import timeAgo from '@app/utils/timeAgo';
 
 import type { StackParamList } from '@app/navigation/MainStack';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-
-import useColors from '@app/hooks/useColors';
-import useDB from '@app/hooks/useDB';
 
 import ScreenContent from '@app/components/ScreenContent';
 import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
@@ -32,28 +12,6 @@ function AppLogDetailScreen({
   route,
 }: StackScreenProps<StackParamList, 'AppLogDetail'>) {
   const { log } = route.params;
-  const rootNavigation = useRootNavigation();
-
-  const colors = useColors();
-
-  const levelColor = (level: LogLevel) => {
-    switch (level) {
-      case 'debug':
-        return colors.gray;
-      case 'info':
-        return colors.green;
-      case 'log':
-        return colors.blue;
-      case 'warn':
-        return colors.yellow;
-      case 'error':
-        return colors.red;
-      default: {
-        const s: never = level;
-        throw new Error(`Unknown level ${s}`);
-      }
-    }
-  };
 
   return (
     <ScreenContent navigation={navigation} title={log.message}>
@@ -135,14 +93,5 @@ function AppLogDetailScreen({
     </ScreenContent>
   );
 }
-
-const styles = StyleSheet.create({
-  logListItem: {
-    borderLeftWidth: 4,
-  },
-  smallText: {
-    fontSize: 12,
-  },
-});
 
 export default AppLogDetailScreen;

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';

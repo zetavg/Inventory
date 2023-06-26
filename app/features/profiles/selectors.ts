@@ -1,3 +1,6 @@
+// @ts-nocheck
+// TODO: Remove this file
+
 import type { RootState } from '@app/redux/store';
 
 export const selectProfiles = (state: RootState) => state.profiles;

@@ -87,6 +87,13 @@ export function logger(
     case 'log':
       console.log(...consoleArgs);
       break;
+    case 'success': {
+      if (typeof consoleArgs[0] === 'string') {
+        consoleArgs[0] = `[success] ${consoleArgs[0]}`;
+      }
+      console.info(...consoleArgs);
+      break;
+    }
     case 'warn':
       console.warn(...consoleArgs);
       break;
@@ -94,7 +101,7 @@ export function logger(
       console.error(...consoleArgs);
       break;
     default: {
-      const s: never = level;
+      const s: never = level; // If this line has type error, that means we have unhandled cases!
       throw new Error(`Unknown level ${s}`);
     }
   }

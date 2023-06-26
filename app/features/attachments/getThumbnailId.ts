@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { AttachmentsDBThumbnailType } from '@app/db/types';
 
 export default function getThumbnailId(

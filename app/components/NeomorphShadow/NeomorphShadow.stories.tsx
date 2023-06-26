@@ -7,7 +7,7 @@ import {
   ScrollView,
   Switch,
 } from 'react-native';
-import Slider from '@react-native-community/slider';
+import SliderComponent from '@react-native-community/slider';
 import { ShadowBox } from 'react-native-neomorph-shadows';
 
 import useColors from '@app/hooks/useColors';
@@ -20,6 +20,8 @@ import useColors from '@app/hooks/useColors';
 // import { action } from '@storybook/addon-actions';
 
 import NeomorphBox from './NeomorphBox';
+
+const Slider: any = SliderComponent;
 
 export default {
   title: 'NeomorphShadow',
@@ -66,7 +68,7 @@ const ShadowControl = () => {
           maximumValue={255}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setColor(val)}
+          onValueChange={(val: any) => setColor(val)}
           value={color}
           step={1}
         />
@@ -82,7 +84,7 @@ const ShadowControl = () => {
           maximumValue={1}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setOpacity(val)}
+          onValueChange={(val: any) => setOpacity(val)}
           value={opacity}
           step={0.01}
         />
@@ -96,7 +98,7 @@ const ShadowControl = () => {
           maximumValue={200}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setBorderRadius(val)}
+          onValueChange={(val: any) => setBorderRadius(val)}
           value={borderRadius}
           step={1}
         />
@@ -110,7 +112,7 @@ const ShadowControl = () => {
           maximumValue={50}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setShadowRadius(val)}
+          onValueChange={(val: any) => setShadowRadius(val)}
           value={shadowRadius}
         />
       </View>
@@ -172,7 +174,7 @@ const NeomorphControl = () => {
           maximumValue={255}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setColor(val)}
+          onValueChange={(val: any) => setColor(val)}
           value={color}
           step={1}
         />
@@ -187,7 +189,7 @@ const NeomorphControl = () => {
           maximumValue={200}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setBorderRadius(val)}
+          onValueChange={(val: any) => setBorderRadius(val)}
           value={borderRadius}
           step={1}
         />
@@ -204,7 +206,7 @@ const NeomorphControl = () => {
           maximumValue={1}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setOpacity(val)}
+          onValueChange={(val: any) => setOpacity(val)}
           value={opacity}
           step={0.01}
         />
@@ -219,7 +221,7 @@ const NeomorphControl = () => {
           maximumValue={50}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setShadowRadius(val)}
+          onValueChange={(val: any) => setShadowRadius(val)}
           value={shadowRadius}
         />
 
@@ -235,7 +237,7 @@ const NeomorphControl = () => {
           maximumValue={1}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setInnerOpacity(val)}
+          onValueChange={(val: any) => setInnerOpacity(val)}
           value={innerOpacity}
           step={0.01}
         />
@@ -252,7 +254,7 @@ const NeomorphControl = () => {
           maximumValue={50}
           minimumValue={0}
           style={{ width: '100%' }}
-          onValueChange={val => setInnerShadowRadius(val)}
+          onValueChange={(val: any) => setInnerShadowRadius(val)}
           value={innerShadowRadius}
         />
       </View>

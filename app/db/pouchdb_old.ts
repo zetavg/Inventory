@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Platform } from 'react-native';
 import PouchDBRN from 'pouchdb-react-native';
 import find from 'pouchdb-find';

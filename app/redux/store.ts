@@ -3,21 +3,19 @@ import { persistStore } from 'redux-persist';
 
 import {
   actions as counterSliceActions,
-  reducer as counterReducer,
+  // reducer as counterReducer,
   selectors as counterSliceSelectors,
 } from '@app/features/counter/slice';
 import {
   actions as countersSliceActions,
-  reducer as countersReducer,
+  // reducer as countersReducer,
   selectors as countersSliceSelectors,
 } from '@app/features/counters/slice';
-import dbSyncStatusReducer from '@app/features/db-sync/manage/statusSlice';
 import {
   actions as devToolsSliceActions,
   reducer as devToolsReducer,
   selectors as devToolsSliceSelectors,
 } from '@app/features/dev-tools/slice';
-import inventoryReducer from '@app/features/inventory/slice';
 import {
   actions as profilesSliceActions,
   reducer as profilesReducer,

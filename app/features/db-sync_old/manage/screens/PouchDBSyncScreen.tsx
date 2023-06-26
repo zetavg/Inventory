@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useRef, useState } from 'react';
 import { ScrollView, Text } from 'react-native';
 import TimeAgo from 'react-native-timeago';

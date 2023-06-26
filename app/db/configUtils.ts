@@ -1,5 +1,7 @@
-import { Database } from './pouchdb';
-import { ConfigStoredInDB } from './types';
+// import { Database } from './pouchdb';
+// import { ConfigStoredInDB } from './types';
+type ConfigStoredInDB = any;
+type Database = any;
 
 const CONFIG_ID = '0000-config';
 

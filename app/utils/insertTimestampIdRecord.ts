@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import PouchDB from 'pouchdb-react-native';
 
 /**

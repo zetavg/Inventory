@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { v4 as uuidv4 } from 'uuid';
 import { launchImageLibrary, ErrorCode } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';

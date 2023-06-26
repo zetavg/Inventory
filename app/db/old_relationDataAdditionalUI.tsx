@@ -1,5 +1,6 @@
 import React from 'react';
-import { DataType } from './schema';
+// import { DataType } from './schema';
+type DataType<T> = any;
 import InsetGroup from '@app/components/InsetGroup';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
 

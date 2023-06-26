@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import React, { useCallback, useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';

@@ -12,7 +12,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import { ActivityIndicator, DataTable } from 'react-native-paper';
 
 import { getLogs, getLogsDBErrors, Log, logger } from '@app/logger';
-import { LOG_SEVERITIES, LogSeverity } from '@app/logger/types';
+import { LOG_SEVERITIES, LogLevel } from '@app/logger/types';
 
 import commonStyles from '@app/utils/commonStyles';
 import timeAgo from '@app/utils/timeAgo';
@@ -37,7 +37,7 @@ function AppLogsScreen({
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
   const [filterSeverities, setFilterSeverities] =
-    useState<ReadonlyArray<LogSeverity>>(LOG_SEVERITIES);
+    useState<ReadonlyArray<LogLevel>>(LOG_SEVERITIES);
   const [filterModule, setFilterModule] = useState<string | undefined>();
   const [filterUser, setFilterUser] = useState<string | undefined>();
 
@@ -96,7 +96,7 @@ function AppLogsScreen({
 
   const colors = useColors();
 
-  const levelColor = (level: LogSeverity) => {
+  const levelColor = (level: LogLevel) => {
     switch (level) {
       case 'debug':
         return colors.indigo;

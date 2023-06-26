@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { RootState } from '@app/redux';
 import { selectSettings as selectProfileSettings } from '@app/features/settings';
 import { selectActiveProfileName } from '@app/features/profiles';

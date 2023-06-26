@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { useAppSelector } from '@app/redux';
 import { selectConfig } from '../config/selectors';
 import { selectDBSyncStatus, selectSettings } from '../manage/selectors';

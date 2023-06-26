@@ -9,7 +9,8 @@ import {
   FindWithRelationsReturnedData,
 } from '../old_relationalUtils';
 import schema, { TypeName } from '../old_schema';
-import { DBContent } from '../types';
+// import { DBContent } from '../types';
+type DBContent = any;
 
 import useDB from './useDB';
 

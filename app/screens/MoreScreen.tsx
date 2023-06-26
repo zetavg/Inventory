@@ -7,7 +7,6 @@ import { USER_DOCUMENTS_URL } from '@app/consts/info';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 // import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
-import { selectActiveProfileConfig } from '@app/features/profiles';
 import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -107,7 +106,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             // detail={overallDBSyncStatus}
             icon="sync"
             iosImage="ios-menu.sync.png"
-            onPress={() => navigation.push('PouchDBSync')}
+            onPress={() => navigation.push('DBSync')}
           />
           <TableView.Item
             label="Travel Mode"
