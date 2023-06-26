@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import InsetGroup from '@app/components/InsetGroup';
 import Switch from '@app/components/Switch';
@@ -19,6 +19,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     button,
     destructive,
     disabled,
+    adjustsDetailFontSizeToFit,
     ...restProps
   } = props;
   return (
@@ -34,6 +35,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
       button={button}
       destructive={destructive}
       disabled={disabled}
+      adjustsDetailFontSizeToFit={adjustsDetailFontSizeToFit}
       {...restProps}
     />
   );
@@ -47,6 +49,21 @@ export function UIGroupListItemSwitch(
 }
 
 UIGroupListItem.Switch = UIGroupListItemSwitch;
+
+UIGroupListItem.styles = StyleSheet.create({
+  // Deprecated. Use the `adjustsDetailFontSizeToFit` prop on ListItem instead.
+  // iosSmallFont: {
+  //   ...Platform.select({
+  //     ios: {
+  //       fontSize: 14,
+  //     },
+  //     android: {
+  //       // Since android version isn't implemented yet. After done, remove this so that the style only apply on iOS.
+  //       fontSize: 14,
+  //     },
+  //   }),
+  // },
+});
 
 const styles = StyleSheet.create({
   iosSwitch: {

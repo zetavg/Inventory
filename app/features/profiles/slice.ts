@@ -16,6 +16,14 @@ import {
   selectors as cacheSelectors,
 } from '@app/features/cache';
 import {
+  actions as dbSyncSliceActions,
+  DBSyncState,
+  initialState as dbSyncInitialState,
+  name as dbSyncSliceName,
+  reducer as dbSyncReducer,
+  selectors as dbSyncSelectors,
+} from '@app/features/db-sync/slice';
+import {
   actions as settingsSliceActions,
   initialState as settingsInitialState,
   name as settingsSliceName,
@@ -46,6 +54,7 @@ export type ProfileColor = (typeof COLORS)[number];
 interface ProfileState {
   name: string;
   color: ProfileColor;
+  dbSync: DBSyncState;
   settings: SettingsState;
   [cacheSliceName]: CacheState;
 }
@@ -60,6 +69,7 @@ interface ProfilesState {
 const profileInitialState: ProfileState = {
   name: 'New Profile',
   color: 'blue' as const,
+  dbSync: dbSyncInitialState,
   settings: settingsInitialState,
   [cacheSliceName]: cacheInitialState,
 };
@@ -117,6 +127,20 @@ export const profilesSlice = createSlice({
       },
     },
     mapActionReducers(
+      dbSyncSliceActions.dbSync,
+      actionCreator => (state: ProfilesState, action: any) => {
+        if (!state.currentProfile || !state.profiles[state.currentProfile]) {
+          return;
+        }
+
+        state.profiles[state.currentProfile].dbSync = dbSyncReducer(
+          state.profiles[state.currentProfile].dbSync,
+          actionCreator(action.payload),
+        );
+      },
+      dbSyncSliceName,
+    ),
+    mapActionReducers(
       settingsSliceActions.settings,
       actionCreator => (state: ProfilesState, action: any) => {
         if (!state.currentProfile || !state.profiles[state.currentProfile]) {
@@ -154,6 +178,11 @@ export const reducer: PersistableReducer<typeof profilesSlice.reducer> =
 
 export const actions = {
   profiles: profilesSlice.actions,
+  dbSync: overrideActions(
+    dbSyncSliceActions.dbSync,
+    profilesSlice.actions,
+    dbSyncSliceName,
+  ),
   settings: overrideActions(
     settingsSliceActions.settings,
     profilesSlice.actions,
@@ -195,6 +224,11 @@ export const selectors = {
         ? getLogsDbNameFromProfileUuid(state.currentProfile)
         : null,
   },
+  dbSync: mapSelectors(
+    dbSyncSelectors.dbSync,
+    selector => (state: ProfilesState) =>
+      selector(state.profiles[state.currentProfile || '']?.dbSync),
+  ),
   settings: mapSelectors(
     settingsSelectors.settings,
     selector => (state: ProfilesState) =>
@@ -216,6 +250,9 @@ reducer.dehydrate = (state: ProfilesState) => {
     profiles: mapObjectValues(state.profiles, s => ({
       name: s.name,
       color: s.color,
+      ...(dbSyncReducer.dehydrate
+        ? { dbSync: dbSyncReducer.dehydrate(s.dbSync) }
+        : {}),
       ...(settingsReducer.dehydrate
         ? { settings: settingsReducer.dehydrate(s.settings) }
         : {}),
@@ -230,6 +267,9 @@ reducer.rehydrate = (dehydratedState: DeepPartial<ProfilesState>) => {
     currentProfile: dehydratedState.currentProfile,
     profiles: mapObjectValues(dehydratedState.profiles || {}, s => ({
       ...s,
+      ...(dbSyncReducer.rehydrate && s && s.dbSync
+        ? { dbSync: dbSyncReducer.rehydrate(s.dbSync) }
+        : {}),
       ...(settingsReducer.rehydrate && s && s.settings
         ? { settings: settingsReducer.rehydrate(s.settings) }
         : {}),
@@ -258,6 +298,9 @@ reducer.dehydrateSensitive = (state: ProfilesState) => {
     ...(state.profiles
       ? {
           profiles: mapObjectValues(state.profiles, s => ({
+            ...(s.dbSync && dbSyncReducer.dehydrateSensitive
+              ? { dbSync: dbSyncReducer.dehydrateSensitive(s.dbSync) }
+              : {}),
             ...(s.settings && settingsReducer.dehydrateSensitive
               ? { settings: settingsReducer.dehydrateSensitive(s.settings) }
               : {}),
@@ -276,6 +319,9 @@ reducer.rehydrateSensitive = dehydratedState => {
           profiles: mapObjectValues(dehydratedState.profiles, s => ({
             ...(s.settings && settingsReducer.rehydrateSensitive
               ? { settings: settingsReducer.rehydrateSensitive(s.settings) }
+              : {}),
+            ...(s.dbSync && dbSyncReducer.rehydrateSensitive
+              ? { dbSync: dbSyncReducer.rehydrateSensitive(s.dbSync) }
               : {}),
           })),
         }

@@ -41,6 +41,7 @@ export default function UIGroupListTextInputItem(
         <InsetGroup.TextInput
           {...restProps}
           editable={!disabled && !readonly}
+          ref={ref}
         />
       </InsetGroup.Item>
     );

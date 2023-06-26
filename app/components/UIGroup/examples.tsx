@@ -431,6 +431,20 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="Adjusts Detail Font Size To Fit">
+        <UIGroup.ListItem
+          label="Serial Number"
+          detail="XXXX-XXXX-XXXX-XXXX-XXXX"
+          adjustsDetailFontSizeToFit
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          label="Serial Number"
+          detail="XXXX-XXXX"
+          adjustsDetailFontSizeToFit
+        />
+      </UIGroup>
+
       <UIGroup header="Loading" loading>
         <UIGroup.ListItem label="Hello World" />
         <UIGroup.ListItemSeparator />

@@ -27,7 +27,8 @@ import { LogSeverity } from '@app/logger/types';
 
 import { IconName } from '@app/consts/icons';
 
-import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
+// import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
+import DBSyncNewOrEditServerModalScreen from '@app/features/db-sync/screens/DBSyncNewOrEditServerModalScreen';
 import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
 import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
@@ -149,6 +150,9 @@ export type RootStackParamList = {
   PouchDBPutDataModal: {
     id?: string;
     jsonData?: string;
+  };
+  DBSyncNewOrEditServerModal: {
+    id?: string;
   };
   RelationalPouchDBSave: {
     type: TypeName;
@@ -308,15 +312,19 @@ function Navigation({
               name="DeleteProfile"
               component={DeleteProfileScreen}
             />
-            <Stack.Screen
+            {/*<Stack.Screen
               name="DBSyncConfigUpdate"
               component={DBSyncConfigUpdateScreen}
-            />
+            />*/}
             <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen
               name="PouchDBPutDataModal"
               component={PouchDBPutDataModalScreen}
+            />
+            <Stack.Screen
+              name="DBSyncNewOrEditServerModal"
+              component={DBSyncNewOrEditServerModalScreen}
             />
             <Stack.Screen
               name="RelationalPouchDBSave"

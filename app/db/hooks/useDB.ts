@@ -1,16 +1,21 @@
+import // Database,
+// getDatabase,
+// getLogsDatabase,
+// LogsDatabase,
+'../pouchdb';
+
 import { useEffect, useMemo } from 'react';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
 import {
-  Database,
-  getDatabase,
-  // getLogsDatabase,
-  // LogsDatabase,
-} from '../pouchdb';
+  AppDatabase,
+  currentCachedDbSelector,
+  getCurrentAppDB,
+} from '../app_db';
 
 type ReturnType = {
-  db: Database | null;
+  db: AppDatabase | null;
   // logsDB: LogsDatabase | null;
 };
 
@@ -21,33 +26,18 @@ export default function useDB(): ReturnType {
   //   selectors.profiles.currentLogsDbName,
   // );
 
-  const db = useAppSelector(s => selectors.cache.cache(s)?._db) || null;
-  const logsDB = useAppSelector(s => selectors.cache.cache(s)?._logsDB) || null;
+  const db = useAppSelector(currentCachedDbSelector) || null;
+  // const logsDB = useAppSelector(s => selectors.cache.cache(s)?._logsDB) || null;
 
   useEffect(() => {
     if (db) return;
     if (!currentDbName) return;
 
-    (async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      let database;
-      let dbOk = false;
-      // WORKAROUND: To prevent the following errors on the first call:
-      // * SQL execution error: UNIQUE constraint failed: local-store.id
-      // * web_sql_went_bad
-      while (!dbOk) {
-        database = await getDatabase(currentDbName);
-        try {
-          await database.allDocs({ include_docs: true, limit: 1 });
-          dbOk = true;
-        } catch (e) {
-          console.warn('[useDB] DB not ok, will retry...', e);
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-      }
-
-      dispatch(actions.cache.set(['_db', database]));
-    })();
+    // This will cache the database in the redux store, thus triggering a re-render.
+    getCurrentAppDB().catch(e => {
+      // console.warn(e);
+      throw e;
+    });
   }, [currentDbName, db, dispatch]);
 
   // useEffect(() => {

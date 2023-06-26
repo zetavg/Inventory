@@ -104,9 +104,9 @@ function DeveloperToolsScreen({
 
         <UIGroup>
           <UIGroup.ListItem
-            label="PouchDB Sync"
+            label="DB Sync"
             navigable
-            onPress={() => navigation.push('PouchDBSync')}
+            onPress={() => navigation.push('DBSync')}
           />
         </UIGroup>
 

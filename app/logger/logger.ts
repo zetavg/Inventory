@@ -1,3 +1,5 @@
+import { Alert } from 'react-native';
+
 import { insertLog } from './logsDB';
 import { LogSeverity } from './types';
 
@@ -9,14 +11,43 @@ type LoggerD = {
   e?: unknown;
   details?: string;
   timestamp?: number;
+  showAlert?: boolean;
 };
 
 export function logger(
   severity: LogSeverity,
-  message: string,
-  { user, module, error, err, e, details, timestamp }: LoggerD,
+  msg: unknown,
+  { user, module, error, err, e, details, timestamp, showAlert }: LoggerD = {},
 ) {
-  if (!error) error = err || e;
+  const message: string = (() => {
+    if (typeof msg === 'string') {
+      return msg;
+    }
+    if (msg instanceof Error) {
+      return msg.message;
+    }
+
+    try {
+      return JSON.stringify(msg);
+    } catch (_) {}
+
+    return '(No message)';
+  })();
+  if (showAlert) {
+    const alertTitle = (() => {
+      switch (severity) {
+        case 'error':
+          return 'An Error Occurred';
+        case 'warn':
+          return 'Warning';
+        default:
+          return severity;
+      }
+    })();
+    Alert.alert(alertTitle, message);
+  }
+
+  if (!error) error = err || e || (msg instanceof Error ? msg : undefined);
   if (!timestamp) timestamp = new Date().getTime();
   let callStack: string | undefined;
   if (error instanceof Error) {
@@ -74,7 +105,7 @@ logger.warn = logger.bind(null, 'warn');
 logger.error = logger.bind(null, 'error');
 
 logger.for = function (t: { user?: string; module?: string }): typeof logger {
-  function l(severity: LogSeverity, message: string, tt: LoggerD) {
+  function l(severity: LogSeverity, message: unknown, tt?: LoggerD) {
     return logger(severity, message, { ...t, ...tt });
   }
 

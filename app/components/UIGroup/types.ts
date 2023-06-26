@@ -48,6 +48,7 @@ export type ListItemProps = {
   button?: boolean;
   destructive?: boolean;
   disabled?: boolean;
+  adjustsDetailFontSizeToFit?: boolean;
 } & React.ComponentProps<typeof View>;
 
 export type ListItemSeparatorProps = {

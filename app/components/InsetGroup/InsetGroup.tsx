@@ -234,6 +234,7 @@ type InsetGroupItemProps = {
   disabled?: boolean;
   onPress?: () => void;
   onLongPress?: () => void;
+  adjustsDetailFontSizeToFit?: boolean;
 } & React.ComponentProps<typeof View>;
 
 function InsetGroupItem({
@@ -256,6 +257,7 @@ function InsetGroupItem({
   disabled,
   onPress,
   onLongPress,
+  adjustsDetailFontSizeToFit,
   children,
   ...props
 }: InsetGroupItemProps) {
@@ -364,6 +366,7 @@ function InsetGroupItem({
                   ]}
                   numberOfLines={vertical2 ? undefined : 1}
                   selectable={!onLongPress}
+                  adjustsFontSizeToFit={adjustsDetailFontSizeToFit}
                 >
                   {detail}
                 </Text>

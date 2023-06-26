@@ -2,18 +2,23 @@ import WebSQLite from 'react-native-quick-websql';
 
 import PouchDB from 'pouchdb';
 
+// import { deleteSqliteDb } from './sqlite';
+
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);
 
 PouchDB.plugin(SQLiteAdapter);
 
-export type Database = PouchDB.Database<any>;
-export type LogsDatabase = PouchDB.Database<any>;
-
-export async function getDatabase(name: string): Promise<Database> {
-  const db = new PouchDB(name, {
+export async function getPouchDBDatabase<Content extends {} = {}>(
+  name: string,
+): Promise<PouchDB.Database<Content>> {
+  const db = new PouchDB<Content>(name, {
     adapter: 'react-native-sqlite',
   });
   return db;
 }
 
-// export const PouchDB = PouchDBCore;
+// export async function deletePouchDBDatabase(name: string) {
+//   // Since the database is backed by sqlite, we delete the sqlite file directly.
+//   const results = await deleteSqliteDb(name);
+//   return results;
+// }

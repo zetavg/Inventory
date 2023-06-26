@@ -11,10 +11,12 @@ import { Log } from '@app/logger';
 
 import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import CountersScreen from '@app/features/counters/screens/CountersScreen';
-import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
-import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
-import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
-import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
+import DBSyncScreen from '@app/features/db-sync/screens/DBSyncScreen';
+import DBSyncServerDetailScreen from '@app/features/db-sync/screens/DBSyncServerDetailScreen';
+// import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
+// import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
+// import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
+// import PouchDBSyncScreen from '@app/features/db-sync/manage/screens/PouchDBSyncScreen';
 import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
 import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
 import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
@@ -72,12 +74,12 @@ export type StackParamList = {
   };
   AppLogs: undefined;
   AppLogDetail: { log: Log };
-  PouchDBSync: undefined;
-  PouchDBSyncDetails: {
-    serverName: string;
-  };
-  PouchDBSyncLogs: undefined;
-  DBSyncConfig: undefined;
+  // PouchDBSync: undefined;
+  // PouchDBSyncDetails: {
+  //   serverName: string;
+  // };
+  // PouchDBSyncLogs: undefined;
+  // DBSyncConfig: undefined;
   About: undefined;
   DeveloperTools: undefined;
   Redux: undefined;
@@ -89,6 +91,8 @@ export type StackParamList = {
   SQLite: undefined;
   PouchDB: undefined;
   PouchDBItem: { id: string };
+  DBSync: undefined;
+  DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;
   RelationalPouchDBType: {
     type: DataTypeName;
@@ -190,6 +194,11 @@ function MainStack({ initialRouteName }: Props) {
       />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
+      <Stack.Screen name="DBSync" component={DBSyncScreen} />
+      <Stack.Screen
+        name="DBSyncServerDetail"
+        component={DBSyncServerDetailScreen}
+      />
       <Stack.Screen
         name="RelationalPouchDB"
         component={RelationalPouchDBScreen}
@@ -247,13 +256,13 @@ function MainStack({ initialRouteName }: Props) {
 
       <Stack.Screen name="Counter" component={CounterScreen} />
       <Stack.Screen name="Counters" component={CountersScreen} />
-      <Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />
+      {/*<Stack.Screen name="PouchDBSync" component={PouchDBSyncScreen} />
       <Stack.Screen
         name="PouchDBSyncDetails"
         component={PouchDBSyncDetailsScreen}
       />
       <Stack.Screen name="PouchDBSyncLogs" component={PouchDBSyncLogsScreen} />
-      <Stack.Screen name="DBSyncConfig" component={DBSyncConfigScreen} />
+      <Stack.Screen name="DBSyncConfig" component={DBSyncConfigScreen} />*/}
     </Stack.Navigator>
   );
 }
