@@ -1,0 +1,65 @@
+diff --git a/node_modules/redux-persist-sensitive-storage/index.js b/node_modules/redux-persist-sensitive-storage/index.js
+index 8a0a3fa..3437181 100644
+--- a/node_modules/redux-persist-sensitive-storage/index.js
++++ b/node_modules/redux-persist-sensitive-storage/index.js
+@@ -1,7 +1,8 @@
+ import { Platform } from "react-native";
+ import sensitiveInfo from "react-native-sensitive-info";
++import AsyncStorage from "@react-native-async-storage/async-storage";
+ 
+-export default function(options = {}) {
++export default function(options = {}, infoLogger = console.info, errorLogger = console.error) {
+   // react-native-sensitive-info returns different a different structure on iOS
+   // than it does on Android.
+   //
+@@ -28,10 +29,42 @@ export default function(options = {}) {
+     android: Object.keys
+   });
+ 
++  const prepareSensitiveInfoStorage = async () => {
++    // Clear sensitive info when the app is re-installed.
++    try {
++      const orderedOptions = Object.keys(options).sort().reduce(
++        (obj, key) => {
++          obj[key] = options[key];
++          return obj;
++        },
++        {}
++      );
++      const initializedKey = 'sensitive_info_initialized-' + JSON.stringify(orderedOptions);
++      const initialized = await AsyncStorage.getItem(initializedKey);
++
++      if (!initialized) {
++        const allItems = await sensitiveInfo.getAllItems(options);
++        const allItemKeys = extractKeys(allItems);
++        for (const key of allItemKeys) {
++          await sensitiveInfo.deleteItem(key, options);
++        }
++        infoLogger(
++          `Sensitive info cleared: ${allItemKeys
++            .map(k => `"${k}"`)
++            .join(', ')} on new app install.`,
++        );
++        await AsyncStorage.setItem(initializedKey, 'true');
++      }
++    } catch (error) {
++      errorLogger(error);
++    }
++  }
++
+   const noop = () => null;
+ 
+   return {
+     async getItem(key, callback = noop) {
++      await prepareSensitiveInfoStorage();
+       try {
+         // getItem() returns `null` on Android and `undefined` on iOS;
+         // explicitly return `null` here as `undefined` causes an exception
+@@ -72,6 +105,7 @@ export default function(options = {}) {
+     },
+ 
+     async getAllKeys(callback = noop) {
++      await prepareSensitiveInfoStorage();
+       try {
+         const values = await sensitiveInfo.getAllItems(options);
+         const result = extractKeys(values);

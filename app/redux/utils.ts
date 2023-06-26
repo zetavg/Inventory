@@ -16,10 +16,19 @@ import createSensitiveStorage from 'redux-persist-sensitive-storage';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const sensitiveStorage = createSensitiveStorage({
+import appLogger from '@app/logger';
+const logger = appLogger.for({ module: 'redux' });
+
+const SENSITIVE_STORAGE_CONFIG = {
   keychainService: 'app',
   sharedPreferencesName: 'shared_preferences',
-});
+};
+const sensitiveStorage = createSensitiveStorage(
+  SENSITIVE_STORAGE_CONFIG,
+  (log: any) => logger.info(log, {}),
+  (error: any) =>
+    logger.error(`Error occurred on sensitive storage: ${error}`, { error }),
+);
 
 function deepMerge(a: unknown, b: unknown) {
   if (b === undefined) return a;
