@@ -35,7 +35,11 @@ export function UIGroup(
       label={header}
       footerLabel={footer}
       labelVariant={largeTitle ? 'large' : 'normal'}
-      labelRight={headerRight}
+      labelRight={
+        headerRight ? (
+          <View style={styles.iosHeaderRightContainer}>{headerRight}</View>
+        ) : undefined
+      }
       backgroundTransparent={transparentBackground}
       loading={loading}
       {...restProps}
@@ -118,6 +122,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
+  },
+  iosHeaderRightContainer: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });
 
