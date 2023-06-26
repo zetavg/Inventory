@@ -37,6 +37,7 @@ module.exports = {
           // Internal packages.
           ['^@[^a][^p][^p]\\w'],
           // @app
+          ['^@app/logger.*'],
           ['^@app/consts.*'],
           ['^@app/lib.*'],
           ['^@app/redux.*', '^@app/features.*'],
