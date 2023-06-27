@@ -1,6 +1,7 @@
 import React, {
   RefObject,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -157,6 +158,51 @@ export default function useNewOrEditServerUI({
     [hasUnsavedChanges],
   );
 
+  const [testConnectionMessage, setTestConnectionMessage] = useState<
+    string | undefined
+  >(undefined);
+  useEffect(() => {
+    setTestConnectionMessage(undefined);
+  }, [state.uri, state.username, state.password]);
+  const handleTestConnection = useCallback(async () => {
+    const errorMessages = [
+      uriErrorMessage,
+      usernameErrorMessage,
+      passwordErrorMessage,
+    ].filter(m => m);
+
+    if (errorMessages.length > 0) {
+      Alert.alert(
+        'Please fix the following errors',
+        errorMessages.map(m => `• ${m}`).join('\n'),
+      );
+      return;
+    }
+
+    setTestConnectionMessage('TESTING');
+    try {
+      var PouchDB = require('pouchdb');
+      PouchDB.plugin(require('pouchdb-authentication'));
+      const remoteDB = new PouchDB(state.uri, { skip_setup: true });
+      await remoteDB.logIn(state.username, state.password);
+      await remoteDB.allDocs({ limit: 1, include_docs: false });
+    } catch (e: any) {
+      setTestConnectionMessage(
+        `❌ Connection failed: ${e.message || 'Unable to connect to server'}`,
+      );
+      return;
+    }
+
+    setTestConnectionMessage('✅ Connection success');
+  }, [
+    uriErrorMessage,
+    usernameErrorMessage,
+    passwordErrorMessage,
+    state.uri,
+    state.username,
+    state.password,
+  ]);
+
   const nameInputRef = useRef<TextInput>(null);
   const dbUriInputRef = useRef<TextInput>(null);
   const dbUsernameInputRef = useRef<TextInput>(null);
@@ -189,6 +235,8 @@ export default function useNewOrEditServerUI({
           placeholder="https://0.0.0.0:5984/database_name"
           autoCapitalize="none"
           keyboardType="url"
+          multiline
+          blurOnSubmit
           value={state.uri}
           onChangeText={text => setState({ ...state, uri: text })}
           returnKeyType="next"
@@ -216,8 +264,19 @@ export default function useNewOrEditServerUI({
           returnKeyType="done"
         />
       </UIGroup>
-      <UIGroup>
-        <UIGroup.ListItem button onPress={() => {}} label="Test Connection" />
+      <UIGroup
+        footer={
+          testConnectionMessage !== 'TESTING'
+            ? testConnectionMessage
+            : undefined
+        }
+      >
+        <UIGroup.ListItem
+          button
+          disabled={testConnectionMessage === 'TESTING'}
+          onPress={handleTestConnection}
+          label="Test Connection"
+        />
       </UIGroup>
     </>
   );
