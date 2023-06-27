@@ -6,6 +6,7 @@ import PouchDB from 'pouchdb';
 
 const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite')(WebSQLite);
 
+PouchDB.plugin(require('pouchdb-authentication'));
 PouchDB.plugin(SQLiteAdapter);
 
 export async function getPouchDBDatabase<Content extends {} = {}>(

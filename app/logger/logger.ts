@@ -6,6 +6,7 @@ import { LogLevel } from './types';
 type LoggerD = {
   user?: string;
   module?: string;
+  function?: string;
   error?: unknown;
   err?: unknown;
   e?: unknown;
@@ -17,7 +18,17 @@ type LoggerD = {
 export function logger(
   level: LogLevel,
   msg: unknown,
-  { user, module, error, err, e, details, timestamp, showAlert }: LoggerD = {},
+  {
+    user,
+    module,
+    function: fn,
+    error,
+    err,
+    e,
+    details,
+    timestamp,
+    showAlert,
+  }: LoggerD = {},
 ) {
   const lLevelsToLog = getLevelsToLog();
   if (level && !lLevelsToLog.includes(level as any)) return;
@@ -66,10 +77,24 @@ export function logger(
     }
   }
 
-  insertLog(level, user, module, message, details, callStack, timestamp);
+  insertLog({
+    level,
+    user,
+    module,
+    function: fn,
+    message,
+    details,
+    stack: callStack,
+    timestamp,
+  });
 
   const consoleMessage = [
-    [user && `[user:${user}]`, module && `[${module}]`].filter(m => m).join(''),
+    [
+      user && `[user:${user}]`,
+      (module || fn) && `[${[module, fn].filter(s => s).join('/')}]`,
+    ]
+      .filter(m => m)
+      .join(''),
     message,
     details && `(Details: ${details})`,
   ]
@@ -117,9 +142,15 @@ logger.success = logger.bind(null, 'success');
 logger.warn = logger.bind(null, 'warn');
 logger.error = logger.bind(null, 'error');
 
-logger.for = function (t: { user?: string; module?: string }): typeof logger {
+type LoggerForT = {
+  user?: string;
+  module?: string;
+  function?: string;
+};
+logger.for = function (t: LoggerForT): typeof logger {
+  const ttt = (this as any).forT;
   function l(level: LogLevel, message: unknown, tt?: LoggerD) {
-    return logger(level, message, { ...t, ...tt });
+    return logger(level, message, { ...ttt, ...t, ...tt });
   }
 
   l.debug = l.bind(null, 'debug');
@@ -129,6 +160,7 @@ logger.for = function (t: { user?: string; module?: string }): typeof logger {
   l.warn = l.bind(null, 'warn');
   l.error = l.bind(null, 'error');
   l.for = logger.for;
+  l.forT = t;
 
   return l;
 };

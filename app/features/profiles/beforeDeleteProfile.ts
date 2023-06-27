@@ -1,9 +1,13 @@
+import appLogger from '@app/logger';
+
 import { deleteSqliteDb } from '@app/db/sqlite';
 
-import {
-  getDbNameFromProfileUuid,
-  getLogsDbNameFromProfileUuid,
-} from './slice';
+import { getDbNameFromProfileUuid } from './slice';
+
+const logger = appLogger.for({
+  module: 'f/profiles',
+  function: 'beforeDeleteProfile',
+});
 
 async function beforeDeleteProfile(
   profileUuid: string,
@@ -17,11 +21,15 @@ async function beforeDeleteProfile(
     throw new Error('Cannot delete the current profile!');
   }
 
-  await Promise.all(
-    [
-      getDbNameFromProfileUuid(profileUuid),
-      getLogsDbNameFromProfileUuid(profileUuid),
-    ].map(dbName => deleteSqliteDb(dbName)),
+  const dbNamesToDelete = [getDbNameFromProfileUuid(profileUuid)];
+
+  const results = await Promise.all(
+    dbNamesToDelete.map(dbName => deleteSqliteDb(dbName)),
+  );
+
+  logger.info(
+    `Deleted database ${dbNamesToDelete.map(n => `"${n}"`).join(', ')}.`,
+    { details: JSON.stringify({ results }, null, 2) },
   );
 }
 

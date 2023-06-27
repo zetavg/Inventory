@@ -14,9 +14,18 @@ export type AppDatabase = any;
  * @param {string} name Name of the database.
  */
 export async function getAppDB(name: string) {
-  const db = await getPouchDBDatabase<AppDatabase>(name);
-  // TODO: add index
-  return db;
+  try {
+    const db = await getPouchDBDatabase<AppDatabase>(name);
+    // TODO: add index
+    return db;
+  } catch (e) {
+    const logger = appLogger.for({
+      module: 'app_db',
+      function: 'getAppDB',
+    });
+    logger.error(e);
+    throw e;
+  }
 }
 
 export const currentCachedDbSelector = (s: RootState) =>
@@ -26,15 +35,21 @@ export const currentCachedDbSelector = (s: RootState) =>
  * Get the current application database.
  */
 export async function getCurrentAppDB() {
-  const logger = appLogger.for({ module: 'db/app_db/getCurrentAppDB' });
+  const logger = appLogger.for({
+    module: 'app_db',
+    function: 'getCurrentAppDB',
+  });
 
   const cachedDB = currentCachedDbSelector(store.getState());
   if (cachedDB) return cachedDB;
 
   const dbName = getCurrentDbName();
   if (!dbName) {
-    throw new Error('[db/app_db/getCurrentAppDB] Current DB name is null.');
+    const e = new Error('Current DB name is null.');
+    logger.error(e);
+    throw e;
   }
+  logger.debug(`Initializing database ${dbName}...`);
 
   let database;
   let dbOk = false;
@@ -48,11 +63,20 @@ export async function getCurrentAppDB() {
       await database.allDocs({ include_docs: true, limit: 1 });
       dbOk = true;
     } catch (err) {
+      if (retries > 10) {
+        logger.error(
+          `DB "${dbName}" not ok, retries limit exceeded. Giving up.`,
+          {
+            error: err,
+          },
+        );
+        throw err;
+      }
       const retryAfter = 500 + retries * 500;
       logger.warn(
         `DB "${dbName}" not ok, will retry after ${retryAfter} ms...`,
         {
-          err,
+          error: err,
         },
       );
       await new Promise(resolve => setTimeout(resolve, retryAfter));
@@ -61,6 +85,7 @@ export async function getCurrentAppDB() {
   }
 
   store.dispatch(actions.cache.set(['_db', database]));
+  logger.debug(`Database ${dbName} initialized.`);
 
   return database;
 }

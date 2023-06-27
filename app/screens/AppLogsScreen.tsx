@@ -25,9 +25,9 @@ function AppLogsScreen({
   const numberOfItemsPerPageList = [20, 50, 100, 500];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
-  const [filterLevels, setFilterLevels] =
-    useState<ReadonlyArray<LogLevel>>(LOG_LEVELS);
+  const [filterLevels, setFilterLevels] = useState<ReadonlyArray<LogLevel>>([]);
   const [filterModule, setFilterModule] = useState<string | undefined>();
+  const [filterFunction, setFilterFunction] = useState<string | undefined>();
   const [filterUser, setFilterUser] = useState<string | undefined>();
 
   const [searchText, setSearchText] = useState('');
@@ -49,6 +49,7 @@ function AppLogsScreen({
         limit,
         levels: filterLevels,
         module: filterModule || undefined,
+        function: filterFunction || undefined,
         user: filterUser || undefined,
         search: searchText,
       });
@@ -60,7 +61,15 @@ function AppLogsScreen({
     } finally {
       setLoading(false);
     }
-  }, [filterModule, filterLevels, filterUser, limit, offset, searchText]);
+  }, [
+    filterModule,
+    filterFunction,
+    filterLevels,
+    filterUser,
+    limit,
+    offset,
+    searchText,
+  ]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -120,13 +129,33 @@ function AppLogsScreen({
       onAction1Press={() => {
         rootNavigation?.push('AppLogsFilter', {
           initialState: {
-            levels: filterLevels,
+            levels: filterLevels.length === 0 ? LOG_LEVELS : filterLevels,
             module: filterModule,
+            function: filterFunction,
             user: filterUser,
           },
-          callback: ({ levels, module, user }) => {
-            setFilterLevels(levels);
+          selections: {
+            module: logs
+              ?.map(l => l.module)
+              .filter((s): s is string => !!s)
+              .filter((v, i, a) => a.indexOf(v) === i),
+            function: logs
+              ?.map(l => l.function)
+              .filter((s): s is string => !!s)
+              .filter((v, i, a) => a.indexOf(v) === i),
+            user: logs
+              ?.map(l => l.user)
+              .filter((s): s is string => !!s)
+              .filter((v, i, a) => a.indexOf(v) === i),
+          },
+          callback: ({ levels, module, function: fn, user }) => {
+            if (levels.length >= LOG_LEVELS.length) {
+              setFilterLevels([]);
+            } else {
+              setFilterLevels(levels);
+            }
             setFilterModule(module);
+            setFilterFunction(fn);
             setFilterUser(user);
           },
         });
@@ -182,6 +211,29 @@ function AppLogsScreen({
             );
           }
         })()}
+        {(() => {
+          if (
+            filterLevels.length > 0 ||
+            filterModule ||
+            filterFunction ||
+            filterUser
+          ) {
+            return (
+              <UIGroup>
+                <UIGroup.ListItem
+                  button
+                  label="Clear Filters"
+                  onPress={() => {
+                    setFilterLevels([]);
+                    setFilterModule(undefined);
+                    setFilterFunction(undefined);
+                    setFilterUser(undefined);
+                  }}
+                />
+              </UIGroup>
+            );
+          }
+        })()}
         <UIGroup
           loading={loading}
           footer={
@@ -202,7 +254,10 @@ function AppLogsScreen({
                   key={i}
                   label={log.message}
                   detail={[
-                    log.module && `[${log.module}]`,
+                    (log.module || log.function) &&
+                      `[${[log.module, log.function]
+                        .filter(s => s)
+                        .join('/')}]`,
                     log.timestamp && timeAgo.format(log.timestamp),
                   ]
                     .filter(d => d)

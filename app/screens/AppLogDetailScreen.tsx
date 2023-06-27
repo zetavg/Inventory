@@ -34,6 +34,13 @@ function AppLogDetailScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
+            label="Function"
+            value={log.function}
+            placeholder="(undefined)"
+            showSoftInputOnFocus={false}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="User"
             value={log.user}
             placeholder="(undefined)"

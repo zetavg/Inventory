@@ -135,11 +135,18 @@ export type RootStackParamList = {
   AppLogsFilter: {
     initialState: {
       module?: string | undefined;
+      function?: string | undefined;
       user?: string | undefined;
       levels: ReadonlyArray<LogLevel>;
     };
+    selections: {
+      module?: ReadonlyArray<string> | undefined;
+      function?: ReadonlyArray<string> | undefined;
+      user?: ReadonlyArray<string> | undefined;
+    };
     callback: (data: {
       module?: string | undefined;
+      function?: string | undefined;
       user?: string | undefined;
       levels: ReadonlyArray<LogLevel>;
     }) => void;

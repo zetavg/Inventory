@@ -22,7 +22,8 @@ function LoggerLogScreen({
   const [argsStr, setArgsStr] = useState(
     JSON.stringify(
       {
-        module: 'LoggerLogScreen (testing)',
+        module: 'LoggerLogScreen',
+        function: 'test_log_insert',
         user: null,
         details: null,
         timestamp: null,

@@ -77,7 +77,7 @@ function AppLogsSettingsScreen({
   return (
     <ScreenContent
       navigation={navigation}
-      title="Logs Settings"
+      title="Logger Settings"
       headerLargeTitle={false}
       // action1Label="Log (Test)"
       // action1SFSymbolName="text.badge.plus"

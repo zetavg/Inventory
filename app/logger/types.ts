@@ -13,6 +13,7 @@ export type Log = {
   level: LogLevel;
   user?: string;
   module?: string;
+  function?: string;
   message: string;
   details?: string;
   stack?: string;

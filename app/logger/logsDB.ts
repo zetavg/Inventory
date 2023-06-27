@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS "${LOG_DB_TABLE_NAME}" (
   level TEXT,
   user TEXT,
   module TEXT,
+  function TEXT,
   message TEXT,
   details TEXT,
   stack TEXT,
@@ -53,6 +54,9 @@ CREATE INDEX IF NOT EXISTS "index-user" ON "${LOG_DB_TABLE_NAME}" (user);
 `,
   `
 CREATE INDEX IF NOT EXISTS "index-module" ON "${LOG_DB_TABLE_NAME}" (module);
+`,
+  `
+CREATE INDEX IF NOT EXISTS "index-function" ON "${LOG_DB_TABLE_NAME}" (function);
 `,
 ];
 
@@ -160,26 +164,37 @@ export function setLevelsToLog(levels: ReadonlyArray<LogLevel>) {
   }
 }
 
-export async function insertLog(
-  level?: string,
-  user?: string,
-  module?: string,
-  message?: string,
-  details?: string,
-  stack?: string,
-  timestamp?: number,
-) {
+export async function insertLog({
+  level,
+  user,
+  module,
+  function: fn,
+  message,
+  details,
+  stack,
+  timestamp,
+}: {
+  level?: string;
+  user?: string;
+  module?: string;
+  function?: string;
+  message?: string;
+  details?: string;
+  stack?: string;
+  timestamp?: number;
+}) {
   try {
     const { insertId } = await QuickSQLite.executeAsync(
       LOG_DB_NAME,
       `
         INSERT INTO "${LOG_DB_TABLE_NAME}" (
-          level, user, module, message, details, stack, timestamp
+          level, user, module, function, message, details, stack, timestamp
         )
         VALUES(
           '${level || ''}',
           '${user || ''}',
           '${module || ''}',
+          '${fn || ''}',
           '${message || ''}',
           '${details || ''}',
           '${stack || ''}',
@@ -207,6 +222,7 @@ export async function getLogs({
   offset = 0,
   levels = [],
   module,
+  function: fn,
   user,
   search,
 }: {
@@ -214,6 +230,7 @@ export async function getLogs({
   offset?: number;
   levels?: ReadonlyArray<LogLevel>;
   module?: string;
+  function?: string;
   user?: string;
   search?: string;
 } = {}): Promise<ReadonlyArray<Log> & { count?: number }> {
@@ -221,6 +238,7 @@ export async function getLogs({
     const whereConditions = [
       levels.length > 0 && `level IN (${levels.map(s => `'${s}'`).join(',')})`,
       module && `module = '${module}'`,
+      fn && `function = '${fn}'`,
       user && `user = '${user}'`,
       search &&
         `(LOWER(message) LIKE '%${search.toLowerCase()}%' OR LOWER(details) LIKE '%${search.toLowerCase()}%' OR LOWER(stack) LIKE '%${search.toLowerCase()}%')`,
@@ -256,6 +274,11 @@ export async function getLogs({
           module = '';
         }
 
+        let fn = (r as any).function;
+        if (fn && typeof fn !== 'string') {
+          fn = '';
+        }
+
         let message = (r as any).message;
         if (typeof message !== 'string') {
           message = '';
@@ -280,6 +303,7 @@ export async function getLogs({
           level,
           user,
           module,
+          function: fn,
           message,
           details,
           stack,

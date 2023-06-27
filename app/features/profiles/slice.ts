@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import appLogger from '@app/logger';
+
 import { PersistableReducer } from '@app/redux/types';
 import {
   combine,
@@ -35,8 +37,9 @@ import {
 import { deepMerge } from '@app/utils/deepMerge';
 import mapObjectValues from '@app/utils/mapObjectValues';
 import randomUniqueUuid from '@app/utils/randomUniqueUuid';
+import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
 import { DeepPartial } from '@app/utils/types';
-
+const logger = appLogger.for({ module: 'f/profiles' });
 export const COLORS = [
   'red',
   'orange',
@@ -197,8 +200,6 @@ export const actions = {
 
 export const getDbNameFromProfileUuid = (profileUuid: string) =>
   `db_${profileUuid}`;
-export const getLogsDbNameFromProfileUuid = (profileUuid: string) =>
-  `db_${profileUuid}_logs`;
 
 export const selectors = {
   profiles: {
@@ -218,10 +219,6 @@ export const selectors = {
     currentDbName: (state: ProfilesState) =>
       state.currentProfile
         ? getDbNameFromProfileUuid(state.currentProfile)
-        : null,
-    currentLogsDbName: (state: ProfilesState) =>
-      state.currentProfile
-        ? getLogsDbNameFromProfileUuid(state.currentProfile)
         : null,
   },
   dbSync: mapSelectors(
@@ -244,6 +241,8 @@ export const selectors = {
   ),
 };
 
+const loggerForPersist = logger.for({ function: 'persist' });
+
 reducer.dehydrate = (state: ProfilesState) => {
   const dehydratedState: DeepPartial<ProfilesState> = {
     currentProfile: state.currentProfile,
@@ -259,6 +258,11 @@ reducer.dehydrate = (state: ProfilesState) => {
     })),
   };
 
+  // loggerForPersist.debug('State dehydrated.', {
+  //   details: removePasswordFromJSON(
+  //     JSON.stringify({ dehydratedState }, null, 2),
+  //   ),
+  // });
   return dehydratedState;
 };
 
@@ -288,6 +292,9 @@ reducer.rehydrate = (dehydratedState: DeepPartial<ProfilesState>) => {
     state.currentProfile = Object.keys(state.currentProfile || {})[0];
   }
 
+  loggerForPersist.debug('State rehydrated.', {
+    details: removePasswordFromJSON(JSON.stringify({ state }, null, 2)),
+  });
   return state;
 };
 
@@ -309,6 +316,11 @@ reducer.dehydrateSensitive = (state: ProfilesState) => {
       : {}),
   };
 
+  // loggerForPersist.debug('Sensitive state dehydrated.', {
+  //   details: removePasswordFromJSON(
+  //     JSON.stringify({ dehydratedState }, null, 2),
+  //   ),
+  // });
   return dehydratedState;
 };
 
@@ -328,6 +340,9 @@ reducer.rehydrateSensitive = dehydratedState => {
       : {}),
   };
 
+  loggerForPersist.debug('Sensitive state rehydrated.', {
+    details: removePasswordFromJSON(JSON.stringify({ state }, null, 2)),
+  });
   return state as any;
 };
 

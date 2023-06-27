@@ -3,10 +3,7 @@ export { beforeDeleteProfile };
 
 import { selectors, store } from '@app/redux';
 
-import {
-  getDbNameFromProfileUuid,
-  getLogsDbNameFromProfileUuid,
-} from './slice';
+import { getDbNameFromProfileUuid } from './slice';
 
 export function getCurrentProfileUuid() {
   const state = store.getState();
@@ -19,11 +16,4 @@ export function getCurrentDbName() {
   if (!currentProfileUuid) return null;
 
   return getDbNameFromProfileUuid(currentProfileUuid);
-}
-
-export function getCurrentLogsDbName() {
-  const currentProfileUuid = getCurrentProfileUuid();
-  if (!currentProfileUuid) return null;
-
-  return getLogsDbNameFromProfileUuid(currentProfileUuid);
 }
