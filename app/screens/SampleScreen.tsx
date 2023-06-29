@@ -1,16 +1,13 @@
 import React, { useRef, useState } from 'react';
-import { ScrollView, Alert } from 'react-native';
-
+import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+import useDebouncedValue from '@app/hooks/useDebouncedValue';
 
 import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Switch from '@app/components/Switch';
-import commonStyles from '@app/utils/commonStyles';
-import useDebouncedValue from '@app/hooks/useDebouncedValue';
+import UIGroup from '@app/components/UIGroup';
 
 function SampleScreen({
   navigation,
@@ -30,6 +27,7 @@ function SampleScreen({
   //     : false;
 
   const [title, setTitle] = useState('Sample Screen');
+  const [headerLargeTitle, setHeaderLargeTitle] = useState(true);
   const [searchText, setSearchText] = useState('');
 
   const [action1Label, setAction1Label] = useState('Action 1');
@@ -72,13 +70,15 @@ function SampleScreen({
   );
 
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
   return (
     <ScreenContent
       navigation={navigation}
       showAppBar={showAppbar}
       title={title || 'Title'}
+      headerLargeTitle={headerLargeTitle}
       showSearch={showSearch}
       // autoFocusSearch={autoFocusSearch}
       onSearchChangeText={t => setSearchText(t)}
@@ -95,17 +95,18 @@ function SampleScreen({
       action3MaterialIconName={debouncedAction3MaterialIconName}
       onAction3Press={() => Alert.alert('Action 3 Pressed')}
     >
-      <ScrollView
+      <ScreenContent.ScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
-        <InsetGroup style={commonStyles.mt16}>
-          <InsetGroup.Item
+        <UIGroup.FirstGroupSpacing iosLargeTitle={headerLargeTitle} />
+        <UIGroup>
+          <UIGroup.ListItem
             label="Show AppBar"
             detail={
-              <Switch
+              <UIGroup.ListItem.Switch
                 value={showAppbar}
                 onValueChange={() =>
                   navigation.push('Sample', {
@@ -117,25 +118,32 @@ function SampleScreen({
               />
             }
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Title"
+            horizontalLabel
+            placeholder="Title"
+            returnKeyType="done"
+            autoCapitalize="words"
+            value={title}
+            onChangeText={t => setTitle(t)}
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            label="Header Large Title"
             detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="Title"
-                returnKeyType="done"
-                autoCapitalize="words"
-                value={title}
-                onChangeText={t => setTitle(t)}
+              <UIGroup.ListItem.Switch
+                value={headerLargeTitle}
+                onValueChange={v => setHeaderLargeTitle(v)}
               />
             }
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="Show Search"
             detail={
-              <Switch
+              <UIGroup.ListItem.Switch
                 value={showSearch}
                 onValueChange={() =>
                   navigation.push('Sample', {
@@ -149,8 +157,8 @@ function SampleScreen({
           />
           {showSearch && (
             <>
-              {/*<InsetGroup.ItemSeparator />
-              <InsetGroup.Item
+              {/*<UIGroup.ListItemSeparator />
+              <UIGroup.ListItem
                 label="Auto Focus Search"
                 detail={
                   <Switch
@@ -165,155 +173,137 @@ function SampleScreen({
                   />
                 }
               />*/}
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListItem
                 label="Search Text"
                 detail={searchText || '(None)'}
               />
             </>
           )}
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             label="Go Back"
             button
             onPress={() => navigation.goBack()}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Action 1">
-          <InsetGroup.Item
+        <UIGroup header="Action 1">
+          <UIGroup.ListTextInputItem
             label="Label"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="Label"
-                returnKeyType="done"
-                autoCapitalize="words"
-                value={action1Label}
-                onChangeText={t => setAction1Label(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="Label"
+            returnKeyType="done"
+            autoCapitalize="words"
+            value={action1Label}
+            onChangeText={t => setAction1Label(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="SF Symbol"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="square.and.pencil"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action1SFSymbolName}
-                onChangeText={t => setAction1SFSymbolName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="square.and.pencil"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action1SFSymbolName}
+            onChangeText={t => setAction1SFSymbolName(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Material Icon"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="pencil"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action1MaterialIconName}
-                onChangeText={t => setAction1MaterialIconName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="pencil"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action1MaterialIconName}
+            onChangeText={t => setAction1MaterialIconName(t)}
+            {...kiaTextInputProps}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Action 2">
-          <InsetGroup.Item
+        <UIGroup header="Action 2">
+          <UIGroup.ListTextInputItem
             label="Label"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="Label"
-                returnKeyType="done"
-                autoCapitalize="words"
-                value={action2Label}
-                onChangeText={t => setAction2Label(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="Label"
+            returnKeyType="done"
+            autoCapitalize="words"
+            value={action2Label}
+            onChangeText={t => setAction2Label(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="SF Symbol"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="trash"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action2SFSymbolName}
-                onChangeText={t => setAction2SFSymbolName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="trash"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action2SFSymbolName}
+            onChangeText={t => setAction2SFSymbolName(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Material Icon"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="delete"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action2MaterialIconName}
-                onChangeText={t => setAction2MaterialIconName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="delete"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action2MaterialIconName}
+            onChangeText={t => setAction2MaterialIconName(t)}
+            {...kiaTextInputProps}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Action 3">
-          <InsetGroup.Item
+        <UIGroup header="Action 3">
+          <UIGroup.ListTextInputItem
             label="Label"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="Label"
-                returnKeyType="done"
-                autoCapitalize="words"
-                value={action3Label}
-                onChangeText={t => setAction3Label(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="Label"
+            returnKeyType="done"
+            autoCapitalize="words"
+            value={action3Label}
+            onChangeText={t => setAction3Label(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="SF Symbol"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="gearshape"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action3SFSymbolName}
-                onChangeText={t => setAction3SFSymbolName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="gearshape"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action3SFSymbolName}
+            onChangeText={t => setAction3SFSymbolName(t)}
+            {...kiaTextInputProps}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
             label="Material Icon"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="cog"
-                returnKeyType="done"
-                autoCapitalize="none"
-                value={action3MaterialIconName}
-                onChangeText={t => setAction3MaterialIconName(t)}
-              />
-            }
+            horizontalLabel
+            clearButtonMode="always"
+            placeholder="cog"
+            returnKeyType="done"
+            autoCapitalize="none"
+            value={action3MaterialIconName}
+            onChangeText={t => setAction3MaterialIconName(t)}
+            {...kiaTextInputProps}
           />
-        </InsetGroup>
-      </ScrollView>
+        </UIGroup>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

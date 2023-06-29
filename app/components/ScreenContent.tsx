@@ -18,6 +18,7 @@ import type { StackParamList } from '@app/navigation/MainStack';
 import useColors from '@app/hooks/useColors';
 import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
 import commonStyles from '@app/utils/commonStyles';
+import ScreenContentScrollView from './ScreenContentScrollView';
 
 type Props = {
   navigation: StackScreenProps<StackParamList>['navigation'];
@@ -452,5 +453,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
 });
+
+ScreenContent.ScrollView = ScreenContentScrollView;
 
 export default ScreenContent;

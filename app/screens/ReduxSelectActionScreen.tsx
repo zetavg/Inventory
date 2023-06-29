@@ -56,7 +56,7 @@ function ReduxSelectActionScreen({
 
   return (
     <ModalContent navigation={navigation} title="Select Action">
-      <ScrollView
+      <ModalContent.ScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
@@ -91,7 +91,7 @@ function ReduxSelectActionScreen({
             }
           />
         </UIGroup>
-      </ScrollView>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

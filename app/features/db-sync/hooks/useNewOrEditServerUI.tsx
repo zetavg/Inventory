@@ -24,7 +24,7 @@ const logger = appLogger.for({ module: 'DBSync UI' });
 type Props = {
   id?: string;
   afterSave?: () => void;
-  onNameInputFocus?: () => void;
+  inputProps?: React.ComponentProps<typeof UIGroup.ListTextInputItem>;
 };
 
 type Return = {
@@ -41,7 +41,7 @@ type Return = {
 export default function useNewOrEditServerUI({
   id,
   afterSave,
-  onNameInputFocus,
+  inputProps,
 }: Props): Return {
   const dispatch = useAppDispatch();
   const servers = useAppSelector(selectors.dbSync.servers);
@@ -217,7 +217,7 @@ export default function useNewOrEditServerUI({
           value={state.name}
           onChangeText={text => setState({ ...state, name: text })}
           returnKeyType="done"
-          onFocus={onNameInputFocus}
+          {...inputProps}
         />
       </UIGroup>
       <UIGroup
@@ -241,6 +241,7 @@ export default function useNewOrEditServerUI({
           onChangeText={text => setState({ ...state, uri: text })}
           returnKeyType="next"
           onSubmitEditing={() => dbUsernameInputRef.current?.focus()}
+          {...inputProps}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
@@ -252,6 +253,7 @@ export default function useNewOrEditServerUI({
           onChangeText={text => setState({ ...state, username: text })}
           returnKeyType="next"
           onSubmitEditing={() => dbPasswordInputRef.current?.focus()}
+          {...inputProps}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
@@ -262,6 +264,7 @@ export default function useNewOrEditServerUI({
           value={state.password}
           onChangeText={text => setState({ ...state, password: text })}
           returnKeyType="done"
+          {...inputProps}
         />
       </UIGroup>
       <UIGroup

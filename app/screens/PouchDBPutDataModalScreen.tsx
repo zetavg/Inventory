@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, ScrollView, TextInput, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import commonStyles from '@app/utils/commonStyles';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
+import useAutoFocus from '@app/hooks/useAutoFocus';
 import useDB from '@app/hooks/useDB';
 
 import ModalContent from '@app/components/ModalContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
 function PouchDBPutDataModalScreen({
@@ -20,7 +20,6 @@ function PouchDBPutDataModalScreen({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [id, setId] = useState(route.params?.id || '');
-  const [idTouched, setIdTouched] = useState(false);
   const [dataJson, setDataJson] = useState(route.params.jsonData || '{}');
 
   const handleIdChangeText = useCallback(
@@ -127,21 +126,9 @@ function PouchDBPutDataModalScreen({
   const idInputRef = useRef<TextInput>(null);
   const dataInputRef = useRef<TextInput>(null);
 
-  useEffect(() => {
-    if (!route.params?.id) {
-      const timer = setTimeout(() => {
-        idInputRef.current?.focus();
-      }, 500);
-
-      return () => clearTimeout(timer);
-    } else {
-      const timer = setTimeout(() => {
-        dataInputRef.current?.focus();
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [route]);
+  const { kiaTextInputProps } =
+    ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
+  useAutoFocus(idInputRef, { scrollViewRef, disable: !!route.params?.id });
 
   return (
     <ModalContent
@@ -158,7 +145,7 @@ function PouchDBPutDataModalScreen({
       action2Label="Cancel"
       onAction2Press={loading ? undefined : () => navigation.goBack()}
     >
-      <ScreenContentScrollView ref={scrollViewRef}>
+      <ModalContent.ScrollView ref={scrollViewRef}>
         <View style={commonStyles.mt16} />
         <UIGroup footer={isJsonInvalid ? '⚠ Invalid JSON' : undefined}>
           <UIGroup.ListTextInputItem
@@ -172,8 +159,8 @@ function PouchDBPutDataModalScreen({
             disabled={!!route.params?.id || loading}
             value={id}
             onChangeText={handleIdChangeText}
-            onBlur={() => setIdTouched(true)}
             onSubmitEditing={() => dataInputRef.current?.focus()}
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
@@ -187,6 +174,7 @@ function PouchDBPutDataModalScreen({
             onChangeText={handleDataJsonChangeText}
             disabled={loading}
             autoCapitalize="none"
+            // {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
@@ -196,13 +184,9 @@ function PouchDBPutDataModalScreen({
             onPress={handleAddField}
           />
         </UIGroup>
-      </ScreenContentScrollView>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }
-
-const styles = StyleSheet.create({
-  textBox: { minHeight: 60 },
-});
 
 export default PouchDBPutDataModalScreen;

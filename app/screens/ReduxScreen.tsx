@@ -47,6 +47,8 @@ function ReduxScreen({
   useEffect(() => addCallback(logAction), [logAction]);
 
   const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
   const scrollTo = useScrollTo(scrollViewRef);
   const dispatchActionGroup = useRef<View>(null);
   const dispatchActionInput = useRef<TextInput>(null);
@@ -63,7 +65,7 @@ function ReduxScreen({
         scrollTo(dispatchActionGroup);
       }}
     >
-      <ScreenContentScrollView ref={scrollViewRef}>
+      <ScreenContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup>
           <UIGroup.ListTextInputItem
@@ -132,10 +134,7 @@ function ReduxScreen({
             value={actionStr}
             onChangeText={setActionStr}
             style={[commonStyles.devToolsMonospaced]}
-            onFocus={ScreenContentScrollView.strf(
-              scrollViewRef,
-              dispatchActionGroup,
-            )}
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
@@ -182,7 +181,7 @@ function ReduxScreen({
             )}
           </UIGroup>
         )}
-      </ScreenContentScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

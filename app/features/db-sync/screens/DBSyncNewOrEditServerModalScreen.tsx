@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
+import useAutoFocus from '@app/hooks/useAutoFocus';
+
 import ModalContent from '@app/components/ModalContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
 import useNewOrEditServerUI from '../hooks/useNewOrEditServerUI';
@@ -16,30 +17,25 @@ function DBSyncNewOrEditServerModalScreen({
 }: StackScreenProps<RootStackParamList, 'DBSyncNewOrEditServerModal'>) {
   const { id } = route.params;
   const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
   const afterSave = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
-  const onNameInputFocus = useCallback(
-    () => ScreenContentScrollView.st(scrollViewRef, -40),
-    [],
-  );
+
   const {
     newOrEditServerUIElement,
     hasUnsavedChanges,
     handleSave,
     handleLeave,
     nameInputRef,
-  } = useNewOrEditServerUI({ id, afterSave, onNameInputFocus });
+  } = useNewOrEditServerUI({
+    id,
+    afterSave,
+    inputProps: kiaTextInputProps,
+  });
 
-  useEffect(() => {
-    if (!id) {
-      const timer = setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [id, nameInputRef]);
+  useAutoFocus(nameInputRef, { scrollViewRef, disable: !!id });
 
   return (
     <ModalContent
@@ -53,10 +49,10 @@ function DBSyncNewOrEditServerModalScreen({
       onAction1Press={handleSave}
       backButtonLabel="Cancel"
     >
-      <ScreenContentScrollView ref={scrollViewRef}>
+      <ModalContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing />
         {newOrEditServerUIElement}
-      </ScreenContentScrollView>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

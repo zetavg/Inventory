@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -19,7 +19,6 @@ import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
 
 import ScreenContent from '@app/components/ScreenContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
 function PouchDBScreen({
@@ -90,6 +89,10 @@ function PouchDBScreen({
     }
   }, [getData]);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -105,7 +108,8 @@ function PouchDBScreen({
       action2MaterialIconName="cog"
       onAction2Press={() => {}}
     >
-      <ScreenContentScrollView
+      <ScreenContent.ScrollView
+        ref={scrollViewRef}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -177,6 +181,7 @@ function PouchDBScreen({
                 </UIGroup.ListTextInputItem.Button>
               </>
             }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
@@ -205,68 +210,11 @@ function PouchDBScreen({
                 ))}
               </>
             }
+            {...kiaTextInputProps}
           />
         </UIGroup>
-
-        {/*<DataTable>
-          <DataTable.Header>
-            <DataTable.Title>ID</DataTable.Title>
-            <DataTable.Title>Value</DataTable.Title>
-          </DataTable.Header>
-
-          <View>
-            {data &&
-              data.rows.map(d => (
-                <DataTable.Row
-                  key={d.id}
-                  onPress={() => navigation.push('PouchDBItem', { id: d.id })}
-                >
-                  <DataTable.Cell>{d.id}</DataTable.Cell>
-                  <DataTable.Cell>{JSON.stringify(d.doc)}</DataTable.Cell>
-                </DataTable.Row>
-              ))}
-
-            <TableLoadingOverlay show={loading} />
-          </View>
-
-          <DataTable.Pagination
-            page={page}
-            numberOfPages={numberOfPages}
-            onPageChange={p => setPage(p)}
-            label={`${skip + 1}-${Math.min(
-              skip + perPage,
-              totalRows,
-            )} of ${totalRows}`}
-            selectPageDropdownLabel="Per page:"
-            showFastPaginationControls
-            numberOfItemsPerPageList={numberOfItemsPerPageList}
-            numberOfItemsPerPage={perPage}
-            onItemsPerPageChange={setPerPage}
-          />
-        </DataTable>*/}
-      </ScreenContentScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
-  );
-}
-
-function TableLoadingOverlay({ show }: { show: boolean }) {
-  const { backgroundColor } = useColors();
-
-  return (
-    <View
-      style={[commonStyles.overlay, commonStyles.centerChildren]}
-      pointerEvents={show ? 'auto' : 'none'}
-    >
-      <View
-        style={[
-          commonStyles.overlay,
-          commonStyles.opacity05,
-          show && { backgroundColor },
-        ]}
-        pointerEvents={show ? 'auto' : 'none'}
-      />
-      <ActivityIndicator animating={show} hidesWhenStopped size="large" />
-    </View>
   );
 }
 

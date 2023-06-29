@@ -1,18 +1,23 @@
 import React from 'react';
-import { View, Platform, StatusBar } from 'react-native';
+import { Platform, StatusBar, View } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import { Appbar } from 'react-native-paper';
 // import { BlurView } from '@react-native-community/blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { StackScreenProps } from '@react-navigation/stack';
+
+import commonStyles from '@app/utils/commonStyles';
+import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
+
 import type { RootStackParamList } from '@app/navigation/Navigation';
+
 // import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useColors from '@app/hooks/useColors';
 import useModalClosingHandler, {
   defaultConfirmCloseFn,
 } from '@app/hooks/useModalClosingHandler';
-import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
-import commonStyles from '@app/utils/commonStyles';
+
 import AppBarIOS from './AppBarIOS';
+import ModalContentScrollView from './ModalContentScrollView';
 
 type Props = {
   navigation: StackScreenProps<RootStackParamList>['navigation'];
@@ -195,5 +200,7 @@ function ModalContent({
     </View>
   );
 }
+
+ModalContent.ScrollView = ModalContentScrollView;
 
 export default ModalContent;

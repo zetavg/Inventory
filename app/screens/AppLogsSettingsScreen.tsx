@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { RefreshControl } from 'react-native';
+import { RefreshControl, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
@@ -16,7 +16,6 @@ const logger = appLogger.for({ module: 'AppLogs-UI' });
 import type { StackParamList } from '@app/navigation/MainStack';
 
 import ScreenContent from '@app/components/ScreenContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
 const LOGS_TO_KEEP_MESSAGE =
@@ -74,6 +73,10 @@ function AppLogsSettingsScreen({
 
   useFocusEffect(refresh);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -86,7 +89,8 @@ function AppLogsSettingsScreen({
       //   navigation.push('LoggerLog');
       // }}
     >
-      <ScreenContentScrollView
+      <ScreenContent.ScrollView
+        ref={scrollViewRef}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
@@ -142,6 +146,7 @@ function AppLogsSettingsScreen({
                 ))}
               </>
             }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
@@ -152,7 +157,7 @@ function AppLogsSettingsScreen({
             // disabled={parseInt(logsToKeepState, 10) === getLogsToKeep()}
           />
         </UIGroup>
-      </ScreenContentScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

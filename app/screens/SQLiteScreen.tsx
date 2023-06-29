@@ -154,15 +154,12 @@ function SQLiteScreen({
   }, [database]);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
   return (
     <ScreenContent navigation={navigation} title="SQLite">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScreenContent.ScrollView ref={scrollViewRef}>
         <UIGroup style={commonStyles.mt16}>
           <UIGroup.ListTextInputItem
             label="Database"
@@ -180,6 +177,7 @@ function SQLiteScreen({
                 Select
               </UIGroup.ListTextInputItem.Button>
             }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
@@ -198,6 +196,7 @@ function SQLiteScreen({
                 {({ iconProps }) => <Icon {...iconProps} name="list" />}
               </UIGroup.ListTextInputItem.Button>
             }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
@@ -265,7 +264,7 @@ function SQLiteScreen({
             />
           )}
         </UIGroup>
-      </ScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

@@ -7,8 +7,8 @@ import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFi
 
 type Props = React.ComponentProps<typeof ScrollView>;
 
-function ScreenContentScrollView(
-  props: Props,
+function ModalContentScrollView(
+  { children, ...props }: Props,
   ref: React.ForwardedRef<ScrollView>,
 ) {
   const selfRef = useRef<ScrollView>(null);
@@ -25,32 +25,20 @@ function ScreenContentScrollView(
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets={focused}
       {...props}
-    />
+    >
+      {children}
+    </ScrollView>
   );
 }
 
-const ScreenContentScrollViewWithForwardRef = forwardRef(
-  ScreenContentScrollView,
-);
+const ModalContentScrollViewWithForwardRef = forwardRef(ModalContentScrollView);
 
 const utils = {
-  st: () => {
-    console.warn('`st` is deprecated, use kiaTextInputProps instead.');
-  },
-  stf: () => {
-    console.warn('`stf` is deprecated, use kiaTextInputProps instead.');
-  },
-  str: () => {
-    console.warn('`str` is deprecated, use kiaTextInputProps instead.');
-  },
-  strf: () => {
-    console.warn('`strf` is deprecated, use kiaTextInputProps instead.');
-  },
   useAutoAdjustKeyboardInsetsFix:
     useScrollViewAutomaticallyAdjustKeyboardInsetsFix,
 };
 
-const ScreenContentScrollViewComponent: typeof ScreenContentScrollViewWithForwardRef &
-  typeof utils = Object.assign(ScreenContentScrollViewWithForwardRef, utils);
+const ModalContentScrollViewComponent: typeof ModalContentScrollViewWithForwardRef &
+  typeof utils = Object.assign(ModalContentScrollViewWithForwardRef, utils);
 
-export default ScreenContentScrollViewComponent;
+export default ModalContentScrollViewComponent;

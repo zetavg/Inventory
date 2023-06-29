@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
@@ -14,7 +14,6 @@ import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import useColors from '@app/hooks/useColors';
 
 import ScreenContent from '@app/components/ScreenContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 import UIGroup from '@app/components/UIGroup';
 
 function AppLogsScreen({
@@ -117,6 +116,10 @@ function AppLogsScreen({
 
   const logsDBErrors = getLogsDBErrors();
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -173,7 +176,8 @@ function AppLogsScreen({
         navigation.push('LoggerLog');
       }}
     >
-      <ScreenContentScrollView
+      <ScreenContent.ScrollView
+        ref={scrollViewRef}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
@@ -316,6 +320,7 @@ function AppLogsScreen({
                 </UIGroup.ListTextInputItem.Button>
               </>
             }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
@@ -344,9 +349,10 @@ function AppLogsScreen({
                 ))}
               </>
             }
+            {...kiaTextInputProps}
           />
         </UIGroup>
-      </ScreenContentScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

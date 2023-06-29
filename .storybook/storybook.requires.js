@@ -28,6 +28,7 @@ const getStories = () => {
     require("../app/components/ElevatedButton/ElevatedButton.stories.tsx"),
     require("../app/components/Icon/Icon.stories.tsx"),
     require("../app/components/InsetGroup/InsetGroup.stories.tsx"),
+    require("../app/components/ModalContentScrollView/ModalContentScrollView.stories.tsx"),
     require("../app/components/NeomorphShadow/NeomorphShadow.stories.tsx"),
     require("../app/components/RubberButton/RubberButton.stories.tsx"),
     require("../app/components/ScreenContentScrollView/ScreenContentScrollView.stories.tsx"),

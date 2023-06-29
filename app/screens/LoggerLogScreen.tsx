@@ -16,7 +16,8 @@ function LoggerLogScreen({
   route,
 }: StackScreenProps<StackParamList, 'LoggerLog'>) {
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
   const [message, setMessage] = useState('The message.');
   const [argsStr, setArgsStr] = useState(
@@ -45,7 +46,7 @@ function LoggerLogScreen({
 
   return (
     <ScreenContent navigation={navigation} route={route} title="Logger">
-      <ScrollView
+      <ScreenContent.ScrollView
         ref={scrollViewRef}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
@@ -59,6 +60,33 @@ function LoggerLogScreen({
             placeholder="Enter message..."
             value={message}
             onChangeText={setMessage}
+            rightElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={() => {
+                  setMessage(msg => {
+                    const regex = /([0-9]+)(\.?)$/m;
+                    const match = msg.match(regex);
+                    if (match) {
+                      return msg.replace(
+                        regex,
+                        `${parseInt(match[1], 10) + 1}${match[2]}`,
+                      );
+                    }
+
+                    const regex2 = /(\.?)$/m;
+                    const match2 = msg.match(regex2);
+                    if (match2) {
+                      return msg.replace(regex2, ` 0${match2[1]}`);
+                    }
+
+                    return msg;
+                  });
+                }}
+              >
+                Bump Message
+              </UIGroup.ListTextInputItem.Button>
+            }
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
@@ -70,31 +98,7 @@ function LoggerLogScreen({
             placeholder="{}"
             value={argsStr}
             onChangeText={setArgsStr}
-          />
-          <UIGroup.ListItemSeparator />
-          <UIGroup.ListItem
-            button
-            label="Bump Message"
-            onPress={() => {
-              setMessage(msg => {
-                const regex = /([0-9]+)(\.?)$/m;
-                const match = msg.match(regex);
-                if (match) {
-                  return msg.replace(
-                    regex,
-                    `${parseInt(match[1], 10) + 1}${match[2]}`,
-                  );
-                }
-
-                const regex2 = /(\.?)$/m;
-                const match2 = msg.match(regex2);
-                if (match2) {
-                  return msg.replace(regex2, ` 0${match2[1]}`);
-                }
-
-                return msg;
-              });
-            }}
+            {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
@@ -145,7 +149,7 @@ function LoggerLogScreen({
             }}
           />
         </UIGroup>
-      </ScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }
