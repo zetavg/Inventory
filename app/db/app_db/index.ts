@@ -49,7 +49,7 @@ export async function getCurrentAppDB() {
     logger.error(e);
     throw e;
   }
-  logger.debug(`Initializing database ${dbName}...`);
+  logger.debug(`Loading database ${dbName}...`);
 
   let database;
   let dbOk = false;
@@ -85,7 +85,7 @@ export async function getCurrentAppDB() {
   }
 
   store.dispatch(actions.cache.set(['_db', database]));
-  logger.debug(`Database ${dbName} initialized.`);
+  logger.debug(`Database ${dbName} loaded.`);
 
   return database;
 }
