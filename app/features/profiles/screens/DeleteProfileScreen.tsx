@@ -1,16 +1,13 @@
-import React, { useCallback, useRef } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Alert } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import cs from '@app/utils/commonStyles';
-
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
-
 import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
 
 import beforeDeleteProfile from '../beforeDeleteProfile';
 import ProfileSelector from '../components/ProfileSelector';
@@ -25,9 +22,6 @@ function DeleteProfileScreen({
   const profileUuidAndNames = useAppSelector(
     selectors.profiles.profileUuidAndNames,
   );
-
-  const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
 
   const handleDeleteProfile = useCallback(
     (profileUuid: string) => {
@@ -78,18 +72,13 @@ function DeleteProfileScreen({
 
   return (
     <ModalContent navigation={navigation} title="Delete Profile">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <View style={cs.mt16} />
+      <ModalContent.ScrollView>
+        <UIGroup.FirstGroupSpacing />
         <ProfileSelector
           label="Select a profile to delete"
           onSelect={({ uuid }) => handleDeleteProfile(uuid)}
         />
-      </ScrollView>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

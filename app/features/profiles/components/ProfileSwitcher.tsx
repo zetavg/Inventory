@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import InsetGroup from '@app/components/InsetGroup';
+import UIGroup from '@app/components/UIGroup';
 
 function ProfileSwitcher() {
   const dispatch = useAppDispatch();
@@ -48,20 +48,20 @@ function ProfileSwitcher() {
   );
 
   return (
-    <InsetGroup>
+    <UIGroup>
       {Object.entries(profileUuidAndNames)
         .sort(([, a], [, b]) => a.localeCompare(b))
         .flatMap(([profileUuid, profileName]) => [
-          <InsetGroup.Item
+          <UIGroup.ListItem
             key={profileUuid}
             label={profileName}
             selected={currentProfileUuid === profileUuid}
             onPress={() => handleSwitchProfile(profileUuid)}
           />,
-          <InsetGroup.ItemSeparator key={`s-${profileUuid}`} />,
+          <UIGroup.ListItemSeparator key={`s-${profileUuid}`} />,
         ])
         .slice(0, -1)}
-    </InsetGroup>
+    </UIGroup>
   );
 }
 

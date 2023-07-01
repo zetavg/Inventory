@@ -1,55 +1,42 @@
-import React, { useRef } from 'react';
-import { ScrollView, View } from 'react-native';
+import React from 'react';
 import type { StackScreenProps } from '@react-navigation/stack';
-
-import cs from '@app/utils/commonStyles';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
-
-import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
 
 import ProfileSwitcher from '../components/ProfileSwitcher';
 
 function SwitchProfileScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'SwitchProfile'>) {
-  const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
-
   return (
     <ModalContent navigation={navigation} title="Profiles">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <View style={cs.mt16} />
+      <ModalContent.ScrollView>
+        <UIGroup.FirstGroupSpacing />
         <ProfileSwitcher />
-        <InsetGroup>
-          <InsetGroup.Item
+        <UIGroup>
+          <UIGroup.ListItem
             button
             label="New Profile..."
             onPress={() => navigation.push('CreateOrUpdateProfile', {})}
           />
-        </InsetGroup>
-        <InsetGroup>
-          <InsetGroup.Item
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             button
             label="Edit Profile..."
             onPress={() => navigation.push('SelectProfileToEdit')}
           />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             button
             label="Delete Profile..."
             onPress={() => navigation.push('DeleteProfile')}
           />
-        </InsetGroup>
-      </ScrollView>
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

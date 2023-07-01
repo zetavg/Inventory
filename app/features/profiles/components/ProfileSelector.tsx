@@ -2,7 +2,7 @@ import React from 'react';
 
 import { selectors, useAppSelector } from '@app/redux';
 
-import InsetGroup from '@app/components/InsetGroup';
+import UIGroup from '@app/components/UIGroup';
 
 type Props = {
   label?: string;
@@ -15,20 +15,20 @@ function ProfileSelector({ label, onSelect }: Props) {
   );
 
   return (
-    <InsetGroup label={label}>
+    <UIGroup header={label}>
       {Object.entries(profileUuidAndNames)
         .filter(([uuid, name]) => [uuid, name || ''])
         .sort(([, a], [, b]) => a.localeCompare(b))
         .flatMap(([profileUuid, profileName]) => [
-          <InsetGroup.Item
+          <UIGroup.ListItem
             key={profileUuid}
             label={profileName}
             onPress={() => onSelect({ uuid: profileUuid, name: profileName })}
           />,
-          <InsetGroup.ItemSeparator key={`s-${profileUuid}`} />,
+          <UIGroup.ListItemSeparator key={`s-${profileUuid}`} />,
         ])
         .slice(0, -1)}
-    </InsetGroup>
+    </UIGroup>
   );
 }
 

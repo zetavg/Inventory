@@ -1,19 +1,17 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView, TextInput } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import cs from '@app/utils/commonStyles';
 import titleCase from '@app/utils/titleCase';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+import useAutoFocus from '@app/hooks/useAutoFocus';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
+import UIGroup from '@app/components/UIGroup';
 
 import { COLORS, ProfileColor } from '../slice';
 
@@ -21,19 +19,8 @@ function CreateOrUpdateProfileScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'CreateOrUpdateProfile'>) {
-  const scrollViewRef = useRef<ScrollView>(null);
   const { uuid } = route.params;
   const profiles = useAppSelector(selectors.profiles.profiles);
-
-  useScrollViewContentInsetFix(scrollViewRef);
-
-  useLayoutEffect(() => {
-    const timer = setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: -80, animated: false });
-    }, 10);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const dispatch = useAppDispatch();
   // const profilesState = useAppSelector(selectProfiles);
@@ -69,7 +56,11 @@ function CreateOrUpdateProfileScreen({
     navigation.goBack();
   }, [color, dispatch, name, navigation, uuid]);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
   const nameInputRef = useRef<TextInput>(null);
+  useAutoFocus(nameInputRef, { scrollViewRef, disable: !!uuid });
 
   return (
     <ModalContent
@@ -82,44 +73,33 @@ function CreateOrUpdateProfileScreen({
         isNameValid ? (uuid ? handleUpdate : handleCreate) : undefined
       }
     >
-      <ScreenContentScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <InsetGroup style={cs.mt16} footerLabel={nameErrorMessage}>
-          <InsetGroup.Item
-            vertical2
+      <ModalContent.ScrollView ref={scrollViewRef}>
+        <UIGroup.FirstGroupSpacing />
+        <UIGroup footer={nameErrorMessage}>
+          <UIGroup.ListTextInputItem
             label="Name"
-            detail={
-              <InsetGroup.TextInput
-                ref={nameInputRef}
-                value={name}
-                onChangeText={setName}
-                placeholder="Profile"
-                autoFocus={!uuid}
-                onFocus={ScreenContentScrollView.strf(
-                  scrollViewRef,
-                  nameInputRef,
-                )}
-              />
-            }
+            ref={nameInputRef}
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+            placeholder="Profile"
+            returnKeyType="done"
+            {...kiaTextInputProps}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Color">
+        <UIGroup header="Color">
           {COLORS.flatMap(c => [
-            <InsetGroup.Item
+            <UIGroup.ListItem
               key={c}
               label={titleCase(c)}
               selected={color === c}
               onPress={() => setColor(c)}
             />,
-            <InsetGroup.ItemSeparator key={`s-${c}`} />,
+            <UIGroup.ListItemSeparator key={`s-${c}`} />,
           ]).slice(0, -1)}
-        </InsetGroup>
-      </ScreenContentScrollView>
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

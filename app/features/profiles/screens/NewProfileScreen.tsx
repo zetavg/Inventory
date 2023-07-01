@@ -1,5 +1,5 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, TextInput } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
@@ -9,36 +9,17 @@ import titleCase from '@app/utils/titleCase';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
+import useAutoFocus from '@app/hooks/useAutoFocus';
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
 
 import { COLORS, ProfileColor } from '../slice';
 
-function NewProfileScreen({
+function OLD_NewProfileScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'NewProfile'>) {
-  const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
-
-  useLayoutEffect(() => {
-    const timer = setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: -80, animated: false });
-    }, 10);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleNameInputFocus = useCallback(() => {
-    scrollViewRef.current?.scrollTo({ y: -80, animated: true });
-    for (let i = 1; i < 120; i++) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollTo({ y: -80, animated: true });
-      }, i * 10);
-    }
-  }, []);
-
   const dispatch = useAppDispatch();
   // const profilesState = useAppSelector(selectProfiles);
 
@@ -64,51 +45,48 @@ function NewProfileScreen({
     navigation.goBack();
   }, [color, dispatch, name, navigation]);
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
+  const nameInputRef = useRef<TextInput>(null);
+  useAutoFocus(nameInputRef, { scrollViewRef });
+
   return (
     <ModalContent
       navigation={navigation}
-      title="New Profile"
+      title="New Profile 22"
       action1Label="Create"
       action1MaterialIconName="check"
       action1Variant="strong"
       onAction1Press={isNameValid ? handleCreate : undefined}
     >
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
-        <InsetGroup style={cs.mt16} footerLabel={nameErrorMessage}>
-          <InsetGroup.Item
-            vertical2
+      <ModalContent.ScrollView ref={scrollViewRef}>
+        <UIGroup.FirstGroupSpacing />
+        <UIGroup footer={nameErrorMessage}>
+          <UIGroup.ListTextInputItem
             label="Name"
-            detail={
-              <InsetGroup.TextInput
-                value={name}
-                onChangeText={setName}
-                placeholder="Profile"
-                autoFocus
-                onFocus={handleNameInputFocus}
-              />
-            }
+            horizontalLabel
+            value={name}
+            onChangeText={setName}
+            placeholder="Profile"
+            {...kiaTextInputProps}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup label="Color">
+        <UIGroup header="Color">
           {COLORS.flatMap(c => [
-            <InsetGroup.Item
+            <UIGroup.ListItem
               key={c}
               label={titleCase(c)}
               selected={color === c}
               onPress={() => setColor(c)}
             />,
-            <InsetGroup.ItemSeparator key={`s-${c}`} />,
+            <UIGroup.ListItemSeparator key={`s-${c}`} />,
           ]).slice(0, -1)}
-        </InsetGroup>
-      </ScrollView>
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }
 
-export default NewProfileScreen;
+export default OLD_NewProfileScreen;
