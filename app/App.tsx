@@ -16,6 +16,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '@app/redux';
+import DBSyncManager from '@app/features/db-sync/DBSyncManager';
 
 import { useDB } from '@app/db';
 
@@ -33,7 +34,6 @@ import StorybookUIRoot, {
   SetStorybookModeFunctionContext,
 } from '@app/StorybookUIRoot';
 
-// import DBSyncManager from './DBSyncManager';
 import SplashScreen from './SplashScreen';
 
 function App() {
@@ -87,7 +87,7 @@ function App() {
                       <AppReadyGate>
                         <>
                           <Navigation />
-                          {/* <DBSyncManager /> */}
+                          <DBSyncManager />
                         </>
                       </AppReadyGate>
                     </PaperProvider>

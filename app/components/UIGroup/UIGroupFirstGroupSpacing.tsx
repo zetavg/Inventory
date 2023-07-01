@@ -21,7 +21,7 @@ export default function UIGroupFirstGroupSpacing(
 
 const styles = StyleSheet.create({
   view: {
-    height: 28,
+    height: 16,
   },
   iosLargeTitleView: {
     height: 8,

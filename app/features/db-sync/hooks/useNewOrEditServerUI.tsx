@@ -216,6 +216,7 @@ export default function useNewOrEditServerUI({
           placeholder="My Remote Server"
           value={state.name}
           onChangeText={text => setState({ ...state, name: text })}
+          autoCapitalize="words"
           returnKeyType="done"
           {...inputProps}
         />

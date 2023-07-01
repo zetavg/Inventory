@@ -73,7 +73,16 @@ export type StackParamList = {
     title?: string;
     details: string;
   };
-  AppLogs: undefined;
+  AppLogs?: {
+    title?: string;
+    headerLargeTitle?: boolean;
+    showOptions?: boolean;
+    filter?: {
+      module?: string;
+      function?: string;
+      user?: string;
+    };
+  };
   AppLogsSettings: undefined;
   AppLogDetail: { log: Log };
   // PouchDBSync: undefined;

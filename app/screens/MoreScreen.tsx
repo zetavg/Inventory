@@ -81,6 +81,8 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
     }
   };
 
+  const overallDBSyncStatus = useAppSelector(selectors.dbSync.overallStatus);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -103,7 +105,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           <TableView.Item
             arrow
             label="Data Sync"
-            // detail={overallDBSyncStatus}
+            detail={overallDBSyncStatus}
             icon="sync"
             iosImage="ios-menu.sync.png"
             onPress={() => navigation.push('DBSync')}

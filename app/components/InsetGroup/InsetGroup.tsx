@@ -221,7 +221,12 @@ type InsetGroupItemProps = {
   labelRightElement?: JSX.Element;
   label?: string;
   labelTextStyle?: React.ComponentProps<typeof Text>['style'];
-  detail?: string | React.ReactNode;
+  detail?:
+    | string
+    | React.ReactNode
+    | ((context: {
+        textProps: React.ComponentProps<typeof Text>;
+      }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   detailAsText?: boolean;
   compactLabel?: boolean;
@@ -353,9 +358,9 @@ function InsetGroupItem({
                   : styles.insetGroupItemDetail
               }
             >
-              {isTextContent(detail) || detailAsText ? (
-                <Text
-                  style={[
+              {(() => {
+                const textProps: React.ComponentProps<typeof Text> = {
+                  style: [
                     {
                       fontSize: vertical ? FONT_SIZE * 0.8 : FONT_SIZE,
                       color: vertical2
@@ -363,16 +368,21 @@ function InsetGroupItem({
                         : contentSecondaryTextColor,
                     },
                     detailTextStyle,
-                  ]}
-                  numberOfLines={vertical2 ? undefined : 1}
-                  selectable={!onLongPress}
-                  adjustsFontSizeToFit={adjustsDetailFontSizeToFit}
-                >
-                  {detail}
-                </Text>
-              ) : (
-                detail
-              )}
+                  ],
+                  numberOfLines: vertical2 ? undefined : 1,
+                  selectable: !onLongPress,
+                  adjustsFontSizeToFit: adjustsDetailFontSizeToFit,
+                };
+
+                if (typeof detail === 'function') {
+                  return detail({ textProps });
+                }
+                if (isTextContent(detail) || detailAsText) {
+                  return <Text {...textProps}>{detail}</Text>;
+                }
+
+                return detail;
+              })()}
             </View>
             {arrow && Platform.OS === 'ios' && (
               <View

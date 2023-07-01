@@ -26,6 +26,9 @@ function DBSyncScreen({
   const rootNavigation = useRootNavigation();
   const dispatch = useAppDispatch();
   const dbSyncEnabled = useAppSelector(selectors.dbSync.dbSyncEnabled);
+  const currentProfileUuid = useAppSelector(
+    selectors.profiles.currentProfileUuid,
+  );
 
   return (
     <ScreenContent navigation={navigation} title="Data Sync">
@@ -54,6 +57,20 @@ function DBSyncScreen({
             button
             onPress={() =>
               rootNavigation?.push('DBSyncNewOrEditServerModal', {})
+            }
+          />
+        </UIGroup>
+        <UIGroup header="Advanced">
+          <UIGroup.ListItem
+            label="View Logs"
+            navigable
+            onPress={() =>
+              navigation?.push('AppLogs', {
+                title: 'DB Sync Logs',
+                headerLargeTitle: false,
+                showOptions: false,
+                filter: { module: 'DBSyncManager', user: currentProfileUuid },
+              })
             }
           />
         </UIGroup>

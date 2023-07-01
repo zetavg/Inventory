@@ -1,5 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
@@ -14,20 +26,34 @@ import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import useColors from '@app/hooks/useColors';
 
 import ScreenContent from '@app/components/ScreenContent';
+import TimeAgo from '@app/components/TimeAgo';
 import UIGroup from '@app/components/UIGroup';
 
 function AppLogsScreen({
   navigation,
+  route,
 }: StackScreenProps<StackParamList, 'AppLogs'>) {
   const rootNavigation = useRootNavigation();
+  const {
+    filter,
+    title = 'Logs',
+    headerLargeTitle = true,
+    showOptions = true,
+  } = route.params || {};
 
   const numberOfItemsPerPageList = [20, 50, 100, 500];
   const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
   const [filterLevels, setFilterLevels] = useState<ReadonlyArray<LogLevel>>([]);
-  const [filterModule, setFilterModule] = useState<string | undefined>();
-  const [filterFunction, setFilterFunction] = useState<string | undefined>();
-  const [filterUser, setFilterUser] = useState<string | undefined>();
+  const [filterModule, setFilterModule] = useState<string | undefined>(
+    filter?.module,
+  );
+  const [filterFunction, setFilterFunction] = useState<string | undefined>(
+    filter?.function,
+  );
+  const [filterUser, setFilterUser] = useState<string | undefined>(
+    filter?.user,
+  );
 
   const [searchText, setSearchText] = useState('');
 
@@ -120,61 +146,81 @@ function AppLogsScreen({
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
+  const screenContentActionsProps = useMemo(
+    () =>
+      showOptions
+        ? {
+            action1Label: 'Filter',
+            action1SFSymbolName: 'line.3.horizontal.decrease.circle',
+            action1MaterialIconName: 'filter',
+            onAction1Press: () => {
+              rootNavigation?.push('AppLogsFilter', {
+                initialState: {
+                  levels: filterLevels.length === 0 ? LOG_LEVELS : filterLevels,
+                  module: filterModule,
+                  function: filterFunction,
+                  user: filterUser,
+                },
+                selections: {
+                  module: logs
+                    ?.map(l => l.module)
+                    .filter((s): s is string => !!s)
+                    .filter((v, i, a) => a.indexOf(v) === i),
+                  function: logs
+                    ?.map(l => l.function)
+                    .filter((s): s is string => !!s)
+                    .filter((v, i, a) => a.indexOf(v) === i),
+                  user: logs
+                    ?.map(l => l.user)
+                    .filter((s): s is string => !!s)
+                    .filter((v, i, a) => a.indexOf(v) === i),
+                },
+                callback: ({ levels, module, function: fn, user }) => {
+                  if (levels.length >= LOG_LEVELS.length) {
+                    setFilterLevels([]);
+                  } else {
+                    setFilterLevels(levels);
+                  }
+                  setFilterModule(module);
+                  setFilterFunction(fn);
+                  setFilterUser(user);
+                },
+              });
+            },
+            action2Label: 'Settings',
+            action2SFSymbolName: 'gearshape.fill',
+            action2MaterialIconName: 'cog',
+            onAction2Press: () => {
+              navigation.push('AppLogsSettings');
+            },
+            action3Label: 'Log (Test)',
+            action3SFSymbolName: 'text.badge.plus',
+            action3MaterialIconName: 'playlist-plus',
+            onAction3Press: () => {
+              navigation.push('LoggerLog');
+            },
+          }
+        : {},
+    [
+      filterFunction,
+      filterLevels,
+      filterModule,
+      filterUser,
+      logs,
+      navigation,
+      rootNavigation,
+      showOptions,
+    ],
+  );
+
   return (
     <ScreenContent
       navigation={navigation}
-      title="Logs"
+      title={title}
+      headerLargeTitle={headerLargeTitle}
       showSearch
       onSearchChangeText={setSearchText}
-      action1Label="Filter"
-      action1SFSymbolName="line.3.horizontal.decrease.circle"
-      action1MaterialIconName="filter"
-      onAction1Press={() => {
-        rootNavigation?.push('AppLogsFilter', {
-          initialState: {
-            levels: filterLevels.length === 0 ? LOG_LEVELS : filterLevels,
-            module: filterModule,
-            function: filterFunction,
-            user: filterUser,
-          },
-          selections: {
-            module: logs
-              ?.map(l => l.module)
-              .filter((s): s is string => !!s)
-              .filter((v, i, a) => a.indexOf(v) === i),
-            function: logs
-              ?.map(l => l.function)
-              .filter((s): s is string => !!s)
-              .filter((v, i, a) => a.indexOf(v) === i),
-            user: logs
-              ?.map(l => l.user)
-              .filter((s): s is string => !!s)
-              .filter((v, i, a) => a.indexOf(v) === i),
-          },
-          callback: ({ levels, module, function: fn, user }) => {
-            if (levels.length >= LOG_LEVELS.length) {
-              setFilterLevels([]);
-            } else {
-              setFilterLevels(levels);
-            }
-            setFilterModule(module);
-            setFilterFunction(fn);
-            setFilterUser(user);
-          },
-        });
-      }}
-      action2Label="Settings"
-      action2SFSymbolName="gearshape.fill"
-      action2MaterialIconName="cog"
-      onAction2Press={() => {
-        navigation.push('AppLogsSettings');
-      }}
-      action3Label="Log (Test)"
-      action3SFSymbolName="text.badge.plus"
-      action3MaterialIconName="playlist-plus"
-      onAction3Press={() => {
-        navigation.push('LoggerLog');
-      }}
+      {...screenContentActionsProps}
     >
       <ScreenContent.ScrollView
         ref={scrollViewRef}
@@ -182,7 +228,7 @@ function AppLogsScreen({
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup.FirstGroupSpacing />
         {(() => {
           if (
             logsDBErrors &&
@@ -216,6 +262,7 @@ function AppLogsScreen({
           }
         })()}
         {(() => {
+          if (!showOptions) return null;
           if (
             filterLevels.length > 0 ||
             filterModule ||
@@ -257,15 +304,21 @@ function AppLogsScreen({
                 <UIGroup.ListItem
                   key={i}
                   label={log.message}
-                  detail={[
-                    (log.module || log.function) &&
-                      `[${[log.module, log.function]
-                        .filter(s => s)
-                        .join('/')}]`,
-                    log.timestamp && timeAgo.format(log.timestamp),
-                  ]
-                    .filter(d => d)
-                    .join(' ')}
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  detail={({ textProps }) => (
+                    <Text {...textProps}>
+                      {[
+                        (log.module || log.function) &&
+                          `[${[log.module, log.function]
+                            .filter(s => s)
+                            .join('/')}]`,
+                        log.timestamp && <TimeAgo date={log.timestamp} />,
+                      ]
+                        .filter(d => d)
+                        .flatMap(e => [e, ' '])
+                        .slice(0, -1)}
+                    </Text>
+                  )}
                   verticalArrangedIOS
                   navigable
                   labelTextStyle={styles.smallText}

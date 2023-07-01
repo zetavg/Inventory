@@ -7,7 +7,7 @@ import { getCurrentDbName } from '@app/features/profiles';
 import { getPouchDBDatabase } from '../pouchdb';
 
 // TODO
-export type AppDatabase = any;
+export type AppDatabase = PouchDB.Database;
 
 /**
  * Get an application database. This will return a PouchDB database with index and types.

@@ -6,6 +6,8 @@ import {
   Switch,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 
 import UIText from '@app/components/Text';
@@ -183,7 +185,7 @@ export function WithListItems() {
         />
       </UIGroup>
 
-      <UIGroup header="Detail Component">
+      <UIGroup header="Component as Detail">
         <UIGroup.ListItem
           label={`With Switch (${switchValue ? 'On' : 'Off'})`}
           detail={
@@ -192,6 +194,18 @@ export function WithListItems() {
               onChange={() => setSwitchValue(v => !v)}
             />
           }
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          label="Using renderer function"
+          // eslint-disable-next-line react/no-unstable-nested-components
+          detail={({ textProps }) => (
+            <TouchableWithoutFeedback onPress={() => Alert.alert('Touched!')}>
+              <View>
+                <Text {...textProps}>Touch me!</Text>
+              </View>
+            </TouchableWithoutFeedback>
+          )}
         />
       </UIGroup>
 

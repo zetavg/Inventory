@@ -39,7 +39,12 @@ export type UIGroupFirstGroupSpacingProps = {
 export type ListItemProps = {
   label?: string;
   labelTextStyle?: React.ComponentProps<typeof Text>['style'];
-  detail?: string | React.ReactNode;
+  detail?:
+    | string
+    | React.ReactNode
+    | ((context: {
+        textProps: React.ComponentProps<typeof Text>;
+      }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   verticalArrangedIOS?: boolean;
   selected?: boolean;

@@ -18,6 +18,8 @@ export async function getPouchDBDatabase<Content extends {} = {}>(
   return db;
 }
 
+export { PouchDB };
+
 // export async function deletePouchDBDatabase(name: string) {
 //   // Since the database is backed by sqlite, we delete the sqlite file directly.
 //   const results = await deleteSqliteDb(name);
