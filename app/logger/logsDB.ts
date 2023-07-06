@@ -66,8 +66,10 @@ function setupLogsDB() {
     for (const sql of CREATE_TABLE_SQLS) {
       try {
         QuickSQLite.execute(LOG_DB_NAME, sql);
-      } catch (e: any) {
-        e.message += `, SQL query:\n${sql}`;
+      } catch (e) {
+        if (e instanceof Error) {
+          e.message += `, SQL query:\n${sql}`;
+        }
         logsDBErrors.push(e);
         console.error(`[LogDB]: ${e}`, e);
         return;
@@ -183,35 +185,51 @@ export async function insertLog({
   stack?: string;
   timestamp?: number;
 }) {
+  let query = '';
+  let params = [];
   try {
+    query = `
+      INSERT INTO "${LOG_DB_TABLE_NAME}" (
+        level, user, module, function, message, details, stack, timestamp
+      )
+      VALUES(
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?
+      );
+    `;
+    params = [
+      level || '',
+      user || '',
+      module || '',
+      fn || '',
+      message || '',
+      details || '',
+      stack || '',
+      timestamp || 0,
+    ];
     const { insertId } = await QuickSQLite.executeAsync(
       LOG_DB_NAME,
-      `
-        INSERT INTO "${LOG_DB_TABLE_NAME}" (
-          level, user, module, function, message, details, stack, timestamp
-        )
-        VALUES(
-          '${level || ''}',
-          '${user || ''}',
-          '${module || ''}',
-          '${fn || ''}',
-          '${message || ''}',
-          '${details || ''}',
-          '${stack || ''}',
-          ${timestamp || 0}
-        );
-      `,
+      query,
+      params,
     );
     if (insertId) {
       const deleteBefore = insertId - getLogsToKeep();
+      query = `DELETE FROM "${LOG_DB_TABLE_NAME}" WHERE id < ?;`;
+      params = [deleteBefore];
       if (deleteBefore > 0) {
-        await QuickSQLite.executeAsync(
-          LOG_DB_NAME,
-          `DELETE FROM "${LOG_DB_TABLE_NAME}" WHERE id < ${deleteBefore};`,
-        );
+        await QuickSQLite.executeAsync(LOG_DB_NAME, query, params);
       }
     }
   } catch (e) {
+    if (e instanceof Error) {
+      e.message += `, SQL query:\n${query}`;
+    }
     logsDBErrors.push(e);
     console.error(`[LogDB]: ${e}`, e);
   }
