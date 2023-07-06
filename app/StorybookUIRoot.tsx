@@ -7,6 +7,7 @@ import { darkTheme, lightTheme } from '@app/theme';
 
 import StorybookUIRoot from '../.storybook/Storybook';
 
+import ErrorBoundary from './components/ErrorBoundary';
 import useIsDarkMode from './hooks/useIsDarkMode';
 
 type Props = {
@@ -38,7 +39,9 @@ function WrappedStorybookUIRoot({
           { overflow: 'hidden', flex: 1 }
         }
       >
-        <StorybookUIRoot />
+        <ErrorBoundary>
+          <StorybookUIRoot />
+        </ErrorBoundary>
         {!hideAdditionalControls && (
           <SafeAreaView
             // eslint-disable-next-line react-native/no-inline-styles
