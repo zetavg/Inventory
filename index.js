@@ -10,6 +10,9 @@ import { name as appName } from './app.json';
 
 rnQuickBase64Shim();
 
+// Polyfill (used by `pouchdb-mapreduce-utils` (promisedCallback), `pouchdb-mapreduce-no-ddocs` from `pouchdb-quick-search`)
+process.nextTick = setImmediate;
+
 require('events').EventEmitter.defaultMaxListeners = 32;
 
 if (Platform.OS === 'android') {

@@ -1,29 +1,33 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  View,
-} from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Alert, Platform, RefreshControl, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { ActivityIndicator, DataTable } from 'react-native-paper';
-
-import commonStyles from '@app/utils/commonStyles';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
-import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
+import useLogger from '@app/hooks/useLogger';
+import { usePersistedState } from '@app/hooks/usePersistedState';
 
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
+export const DEFAULT_SEARCH_FIELDS = {
+  value: 1,
+  'data.value': 1,
+};
+
 function PouchDBScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'PouchDB'>) {
+  const logger = useLogger('PouchDBScreen');
   const { db } = useDB();
   const rootNavigation = useRootNavigation();
 
@@ -32,6 +36,51 @@ function PouchDBScreen({
   const [page, setPage] = React.useState<number>(1);
 
   const [searchText, setSearchText] = useState('');
+  const [searchFields, setSearchFields] = usePersistedState<
+    Record<string, number> | Array<string>
+  >('PouchDBScreen_searchFields', DEFAULT_SEARCH_FIELDS);
+  const searchOptions = useMemo(
+    () => ({
+      fields: searchFields,
+    }),
+    [searchFields],
+  );
+  const lastSearchOptions = useRef(searchOptions);
+  const resetSearchIndex = useCallback(async () => {
+    const startAt = new Date().getTime();
+    const oldSearchOptions = lastSearchOptions.current;
+    const newSearchOptions = searchOptions;
+    try {
+      await (db as any).search({
+        ...oldSearchOptions,
+        destroy: true,
+      });
+      await (db as any).search({
+        ...newSearchOptions,
+        build: true,
+      });
+      const endAt = new Date().getTime();
+      logger.info('Reset search index done.', {
+        details:
+          `Time elapsed: ${endAt - startAt}ms.\n\n` +
+          JSON.stringify({ oldSearchOptions, newSearchOptions }, null, 2),
+      });
+    } catch (e) {
+      const endAt = new Date().getTime();
+      logger.error(e, {
+        details:
+          `Time elapsed: ${endAt - startAt}ms.\n\n` +
+          JSON.stringify({ oldSearchOptions, newSearchOptions }, null, 2),
+      });
+      throw e;
+    }
+  }, [db, logger, searchOptions]);
+  useEffect(() => {
+    if (lastSearchOptions.current === searchOptions) return;
+
+    resetSearchIndex();
+    lastSearchOptions.current = searchOptions;
+  }, [resetSearchIndex, searchOptions]);
 
   const [data, setData] = useState<PouchDB.Core.AllDocsResponse<{}> | null>(
     null,
@@ -51,11 +100,11 @@ function PouchDBScreen({
       const results = await (searchText
         ? (db as any).search({
             query: searchText,
-            fields: [],
+            ...searchOptions,
             // TODO: support zh searching on Android
             // `language: ['zh', 'en']` will not work well
             // See: patches/pouchdb-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
-            language: Platform.OS === 'ios' ? 'zh' : 'en',
+            // language: Platform.OS === 'ios' ? 'zh' : 'en',
             include_docs: true,
             skip,
             limit,
@@ -67,7 +116,7 @@ function PouchDBScreen({
     } finally {
       setLoading(false);
     }
-  }, [db, limit, searchText, skip]);
+  }, [db, limit, searchOptions, searchText, skip]);
   useEffect(() => {
     getData();
   }, [getData]);
@@ -106,7 +155,14 @@ function PouchDBScreen({
       action2Label="Settings"
       action2SFSymbolName="gearshape.fill"
       action2MaterialIconName="cog"
-      onAction2Press={() => {}}
+      onAction2Press={() =>
+        navigation?.navigate('PouchDBSettings', {
+          searchOptions,
+          searchFields,
+          setSearchFields,
+          resetSearchIndex,
+        })
+      }
     >
       <ScreenContent.ScrollView
         ref={scrollViewRef}
@@ -134,7 +190,9 @@ function PouchDBScreen({
                 <UIGroup.ListItem
                   key={d.id}
                   label={d.id}
-                  detail={JSON.stringify(d.doc)}
+                  detail={`${
+                    (d as any).score ? `Score: ${(d as any).score}, doc: ` : ''
+                  }${JSON.stringify(d.doc)}`}
                   verticalArrangedIOS
                   navigable
                   onPress={() => navigation.push('PouchDBItem', { id: d.id })}

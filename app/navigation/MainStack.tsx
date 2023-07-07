@@ -43,6 +43,7 @@ import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
 import PouchDBScreen from '@app/screens/PouchDBScreen';
+import PouchDBSettingsScreen from '@app/screens/PouchDBSettingsScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
 import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
@@ -101,6 +102,14 @@ export type StackParamList = {
   };
   SQLite: undefined;
   PouchDB: undefined;
+  PouchDBSettings: {
+    searchFields: Record<string, number> | Array<string>;
+    setSearchFields: React.Dispatch<
+      React.SetStateAction<Record<string, number> | Array<string>>
+    >;
+    searchOptions: any;
+    resetSearchIndex: () => Promise<void>;
+  };
   PouchDBItem: { id: string };
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
@@ -205,6 +214,7 @@ function MainStack({ initialRouteName }: Props) {
         component={ReduxActionDetailScreen}
       />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
+      <Stack.Screen name="PouchDBSettings" component={PouchDBSettingsScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
       <Stack.Screen name="DBSync" component={DBSyncScreen} />
       <Stack.Screen
