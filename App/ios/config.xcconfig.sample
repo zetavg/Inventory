@@ -14,12 +14,12 @@ DEVELOPMENT_TEAM = XXXXXXXXXX
 // These bundle identifiers must be globally unique. It's highly recommended
 // to use a reverse of your own domain name to avoid collisions.
 PRODUCT_BUNDLE_IDENTIFIER_DEBUG = com.example.zetavg.app.inventory.dev
-PRODUCT_BUNDLE_IDENTIFIER_STAGING = com.example.zetavg.app.inventory.stg
+PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY = com.example.zetavg.app.inventory.stg
 PRODUCT_BUNDLE_IDENTIFIER_RELEASE = com.example.zetavg.app.inventory
 
 // These app names will be displayed on the home screen of the device.
 APP_NAME_DEBUG = Inventory (Dev)
-APP_NAME_STAGING = Inventory (Nightly)
+APP_NAME_NIGHTLY = Inventory (Nightly)
 APP_NAME_RELEASE = Inventory
 
 // App version numbers.
