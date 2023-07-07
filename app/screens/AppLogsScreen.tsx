@@ -312,7 +312,9 @@ function AppLogsScreen({
                           `[${[log.module, log.function]
                             .filter(s => s)
                             .join('/')}]`,
-                        log.timestamp && <TimeAgo date={log.timestamp} />,
+                        log.timestamp && (
+                          <TimeAgo key="timeago" date={log.timestamp} />
+                        ),
                       ]
                         .filter(d => d)
                         .flatMap(e => [e, ' '])
