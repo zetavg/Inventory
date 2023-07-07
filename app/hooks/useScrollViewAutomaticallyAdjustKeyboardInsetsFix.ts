@@ -20,6 +20,9 @@ type ReturnType = {
 
 export default function useScrollViewAutomaticallyAdjustKeyboardInsetsFix(
   scrollViewRef: React.RefObject<ScrollView>,
+  {
+    defaultDisableAutomaticallyAdjustKeyboardInsets = false,
+  }: { defaultDisableAutomaticallyAdjustKeyboardInsets?: boolean } = {},
 ): ReturnType {
   if (Platform.OS !== 'ios') {
     return useMemo(
@@ -47,6 +50,21 @@ export default function useScrollViewAutomaticallyAdjustKeyboardInsetsFix(
     }, 300);
   }, [scrollViewRef]);
 
+  const enableNextKeyboardInsetsAdjustmentTimer = useRef<any>();
+  const enableNextKeyboardInsetsAdjustment = useCallback(() => {
+    scrollViewRef.current?.setNativeProps({
+      automaticallyAdjustKeyboardInsets: true,
+    });
+    if (enableNextKeyboardInsetsAdjustmentTimer.current) {
+      clearTimeout(enableNextKeyboardInsetsAdjustmentTimer.current);
+    }
+    enableNextKeyboardInsetsAdjustmentTimer.current = setTimeout(() => {
+      scrollViewRef.current?.setNativeProps({
+        automaticallyAdjustKeyboardInsets: false,
+      });
+    }, 300);
+  }, [scrollViewRef]);
+
   const handleKiaTextInputTouchStart = useCallback<
     NonNullable<React.ComponentProps<typeof TextInput>['onTouchStart']>
   >(
@@ -58,10 +76,20 @@ export default function useScrollViewAutomaticallyAdjustKeyboardInsetsFix(
         `TextInput touched at ${loc}, window height: ${windowHeight}, shouldDisableNextKeyboardInsetsAdjustment: ${shouldDisableNextKeyboardInsetsAdjustment}`,
       );
       if (shouldDisableNextKeyboardInsetsAdjustment) {
-        disableNextKeyboardInsetsAdjustment();
+        if (!defaultDisableAutomaticallyAdjustKeyboardInsets) {
+          disableNextKeyboardInsetsAdjustment();
+        }
+      } else {
+        if (defaultDisableAutomaticallyAdjustKeyboardInsets) {
+          enableNextKeyboardInsetsAdjustment();
+        }
       }
     },
-    [disableNextKeyboardInsetsAdjustment],
+    [
+      defaultDisableAutomaticallyAdjustKeyboardInsets,
+      disableNextKeyboardInsetsAdjustment,
+      enableNextKeyboardInsetsAdjustment,
+    ],
   );
 
   const kiaTextInputProps = useMemo<

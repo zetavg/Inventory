@@ -46,8 +46,14 @@ const utils = {
   strf: () => {
     console.warn('`strf` is deprecated, use kiaTextInputProps instead.');
   },
-  useAutoAdjustKeyboardInsetsFix:
-    useScrollViewAutomaticallyAdjustKeyboardInsetsFix,
+  useAutoAdjustKeyboardInsetsFix: function (
+    scrollViewRef: React.RefObject<ScrollView>,
+  ) {
+    return useScrollViewAutomaticallyAdjustKeyboardInsetsFix(scrollViewRef, {
+      // This does not work well - the keyboard inset will not be removed when the keyboard is dismissed.
+      // defaultDisableAutomaticallyAdjustKeyboardInsets: true,
+    });
+  },
 };
 
 const ScreenContentScrollViewComponent: typeof ScreenContentScrollViewWithForwardRef &
