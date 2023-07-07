@@ -5,11 +5,19 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Alert, Platform, RefreshControl, ScrollView } from 'react-native';
+import {
+  Alert,
+  LayoutAnimation,
+  RefreshControl,
+  ScrollView,
+  Text,
+} from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { diff } from 'deep-object-diff';
+
+import commonStyles from '@app/utils/commonStyles';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
@@ -22,11 +30,20 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 export const DEFAULT_SEARCH_FIELDS = {
-  id: 1,
-  value: 1,
-  'data.value': 1,
+  id: 5,
+  name: 5,
+  'data.name': 5,
+  value: 5,
+  'data.value': 5,
+  notes: 1,
+  'data.notes': 1,
 };
 export const DEFAULT_SEARCH_LANGUAGES = ['zh', 'en'];
+
+const LAYOUT_ANIMATION_CONFIG = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 100,
+};
 
 function PouchDBScreen({
   navigation,
@@ -40,6 +57,8 @@ function PouchDBScreen({
   const [page, setPage] = React.useState<number>(1);
 
   const [searchText, setSearchText] = useState('');
+  const searchTextRef = useRef(searchText);
+  searchTextRef.current = searchText;
   const [searchFields, setSearchFields] = usePersistedState<
     Record<string, number> | Array<string>
   >('PouchDBScreen_searchFields', DEFAULT_SEARCH_FIELDS);
@@ -115,20 +134,24 @@ function PouchDBScreen({
         ? (db as any).search({
             query: searchText,
             ...searchOptions,
-            // TODO: support zh searching on Android
-            // `language: ['zh', 'en']` will not work well
-            // See: patches/pouchdb-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
-            // language: Platform.OS === 'ios' ? 'zh' : 'en',
             include_docs: true,
+            highlighting: true,
+            highlighting_pre: '<|\x1fsearch_match\x1f|><|\x1fmatch\x1f|>',
+            highlighting_post: '<|\x1fsearch_match\x1f|>',
             skip,
             limit,
           })
         : db.allDocs({ include_docs: true, skip, limit }));
-      setData(results);
+      if (searchTextRef.current === searchText) {
+        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        setData(results);
+      }
     } catch (e: any) {
       Alert.alert(e?.message, JSON.stringify(e?.stack));
     } finally {
-      setLoading(false);
+      if (searchTextRef.current === searchText) {
+        setLoading(false);
+      }
     }
   }, [db, limit, searchOptions, searchText, skip]);
   useEffect(() => {
@@ -161,7 +184,12 @@ function PouchDBScreen({
       navigation={navigation}
       title="PouchDB"
       showSearch
-      onSearchChangeText={setSearchText}
+      searchHideWhenScrollingIOS={false}
+      onSearchChangeText={t => {
+        setSearchText(t);
+        setPage(1);
+        // scrollViewRef.current?.scrollTo({ y: -9999 });
+      }}
       action1Label="Put Data"
       action1SFSymbolName="plus.square.fill"
       action1MaterialIconName="square-edit-outline"
@@ -205,11 +233,38 @@ function PouchDBScreen({
                 <UIGroup.ListItem
                   key={d.id}
                   label={d.id}
-                  detail={`${
-                    (d as any).score
-                      ? `Score: ${(d as any).score.toFixed(5)}, doc: `
-                      : ''
-                  }${JSON.stringify(d.doc)}`}
+                  // eslint-disable-next-line react/no-unstable-nested-components
+                  detail={({ textProps }) => {
+                    const { score, highlighting } = d as any;
+                    if (highlighting) {
+                      const matches = Object.values((d as any).highlighting)
+                        .map(s => (s as string).replace(/\n/gm, ' '))
+                        .map(v =>
+                          (v as string)
+                            .split('<|\x1fsearch_match\x1f|>')
+                            .map(s =>
+                              s.startsWith('<|\x1fmatch\x1f|>') ? (
+                                <Text style={commonStyles.fwBold}>
+                                  {s.slice('<|\x1fmatch\x1f|>'.length)}
+                                </Text>
+                              ) : (
+                                <Text>{s}</Text>
+                              ),
+                            ),
+                        )
+                        .map(ts => [<Text>"</Text>, ...ts, <Text>"</Text>])
+                        .flatMap(ts => [...ts, <Text>, </Text>])
+                        .slice(0, -1);
+                      return (
+                        <Text {...textProps} numberOfLines={2}>
+                          Score: {score.toFixed(5)} ({matches}), doc:{' '}
+                          {JSON.stringify(d.doc)}
+                        </Text>
+                      );
+                    }
+
+                    return <Text {...textProps}>{JSON.stringify(d.doc)}</Text>;
+                  }}
                   verticalArrangedIOS
                   navigable
                   onPress={() => navigation.push('PouchDBItem', { id: d.id })}

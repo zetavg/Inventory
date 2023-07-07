@@ -328,6 +328,9 @@ const commonStyles = StyleSheet.create({
   tac: {
     textAlign: 'center',
   },
+  fwBold: {
+    fontWeight: 'bold',
+  },
   monospaced: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     opacity: 0.9,
