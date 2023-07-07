@@ -9,6 +9,8 @@ import { Alert, Platform, RefreshControl, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import { diff } from 'deep-object-diff';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
@@ -20,9 +22,11 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 export const DEFAULT_SEARCH_FIELDS = {
+  id: 1,
   value: 1,
   'data.value': 1,
 };
+export const DEFAULT_SEARCH_LANGUAGES = ['zh', 'en'];
 
 function PouchDBScreen({
   navigation,
@@ -39,11 +43,15 @@ function PouchDBScreen({
   const [searchFields, setSearchFields] = usePersistedState<
     Record<string, number> | Array<string>
   >('PouchDBScreen_searchFields', DEFAULT_SEARCH_FIELDS);
+  const [searchLanguages, setSearchLanguages] = usePersistedState<
+    Array<string>
+  >('PouchDBScreen_searchLanguages', DEFAULT_SEARCH_LANGUAGES);
   const searchOptions = useMemo(
     () => ({
       fields: searchFields,
+      language: searchLanguages,
     }),
-    [searchFields],
+    [searchFields, searchLanguages],
   );
   const lastSearchOptions = useRef(searchOptions);
   const resetSearchIndex = useCallback(async () => {
@@ -75,8 +83,14 @@ function PouchDBScreen({
       throw e;
     }
   }, [db, logger, searchOptions]);
+  const resetSearchIndexRef = useRef(resetSearchIndex);
+  resetSearchIndexRef.current = resetSearchIndex;
   useEffect(() => {
-    if (lastSearchOptions.current === searchOptions) return;
+    if (
+      Object.keys(diff(lastSearchOptions.current, searchOptions)).length <= 0
+    ) {
+      return;
+    }
 
     resetSearchIndex();
     lastSearchOptions.current = searchOptions;
@@ -157,10 +171,11 @@ function PouchDBScreen({
       action2MaterialIconName="cog"
       onAction2Press={() =>
         navigation?.navigate('PouchDBSettings', {
-          searchOptions,
           searchFields,
           setSearchFields,
-          resetSearchIndex,
+          searchLanguages,
+          setSearchLanguages,
+          resetSearchIndexRef,
         })
       }
     >
@@ -191,7 +206,9 @@ function PouchDBScreen({
                   key={d.id}
                   label={d.id}
                   detail={`${
-                    (d as any).score ? `Score: ${(d as any).score}, doc: ` : ''
+                    (d as any).score
+                      ? `Score: ${(d as any).score.toFixed(5)}, doc: `
+                      : ''
                   }${JSON.stringify(d.doc)}`}
                   verticalArrangedIOS
                   navigable

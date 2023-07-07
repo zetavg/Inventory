@@ -107,8 +107,9 @@ export type StackParamList = {
     setSearchFields: React.Dispatch<
       React.SetStateAction<Record<string, number> | Array<string>>
     >;
-    searchOptions: any;
-    resetSearchIndex: () => Promise<void>;
+    searchLanguages: Array<string>;
+    setSearchLanguages: React.Dispatch<React.SetStateAction<Array<string>>>;
+    resetSearchIndexRef: React.MutableRefObject<() => Promise<void>>;
   };
   PouchDBItem: { id: string };
   DBSync: undefined;
