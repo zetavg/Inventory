@@ -20,7 +20,8 @@
     "typeRoots": [
       "node_modules/@types",
       "app/lib/types"
-    ]
+    ],
+    "types": ["node"]
   },
   "exclude": [
     "node_modules",

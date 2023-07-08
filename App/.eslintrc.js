@@ -41,6 +41,7 @@ module.exports = {
           ['^@app/consts.*'],
           ['^@app/lib.*'],
           ['^@app/redux.*', '^@app/features.*'],
+          ['^@app/data.*'],
           ['^@app/db.*'],
           ['^@app/utils.*'],
           ['^@app/modules.*'],

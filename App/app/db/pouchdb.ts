@@ -79,6 +79,7 @@ if (Platform.OS === 'ios') {
 }
 
 PouchDB.plugin(require('pouchdb-authentication'));
+PouchDB.plugin(require('pouchdb-find'));
 PouchDB.plugin(require('pouchdb-quick-search'));
 PouchDB.plugin(SQLiteAdapter);
 

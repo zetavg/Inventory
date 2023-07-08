@@ -30,6 +30,9 @@ import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
+import DataListScreen from '@app/screens/DataListScreen';
+import DataTypesScreen from '@app/screens/DataTypesScreen';
+import DatumScreen from '@app/screens/DatumScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -112,6 +115,9 @@ export type StackParamList = {
     resetSearchIndexRef: React.MutableRefObject<() => Promise<void>>;
   };
   PouchDBItem: { id: string };
+  DataTypes: undefined;
+  DataList: { type: string };
+  Datum: { type: string; id: string; preloadedTitle?: string };
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;
@@ -217,6 +223,9 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBSettings" component={PouchDBSettingsScreen} />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
+      <Stack.Screen name="DataTypes" component={DataTypesScreen} />
+      <Stack.Screen name="DataList" component={DataListScreen} />
+      <Stack.Screen name="Datum" component={DatumScreen} />
       <Stack.Screen name="DBSync" component={DBSyncScreen} />
       <Stack.Screen
         name="DBSyncServerDetail"

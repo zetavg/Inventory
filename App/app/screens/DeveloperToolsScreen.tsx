@@ -72,11 +72,17 @@ function DeveloperToolsScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
+            label="Data"
+            navigable
+            onPress={() => navigation.push('DataTypes')}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="PouchDB"
             navigable
             onPress={() => navigation.push('PouchDB')}
           />
-          <UIGroup.ListItemSeparator />
+          {/*<UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             label="Relational PouchDB"
             navigable
@@ -87,7 +93,7 @@ function DeveloperToolsScreen({
             label="Attachments DB"
             navigable
             onPress={() => navigation.push('PouchDBAttachments')}
-          />
+          />*/}
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             label="SQLite"
