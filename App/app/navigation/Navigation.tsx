@@ -56,8 +56,8 @@ import commonStyles from '@app/utils/commonStyles';
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
+import PouchDBPutDataModalScreen from '@app/screens/dev-tools/pouchdb/PouchDBPutDataModalScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
-import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
 import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
 import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
@@ -157,7 +157,7 @@ export type RootStackParamList = {
   ReduxSelectAction: {
     callback: (data: string) => void;
   };
-  PouchDBPutDataModal: {
+  PouchDBPutData: {
     id?: string;
     jsonData?: string;
   };
@@ -335,7 +335,7 @@ function Navigation({
             <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen
-              name="PouchDBPutDataModal"
+              name="PouchDBPutData"
               component={PouchDBPutDataModalScreen}
             />
             <Stack.Screen name="SaveData" component={SaveDataModalScreen} />

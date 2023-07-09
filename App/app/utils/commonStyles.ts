@@ -319,6 +319,12 @@ const commonStyles = StyleSheet.create({
   fs14: {
     fontSize: 14,
   },
+  fs12: {
+    fontSize: 12,
+  },
+  fs10: {
+    fontSize: 10,
+  },
   fs8: {
     fontSize: 8,
   },

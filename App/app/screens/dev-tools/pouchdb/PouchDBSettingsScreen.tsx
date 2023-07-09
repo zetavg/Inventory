@@ -89,16 +89,16 @@ function PouchDBSettingsScreen({
     setSearchLanguagesStr(JSON.stringify(DEFAULT_SEARCH_LANGUAGES, null, 2));
   }, [setSearchLanguages]);
 
-  const [resetIndexLoading, setResetIndexLoading] = useState(false);
+  const [resetSearchIndexLoading, setResetSearchIndexLoading] = useState(false);
   const resetSearchIndex = useCallback(async () => {
     try {
-      setResetIndexLoading(true);
+      setResetSearchIndexLoading(true);
       await resetSearchIndexRef.current();
       Alert.alert('Reset Index Done', 'The search index has been reset.');
     } catch (e: any) {
       Alert.alert(e?.message, JSON.stringify(e?.stack));
     } finally {
-      setResetIndexLoading(false);
+      setResetSearchIndexLoading(false);
     }
   }, [resetSearchIndexRef]);
 
@@ -114,8 +114,9 @@ function PouchDBSettingsScreen({
     >
       <ScreenContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing />
+
         <UIGroup
-          loading={resetIndexLoading}
+          loading={resetSearchIndexLoading}
           footer={searchFieldsStrErrorMessage}
         >
           <UIGroup.ListTextInputItem
@@ -143,7 +144,7 @@ function PouchDBSettingsScreen({
         </UIGroup>
 
         <UIGroup
-          loading={resetIndexLoading}
+          loading={resetSearchIndexLoading}
           footer={searchLanguagesStrErrorMessage}
         >
           <UIGroup.ListTextInputItem
@@ -171,7 +172,7 @@ function PouchDBSettingsScreen({
         </UIGroup>
 
         <UIGroup
-          loading={resetIndexLoading}
+          loading={resetSearchIndexLoading}
           footer="Resetting the search index might resolve some search issues."
         >
           <UIGroup.ListItem

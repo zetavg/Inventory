@@ -33,6 +33,11 @@ import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
+import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
+import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
+import PouchDBItemScreen from '@app/screens/dev-tools/pouchdb/PouchDBItemScreen';
+import PouchDBScreen from '@app/screens/dev-tools/pouchdb/PouchDBScreen';
+import PouchDBSettingsScreen from '@app/screens/dev-tools/pouchdb/PouchDBSettingsScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -44,9 +49,6 @@ import MoreScreen from '@app/screens/MoreScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
-import PouchDBItemScreen from '@app/screens/PouchDBItemScreen';
-import PouchDBScreen from '@app/screens/PouchDBScreen';
-import PouchDBSettingsScreen from '@app/screens/PouchDBSettingsScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
 import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
@@ -114,6 +116,8 @@ export type StackParamList = {
     setSearchLanguages: React.Dispatch<React.SetStateAction<Array<string>>>;
     resetSearchIndexRef: React.MutableRefObject<() => Promise<void>>;
   };
+  PouchDBIndexes: undefined;
+  PouchDBIndexDetail: { index: PouchDB.Find.Index };
   PouchDBItem: { id: string };
   DataTypes: undefined;
   DataList: { type: DataTypeName };
@@ -222,6 +226,11 @@ function MainStack({ initialRouteName }: Props) {
       />
       <Stack.Screen name="PouchDB" component={PouchDBScreen} />
       <Stack.Screen name="PouchDBSettings" component={PouchDBSettingsScreen} />
+      <Stack.Screen name="PouchDBIndexes" component={PouchDBIndexesScreen} />
+      <Stack.Screen
+        name="PouchDBIndexDetail"
+        component={PouchDBIndexDetailScreen}
+      />
       <Stack.Screen name="PouchDBItem" component={PouchDBItemScreen} />
       <Stack.Screen name="DataTypes" component={DataTypesScreen} />
       <Stack.Screen name="DataList" component={DataListScreen} />
