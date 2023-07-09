@@ -239,6 +239,40 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="Vertical Arranged Large Text iOS">
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="Name"
+          detail="iPhone"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="Software Version"
+          detail="15.5"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="Model Name"
+          detail="iPhone 12 mini"
+          navigable
+          onPress={() => Alert.alert('Model Name', 'Pressed.')}
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="Model Number"
+          detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        />
+      </UIGroup>
+
       <UIGroup header="Text Input">
         <UIGroup.ListTextInputItem placeholder="Username" horizontalLabel />
         <UIGroup.ListItemSeparator />

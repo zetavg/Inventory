@@ -24,15 +24,15 @@ import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 
-import type { TypeName as DataTypeName } from '@app/db/old_schema';
+import { DataTypeName } from '@app/data';
 
 import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
-import DataListScreen from '@app/screens/DataListScreen';
-import DataTypesScreen from '@app/screens/DataTypesScreen';
-import DatumScreen from '@app/screens/DatumScreen';
+import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
+import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
+import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
 import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
@@ -116,8 +116,8 @@ export type StackParamList = {
   };
   PouchDBItem: { id: string };
   DataTypes: undefined;
-  DataList: { type: string };
-  Datum: { type: string; id: string; preloadedTitle?: string };
+  DataList: { type: DataTypeName };
+  Datum: { type: DataTypeName; id: string; preloadedTitle?: string };
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;

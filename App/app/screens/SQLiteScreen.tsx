@@ -18,6 +18,8 @@ import UIGroup from '@app/components/UIGroup';
 
 const SAMPLE_QUERIES: ReadonlyArray<string> = [
   "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;",
+  'PRAGMA table_info("table_name");',
+  "SELECT * FROM sqlite_master WHERE type = 'index';",
   'SELECT * FROM "logs" LIMIT 10 OFFSET 0;',
   'SELECT * FROM "document-store" LIMIT 10 OFFSET 0;',
   'SELECT * FROM "test_sqlite" LIMIT 10 OFFSET 0;',

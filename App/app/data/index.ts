@@ -1,5 +1,28 @@
 import useData from './hooks/useData';
-import schema, { DataType, plurals as typePlurals } from './schema';
+import useDataCount from './hooks/useDataCount';
+import useRelated from './hooks/useRelated';
+import useSave from './hooks/useSave';
+import schema, {
+  DATA_TYPE_NAMES,
+  DataType,
+  DataTypeName,
+  getPropertyNames,
+  getPropertyType,
+  plurals as typePlurals,
+} from './schema';
+import type { DataTypeWithAdditionalInfo } from './types';
 import { getHumanTypeName, toTitleCase } from './utils';
-export { getHumanTypeName, schema, toTitleCase, typePlurals, useData };
-export type { DataType };
+export {
+  DATA_TYPE_NAMES,
+  getHumanTypeName,
+  getPropertyNames,
+  getPropertyType,
+  schema,
+  toTitleCase,
+  typePlurals,
+  useData,
+  useDataCount,
+  useRelated,
+  useSave,
+};
+export type { DataType, DataTypeName, DataTypeWithAdditionalInfo };

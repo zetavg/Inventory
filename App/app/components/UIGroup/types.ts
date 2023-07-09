@@ -46,6 +46,7 @@ export type ListItemProps = {
         textProps: React.ComponentProps<typeof Text>;
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
+  verticalArrangedLargeTextIOS?: boolean;
   verticalArrangedIOS?: boolean;
   selected?: boolean;
   navigable?: boolean;

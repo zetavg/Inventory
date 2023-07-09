@@ -13,6 +13,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     detail,
     detailTextStyle,
     verticalArrangedIOS,
+    verticalArrangedLargeTextIOS,
     selected,
     navigable,
     onPress,
@@ -29,6 +30,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
       detail={detail}
       detailTextStyle={detailTextStyle}
       vertical={verticalArrangedIOS}
+      vertical2={verticalArrangedLargeTextIOS}
       selected={selected}
       arrow={navigable}
       onPress={onPress}

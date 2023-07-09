@@ -1,0 +1,134 @@
+import { useCallback } from 'react';
+
+import { v4 as uuid } from 'uuid';
+
+import { useDB } from '@app/db';
+
+import useLogger from '@app/hooks/useLogger';
+
+import { ZodError } from 'zod';
+
+import { beforeSave } from '../callbacks';
+import schema, { DataType, DataTypeName } from '../schema';
+import { validate } from '../validation';
+
+import { getDatumFromDoc } from './useData';
+
+type SaveFn = <T extends DataTypeName>(
+  d: Partial<DataType<T>> & {
+    __type: T;
+    __id?: string;
+    __rev?: string;
+    __deleted?: boolean;
+  },
+) => Promise<{ type: DataTypeName; id: string } | null>;
+
+function useSave(): SaveFn {
+  const logger = useLogger('useSave');
+  const { db } = useDB();
+
+  return useCallback<SaveFn>(
+    async d => {
+      let { __type, __id, __rev, __deleted, ...pureData } = d;
+      const s = schema[__type];
+
+      let existingDoc = {};
+      try {
+        if (!db) throw new Error('Database is not ready yet.');
+        if (__id) {
+          const eDoc = await db.get(`${__type}-${__id}`).catch(function (_e) {
+            return null;
+          });
+          if (eDoc) {
+            existingDoc = eDoc;
+          }
+        }
+
+        const updateDoc: Record<string, unknown> = {
+          ...existingDoc,
+          data: pureData,
+        };
+
+        if (__id) {
+          updateDoc._id = `${__type}-${__id}`;
+        }
+
+        if (__rev) {
+          updateDoc._rev = __rev;
+        }
+
+        if (__deleted) {
+          updateDoc._deleted = __deleted;
+        }
+
+        if (!updateDoc._id) {
+          // TODO: Ensure the ID is unique.
+          updateDoc._id = `${__type}-${uuid()}`;
+        }
+
+        if (!updateDoc.created_at) {
+          updateDoc.created_at = new Date().getTime();
+        }
+
+        updateDoc.updated_at = new Date().getTime();
+
+        const updateDocProxy = getDatumFromDoc(
+          __type,
+          updateDoc as any,
+          logger,
+          { validate: false },
+        );
+
+        if (!updateDocProxy) throw new Error('updateDocProxy is null');
+
+        beforeSave(updateDocProxy);
+
+        // Validation
+        // (Do not need to validate if we are going to delete the document.)
+        if (!__deleted) {
+          let zodError: ZodError | undefined;
+          try {
+            s.parse(updateDocProxy);
+          } catch (e) {
+            if (e instanceof ZodError) {
+              zodError = e;
+            } else {
+              throw e;
+            }
+          }
+
+          const issues = await validate(updateDocProxy, { db });
+          if (issues.length > 0) {
+            if (!zodError) {
+              zodError = new ZodError(issues);
+            } else {
+              zodError.issues = [...zodError.issues, ...issues];
+            }
+          }
+
+          if (zodError) {
+            throw zodError;
+          }
+        }
+
+        const response = await db.put(updateDoc);
+        const [type, ...idParts] = response.id.split('-');
+        const id = idParts.join('-');
+        return { type: type as any, id };
+      } catch (e) {
+        if (e instanceof ZodError) {
+          throw e;
+        }
+
+        logger.error(e, {
+          showAlert: true,
+          details: JSON.stringify({ data: d, existingDoc }, null, 2),
+        });
+        return null;
+      }
+    },
+    [db, logger],
+  );
+}
+
+export default useSave;

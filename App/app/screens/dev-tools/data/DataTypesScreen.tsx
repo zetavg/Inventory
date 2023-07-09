@@ -1,32 +1,13 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  Alert,
-  LayoutAnimation,
-  RefreshControl,
-  ScrollView,
-  Text,
-} from 'react-native';
+import React, { useRef } from 'react';
+import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import commonStyles from '@app/utils/commonStyles';
+import { DATA_TYPE_NAMES, getHumanTypeName } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-
-import useDB from '@app/hooks/useDB';
-import useLogger from '@app/hooks/useLogger';
-import { usePersistedState } from '@app/hooks/usePersistedState';
 
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
-
-import { getHumanTypeName, schema, typePlurals } from '@app/data';
 
 function DataTypesScreen({
   navigation,
@@ -39,9 +20,9 @@ function DataTypesScreen({
     <ScreenContent navigation={navigation} title="Data">
       <ScreenContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing iosLargeTitle />
-        <UIGroup>
+        <UIGroup header="Types">
           {UIGroup.ListItemSeparator.insertBetween(
-            Object.keys(schema).map(type => (
+            DATA_TYPE_NAMES.map(type => (
               <UIGroup.ListItem
                 key={type}
                 label={getHumanTypeName(type, {

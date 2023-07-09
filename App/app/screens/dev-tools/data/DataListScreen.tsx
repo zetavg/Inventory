@@ -1,29 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  Alert,
-  LayoutAnimation,
-  RefreshControl,
-  ScrollView,
-  Text,
-} from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { RefreshControl, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { getHumanTypeName, schema, useData } from '@app/data';
-
-import commonStyles from '@app/utils/commonStyles';
+import { getHumanTypeName, useData, useDataCount } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-
-import useDB from '@app/hooks/useDB';
-import useLogger from '@app/hooks/useLogger';
-import { usePersistedState } from '@app/hooks/usePersistedState';
 
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
@@ -32,6 +14,7 @@ function DataListScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'DataList'>) {
+  const rootNavigation = useRootNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const { type } = route.params;
   const numberOfItemsPerPageList = [10, 50, 100, 500];
@@ -40,15 +23,27 @@ function DataListScreen({
   const skip = perPage * (page - 1);
   const limit = perPage;
 
-  const { loading, data, reload } = useData(
-    type as keyof typeof schema,
-    {},
-    { skip, limit },
-  );
-  const validData = data && data.filter((d: any) => !!d);
+  const {
+    loading,
+    data,
+    ids,
+    refresh: refreshData,
+    refreshing: refreshingData,
+  } = useData(type, {}, { skip, limit });
 
-  // const totalRows = 100;
-  // const numberOfPages = Math.ceil(totalRows / perPage);
+  const {
+    count,
+    refresh: refreshCount,
+    refreshing: refreshingCount,
+  } = useDataCount(type);
+
+  const refreshing = refreshingData || refreshingCount;
+  const refresh = useCallback(() => {
+    refreshData();
+    refreshCount();
+  }, [refreshCount, refreshData]);
+
+  const numberOfPages = count === null ? null : Math.ceil(count / perPage);
 
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
@@ -57,11 +52,21 @@ function DataListScreen({
     <ScreenContent
       navigation={navigation}
       title={getHumanTypeName(type, { titleCase: true, plural: true })}
+      action1Label="Add Data"
+      action1SFSymbolName="plus.square.fill"
+      action1MaterialIconName="square-edit-outline"
+      onAction1Press={() =>
+        rootNavigation?.navigate('SaveData', {
+          type,
+          afterSave: ({ type: t, id: i }) =>
+            navigation.navigate('Datum', { type: t, id: i }),
+        })
+      }
     >
       <ScreenContent.ScrollView
         ref={scrollViewRef}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={reload} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
       >
         <UIGroup.FirstGroupSpacing iosLargeTitle />
@@ -71,26 +76,64 @@ function DataListScreen({
             titleCase: false,
             plural: true,
           })}.`}
+          footer={
+            count
+              ? `Showing ${skip + 1}-${Math.max(
+                  Math.min(skip + perPage, count),
+                  skip + 1,
+                )} of ${count}.`
+              : undefined
+          }
         >
-          {validData &&
-            validData.length > 0 &&
+          {data &&
+            data.length > 0 &&
             UIGroup.ListItemSeparator.insertBetween(
-              validData.map(d => (
-                <UIGroup.ListItem
-                  verticalArrangedIOS
-                  navigable
-                  key={d.__id}
-                  label={d.name}
-                  detail={`ID: ${d.__id}`}
-                  onPress={() => {
-                    navigation.navigate('Datum', {
-                      type: d.__type,
-                      id: d.__id,
-                      preloadedTitle: d.name,
-                    });
-                  }}
-                />
-              )),
+              data.map((d, i) =>
+                d ? (
+                  <UIGroup.ListItem
+                    verticalArrangedIOS
+                    navigable
+                    key={d.__id}
+                    label={d.name}
+                    detail={`ID: ${d.__id}`}
+                    onPress={() => {
+                      navigation.navigate('Datum', {
+                        type: d.__type,
+                        id: d.__id,
+                        preloadedTitle: d.name,
+                      });
+                    }}
+                  />
+                ) : ids && ids[i] ? (
+                  <UIGroup.ListItem
+                    verticalArrangedIOS
+                    navigable
+                    key={ids[i]}
+                    label={`(Invalid ${getHumanTypeName(type, {
+                      titleCase: false,
+                      plural: false,
+                    })}: ${ids[i]})`}
+                    detail={`ID: ${ids[i]}`}
+                    onPress={() => {
+                      navigation.navigate('Datum', {
+                        type: type,
+                        id: ids[i],
+                      });
+                    }}
+                  />
+                ) : (
+                  <UIGroup.ListItem
+                    verticalArrangedIOS
+                    navigable
+                    key={i}
+                    label={`(Invalid ${getHumanTypeName(type, {
+                      titleCase: false,
+                      plural: false,
+                    })} with unknown ID})`}
+                    detail="Unknown ID"
+                  />
+                ),
+              ),
             )}
         </UIGroup>
 
@@ -101,7 +144,7 @@ function DataListScreen({
             keyboardType="number-pad"
             returnKeyType="done"
             value={page.toString()}
-            unit={`/ ${'?'}`}
+            unit={`/ ${numberOfPages === null ? '?' : numberOfPages}`}
             onChangeText={t => {
               const n = parseInt(t, 10);
               if (isNaN(n)) return;
@@ -116,7 +159,9 @@ function DataListScreen({
                   onPress={() =>
                     setPage(i => {
                       if (i <= 1) return i;
-                      // if (i > numberOfPages) return numberOfPages;
+                      if (numberOfPages !== null && i > numberOfPages) {
+                        return numberOfPages;
+                      }
                       return i - 1;
                     })
                   }
@@ -126,7 +171,7 @@ function DataListScreen({
                 </UIGroup.ListTextInputItem.Button>
                 <UIGroup.ListTextInputItem.Button
                   onPress={() => setPage(i => i + 1)}
-                  // disabled={page >= numberOfPages}
+                  disabled={numberOfPages != null && page >= numberOfPages}
                 >
                   Next ›
                 </UIGroup.ListTextInputItem.Button>

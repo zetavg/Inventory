@@ -46,6 +46,8 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
+import { DataType, DataTypeName } from '@app/data';
+
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { TypeName } from '@app/db/old_schema';
 
@@ -53,6 +55,7 @@ import commonStyles from '@app/utils/commonStyles';
 
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
+import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
 import PouchDBPutDataModalScreen from '@app/screens/PouchDBPutDataModalScreen';
 import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
@@ -157,6 +160,12 @@ export type RootStackParamList = {
   PouchDBPutDataModal: {
     id?: string;
     jsonData?: string;
+  };
+  SaveData: {
+    type: DataTypeName;
+    id?: string;
+    initialData?: Partial<DataType<DataTypeName>>;
+    afterSave?: (payload: { type: DataTypeName; id: string }) => void;
   };
   DBSyncNewOrEditServerModal: {
     id?: string;
@@ -329,6 +338,7 @@ function Navigation({
               name="PouchDBPutDataModal"
               component={PouchDBPutDataModalScreen}
             />
+            <Stack.Screen name="SaveData" component={SaveDataModalScreen} />
             <Stack.Screen
               name="DBSyncNewOrEditServerModal"
               component={DBSyncNewOrEditServerModalScreen}

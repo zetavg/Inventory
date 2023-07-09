@@ -5,10 +5,35 @@ import { z } from 'zod';
 export const schema = {
   collection: z
     .object({
-      name: z.string(),
+      name: z.string().min(1),
       icon_name: z.string(),
       icon_color: z.string(),
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
+    })
+    .catchall(z.any()),
+  item: z
+    .object({
+      name: z.string().min(1),
+      icon_name: z.string(),
+      icon_color: z.string(),
+      collection_id: z.string(),
+      item_reference_number: z.string().optional(),
+      serial: z.string().optional(),
+      epc_tag_uri: z.string().optional(),
+      epc_tag_uri_manually_set: z.boolean().optional(),
+      rfid_tag_epc_memory_bank_contents: z
+        .string()
+        .regex(new RegExp('^[A-F0-9]+$'))
+        .optional(),
+      rfid_tag_epc_memory_bank_contents_manually_set: z.boolean().optional(),
+      actual_rfid_tag_epc_memory_bank_contents: z
+        .string()
+        .regex(new RegExp('^[A-F0-9]+$'))
+        .optional(),
+      item_type: z
+        .enum(['container', 'generic_container', 'item_with_parts'])
+        .optional(),
+      dedicated_container_id: z.string().optional(),
     })
     .catchall(z.any()),
 };
