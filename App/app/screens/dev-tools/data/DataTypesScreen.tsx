@@ -37,6 +37,16 @@ function DataTypesScreen({
             )),
           )}
         </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListItem
+            label="Fix Data Consistency"
+            navigable
+            onPress={() => {
+              navigation.navigate('FixDataConsistency');
+            }}
+          />
+        </UIGroup>
       </ScreenContent.ScrollView>
     </ScreenContent>
   );

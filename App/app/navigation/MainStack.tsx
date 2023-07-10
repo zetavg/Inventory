@@ -33,6 +33,7 @@ import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
+import FixDataConsistencyScreen from '@app/screens/dev-tools/data/FixDataConsistencyScreen';
 import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
 import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
 import PouchDBItemScreen from '@app/screens/dev-tools/pouchdb/PouchDBItemScreen';
@@ -122,6 +123,7 @@ export type StackParamList = {
   DataTypes: undefined;
   DataList: { type: DataTypeName };
   Datum: { type: DataTypeName; id: string; preloadedTitle?: string };
+  FixDataConsistency: undefined;
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;
@@ -235,6 +237,10 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="DataTypes" component={DataTypesScreen} />
       <Stack.Screen name="DataList" component={DataListScreen} />
       <Stack.Screen name="Datum" component={DatumScreen} />
+      <Stack.Screen
+        name="FixDataConsistency"
+        component={FixDataConsistencyScreen}
+      />
       <Stack.Screen name="DBSync" component={DBSyncScreen} />
       <Stack.Screen
         name="DBSyncServerDetail"
