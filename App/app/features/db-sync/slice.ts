@@ -261,11 +261,7 @@ export const selectors = {
         return 'Error';
       }
 
-      if (
-        serverStatuses
-          .filter(s => s !== 'Disabled' && s !== 'Offline')
-          .every(s => s === 'Online')
-      ) {
+      if (serverStatuses.some(s => s === 'Online')) {
         return 'Online';
       }
 
