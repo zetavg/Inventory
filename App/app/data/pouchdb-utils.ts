@@ -20,11 +20,16 @@ export function getDataIdFromPouchDbId(id: string): {
   };
 }
 
+export function getTypeIdStartAndEndKey(type: DataTypeName): [string, string] {
+  const idStartKey = `${type}-`;
+  const idEndKey = idStartKey + '\uffff';
+  return [idStartKey, idEndKey];
+}
+
 export function getDataTypeSelector(
   type: DataTypeName,
 ): PouchDB.Find.FindRequest<{}>['selector'] {
-  const idStartKey = `${type}-`;
-  const idEndKey = idStartKey + '\uffff';
+  const [idStartKey, idEndKey] = getTypeIdStartAndEndKey(type);
   const selector = {
     _id: {
       $gte: idStartKey,

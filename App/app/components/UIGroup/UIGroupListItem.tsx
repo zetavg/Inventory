@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
+import Icon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
 import Switch from '@app/components/Switch';
 
@@ -21,14 +22,33 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     destructive,
     disabled,
     adjustsDetailFontSizeToFit,
+    icon,
+    iconColor,
     ...restProps
   } = props;
+  const leftElement = (() => {
+    if (icon) {
+      return (
+        <Icon
+          name={icon}
+          color={iconColor}
+          style={styles.iosItemIcon}
+          size={30}
+          showBackground
+          backgroundPadding={4}
+        />
+      );
+    }
+
+    return undefined;
+  })();
   return (
     <InsetGroup.Item
       label={label}
       labelTextStyle={labelTextStyle}
       detail={detail}
       detailTextStyle={detailTextStyle}
+      leftElement={leftElement}
       vertical={verticalArrangedIOS}
       vertical2={verticalArrangedLargeTextIOS}
       selected={selected}
@@ -71,4 +91,5 @@ const styles = StyleSheet.create({
   iosSwitch: {
     marginVertical: -4,
   },
+  iosItemIcon: { marginRight: -2 },
 });

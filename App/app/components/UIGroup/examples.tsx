@@ -273,6 +273,18 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="With Icon">
+        <UIGroup.ListItem label="Food" icon="food" />
+        <UIGroup.ListItemSeparator forItemWithIcon />
+        <UIGroup.ListItem label="Drink" icon="wineglass" />
+        <UIGroup.ListItemSeparator forItemWithIcon />
+        <UIGroup.ListItem label="With Color" icon="cup" iconColor="blue" />
+        <UIGroup.ListItemSeparator forItemWithIcon />
+        <UIGroup.ListItem label="Coffee" icon="coffee" iconColor="brown" />
+        <UIGroup.ListItemSeparator forItemWithIcon />
+        <UIGroup.ListItem label="Beer" icon="beer" iconColor="yellow" />
+      </UIGroup>
+
       <UIGroup header="Text Input">
         <UIGroup.ListTextInputItem placeholder="Username" horizontalLabel />
         <UIGroup.ListItemSeparator />

@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
 
 import { v4 as uuid } from 'uuid';
+import { ZodError } from 'zod';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
-
-import { ZodError } from 'zod';
 
 import { beforeSave } from '../callbacks';
 import schema, { DataType, DataTypeName } from '../schema';

@@ -7,8 +7,18 @@ import { ListItemSeparatorProps } from './types';
 export default function UIGroupListItemSeparator(
   props: ListItemSeparatorProps,
 ): JSX.Element {
-  const { leftInsetIOS, ...restProps } = props;
-  return <InsetGroup.ItemSeparator leftInset={leftInsetIOS} {...restProps} />;
+  const { leftInsetIOS, forItemWithIcon, ...restProps } = props;
+
+  let leftInsetIOSOvr;
+  if (forItemWithIcon) {
+    leftInsetIOSOvr = 60;
+  }
+  return (
+    <InsetGroup.ItemSeparator
+      leftInset={leftInsetIOS || leftInsetIOSOvr}
+      {...restProps}
+    />
+  );
 }
 
 UIGroupListItemSeparator.insertBetween = (

@@ -46,6 +46,8 @@ export type ListItemProps = {
         textProps: React.ComponentProps<typeof Text>;
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
+  icon?: React.ComponentProps<typeof Icon>['name'];
+  iconColor?: React.ComponentProps<typeof Icon>['color'];
   verticalArrangedLargeTextIOS?: boolean;
   verticalArrangedIOS?: boolean;
   selected?: boolean;
@@ -59,6 +61,7 @@ export type ListItemProps = {
 
 export type ListItemSeparatorProps = {
   leftInsetIOS?: number;
+  forItemWithIcon?: boolean;
 };
 
 export type ListTextInputItemProps = {

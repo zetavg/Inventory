@@ -126,17 +126,17 @@ export default function useRelated<
         case 'has_many': {
           await db.createIndex({
             index: {
-              fields: [`data.${relationConfig.foreign_key}`],
-              partial_filter_selector: getDataTypeSelector(
-                relationConfig.type_name,
-              ),
+              fields: [`data.${relationConfig.foreign_key}`, '_id'],
+              // partial_filter_selector: getDataTypeSelector(
+              //   relationConfig.type_name,
+              // ),
             },
           });
 
           const findRequest: PouchDB.Find.FindRequest<{}> = {
             selector: {
-              ...getDataTypeSelector(relationConfig.type_name),
               [`data.${relationConfig.foreign_key}`]: cachedD.__id,
+              ...getDataTypeSelector(relationConfig.type_name),
             },
           };
           const response =

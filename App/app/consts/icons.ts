@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 import objectEntries from '@app/utils/objectEntries';
 
 export const ICON_COLORS = [
@@ -13,7 +15,23 @@ export const ICON_COLORS = [
   'teal',
 ] as const;
 
-export type IconColor = typeof ICON_COLORS[number];
+export type IconColor = (typeof ICON_COLORS)[number];
+
+function sfSymbolForOSVersion(
+  sfSymbolName: string,
+  { ios }: { ios: number },
+): string | undefined {
+  if (Platform.OS === 'ios') {
+    const majorVersionIOS = parseInt(Platform.Version, 10);
+    if (majorVersionIOS < ios) {
+      return undefined;
+    }
+
+    return sfSymbolName;
+  }
+
+  return undefined;
+}
 
 export const ICONS = {
   // Box
@@ -155,7 +173,7 @@ export const ICONS = {
     fa5IconName: 'glass-martini',
   },
   wineglass: {
-    // sfSymbolName: 'wineglass.fill',
+    sfSymbolName: sfSymbolForOSVersion('wineglass.fill', { ios: 16 }),
     fa5IconName: 'wine-glass',
     materialIconName: 'glass-wine',
     keywords: 'glass-wine',
@@ -175,6 +193,7 @@ export const ICONS = {
     keywords: 'knife',
   },
   coffee: {
+    sfSymbolName: sfSymbolForOSVersion('cup.and.saucer.fill', { ios: 15 }),
     materialIconName: 'coffee',
   },
   cup: {
@@ -187,7 +206,7 @@ export const ICONS = {
     fa5IconName: 'box-tissue',
   },
   food: {
-    // sfSymbolName: 'carrot.fill',
+    sfSymbolName: sfSymbolForOSVersion('carrot.fill', { ios: 16 }),
     materialIconName: 'carrot',
     keywords: 'carrot',
   },

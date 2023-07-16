@@ -11,6 +11,8 @@ import { getDataIdFromPouchDbId, getDataTypeSelector } from '../pouchdb-utils';
 import schema, { DataType, DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
 
+type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
+
 export function getDatumFromDoc<T extends DataTypeName>(
   type: T,
   doc: PouchDB.Core.ExistingDocument<{}> | null,
@@ -102,12 +104,14 @@ export default function useData<
     limit = 20,
     disable = false,
     validate = true,
+    sort,
   }: {
     skip?: number;
     limit?: number;
     disable?: boolean;
     /** Warning: Setting this to `false` will break type safety. */
     validate?: boolean;
+    sort?: Sort;
   } = {},
 ): {
   loading: boolean;
@@ -156,6 +160,13 @@ export default function useData<
     }
   }, [cond, cachedCond]);
 
+  const [cachedSort, setCachedSort] = useState(sort);
+  useEffect(() => {
+    if (Object.keys(diff(sort as any, cachedSort as any)).length > 0) {
+      setCachedSort(sort);
+    }
+  }, [sort, cachedSort]);
+
   const [loading, setLoading] = useState(false);
 
   const [data, setData] = useState<
@@ -181,12 +192,46 @@ export default function useData<
             ...getDataTypeSelector(type),
           };
 
+          const sortData: typeof cachedSort =
+            cachedSort &&
+            cachedSort.map(
+              s =>
+                Object.fromEntries(
+                  Object.entries(s).map(([k, v]) => [
+                    (() => {
+                      switch (k) {
+                        case '__created_at':
+                          return 'created_at';
+                        case '__updated_at':
+                          return 'updated_at';
+                        default:
+                          return `data.${k}`;
+                      }
+                    })(),
+                    v,
+                  ]),
+                ) as any,
+            );
+          if (sortData) {
+            await db.createIndex({
+              index: {
+                fields: sortData.flatMap(s => Object.keys(s)),
+              },
+            });
+            for (const s of sortData) {
+              for (const key of Object.keys(s)) {
+                selector[key] = { $exists: true };
+              }
+            }
+          }
+
           const response =
             (await db
               .find({
                 selector,
                 skip,
                 limit,
+                sort: sortData || undefined,
               })
               .catch(e => {
                 if (e instanceof Error) {
@@ -225,7 +270,7 @@ export default function useData<
     } finally {
       setLoading(false);
     }
-  }, [cachedCond, db, limit, logger, skip, type, validate]);
+  }, [cachedCond, db, limit, logger, skip, cachedSort, type, validate]);
 
   useFocusEffect(
     useCallback(() => {
