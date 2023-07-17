@@ -1,89 +1,135 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  StyleSheet,
-  View,
-  ScrollView,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
-  Text as RNText,
   Alert,
+  ScrollView,
+  StyleSheet,
+  Text as RNText,
   TouchableHighlight,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
-
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
 import { useFocusEffect } from '@react-navigation/native';
+import type { StackScreenProps } from '@react-navigation/stack';
 
 import Color from 'color';
-import commonStyles from '@app/utils/commonStyles';
-import useColors from '@app/hooks/useColors';
-import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Text from '@app/components/Text';
-import Button from '@app/components/Button';
-import Icon, { IconName, IconColor } from '@app/components/Icon';
 
-import useDB from '@app/hooks/useDB';
+import { onlyValid, useConfig, useData, useRelated, useSave } from '@app/data';
+
 import { useRelationalData } from '@app/db';
 import { getDataFromDocs } from '@app/db/hooks';
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import useOrderedData from '@app/hooks/useOrderedData';
-import useActionSheet from '@app/hooks/useActionSheet';
+
+import commonStyles from '@app/utils/commonStyles';
 
 import EPCUtils from '@app/modules/EPCUtils';
 
-import ItemItem from '../components/ItemItem';
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useActionSheet from '@app/hooks/useActionSheet';
+import useColors from '@app/hooks/useColors';
+import useDB from '@app/hooks/useDB';
+import useOrdered from '@app/hooks/useOrdered';
+
+import Button from '@app/components/Button';
+import Icon, {
+  IconColor,
+  IconName,
+  verifyIconColorWithDefault,
+  verifyIconNameWithDefault,
+} from '@app/components/Icon';
+import ScreenContent from '@app/components/ScreenContent';
+import Text from '@app/components/Text';
+import UIGroup from '@app/components/UIGroup';
+
 import ChecklistItem from '../components/ChecklistItem';
+import ItemItem from '../components/ItemItem';
 import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Item'>) {
+  const { id, preloadedTitle } = route.params;
+
   const rootNavigation = useRootNavigation();
   const { openRfidSheet } = useRootBottomSheets();
-  const { showActionSheetWithOptions } = useActionSheet();
-  const { id, initialTitle } = route.params;
-  const { db } = useDB();
-  const { data, reloadData } = useRelationalData('item', id);
+  const { showActionSheet } = useActionSheet();
+
+  const { config, loading: configLoading } = useConfig();
+  const { save } = useSave();
 
   const [reloadCounter, setReloadCounter] = useState(0);
+  const {
+    data,
+    loading: dataLoading,
+    refresh: refreshData,
+    refreshing: dataRefreshing,
+  } = useData('item', id);
+  const {
+    data: collection,
+    loading: collectionLoading,
+    refresh: refreshCollection,
+    refreshing: collectionRefreshing,
+  } = useRelated(data, 'collection');
+  const {
+    data: dedicatedContainer,
+    loading: dedicatedContainerLoading,
+    refresh: refreshDedicatedContainer,
+    refreshing: dedicatedContainerRefreshing,
+  } = useRelated(data, 'dedicated_container');
+  const {
+    data: dedicatedContents,
+    loading: dedicatedContentsLoading,
+    refresh: refreshDedicatedContents,
+    refreshing: dedicatedContentsRefreshing,
+  } = useRelated(data, 'dedicated_contents');
+  const refresh = useCallback(() => {
+    refreshData();
+    refreshCollection();
+    refreshDedicatedContainer();
+    refreshDedicatedContents();
+    setReloadCounter(v => v + 1);
+  }, [
+    refreshCollection,
+    refreshData,
+    refreshDedicatedContainer,
+    refreshDedicatedContents,
+  ]);
+  const refreshing =
+    dataRefreshing ||
+    collectionRefreshing ||
+    dedicatedContainerRefreshing ||
+    dedicatedContentsRefreshing;
+
   useFocusEffect(
     useCallback(() => {
-      reloadData();
       setReloadCounter(v => v + 1);
-    }, [reloadData]),
+    }, []),
   );
 
-  const item = data?.data;
-  const [collection] =
-    data?.getRelated('collection', {
-      arrElementType: 'collection',
-    }) || [];
-  const [dedicatedContainer] = data?.getRelated('dedicatedContainer', {
-    arrElementType: 'item',
-  }) || [null];
-  const dedicatedContents =
-    data?.getRelated('dedicatedContents', { arrElementType: 'item' }) || null;
-  const {
-    orderedData: orderedDedicatedContents,
-    updateOrder: updateDedicatedContentsOrder,
-  } = useOrderedData({
-    data: dedicatedContents,
-    settingName: `item-${item?.id}-dedicatedContents`,
-    settingPriority: '12',
-  });
+  const [orderedDedicatedContents] = useOrdered(
+    dedicatedContents && onlyValid(dedicatedContents),
+    [],
+  );
+  const updateDedicatedContentsOrder = useCallback(
+    (newOrder: string[]) => {
+      newOrder;
+      refreshData();
+    },
+    [refreshData],
+  );
   const updateDedicatedContentsOrderFunctionRef = useRef(
     updateDedicatedContentsOrder,
   );
   updateDedicatedContentsOrderFunctionRef.current =
     updateDedicatedContentsOrder;
+
   const dedicatedItemsName = (() => {
-    switch (item && item.isContainerType) {
-      case 'generic-container':
-      case 'item-with-parts':
+    switch (data && data.item_type) {
+      case 'item_with_parts':
         return 'Parts';
       default:
         return 'Dedicated Items';
@@ -91,23 +137,19 @@ function ItemScreen({
   })();
 
   const writeActualEpcContent = useCallback(async () => {
-    if (!item) return;
-    if (!item.computedRfidTagEpcMemoryBankContents) return;
+    if (!data || !data.__valid) return;
+    if (!data.rfid_tag_epc_memory_bank_contents) return;
 
+    data.actual_rfid_tag_epc_memory_bank_contents =
+      data.rfid_tag_epc_memory_bank_contents;
     try {
-      await db.rel.save('item', {
-        ...item,
-        actualRfidTagEpcMemoryBankContents:
-          item.computedRfidTagEpcMemoryBankContents,
-      });
-      reloadData();
-    } catch (e) {
-      Alert.alert('Error', `Error on updating item: ${e}`);
-    }
-  }, [db.rel, item, reloadData]);
+      await save(data);
+      refreshData();
+    } catch (e) {}
+  }, [data, refreshData, save]);
 
   const [displayEpc, setDisplayEpc] = useState<null | 'epc' | 'hex'>(null);
-  const toggleDisplayEpc = useCallback(() => {
+  const switchDisplayEpc = useCallback(() => {
     setDisplayEpc(oldValue => {
       switch (oldValue) {
         case null:
@@ -124,154 +166,126 @@ function ItemScreen({
     () =>
       rootNavigation?.push('SaveItem', {
         initialData: {
-          collection: collection?.id,
-          iconName: collection?.itemDefaultIconName,
-          dedicatedContainer: item?.id,
+          dedicated_container: data?.__id,
+          collection_id:
+            typeof data?.collection_id === 'string'
+              ? data?.collection_id
+              : undefined,
+          icon_name:
+            typeof collection?.item_default_icon_name === 'string'
+              ? collection?.item_default_icon_name
+              : undefined,
         },
         afterSave: it => {
-          it.id &&
-            it.itemReferenceNumber &&
-            navigation.push('Item', { id: it.id });
+          it.__id &&
+            it._individual_asset_reference &&
+            navigation.push('Item', { id: it.__id });
         },
       }),
-    [collection, item, navigation, rootNavigation],
+    [
+      collection?.item_default_icon_name,
+      data?.__id,
+      data?.collection_id,
+      navigation,
+      rootNavigation,
+    ],
   );
-
-  const checklistItems = data?.getRelated('checklistItems', {
-    arrElementType: 'checklistItem',
-  });
-  const [checklists, setChecklists] = useState<null | ReadonlyArray<
-    DataTypeWithID<'checklist'>
-  >>(null);
-  const loadChecklists = useCallback(async () => {
-    if (!checklistItems) return;
-
-    const promises = checklistItems.map(async checklistItem => {
-      try {
-        const doc = await db.get(`checklist-2-${checklistItem.checklist}`);
-        if (doc.type !== 'checklist') return null;
-        const [d] = getDataFromDocs('checklist', [doc]);
-        if (!d) return null;
-
-        return d;
-      } catch (e) {
-        // Handle non-404 errors
-        return null;
-      }
-    });
-    const cls = (await Promise.all(promises)).filter(
-      (i): i is DataTypeWithID<'checklist'> => !!i,
-    );
-    setChecklists(cls);
-  }, [checklistItems, db]);
-  useEffect(() => {
-    loadChecklists();
-  }, [loadChecklists]);
-  const { orderedData: orderedChecklists } = useOrderedData({
-    data: checklists,
-    settingName: 'checklists',
-  });
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
   const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
     useColors();
 
-  const afterWriteSuccessRef = useRef<(() => void) | null>(null);
-  afterWriteSuccessRef.current = () => {
-    if (item && !item.actualRfidTagEpcMemoryBankContents)
+  const afterRFIDTagWriteSuccessRef = useRef<(() => void) | null>(null);
+  afterRFIDTagWriteSuccessRef.current = () => {
+    if (data && !data.actual_rfid_tag_epc_memory_bank_contents)
       writeActualEpcContent();
   };
 
   const [handleCheckContents] = useCheckItems({
     scanName: `container-${id}-scan`,
-    items: orderedDedicatedContents || [],
+    items: [],
     navigation,
   });
 
   const handleMoreActionsPress = useCallback(() => {
-    const options = [
-      item?.isContainer && 'new-dedicated-item',
-      item && 'duplicate',
-    ].filter((s): s is string => !!s);
-    const optionNames: Record<string, string> = {
-      'new-dedicated-item': `New ${(() => {
-        switch (item?.isContainerType) {
-          case 'generic-container':
-          case 'item-with-parts':
-            return 'Part';
-          default:
-            return 'Dedicated Item';
-        }
-      })()}...`,
-      duplicate: 'Duplicate',
-    };
-    const shownOptions = options.map(v => optionNames[v]);
-    showActionSheetWithOptions(
-      {
-        options: [...shownOptions, 'Cancel'],
-        cancelButtonIndex: shownOptions.length,
-      },
-      buttonIndex => {
-        if (buttonIndex === shownOptions.length) {
-          // cancel action
-          return;
-        }
-
-        const selectedOption =
-          typeof buttonIndex === 'number' ? options[buttonIndex] : null;
-        switch (selectedOption) {
-          case 'new-dedicated-item':
-            return handleAddNewDedicatedContent();
-          case 'duplicate':
-            if (!item) return;
-            rootNavigation?.navigate('SaveItem', {
-              initialData: {
-                ...Object.fromEntries(
-                  Object.entries(item).filter(
-                    ([k]) =>
-                      !k.startsWith('computed') &&
-                      k !== 'actualRfidTagEpcMemoryBankContents' &&
-                      k !== 'rfidTagAccessPassword' &&
-                      k !== 'createdAt' &&
-                      k !== 'updatedAt',
-                  ),
-                ),
-                id: undefined,
-                rev: undefined,
-              },
-              afterSave: it => {
-                it.id && navigation.push('Item', { id: it.id });
-              },
-            });
-            return;
-          default:
-            Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
-            return;
-        }
-      },
-    );
-  }, [
-    handleAddNewDedicatedContent,
-    item,
-    navigation,
-    rootNavigation,
-    showActionSheetWithOptions,
-  ]);
+    // const options = [
+    //   item?.isContainer && 'new-dedicated-item',
+    //   item && 'duplicate',
+    // ].filter((s): s is string => !!s);
+    // const optionNames: Record<string, string> = {
+    //   'new-dedicated-item': `New ${(() => {
+    //     switch (item?.isContainerType) {
+    //       case 'generic-container':
+    //       case 'item-with-parts':
+    //         return 'Part';
+    //       default:
+    //         return 'Dedicated Item';
+    //     }
+    //   })()}...`,
+    //   duplicate: 'Duplicate',
+    // };
+    // const shownOptions = options.map(v => optionNames[v]);
+    // showActionSheetWithOptions(
+    //   {
+    //     options: [...shownOptions, 'Cancel'],
+    //     cancelButtonIndex: shownOptions.length,
+    //   },
+    //   buttonIndex => {
+    //     if (buttonIndex === shownOptions.length) {
+    //       // cancel action
+    //       return;
+    //     }
+    //     const selectedOption =
+    //       typeof buttonIndex === 'number' ? options[buttonIndex] : null;
+    //     switch (selectedOption) {
+    //       case 'new-dedicated-item':
+    //         return handleAddNewDedicatedContent();
+    //       case 'duplicate':
+    //         if (!item) return;
+    //         rootNavigation?.navigate('SaveItem', {
+    //           initialData: {
+    //             ...Object.fromEntries(
+    //               Object.entries(item).filter(
+    //                 ([k]) =>
+    //                   !k.startsWith('computed') &&
+    //                   k !== 'actualRfidTagEpcMemoryBankContents' &&
+    //                   k !== 'rfidTagAccessPassword' &&
+    //                   k !== 'createdAt' &&
+    //                   k !== 'updatedAt',
+    //               ),
+    //             ),
+    //             id: undefined,
+    //             rev: undefined,
+    //           },
+    //           afterSave: it => {
+    //             it.id && navigation.push('Item', { id: it.id });
+    //           },
+    //         });
+    //         return;
+    //       default:
+    //         Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
+    //         return;
+    //     }
+    //   },
+    // );
+  }, []);
 
   return (
     <ScreenContent
       navigation={navigation}
       route={route}
-      title={data?.data ? data?.data.name : initialTitle || 'Item'}
+      title={
+        (typeof data?.name === 'string' ? data.name : preloadedTitle) || 'Item'
+      }
       action1Label="Edit"
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}
       action1MaterialIconName={(data && 'pencil') || undefined}
       onAction1Press={
-        item
+        data?.__valid
           ? () =>
               rootNavigation?.navigate('SaveItem', {
-                initialData: item,
+                initialData: data,
                 afterDelete: () => navigation.goBack(),
               })
           : undefined
@@ -281,13 +295,16 @@ function ItemScreen({
       action2MaterialIconName={(data && 'dots-horizontal') || undefined}
       onAction2Press={handleMoreActionsPress}
     >
-      <ScrollView keyboardDismissMode="interactive">
-        <InsetGroup
-          style={commonStyles.mt2}
-          loading={!item}
-          footerLabel={(() => {
-            if (item?.computedRfidTagEpcMemoryBankContents) {
-              if (!item?.actualRfidTagEpcMemoryBankContents) {
+      <ScreenContent.ScrollView>
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup
+          loading={dataLoading}
+          // eslint-disable-next-line react/no-unstable-nested-components
+          footer={(() => {
+            if (!data?.__valid) return undefined;
+
+            if (data?.rfid_tag_epc_memory_bank_contents) {
+              if (!data?.actual_rfid_tag_epc_memory_bank_contents) {
                 return (
                   <>
                     <Icon
@@ -334,8 +351,8 @@ function ItemScreen({
               }
 
               if (
-                item?.actualRfidTagEpcMemoryBankContents !==
-                item?.computedRfidTagEpcMemoryBankContents
+                data?.actual_rfid_tag_epc_memory_bank_contents !==
+                data?.rfid_tag_epc_memory_bank_contents
               ) {
                 return (
                   <>
@@ -384,552 +401,288 @@ function ItemScreen({
             }
           })()}
         >
-          <TouchableWithoutFeedback
-            onPress={() => {
-              setDevModeCounter(v => v + 1);
-            }}
-          >
-            <View style={[commonStyles.row, commonStyles.centerChildren]}>
-              <InsetGroup.Item
-                vertical2
-                label="Name"
-                detail={item?.name}
-                containerStyle={[commonStyles.flex1]}
-              />
-              <Icon
-                showBackground
-                name={item?.iconName as IconName}
-                color={item?.iconColor as IconColor}
-                size={40}
-                style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-          {devModeCounter > 10 && (
-            <>
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="ID"
-                detailTextStyle={commonStyles.monospaced}
-                detail={item?.id}
-              />
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="Created At"
-                detailTextStyle={commonStyles.monospaced}
-                detail={
-                  item?.createdAt
-                    ? new Date(item?.createdAt * 1000).toISOString()
-                    : '(null)'
-                }
-              />
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="Updated At"
-                detailTextStyle={commonStyles.monospaced}
-                detail={
-                  item?.updatedAt
-                    ? new Date(item?.updatedAt * 1000).toISOString()
-                    : '(null)'
-                }
-              />
-            </>
-          )}
-          {item?.dedicatedContainer && (
-            <>
-              <InsetGroup.ItemSeparator />
-              <TouchableHighlight
-                style={[commonStyles.row, commonStyles.centerChildren]}
-                onPress={
-                  collection
-                    ? () =>
-                        navigation.push('Item', {
-                          id: item?.dedicatedContainer || '',
-                          initialTitle: dedicatedContainer?.name,
-                        })
-                    : undefined
-                }
-                underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
-              >
-                <>
-                  <InsetGroup.Item
-                    vertical2
-                    label={(() => {
-                      switch (dedicatedContainer?.isContainerType) {
-                        case 'generic-container':
-                        case 'item-with-parts':
-                          return 'Part of';
-                        default:
-                          return 'Dedicated Container';
-                      }
-                    })()}
-                    detailTextStyle={
-                      !dedicatedContainer?.name && commonStyles.opacity04
-                    }
-                    detail={dedicatedContainer?.name || 'Loading'}
-                    containerStyle={[commonStyles.flex1]}
-                  />
-                  <Icon
-                    showBackground
-                    name={dedicatedContainer?.iconName as IconName}
-                    color={dedicatedContainer?.iconColor as IconColor}
-                    size={40}
-                    style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
-                  />
-                </>
-              </TouchableHighlight>
-            </>
-          )}
-          <InsetGroup.ItemSeparator />
-          <TouchableHighlight
-            style={[commonStyles.row, commonStyles.centerChildren]}
-            onPress={
-              collection
-                ? () =>
-                    navigation.push('Collection', {
-                      id: item?.collection || '',
-                      initialTitle: collection.name,
-                    })
-                : undefined
-            }
-            underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
-          >
-            <>
-              <InsetGroup.Item
-                vertical2
-                label="In Collection"
-                detailTextStyle={!collection?.name && commonStyles.opacity04}
-                detail={collection?.name || 'Loading'}
-                containerStyle={[commonStyles.flex1]}
-              />
-              <Icon
-                showBackground
-                name={collection?.iconName as IconName}
-                color={collection?.iconColor as IconColor}
-                size={40}
-                style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
-              />
-            </>
-          </TouchableHighlight>
-          {item?.itemReferenceNumber && (
-            <>
-              <InsetGroup.ItemSeparator />
-              <View style={[commonStyles.row, commonStyles.centerChildren]}>
+          {(() => {
+            const item = data && onlyValid(data);
+            if (!item) return null;
+
+            const validDedicatedContainer =
+              dedicatedContainer && onlyValid(dedicatedContainer);
+            const validCollection = collection && onlyValid(collection);
+
+            const handleDedicatedContainerPress = () =>
+              item.dedicated_container_id &&
+              navigation.push('Item', {
+                id: item.dedicated_container_id,
+                preloadedTitle: validDedicatedContainer?.name,
+              });
+
+            const handleCollectionPress = () =>
+              item.collection_id &&
+              navigation.push('Collection', {
+                id: item.collection_id,
+                preloadedTitle: validCollection?.name,
+              });
+
+            return (
+              <>
                 <TouchableWithoutFeedback
-                  style={commonStyles.flex1}
-                  onPress={toggleDisplayEpc}
+                  onPress={() => {
+                    setDevModeCounter(v => v + 1);
+                  }}
                 >
-                  {(() => {
-                    switch (displayEpc) {
-                      case 'epc': {
-                        let epc: string;
-                        try {
-                          const res = EPCUtils.decodeHexEPC(
-                            item.computedRfidTagEpcMemoryBankContents || '',
-                          );
-                          epc = res[0];
-                        } catch (e: any) {
-                          epc = e.message;
-                        }
-                        return (
-                          <InsetGroup.Item
-                            vertical2
-                            label="EPC"
-                            detailTextStyle={commonStyles.monospaced}
-                            detail={epc}
-                            containerStyle={[commonStyles.flex1]}
-                          />
-                        );
-                      }
-                      case 'hex': {
-                        return (
-                          <InsetGroup.Item
-                            vertical2
-                            label="EPC (Hex)"
-                            detailTextStyle={commonStyles.monospaced}
-                            detail={item.computedRfidTagEpcMemoryBankContents}
-                            containerStyle={[commonStyles.flex1]}
-                          />
-                        );
-                      }
-                      default:
-                        return (
-                          <InsetGroup.Item
-                            vertical2
-                            label="Asset Reference Number"
-                            detailTextStyle={commonStyles.monospaced}
-                            detail={
-                              item.individualAssetReference
-                              // collection &&
-                              // item &&
-                              // EPCUtils.encodeIndividualAssetReference(
-                              //   32,
-                              //   collection.collectionReferenceNumber,
-                              //   item.itemReferenceNumber,
-                              //   item.serial || 0,
-                              //   { includePrefix: false, joinBy: '.' },
-                              // )
-                            }
-                            containerStyle={[commonStyles.flex1]}
-                          />
-                        );
-                    }
-                  })()}
+                  <UIGroup.ListItem
+                    verticalArrangedLargeTextIOS
+                    label="Item Name"
+                    detail={item.name}
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    rightElement={({ iconProps }) => (
+                      <Icon
+                        name={verifyIconNameWithDefault(item.icon_name)}
+                        color={item.icon_color}
+                        {...iconProps}
+                      />
+                    )}
+                  />
                 </TouchableWithoutFeedback>
-                <TouchableOpacity
-                  style={[styles.buttonWithAnnotationText, commonStyles.mr12]}
-                  onPress={() =>
-                    openRfidSheet({
-                      functionality: 'write',
-                      epc: item.computedRfidTagEpcMemoryBankContents,
-                      tagAccessPassword: item.rfidTagAccessPassword,
-                      afterWriteSuccessRef,
-                    })
-                  }
-                >
-                  <Icon
-                    name="rfid-write"
-                    size={44}
-                    sfSymbolWeight="medium"
-                    showBackground
-                    backgroundColor="transparent"
-                    color={iosTintColor}
-                  />
-                  <Text
-                    style={[
-                      styles.buttonAnnotationText,
-                      { color: iosTintColor },
-                    ]}
-                  >
-                    Write Tag
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.buttonWithAnnotationText,
-                    { marginRight: InsetGroup.MARGIN_HORIZONTAL - 2 },
-                    !item.actualRfidTagEpcMemoryBankContents &&
-                      commonStyles.opacity04,
-                  ]}
-                  onPress={() =>
-                    openRfidSheet({
-                      functionality: 'locate',
-                      epc: item.actualRfidTagEpcMemoryBankContents,
-                    })
-                  }
-                  disabled={!item.actualRfidTagEpcMemoryBankContents}
-                >
-                  <Icon
-                    name="rfid-locate"
-                    size={44}
-                    sfSymbolWeight="medium"
-                    showBackground
-                    backgroundColor="transparent"
-                    color={iosTintColor}
-                  />
-                  <Text
-                    style={[
-                      styles.buttonAnnotationText,
-                      { color: iosTintColor },
-                    ]}
-                  >
-                    Locate
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-          {devModeCounter > 10 && (
-            <>
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="Computed RFID Tag EPC Contents"
-                detailTextStyle={commonStyles.monospaced}
-                detail={item?.computedRfidTagEpcMemoryBankContents || '(null)'}
-              />
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="Actual RFID Tag EPC Contents"
-                detailTextStyle={commonStyles.monospaced}
-                detail={item?.actualRfidTagEpcMemoryBankContents || '(null)'}
-              />
-            </>
-          )}
-        </InsetGroup>
-        {item?.isContainer &&
-          (item?.isContainerType !== 'generic-container' ||
-            (orderedDedicatedContents?.length || 0) > 0) && (
-            <>
-              {(orderedDedicatedContents || []).length > 0 && (
-                <InsetGroup backgroundTransparent>
-                  <Button mode="text" onPress={handleCheckContents}>
-                    <Icon
-                      name="checklist"
-                      sfSymbolWeight="bold"
-                      color={iosTintColor}
-                    />{' '}
-                    Check {dedicatedItemsName}
-                  </Button>
-                </InsetGroup>
-              )}
-              <InsetGroup
-                label={
-                  (() => {
-                    const count =
-                      orderedDedicatedContents &&
-                      orderedDedicatedContents.length;
-                    if (count) return `${count} `;
-                    return '';
-                  })() + dedicatedItemsName
-                }
-                labelVariant="large"
-                loading={!item}
-                labelRight={
+                {devModeCounter > 10 && (
                   <>
-                    {orderedDedicatedContents &&
-                      orderedDedicatedContents.length > 0 && (
-                        <InsetGroup.LabelButton
-                          onPress={handleCheckContents}
-                          contentAsText={false}
-                          style={commonStyles.mr8}
-                        >
-                          <Icon
-                            name="checklist"
-                            sfSymbolWeight="bold"
-                            color={iosTintColor}
-                          />
-                        </InsetGroup.LabelButton>
-                      )}
-                    {orderedDedicatedContents &&
-                      orderedDedicatedContents.length > 0 && (
-                        <InsetGroup.LabelButton
-                          onPress={() =>
-                            rootNavigation?.push('OrderItems', {
-                              orderedItems: orderedDedicatedContents,
-                              updateOrderFunctionRef:
-                                updateDedicatedContentsOrderFunctionRef,
-                            })
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="ID"
+                      monospaceDetail
+                      adjustsDetailFontSizeToFit
+                      detail={item.__id}
+                    />
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="Created At"
+                      monospaceDetail
+                      detail={
+                        item.__created_at
+                          ? new Date(item.__created_at).toISOString()
+                          : '(null)'
+                      }
+                    />
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="Updated At"
+                      monospaceDetail
+                      detail={
+                        item.__updated_at
+                          ? new Date(item.__updated_at).toISOString()
+                          : '(null)'
+                      }
+                    />
+                  </>
+                )}
+                {!!item.dedicated_container_id && (
+                  <>
+                    <UIGroup.ListItemSeparator />
+                    {validDedicatedContainer ? (
+                      <UIGroup.ListItem
+                        verticalArrangedLargeTextIOS
+                        label={(() => {
+                          switch (validDedicatedContainer.item_type) {
+                            case 'item_with_parts':
+                              return 'Part of';
+                            default:
+                              return 'Dedicated Container';
                           }
-                          contentAsText={false}
-                          style={commonStyles.mr8}
-                        >
+                        })()}
+                        detail={validDedicatedContainer.name}
+                        // eslint-disable-next-line react/no-unstable-nested-components
+                        rightElement={({ iconProps }) => (
                           <Icon
-                            name="app-reorder"
-                            sfSymbolWeight="bold"
-                            color={iosTintColor}
+                            name={verifyIconNameWithDefault(
+                              validDedicatedContainer.icon_name,
+                            )}
+                            color={validDedicatedContainer.icon_color}
+                            {...iconProps}
                           />
-                        </InsetGroup.LabelButton>
-                      )}
-                    {orderedDedicatedContents &&
-                    orderedDedicatedContents.length > 0 ? (
-                      <InsetGroup.LabelButton
-                        primary
-                        onPress={handleAddNewDedicatedContent}
-                        contentAsText={false}
-                      >
-                        <Icon
-                          name="add"
-                          sfSymbolWeight="bold"
-                          color={textOnDarkBackgroundColor}
-                        />
-                      </InsetGroup.LabelButton>
+                        )}
+                        onPress={handleDedicatedContainerPress}
+                      />
                     ) : (
-                      <InsetGroup.LabelButton
-                        primary
-                        onPress={handleAddNewDedicatedContent}
-                      >
-                        <Icon
-                          name="add"
-                          sfSymbolWeight="bold"
-                          color={textOnDarkBackgroundColor}
-                        />{' '}
-                        New Item
-                      </InsetGroup.LabelButton>
+                      <UIGroup.ListItem
+                        verticalArrangedLargeTextIOS
+                        label="Dedicated Container"
+                        detail="Loading..."
+                        onPress={handleDedicatedContainerPress}
+                      />
                     )}
                   </>
-                }
-              >
-                {(() => {
-                  if (!orderedDedicatedContents)
-                    return <InsetGroup.Item label="Loading..." disabled />;
-                  if (orderedDedicatedContents.length <= 0)
-                    return <InsetGroup.Item label="No Items" disabled />;
-                  return orderedDedicatedContents
-                    .flatMap(it => [
-                      <ItemItem
-                        key={it.id}
-                        item={it}
-                        hideDedicatedContainerDetails
-                        hideCollectionDetails={
-                          it.collection === item.collection
-                        }
-                        reloadCounter={reloadCounter}
-                        onPress={() =>
-                          navigation.push('Item', {
-                            id: it.id || '',
-                            initialTitle: it.name,
-                          })
-                        }
-                      />,
-                      <InsetGroup.ItemSeparator
-                        key={`s-${it.id}`}
-                        leftInset={60}
-                      />,
-                    ])
-                    .slice(0, -1);
-                })()}
-                {/*<InsetGroup.ItemSeparator />
-            <InsetGroup.Item
-              button
-              label="Add New Item"
-              onPress={handleAddNewItem}
-            />*/}
-              </InsetGroup>
-            </>
-          )}
-        {/*<InsetGroup
-          label="Items in this item"
-          labelVariant="large"
-          loading={!item}
-        >
-          {(data?.getRelated('items', { arrElementType: 'item' }) || [])
-            .flatMap(item => [
-              <InsetGroup.Item
-                key={item.id}
-                vertical
-                arrow
-                label={item.name}
-                detail={item.id}
-                onPress={() =>
-                  navigation.push('RelationalPouchDBTypeDataDetail', {
-                    type: 'item',
-                    id: item.id || '',
-                    initialTitle: item.name,
-                  })
-                }
-              />,
-              <InsetGroup.ItemSeparator key={`s-${item.id}`} />,
-            ])
-            .slice(0, -1)}
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            button
-            label="Add New Item"
-            onPress={() =>
-              rootNavigation?.push('RelationalPouchDBSave', {
-                type: 'item',
-                initialData: {
-                  item: item?.id,
-                },
-              })
-            }
-          />
-        </InsetGroup>*/}
-        {!!item?.notes && (
-          <InsetGroup label="Notes" labelVariant="large">
-            <InsetGroup.Item>
-              <Text>{item.notes}</Text>
-            </InsetGroup.Item>
-          </InsetGroup>
-        )}
-        {(() => {
-          const detailElements = [];
-
-          if (item?.modelName) {
-            detailElements.push(
-              <InsetGroup.Item
-                key="modelName"
-                vertical2
-                label="Model Name"
-                detail={item.modelName}
-              />,
-            );
-          }
-
-          if (typeof item?.purchasePriceX1000 === 'number') {
-            // const strValue = (() => {
-            //   const str = item.purchasePriceX1000.toString();
-            //   const a = str.slice(0, -3) || '0';
-            //   const b = str.slice(-3).padStart(3, '0').replace(/0+$/, '');
-            //   if (!b) {
-            //     return a;
-            //   }
-            //   return a + '.' + b;
-            // })();
-            const strValue = new Intl.NumberFormat('en-US').format(
-              item.purchasePriceX1000 / 1000.0,
-            );
-            detailElements.push(
-              <InsetGroup.Item
-                key="purchasePrice"
-                vertical2
-                label="Purchase Price"
-                detailAsText
-                detail={
+                )}
+                <UIGroup.ListItemSeparator />
+                {validCollection ? (
+                  <UIGroup.ListItem
+                    verticalArrangedLargeTextIOS
+                    label="In Collection"
+                    detail={validCollection.name}
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    rightElement={({ iconProps }) => (
+                      <Icon
+                        name={verifyIconNameWithDefault(
+                          validCollection.icon_name,
+                        )}
+                        color={validCollection.icon_color}
+                        {...iconProps}
+                      />
+                    )}
+                    onPress={handleCollectionPress}
+                  />
+                ) : (
+                  <UIGroup.ListItem
+                    verticalArrangedLargeTextIOS
+                    label="In Collection"
+                    detail="Loading..."
+                    onPress={handleCollectionPress}
+                  />
+                )}
+                {item._individual_asset_reference && (
                   <>
-                    {strValue}
-                    {!!item?.purchasePriceCurrency && (
-                      <InsetGroup.ItemAffix>
-                        {' ' + item.purchasePriceCurrency}
-                      </InsetGroup.ItemAffix>
-                    )}
+                    <UIGroup.ListItemSeparator />
+                    <TouchableWithoutFeedback
+                      style={commonStyles.flex1}
+                      onPress={switchDisplayEpc}
+                    >
+                      {(() => {
+                        const rightElement = (
+                          <>
+                            <TouchableOpacity
+                              style={[
+                                styles.buttonWithAnnotationText,
+                                commonStyles.mr12,
+                              ]}
+                              onPress={() =>
+                                openRfidSheet({
+                                  functionality: 'write',
+                                  epc: item.rfid_tag_epc_memory_bank_contents,
+                                  tagAccessPassword: item.rfidTagAccessPassword,
+                                  afterWriteSuccessRef:
+                                    afterRFIDTagWriteSuccessRef,
+                                })
+                              }
+                            >
+                              <Icon
+                                name="rfid-write"
+                                size={44}
+                                sfSymbolWeight="medium"
+                                showBackground
+                                backgroundColor="transparent"
+                                color={iosTintColor}
+                              />
+                              <Text
+                                style={[
+                                  styles.buttonAnnotationText,
+                                  { color: iosTintColor },
+                                ]}
+                              >
+                                Write Tag
+                              </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[
+                                styles.buttonWithAnnotationText,
+                                !item.actual_rfid_tag_epc_memory_bank_contents &&
+                                  commonStyles.opacity04,
+                              ]}
+                              onPress={() =>
+                                openRfidSheet({
+                                  functionality: 'locate',
+                                  epc: item.actual_rfid_tag_epc_memory_bank_contents,
+                                })
+                              }
+                              disabled={
+                                !item.actual_rfid_tag_epc_memory_bank_contents
+                              }
+                            >
+                              <Icon
+                                name="rfid-locate"
+                                size={44}
+                                sfSymbolWeight="medium"
+                                showBackground
+                                backgroundColor="transparent"
+                                color={iosTintColor}
+                              />
+                              <Text
+                                style={[
+                                  styles.buttonAnnotationText,
+                                  { color: iosTintColor },
+                                ]}
+                              >
+                                Locate
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        );
+
+                        switch (displayEpc) {
+                          case 'epc': {
+                            return (
+                              <UIGroup.ListItem
+                                verticalArrangedLargeTextIOS
+                                label="EPC Tag URI"
+                                detail={item.epc_tag_uri}
+                                monospaceDetail
+                                rightElement={rightElement}
+                              />
+                            );
+                          }
+                          case 'hex': {
+                            return (
+                              <UIGroup.ListItem
+                                verticalArrangedLargeTextIOS
+                                label="RFID Tag EPC (Hex)"
+                                detail={item.rfid_tag_epc_memory_bank_contents}
+                                monospaceDetail
+                                rightElement={rightElement}
+                              />
+                            );
+                          }
+                          default:
+                            let iar = item._individual_asset_reference;
+                            if (config?.rfid_tag_prefix) {
+                              const prefixPart = `${config?.rfid_tag_prefix}.`;
+                              if (iar.startsWith(prefixPart)) {
+                                iar = iar.slice(prefixPart.length);
+                              }
+                            }
+                            return (
+                              <UIGroup.ListItem
+                                verticalArrangedLargeTextIOS
+                                label="Individual Asset Reference"
+                                detail={iar}
+                                monospaceDetail
+                                rightElement={rightElement}
+                              />
+                            );
+                        }
+                      })()}
+                    </TouchableWithoutFeedback>
                   </>
-                }
-              />,
+                )}
+                {devModeCounter > 10 && (
+                  <>
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="Actual RFID Tag EPC Memory Bank Contents"
+                      monospaceDetail
+                      detail={
+                        item.actual_rfid_tag_epc_memory_bank_contents ||
+                        '(null)'
+                      }
+                    />
+                  </>
+                )}
+              </>
             );
-          }
-
-          if (item?.purchasedFrom) {
-            detailElements.push(
-              <InsetGroup.Item
-                key="purchasedFrom"
-                vertical2
-                label="Purchased From"
-                detail={item.purchasedFrom}
-              />,
-            );
-          }
-
-          if (detailElements.length <= 0) return;
-
-          return (
-            <InsetGroup label="Details" labelVariant="large">
-              {detailElements
-                .flatMap(element => [element, <InsetGroup.ItemSeparator />])
-                .slice(0, -1)}
-            </InsetGroup>
-          );
-        })()}
-
-        {!!orderedChecklists && orderedChecklists.length > 0 && (
-          <InsetGroup labelVariant="large" label="Included In">
-            {orderedChecklists
-              .flatMap(checklist => [
-                <ChecklistItem
-                  key={checklist.id}
-                  checklist={checklist}
-                  reloadCounter={reloadCounter}
-                  onPress={() =>
-                    navigation.push('Checklist', {
-                      id: checklist.id || '',
-                      initialTitle: checklist.name,
-                    })
-                  }
-                />,
-                <InsetGroup.ItemSeparator
-                  key={`s-${checklist.id}`}
-                  leftInset={60}
-                />,
-              ])
-              .slice(0, -1)}
-          </InsetGroup>
-        )}
-      </ScrollView>
+          })()}
+        </UIGroup>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

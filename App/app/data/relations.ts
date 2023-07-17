@@ -27,6 +27,16 @@ export const relation_definitions = relation_defn({
   item: {
     belongs_to: {
       collection: { type_name: 'collection', foreign_key: 'collection_id' },
+      dedicated_container: {
+        type_name: 'item',
+        foreign_key: 'dedicated_container_id',
+      },
+    },
+    has_many: {
+      dedicated_contents: {
+        type_name: 'item',
+        foreign_key: 'dedicated_container_id',
+      },
     },
   },
 } as const);

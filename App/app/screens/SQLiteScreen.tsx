@@ -172,7 +172,7 @@ function SQLiteScreen({
             returnKeyType="done"
             value={database}
             onChangeText={setDatabase}
-            rightElement={
+            controlElement={
               <UIGroup.ListTextInputItem.Button
                 onPress={handleShowDbSelections}
               >
@@ -191,7 +191,7 @@ function SQLiteScreen({
             multiline
             value={query}
             onChangeText={setQuery}
-            rightElement={
+            controlElement={
               <UIGroup.ListTextInputItem.Button
                 onPress={handleShowQuerySelections}
               >

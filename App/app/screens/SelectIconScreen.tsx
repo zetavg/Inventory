@@ -1,27 +1,28 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  StyleSheet,
   ScrollView,
-  View,
+  StyleSheet,
   TouchableWithoutFeedback,
+  View,
 } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import SearchBar from 'react-native-platform-searchbar';
 
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/Navigation';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+import { ICONS } from '@app/consts/icons';
 
 import cs from '@app/utils/commonStyles';
+import objectEntries from '@app/utils/objectEntries';
+
+import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useColors from '@app/hooks/useColors';
-import ModalContent from '@app/components/ModalContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Icon from '@app/components/Icon';
-
-import { ICONS } from '@app/consts/icons';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import objectEntries from '@app/utils/objectEntries';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+
+import Icon from '@app/components/Icon';
+import InsetGroup from '@app/components/InsetGroup';
+import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
 
 function SelectIconScreen({
   navigation,
@@ -86,11 +87,9 @@ function SelectIconScreen({
       // action1MaterialIconName="check"
       onAction1Press={handleSelect}
     >
-      <ScrollView
+      <ModalContent.ScrollView
         ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
+        automaticallyAdjustKeyboardInsets={false}
       >
         <View style={styles.searchBarContainer}>
           <SearchBar
@@ -101,26 +100,28 @@ function SelectIconScreen({
             onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
           />
         </View>
-        <InsetGroup style={[cs.centerChildren]}>
-          <View style={styles.iconsContainer}>
-            {iconNames.map(iconName => (
-              <TouchableWithoutFeedback
-                key={iconName}
-                onPress={() => setValue(iconName)}
-              >
-                <View
-                  style={[
-                    styles.iconItemContainer,
-                    iconName === value && { borderColor: iosTintColor },
-                  ]}
+        <UIGroup style={[cs.centerChildren]} placeholder="No matched icons">
+          {iconNames.length > 0 && (
+            <View style={styles.iconsContainer}>
+              {iconNames.map(iconName => (
+                <TouchableWithoutFeedback
+                  key={iconName}
+                  onPress={() => setValue(iconName)}
                 >
-                  <Icon name={iconName} size={20} />
-                </View>
-              </TouchableWithoutFeedback>
-            ))}
-          </View>
-        </InsetGroup>
-      </ScrollView>
+                  <View
+                    style={[
+                      styles.iconItemContainer,
+                      iconName === value && { borderColor: iosTintColor },
+                    ]}
+                  >
+                    <Icon name={iconName} size={20} />
+                  </View>
+                </TouchableWithoutFeedback>
+              ))}
+            </View>
+          )}
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

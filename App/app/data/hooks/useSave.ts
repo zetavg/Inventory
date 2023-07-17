@@ -1,151 +1,65 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert } from 'react-native';
 
-import { v4 as uuid } from 'uuid';
 import { ZodError } from 'zod';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { beforeSave } from '../callbacks';
-import { getDatumFromDoc } from '../pouchdb-utils';
-import schema, { DataType, DataTypeName } from '../schema';
-import { validate, validateDelete } from '../validation';
+import saveDatum from '../functions/saveDatum';
+import { DataTypeName } from '../schema';
+import { DataTypeWithAdditionalInfo } from '../types';
+import { toTitleCase } from '../utils';
 
 type SaveFn = <T extends DataTypeName>(
-  d: Partial<DataType<T>> & {
-    __type: T;
-    __id?: string;
-    __rev?: string;
-    __deleted?: boolean;
-  },
-) => Promise<{ type: DataTypeName; id: string } | null>;
+  d: Partial<DataTypeWithAdditionalInfo<T>>,
+  options?: { showErrorAlert?: boolean },
+) => Promise<{ type: T; id: string }>;
 
-function useSave(): SaveFn {
+function useSave(): { save: SaveFn; saving: boolean } {
   const logger = useLogger('useSave');
   const { db } = useDB();
 
-  return useCallback<SaveFn>(
-    async d => {
-      let {
-        __type,
-        __id,
-        __rev,
-        __deleted,
-        __created_at,
-        __updated_at,
-        ...unfilteredPureData
-      } = d;
-      const s = schema[__type];
-      const pureData: typeof unfilteredPureData = Object.fromEntries(
-        Object.entries(unfilteredPureData).filter(([k]) => !k.startsWith('__')),
-      ) as any;
+  const [saving, setSaving] = useState(false);
 
-      let existingDoc = {};
+  const save = useCallback<SaveFn>(
+    async (d, options) => {
+      setSaving(true);
       try {
         if (!db) throw new Error('Database is not ready yet.');
-        if (__id) {
-          const eDoc = await db.get(`${__type}-${__id}`).catch(function (_e) {
-            return null;
-          });
-          if (eDoc) {
-            existingDoc = eDoc;
-          }
-        }
-
-        const updateDoc: Record<string, unknown> = {
-          ...existingDoc,
-          data: pureData,
-        };
-
-        if (__id) {
-          updateDoc._id = `${__type}-${__id}`;
-        }
-
-        if (__rev) {
-          updateDoc._rev = __rev;
-        }
-
-        if (__deleted) {
-          updateDoc._deleted = __deleted;
-        }
-
-        if (!updateDoc._id) {
-          // TODO: Ensure the ID is unique.
-          updateDoc._id = `${__type}-${uuid()}`;
-        }
-
-        if (!updateDoc.created_at) {
-          updateDoc.created_at = new Date().getTime();
-        }
-
-        updateDoc.updated_at = new Date().getTime();
-
-        const updateDocProxy = getDatumFromDoc(
-          __type,
-          updateDoc as any,
-          logger,
-          { validate: false },
-        );
-
-        if (!updateDocProxy) throw new Error('updateDocProxy is null');
-
-        await beforeSave(updateDocProxy, { db });
-
-        // Validation
-        // (Do not need to validate if we are going to delete the document.)
-        if (!__deleted) {
-          let zodError: ZodError | undefined;
-          try {
-            s.parse(updateDocProxy);
-          } catch (e) {
-            if (e instanceof ZodError) {
-              zodError = e;
-            } else {
-              throw e;
-            }
-          }
-
-          const issues = await validate(updateDocProxy, { db });
-          if (issues.length > 0) {
-            if (!zodError) {
-              zodError = new ZodError(issues);
-            } else {
-              zodError.issues = [...zodError.issues, ...issues];
-            }
-          }
-
-          if (zodError) {
-            throw zodError;
-          }
-        } else {
-          const issues = await validateDelete(
-            { __type, __id, __deleted },
-            { db },
-          );
-          if (issues.length > 0) {
-            throw new ZodError(issues);
-          }
-        }
-
-        const response = await db.put(updateDoc);
-        const [type, ...idParts] = response.id.split('-');
-        const id = idParts.join('-');
-        return { type: type as any, id };
+        return await saveDatum(d, { db, logger });
       } catch (e) {
         if (e instanceof ZodError) {
-          throw e;
+          if (options?.showErrorAlert !== false) {
+            Alert.alert(
+              'Please Fix The Following Errors',
+              e.issues
+                .map(
+                  i =>
+                    `• ${toTitleCase(
+                      i.path.join('_').replace(/_/g, ' '),
+                    )} - ${i.message.toLowerCase()}`,
+                )
+                .join('\n'),
+            );
+          }
+        } else {
+          logger.error(e, {
+            showAlert: true,
+            details: JSON.stringify({ data: d }, null, 2),
+          });
         }
 
-        logger.error(e, {
-          showAlert: true,
-          details: JSON.stringify({ data: d, existingDoc }, null, 2),
-        });
-        return null;
+        throw e;
+      } finally {
+        setSaving(false);
       }
     },
     [db, logger],
   );
+
+  return useMemo(() => ({ save, saving }), [save, saving]);
 }
 
 export default useSave;

@@ -1,108 +1,107 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  ScrollView,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
-} from 'react-native';
-
+import React, { useCallback, useState } from 'react';
+import { RefreshControl, Text, TouchableWithoutFeedback } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+
+import {
+  verifyIconColorWithDefault,
+  verifyIconNameWithDefault,
+} from '@app/consts/icons';
+
+import { onlyValid, useData, useRelated } from '@app/data';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
-import { useFocusEffect } from '@react-navigation/native';
 
-import Color from 'color';
-import commonStyles from '@app/utils/commonStyles';
-import useColors from '@app/hooks/useColors';
+import useOrdered from '@app/hooks/useOrdered';
+
+import Icon from '@app/components/Icon';
 import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Icon, { IconName, IconColor } from '@app/components/Icon';
+import UIGroup from '@app/components/UIGroup';
 
-import useDB from '@app/hooks/useDB';
-import { useRelationalData } from '@app/db';
-
-import ItemItem from '../components/ItemItem';
-import useOrderedData from '@app/hooks/useOrderedData';
-import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
+import ItemListItem from '../components/ItemListItem';
 
 function CollectionScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Collection'>) {
-  const { db } = useDB();
   const rootNavigation = useRootNavigation();
-  const { id, initialTitle } = route.params;
-  const { data, reloadData } = useRelationalData('collection', id);
+  const { id, preloadedTitle } = route.params;
+  const {
+    data,
+    loading: dataLoading,
+    refresh: refreshData,
+    refreshing: dataRefreshing,
+  } = useData('collection', id);
+  const {
+    data: items,
+    loading: itemsLoading,
+    refresh: refreshItems,
+    refreshing: itemsRefreshing,
+  } = useRelated(data, 'items');
+  // const {
+  //   data: items,
+  //   loading: itemsLoading,
+  //   refresh: refreshItems,
+  //   refreshing: itemsRefreshing,
+  // } = useData(
+  //   'item',
+  //   { collection_id: id },
+  //   { sort: [{ __created_at: 'asc' }] },
+  // );
+  const refreshing = dataRefreshing || itemsRefreshing;
+  const [reloadCounter, setReloadCounter] = useState(0);
+  const refresh = useCallback(() => {
+    refreshData();
+    refreshItems();
+    setReloadCounter(n => n + 1);
+  }, [refreshData, refreshItems]);
 
-  const collection = data?.data;
-  const [items, setItems] = useState<null | DataTypeWithID<'item'>[]>(null);
-  const loadItems = useCallback(async () => {
-    const { docs } = await db.find({
-      selector: {
-        $and: [
-          { type: 'item' },
-          { 'data.collection': id },
-          { 'data.computedShowInCollection': true },
-        ],
-      },
-      use_index: 'index-item-collection-computedShowInCollection',
-    });
-    setItems(getDataFromDocs('item', docs));
-  }, [db, id]);
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
-  const { orderedData: orderedItems, updateOrder: updateItemsOrder } =
-    useOrderedData({
-      data: items,
-      settingName: `collection-${collection?.id}-items`,
-      settingPriority: '10',
-    });
-  const updateItemsOrderFunctionRef = useRef(updateItemsOrder);
-  updateItemsOrderFunctionRef.current = updateItemsOrder;
+  const [orderedItems] = useOrdered(items && onlyValid(items), []);
 
   const handleAddNewItem = useCallback(
     () =>
       rootNavigation?.push('SaveItem', {
         initialData: {
-          collection: collection?.id,
-          iconName: collection?.itemDefaultIconName,
+          collection_id: id,
+          icon_name:
+            typeof data?.item_default_icon_name === 'string'
+              ? data.item_default_icon_name
+              : undefined,
         },
         afterSave: item => {
-          item.id &&
-            item.itemReferenceNumber &&
-            navigation.push('Item', { id: item.id });
+          item.__id &&
+            item.rfid_tag_epc_memory_bank_contents &&
+            navigation.push('Item', { id: item.__id });
+          refreshItems();
         },
       }),
-    [collection, navigation, rootNavigation],
-  );
-
-  const [reloadCounter, setReloadCounter] = useState(0);
-  useFocusEffect(
-    useCallback(() => {
-      reloadData();
-      loadItems();
-      setReloadCounter(v => v + 1);
-    }, [loadItems, reloadData]),
+    [
+      data?.item_default_icon_name,
+      id,
+      navigation,
+      refreshItems,
+      rootNavigation,
+    ],
   );
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
-  const { textOnDarkBackgroundColor, iosTintColor } = useColors();
-
   return (
     <ScreenContent
       navigation={navigation}
-      title={data?.data ? data?.data.name : initialTitle || 'Collection'}
+      title={
+        typeof data?.name === 'string'
+          ? data.name
+          : preloadedTitle || 'Collection'
+      }
       action1Label="Edit"
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}
       action1MaterialIconName={(data && 'pencil') || undefined}
       onAction1Press={
-        collection
+        data && data.__valid
           ? () =>
               rootNavigation?.navigate('SaveCollection', {
-                initialData: collection,
+                initialData: data,
               })
           : undefined
       }
@@ -111,117 +110,103 @@ function CollectionScreen({
       // action2MaterialIconName={(data && 'delete') || undefined}
       // onAction2Press={handleDelete}
     >
-      <ScrollView keyboardDismissMode="interactive">
-        <InsetGroup style={commonStyles.mt2} loading={!collection}>
-          <TouchableWithoutFeedback
-            onPress={() => {
-              setDevModeCounter(v => v + 1);
-            }}
-          >
-            <View style={[commonStyles.row, commonStyles.centerChildren]}>
-              <InsetGroup.Item
-                vertical2
-                label="Collection Name"
-                detail={collection?.name}
-                containerStyle={[commonStyles.flex1]}
-              />
-              <Icon
-                showBackground
-                name={collection?.iconName as IconName}
-                color={collection?.iconColor as IconColor}
-                size={40}
-                style={{ marginRight: InsetGroup.MARGIN_HORIZONTAL }}
-              />
-            </View>
-          </TouchableWithoutFeedback>
-          {devModeCounter > 10 && (
-            <>
-              <InsetGroup.ItemSeparator />
-              <InsetGroup.Item
-                vertical2
-                label="ID"
-                detailTextStyle={commonStyles.monospaced}
-                detail={collection?.id}
-              />
-            </>
-          )}
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Reference Number"
-            detailTextStyle={commonStyles.monospaced}
-            detail={collection?.collectionReferenceNumber}
-          />
-        </InsetGroup>
-        <InsetGroup
-          label="Items"
-          labelVariant="large"
-          loading={!collection}
-          labelRight={
-            <>
-              {orderedItems && orderedItems.length > 0 && (
-                <InsetGroup.LabelButton
-                  onPress={() =>
-                    rootNavigation?.push('OrderItems', {
-                      orderedItems,
-                      updateOrderFunctionRef: updateItemsOrderFunctionRef,
-                    })
-                  }
-                  contentAsText={false}
-                  style={commonStyles.mr8}
+      <ScreenContent.ScrollView
+        refreshControl={
+          <RefreshControl onRefresh={refresh} refreshing={refreshing} />
+        }
+      >
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        <UIGroup loading={dataLoading}>
+          {(() => {
+            const collection = data && onlyValid(data);
+            if (!collection) return null;
+
+            return (
+              <>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    setDevModeCounter(v => v + 1);
+                  }}
                 >
-                  <Icon
-                    name="app-reorder"
-                    sfSymbolWeight="bold"
-                    color={iosTintColor}
+                  <UIGroup.ListItem
+                    verticalArrangedLargeTextIOS
+                    label="Collection Name"
+                    detail={collection.name}
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    rightElement={({ iconProps }) => (
+                      <Icon
+                        name={verifyIconNameWithDefault(collection.icon_name)}
+                        color={verifyIconColorWithDefault(
+                          collection.icon_color,
+                        )}
+                        {...iconProps}
+                      />
+                    )}
                   />
-                </InsetGroup.LabelButton>
-              )}
-              <InsetGroup.LabelButton primary onPress={handleAddNewItem}>
-                <Icon
-                  name="add"
-                  sfSymbolWeight="bold"
-                  color={textOnDarkBackgroundColor}
-                />{' '}
-                New Item
-              </InsetGroup.LabelButton>
+                </TouchableWithoutFeedback>
+                {devModeCounter > 10 && (
+                  <>
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="ID"
+                      monospaceDetail
+                      detail={collection.__id}
+                    />
+                  </>
+                )}
+                <UIGroup.ListItemSeparator />
+                <UIGroup.ListItem
+                  verticalArrangedLargeTextIOS
+                  label="Reference Number"
+                  monospaceDetail
+                  detail={collection.collection_reference_number}
+                />
+              </>
+            );
+          })()}
+        </UIGroup>
+
+        <UIGroup
+          header="Items"
+          largeTitle
+          loading={itemsLoading}
+          placeholder={itemsLoading ? undefined : 'No Items'}
+          headerRight={
+            <>
+              <UIGroup.TitleButton onPress={() => {}}>
+                {({ iconProps }) => <Icon {...iconProps} name="app-reorder" />}
+              </UIGroup.TitleButton>
+              <UIGroup.TitleButton primary onPress={handleAddNewItem}>
+                {({ iconProps, textProps }) => (
+                  <>
+                    <Icon {...iconProps} name="add" />
+                    <Text {...textProps}>New Item</Text>
+                  </>
+                )}
+              </UIGroup.TitleButton>
             </>
           }
         >
-          {(() => {
-            if (!orderedItems)
-              return <InsetGroup.Item label="Loading..." disabled />;
-            if (orderedItems.length <= 0)
-              return <InsetGroup.Item label="No Items" disabled />;
-            return orderedItems
-              .flatMap(item => [
-                <ItemItem
-                  key={item.id}
+          {orderedItems &&
+            orderedItems.length > 0 &&
+            UIGroup.ListItemSeparator.insertBetween(
+              orderedItems.map(item => (
+                <ItemListItem
+                  key={item.__id}
                   item={item}
-                  hideCollectionDetails
                   reloadCounter={reloadCounter}
                   onPress={() =>
                     navigation.push('Item', {
-                      id: item.id || '',
-                      initialTitle: item.name,
+                      id: item.__id || '',
                     })
                   }
-                />,
-                <InsetGroup.ItemSeparator
-                  key={`s-${item.id}`}
-                  leftInset={60}
-                />,
-              ])
-              .slice(0, -1);
-          })()}
-          {/*<InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            button
-            label="Add New Item"
-            onPress={handleAddNewItem}
-          />*/}
-        </InsetGroup>
-      </ScrollView>
+                />
+              )),
+              { forItemWithIcon: true },
+            )}
+        </UIGroup>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

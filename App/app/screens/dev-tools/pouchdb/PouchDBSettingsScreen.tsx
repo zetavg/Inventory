@@ -125,7 +125,7 @@ function PouchDBSettingsScreen({
             multiline
             value={searchFieldsStr}
             onChangeText={setSearchFieldsStr}
-            rightElement={
+            controlElement={
               <UIGroup.ListTextInputItem.Button
                 onPress={handleSetSearchFieldsToDefault}
               >
@@ -153,7 +153,7 @@ function PouchDBSettingsScreen({
             multiline
             value={searchLanguagesStr}
             onChangeText={setSearchLanguagesStr}
-            rightElement={
+            controlElement={
               <UIGroup.ListTextInputItem.Button
                 onPress={handleSetSearchLanguagesToDefault}
               >

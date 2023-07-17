@@ -6,13 +6,14 @@ import Icon from '../Icon';
 
 type RenderFunctionProps = {
   textProps: {
-    style: React.ComponentProps<typeof Text>['style'] | undefined;
+    style?: React.ComponentProps<typeof Text>['style'] | undefined;
   };
   iconProps: {
-    color: string;
+    color?: string;
     size: number;
-    sfSymbolWeight: SymbolWeight;
-    style: React.ComponentProps<typeof Icon>['style'] | undefined;
+    sfSymbolWeight?: SymbolWeight;
+    showBackground?: boolean;
+    style?: React.ComponentProps<typeof Icon>['style'] | undefined;
   };
 };
 
@@ -49,6 +50,9 @@ export type ListItemProps = {
   monospaceDetail?: boolean;
   icon?: React.ComponentProps<typeof Icon>['name'];
   iconColor?: React.ComponentProps<typeof Icon>['color'];
+  rightElement?:
+    | React.ReactNode
+    | ((context: RenderFunctionProps) => React.ReactNode);
   verticalArrangedLargeTextIOS?: boolean;
   verticalArrangedNormalLabelIOS?: boolean;
   verticalArrangedIOS?: boolean;
@@ -73,7 +77,10 @@ export type ListTextInputItemProps = {
   disabled?: boolean;
   readonly?: boolean;
   horizontalLabel?: boolean;
-  rightElement?: React.ReactNode;
+  controlElement?: React.ReactNode;
+  rightElement?:
+    | React.ReactNode
+    | ((context: RenderFunctionProps) => React.ReactNode);
   monospaced?: boolean;
   small?: boolean;
   inputElement?: JSX.Element;

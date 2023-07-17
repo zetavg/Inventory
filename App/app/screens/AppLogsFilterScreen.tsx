@@ -46,7 +46,7 @@ function AppLogsFilterScreen({
               setState(s => ({ ...s, module: text || undefined }))
             }
             clearButtonMode="always"
-            rightElement={
+            controlElement={
               selections.module && selections.module.length > 0 ? (
                 <UIGroup.ListTextInputItemButton
                   onPress={() => {
@@ -73,7 +73,7 @@ function AppLogsFilterScreen({
               setState(s => ({ ...s, function: text || undefined }))
             }
             clearButtonMode="always"
-            rightElement={
+            controlElement={
               selections.function && selections.function.length > 0 ? (
                 <UIGroup.ListTextInputItemButton
                   onPress={() => {
@@ -100,7 +100,7 @@ function AppLogsFilterScreen({
               setState(s => ({ ...s, user: text || undefined }))
             }
             clearButtonMode="always"
-            rightElement={
+            controlElement={
               selections.user && selections.user.length > 0 ? (
                 <UIGroup.ListTextInputItemButton
                   onPress={() => {

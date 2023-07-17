@@ -353,7 +353,7 @@ function AppLogsScreen({
               setPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 <UIGroup.ListTextInputItem.Button
                   onPress={() =>
@@ -392,7 +392,7 @@ function AppLogsScreen({
               setPerPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 {numberOfItemsPerPageList.map((n, i) => (
                   <UIGroup.ListTextInputItem.Button

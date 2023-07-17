@@ -293,7 +293,7 @@ function PouchDBScreen({
               setPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 <UIGroup.ListTextInputItem.Button
                   onPress={() =>
@@ -332,7 +332,7 @@ function PouchDBScreen({
               setPerPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 {numberOfItemsPerPageList.map((n, i) => (
                   <UIGroup.ListTextInputItem.Button

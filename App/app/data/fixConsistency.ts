@@ -1,10 +1,11 @@
 import appLogger from '@app/logger';
 
-import { getDatumFromDoc } from './hooks/useData';
 import { beforeSave } from './callbacks';
+import { getDatumFromDoc } from './pouchdb-utils';
 import { getDataIdFromPouchDbId, getDataTypeSelector } from './pouchdb-utils';
 import schema, { DATA_TYPE_NAMES, DataTypeName } from './schema';
 import { DataTypeWithAdditionalInfo } from './types';
+import saveDatum from './functions/saveDatum';
 
 const logger = appLogger.for({ module: 'fixConsistency' });
 
@@ -45,26 +46,17 @@ export default async function fixConsistency({
         let id: string | undefined;
         try {
           id = getDataIdFromPouchDbId(doc._id).id;
-          const data = getDatumFromDoc(typeName, doc, logger, {
-            validate: false,
-          });
+          const data = getDatumFromDoc(typeName, doc, logger);
           if (!data) throw new Error('getDatumFromDoc returns null');
-          beforeSave(data);
-          schema[typeName].parse(data);
-
-          // await new Promise(resolve =>
-          //   setTimeout(() => {
-          //     resolve(null);
-          //   }, 10),
-          // );
-
-          await db.put({ ...doc });
-
-          // await new Promise(resolve =>
-          //   setTimeout(() => {
-          //     resolve(null);
-          //   }, 10),
-          // );
+          if (!data.__valid)
+            throw new Error(
+              `Data is not valid: ${JSON.stringify(
+                data.__error_details,
+                null,
+                2,
+              )}`,
+            );
+          await saveDatum(data, { db, logger });
 
           successCallback(data);
         } catch (e) {

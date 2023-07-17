@@ -5,12 +5,13 @@ import { z } from 'zod';
 export const schema = {
   config: z
     .object({
+      uuid: z.string(),
+      rfid_tag_company_prefix: z.string().regex(new RegExp('^[0-9]{6,12}$')),
+      rfid_tag_prefix: z.string().regex(new RegExp('^[0-9]{0,3}$')),
       rfid_tag_access_password: z.string().regex(new RegExp('^[a-f0-9]{8}$')),
       rfid_tag_access_password_encoding: z
         .string()
         .regex(new RegExp('^[a-f0-9]{8}$')),
-      rfid_tag_company_prefix: z.string().regex(new RegExp('^[0-9]{6,12}$')),
-      rfid_tag_prefix: z.string().regex(new RegExp('^[0-9]{0,3}$')),
       collections_order: z.array(z.string()),
     })
     .catchall(z.unknown()),

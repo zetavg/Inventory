@@ -8,6 +8,8 @@ import {
   View,
 } from 'react-native';
 
+import commonStyles from '@app/utils/commonStyles';
+
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
@@ -30,6 +32,7 @@ export default function UIGroupListTextInputItem(
     disabled,
     readonly,
     horizontalLabel,
+    controlElement,
     rightElement,
     monospaced,
     small,
@@ -59,7 +62,7 @@ export default function UIGroupListTextInputItem(
         vertical2={vertical2}
         compactLabel={compactLabel}
         label={label}
-        labelTextStyle={{ color: contentSecondaryTextColor }}
+        labelTextStyle={{ color: contentSecondaryTextColor, fontWeight: '500' }}
         detail={props.value}
         detailAsText
         detailTextStyle={[
@@ -76,7 +79,7 @@ export default function UIGroupListTextInputItem(
         vertical2={vertical2}
         compactLabel={compactLabel}
         label={label}
-        labelTextStyle={{ color: contentSecondaryTextColor }}
+        labelTextStyle={{ color: contentSecondaryTextColor, fontWeight: '500' }}
         detail={props.value}
         detailAsText
         detailTextStyle={[
@@ -91,16 +94,16 @@ export default function UIGroupListTextInputItem(
     );
   }
 
-  return (
+  const element = (
     <InsetGroup.Item
       vertical2={vertical2}
       compactLabel={compactLabel}
       label={label}
-      labelTextStyle={{ color: contentSecondaryTextColor }}
+      labelTextStyle={{ color: contentSecondaryTextColor, fontWeight: '500' }}
       labelRightElement={
-        rightElement && vertical2 ? (
+        controlElement && vertical2 ? (
           <View style={styles.insetGroupTextInputRightElementContainer}>
-            {rightElement}
+            {controlElement}
           </View>
         ) : undefined
       }
@@ -136,15 +139,38 @@ export default function UIGroupListTextInputItem(
               <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
             )
           ) : null}
-          {rightElement && !vertical2 ? (
+          {controlElement && !vertical2 ? (
             <View style={styles.insetGroupTextInputRightElementContainer}>
-              {rightElement}
+              {controlElement}
             </View>
           ) : null}
         </View>
       }
+      containerStyle={rightElement ? commonStyles.flex1 : undefined}
     />
   );
+
+  if (rightElement) {
+    return (
+      <View style={styles.itemAndRightElementContainer}>
+        {element}
+        <View style={styles.rightElementContainer}>
+          {(() => {
+            if (typeof rightElement === 'function') {
+              return rightElement({
+                textProps: { style: {} },
+                iconProps: { size: 40, showBackground: true },
+              });
+            }
+
+            return rightElement;
+          })()}
+        </View>
+      </View>
+    );
+  }
+
+  return element;
 }
 // eslint-disable-next-line no-func-assign
 (UIGroupListTextInputItem as any) = React.forwardRef(UIGroupListTextInputItem);
@@ -243,5 +269,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
     marginRight: 12,
+  },
+  itemAndRightElementContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightElementContainer: {
+    marginRight: InsetGroup.MARGIN_HORIZONTAL,
   },
 });

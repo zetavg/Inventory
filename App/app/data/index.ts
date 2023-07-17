@@ -1,3 +1,4 @@
+import onlyValid from './functions/onlyValid';
 import useConfig from './hooks/useConfig';
 import useData from './hooks/useData';
 import useDataCount from './hooks/useDataCount';
@@ -20,6 +21,7 @@ export {
   getHumanTypeName,
   getPropertyNames,
   getPropertyType,
+  onlyValid,
   schema,
   toTitleCase,
   typePlurals,

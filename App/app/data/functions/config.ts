@@ -1,12 +1,15 @@
+import { v4 as uuid } from 'uuid';
+
 import { configSchema, ConfigType } from '../schema';
 
 const CONFIG_ID = '0000-config' as const;
 
 const INITIAL_CONFIG: ConfigType = {
-  rfid_tag_access_password: '12345678',
-  rfid_tag_access_password_encoding: '08192a3b',
+  uuid: uuid(),
   rfid_tag_company_prefix: '0000000',
   rfid_tag_prefix: '100',
+  rfid_tag_access_password: '12345678',
+  rfid_tag_access_password_encoding: '08192a3b',
   collections_order: [],
 };
 
@@ -38,6 +41,10 @@ export async function getConfig({
     return config;
   } catch (e) {
     if (typeof e === 'object' && (e as any).name === 'not_found') {
+      await db.put({
+        _id: CONFIG_ID,
+        ...INITIAL_CONFIG,
+      });
       return INITIAL_CONFIG;
     } else {
       throw e;

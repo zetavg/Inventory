@@ -8,9 +8,8 @@ import React, {
 import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { ZodError } from 'zod';
-
 import {
+  DataTypeName,
   DataTypeWithAdditionalInfo,
   getHumanTypeName,
   getPropertyNames,
@@ -23,7 +22,7 @@ import {
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useLogger from '@app/hooks/useLogger';
+import useDeepCompare from '@app/hooks/useDeepCompare';
 
 import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
@@ -32,20 +31,42 @@ function SaveDataModalScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'SaveData'>) {
-  const { type, id, initialData, afterSave } = route.params;
-  const logger = useLogger('SaveDataModalScreen');
-  const save = useSave();
+  const {
+    type,
+    id,
+    initialData: initialDataFromParams,
+    afterSave,
+  } = route.params;
+  const { save, saving } = useSave();
   const { data: originalData, loading } = useData(type, id || '', {
     disable: !id,
   });
-  const [data, setData] = useState<
-    Partial<DataTypeWithAdditionalInfo<keyof typeof schema>> & {
+  const initialData = useMemo<
+    Partial<DataTypeWithAdditionalInfo<DataTypeName>> & {
       __type: keyof typeof schema;
     }
-  >({ __type: type as any, __id: id });
+  >(
+    () => ({
+      __type: type as any,
+      __id: id,
+      ...initialDataFromParams,
+      ...(originalData?.__valid ? (originalData as any) : {}),
+    }),
+    [id, initialDataFromParams, originalData, type],
+  );
+  const [data, setData] = useState<
+    Partial<DataTypeWithAdditionalInfo<DataTypeName>> & {
+      __type: keyof typeof schema;
+    }
+  >(initialData);
   useEffect(() => {
-    setData(d => ({ ...d, ...originalData, ...(initialData as any) }));
-  }, [initialData, originalData]);
+    setData(d => ({
+      ...d,
+      ...initialData,
+    }));
+  }, [initialData]);
+
+  const hasChanges = !useDeepCompare(initialData, data);
 
   const safeParseResults = useMemo(
     () => schema[type].safeParse(data),
@@ -56,38 +77,11 @@ function SaveDataModalScreen({
   const handleSave = useCallback(async () => {
     try {
       const results = await save(data);
-      if (!results) {
-        logger.error('Unknown error: save returned null.', {
-          details: JSON.stringify({ data }, null, 2),
-          showAlert: true,
-        });
-        return;
-      }
       isDone.current = true;
       if (afterSave) afterSave(results);
       navigation.goBack();
-    } catch (e) {
-      if (e instanceof ZodError) {
-        Alert.alert(
-          'Please Fix The Following Errors',
-          e.issues
-            .map(
-              i =>
-                `• ${toTitleCase(
-                  i.path.join('_').replace(/_/g, ' '),
-                )} - ${i.message.toLowerCase()}`,
-            )
-            .join('\n'),
-        );
-        return;
-      } else {
-        logger.error(e, {
-          details: JSON.stringify({ data }, null, 2),
-          showAlert: true,
-        });
-      }
-    }
-  }, [afterSave, data, logger, navigation, save]);
+    } catch (e) {}
+  }, [afterSave, data, navigation, save]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
@@ -122,6 +116,7 @@ function SaveDataModalScreen({
     <ModalContent
       navigation={navigation}
       confirmCloseFn={handleLeave}
+      preventClose={hasChanges}
       title={`${id ? 'Update' : 'Create'} ${getHumanTypeName(type, {
         plural: false,
         titleCase: true,
@@ -129,14 +124,14 @@ function SaveDataModalScreen({
       action1Label="Save"
       action1MaterialIconName="check"
       action1Variant="strong"
-      onAction1Press={handleSave}
+      onAction1Press={loading || saving ? undefined : handleSave}
       action2Label="Cancel"
-      onAction2Press={loading ? undefined : () => navigation.goBack()}
+      onAction2Press={loading || saving ? undefined : () => navigation.goBack()}
     >
       <ModalContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing />
 
-        <UIGroup>
+        <UIGroup loading={loading || saving}>
           {UIGroup.ListItemSeparator.insertBetween(
             getPropertyNames(type).map((propertyName: any) => {
               const [propertyType] = getPropertyType(type, propertyName);

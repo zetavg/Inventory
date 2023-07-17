@@ -60,7 +60,7 @@ function LoggerLogScreen({
             placeholder="Enter message..."
             value={message}
             onChangeText={setMessage}
-            rightElement={
+            controlElement={
               <UIGroup.ListTextInputItem.Button
                 onPress={() => {
                   setMessage(msg => {

@@ -1210,3 +1210,41 @@ export const ICONS = {
 export const ICON_NAMES = objectEntries(ICONS).map(([name]) => name);
 
 export type IconName = keyof typeof ICONS;
+
+export function verifyIconName(
+  iconName: string | undefined,
+): IconName | undefined {
+  if (!iconName) return undefined;
+
+  if (ICON_NAMES.includes(iconName as any)) {
+    return iconName as any;
+  }
+
+  return undefined;
+}
+
+export function verifyIconNameWithDefault(
+  iconName: string | undefined,
+  df: IconName = 'cube-outline',
+): IconName {
+  return verifyIconName(iconName) || df;
+}
+
+export function verifyIconColor(
+  iconColor: string | undefined,
+): IconColor | undefined {
+  if (!iconColor) return undefined;
+
+  if (ICON_COLORS.includes(iconColor as any)) {
+    return iconColor as any;
+  }
+
+  return undefined;
+}
+
+export function verifyIconColorWithDefault(
+  iconColor: string | undefined,
+  df: IconColor = 'gray',
+): IconColor {
+  return verifyIconColor(iconColor) || df;
+}

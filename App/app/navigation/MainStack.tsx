@@ -33,6 +33,8 @@ import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
+import FixDataConsistencyErrorScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorScreen';
+import FixDataConsistencyErrorsScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorsScreen';
 import FixDataConsistencyScreen from '@app/screens/dev-tools/data/FixDataConsistencyScreen';
 import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
 import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
@@ -69,8 +71,8 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 export type StackParamList = {
   More: undefined;
   Collections: undefined;
-  Collection: { id: string; initialTitle?: string };
-  Item: { id: string; initialTitle?: string };
+  Collection: { id: string; preloadedTitle?: string };
+  Item: { id: string; preloadedTitle?: string };
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
@@ -124,6 +126,12 @@ export type StackParamList = {
   DataList: { type: DataTypeName };
   Datum: { type: DataTypeName; id: string; preloadedTitle?: string };
   FixDataConsistency: undefined;
+  FixDataConsistencyErrors: {
+    errors: ReadonlyArray<{ id?: string; rawId: string; error: unknown }>;
+  };
+  FixDataConsistencyError: {
+    error: { id?: string; rawId: string; error: unknown };
+  };
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;
@@ -240,6 +248,14 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="FixDataConsistency"
         component={FixDataConsistencyScreen}
+      />
+      <Stack.Screen
+        name="FixDataConsistencyErrors"
+        component={FixDataConsistencyErrorsScreen}
+      />
+      <Stack.Screen
+        name="FixDataConsistencyError"
+        component={FixDataConsistencyErrorScreen}
       />
       <Stack.Screen name="DBSync" component={DBSyncScreen} />
       <Stack.Screen

@@ -16,6 +16,8 @@ import {
   InvalidDataTypeWithAdditionalInfo,
 } from '../types';
 
+import getData from './getData';
+
 export default async function getRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
@@ -56,27 +58,36 @@ export default async function getRelated<
       }
     }
     case 'has_many': {
-      await db.createIndex({
-        index: {
-          fields: [`data.${relationConfig.foreign_key}`, '_id'],
-          // partial_filter_selector: getDataTypeSelector(
-          //   relationConfig.type_name,
-          // ),
+      const data = await getData(
+        relationConfig.type_name,
+        {
+          [relationConfig.foreign_key]: d.__id,
         },
-      });
-
-      const findRequest: PouchDB.Find.FindRequest<{}> = {
-        selector: {
-          [`data.${relationConfig.foreign_key}`]: d.__id,
-          ...getDataTypeSelector(relationConfig.type_name),
-        },
-      };
-      const response = await db.find(findRequest);
-      return (
-        (response?.docs.map(ddd =>
-          getDatumFromDoc(relationConfig.type_name, ddd, logger),
-        ) as any) || null
+        {},
+        { db, logger },
       );
+      return data as any;
+      // await db.createIndex({
+      //   index: {
+      //     fields: [`data.${relationConfig.foreign_key}`, '_id'],
+      //     // partial_filter_selector: getDataTypeSelector(
+      //     //   relationConfig.type_name,
+      //     // ),
+      //   },
+      // });
+
+      // const findRequest: PouchDB.Find.FindRequest<{}> = {
+      //   selector: {
+      //     [`data.${relationConfig.foreign_key}`]: d.__id,
+      //     ...getDataTypeSelector(relationConfig.type_name),
+      //   },
+      // };
+      // const response = await db.find(findRequest);
+      // return (
+      //   (response?.docs.map(ddd =>
+      //     getDatumFromDoc(relationConfig.type_name, ddd, logger),
+      //   ) as any) || null
+      // );
     }
 
     default: {

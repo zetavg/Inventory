@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, TouchableWithoutFeedback } from 'react-native';
-import useColors from '@app/hooks/useColors';
+import { StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
+
 import titleCase from '@app/utils/titleCase';
+
+import useColors from '@app/hooks/useColors';
 
 export const COLOR_SELECTOR_COLORS = [
   'blue',
@@ -16,7 +18,7 @@ export const COLOR_SELECTOR_COLORS = [
   'teal',
 ] as const;
 
-export type ColorSelectColor = typeof COLOR_SELECTOR_COLORS[number];
+export type ColorSelectColor = (typeof COLOR_SELECTOR_COLORS)[number];
 
 type Props = {
   value?: ColorSelectColor;
@@ -56,10 +58,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginHorizontal: -1,
   },
   colorItemContainer: {
     width: 32,
     height: 32,
+    marginHorizontal: -2,
     borderRadius: 128,
     borderColor: 'transparent',
     borderWidth: 3,

@@ -19,6 +19,28 @@ export async function beforeSave(
   { db }: { db: PouchDB.Database },
 ) {
   switch (datum.__type) {
+    case 'collection': {
+      const config = await getConfig({ db });
+
+      if (
+        typeof datum.collection_reference_number === 'string' &&
+        datum.collection_reference_number
+      ) {
+        const collectionReferenceDigitsLimit =
+          EPCUtils.getCollectionReferenceDigitsLimit({
+            companyPrefixDigits: config.rfid_tag_company_prefix.length,
+            tagPrefixDigits: config.rfid_tag_prefix.length,
+          });
+
+        datum.collection_reference_number =
+          datum.collection_reference_number.padStart(
+            collectionReferenceDigitsLimit,
+            '0',
+          );
+      }
+
+      break;
+    }
     case 'item': {
       if (
         datum.item_reference_number &&

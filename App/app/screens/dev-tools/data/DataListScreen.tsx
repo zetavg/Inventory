@@ -141,7 +141,7 @@ function DataListScreen({
               setPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 <UIGroup.ListTextInputItem.Button
                   onPress={() =>
@@ -182,7 +182,7 @@ function DataListScreen({
               setPerPage(n);
             }}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 {numberOfItemsPerPageList.map((n, i) => (
                   <UIGroup.ListTextInputItem.Button

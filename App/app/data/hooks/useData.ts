@@ -7,6 +7,7 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
+import getData from '../functions/getData';
 import getDatum from '../functions/getDatum';
 import { getDataTypeSelector, getDatumFromDoc } from '../pouchdb-utils';
 import { DataType, DataTypeName } from '../schema';
@@ -25,7 +26,7 @@ export default function useData<
   cond: CT,
   {
     skip = 0,
-    limit = 20,
+    limit = undefined,
     disable = false,
     sort,
   }: {
@@ -43,8 +44,9 @@ export default function useData<
         : ReadonlyArray<
             DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
           >);
-  ids: ReadonlyArray<string> | null;
-  rawData: unknown;
+  // Deprecated
+  // ids: ReadonlyArray<string> | null;
+  // rawData: unknown;
   reload: () => void;
   refresh: () => void;
   refreshing: boolean;
@@ -95,8 +97,10 @@ export default function useData<
   const [data, setData] = useState<
     | null
     | (CT extends string
-        ? DataTypeWithAdditionalInfo<T>
-        : ReadonlyArray<null | DataTypeWithAdditionalInfo<T>>)
+        ? DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
+        : ReadonlyArray<
+            InvalidDataTypeWithAdditionalInfo<T> | DataTypeWithAdditionalInfo<T>
+          >)
   >(null);
   const [ids, setIds] = useState<ReadonlyArray<string> | null>(null);
   const [rawData, setRawData] = useState<unknown>(null);
@@ -107,11 +111,6 @@ export default function useData<
 
     try {
       switch (true) {
-        case Array.isArray(cachedCond): {
-          // TODO: Support this
-          break;
-        }
-
         case typeof cachedCond === 'string': {
           const id: string = cachedCond as any;
           const d = await getDatum(type, id, {
@@ -125,73 +124,13 @@ export default function useData<
         }
 
         default: {
-          // TODO: use cachedCond to build selector (if cachedCond is object)
-          const selector = {
-            ...getDataTypeSelector(type),
-          };
-
-          const sortData: typeof cachedSort =
-            cachedSort &&
-            cachedSort.map(
-              s =>
-                Object.fromEntries(
-                  Object.entries(s).map(([k, v]) => [
-                    (() => {
-                      switch (k) {
-                        case '__created_at':
-                          return 'created_at';
-                        case '__updated_at':
-                          return 'updated_at';
-                        default:
-                          return `data.${k}`;
-                      }
-                    })(),
-                    v,
-                  ]),
-                ) as any,
-            );
-          if (sortData) {
-            await db.createIndex({
-              index: {
-                fields: sortData.flatMap(s => Object.keys(s)),
-              },
-            });
-            for (const s of sortData) {
-              for (const key of Object.keys(s)) {
-                selector[key] = { $exists: true };
-              }
-            }
-          }
-
-          const response =
-            (await db
-              .find({
-                selector,
-                skip,
-                limit,
-                sort: sortData || undefined,
-              })
-              .catch(e => {
-                if (e instanceof Error) {
-                  e.message = `Error loading "${type}" with ${JSON.stringify(
-                    cachedCond,
-                  )}: ${e.message}`;
-                }
-                logger.error(e, {
-                  details: JSON.stringify({ selector }, null, 2),
-                });
-                return null;
-              })) || null;
-          setData(
-            (response?.docs.map(d =>
-              getDatumFromDoc(type, d, logger),
-            ) as any) || null,
+          const d = await getData(
+            type,
+            cachedCond as any,
+            { skip, limit, sort: cachedSort },
+            { db, logger },
           );
-          setIds(
-            response?.docs.map(d => d._id.split('-').slice(1).join('-')) ||
-              null,
-          );
-          setRawData(response);
+          setData(d as any);
           break;
         }
       }

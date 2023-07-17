@@ -46,7 +46,7 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import { DataType, DataTypeName } from '@app/data';
+import { DataType, DataTypeName, DataTypeWithAdditionalInfo } from '@app/data';
 
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { TypeName } from '@app/db/old_schema';
@@ -108,11 +108,11 @@ export type RootStackParamList = {
     defaultValue?: ReadonlyArray<string>;
   };
   SaveCollection: {
-    initialData?: Partial<DataTypeWithID<'collection'>>;
+    initialData?: Partial<DataTypeWithAdditionalInfo<'collection'>>;
   };
   SaveItem: {
-    initialData?: Partial<DataTypeWithID<'item'>>;
-    afterSave?: (data: Partial<DataTypeWithID<'item'>>) => void;
+    initialData?: Partial<DataTypeWithAdditionalInfo<'item'>>;
+    afterSave?: (data: Partial<DataTypeWithAdditionalInfo<'item'>>) => void;
     afterDelete?: () => void;
   };
   SaveChecklist: {

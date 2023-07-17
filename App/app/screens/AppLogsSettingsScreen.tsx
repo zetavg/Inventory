@@ -134,7 +134,7 @@ function AppLogsSettingsScreen({
             value={logsToKeepState}
             onChangeText={setLogsToKeepState}
             selectTextOnFocus
-            rightElement={
+            controlElement={
               <>
                 {[100, 1000, 10000].map((n, i) => (
                   <UIGroup.ListTextInputItem.Button

@@ -17,13 +17,19 @@ import {
   RelationType,
 } from '../relations';
 import { DataTypeName } from '../schema';
-import { DataTypeWithAdditionalInfo } from '../types';
+import {
+  DataTypeWithAdditionalInfo,
+  InvalidDataTypeWithAdditionalInfo,
+} from '../types';
 
 export default function useRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
 >(
-  d: DataTypeWithAdditionalInfo<T> | null,
+  d:
+    | DataTypeWithAdditionalInfo<T>
+    | InvalidDataTypeWithAdditionalInfo<T>
+    | null,
   relationName: N,
   {
     disable = false,

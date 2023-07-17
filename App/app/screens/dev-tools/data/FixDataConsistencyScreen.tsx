@@ -93,7 +93,10 @@ function FixDataConsistencyScreen({
                   key={k}
                   label={getHumanTypeName(k, { titleCase: true })}
                   detail={v.length}
-                  // navigable
+                  navigable
+                  onPress={() =>
+                    navigation.push('FixDataConsistencyErrors', { errors: v })
+                  }
                 />
               )),
             )}

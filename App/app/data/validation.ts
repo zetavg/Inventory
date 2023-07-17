@@ -5,20 +5,22 @@ import appLogger from '@app/logger';
 import EPCUtils from '@app/modules/EPCUtils';
 
 import { getConfig } from './functions/config';
+import getData from './functions/getData';
 import getDatum from './functions/getDatum';
 import getRelated from './functions/getRelated';
-import {
-  getDataIdFromPouchDbId,
-  getDataTypeSelector,
-  getPouchDbId,
-} from './pouchdb-utils';
+import { getDataIdFromPouchDbId, getDataTypeSelector } from './pouchdb-utils';
 import { DataTypeName } from './schema';
-import { DataTypeWithAdditionalInfo } from './types';
+import {
+  DataTypeWithAdditionalInfo,
+  InvalidDataTypeWithAdditionalInfo,
+} from './types';
 
 const logger = appLogger.for({ module: 'data/validation' });
 
 export async function validate(
-  datum: DataTypeWithAdditionalInfo<DataTypeName>,
+  datum:
+    | DataTypeWithAdditionalInfo<DataTypeName>
+    | InvalidDataTypeWithAdditionalInfo<DataTypeName>,
   { db }: { db: PouchDB.Database },
 ): Promise<Array<ZodIssue>> {
   const issues: Array<ZodIssue> = [];
@@ -59,34 +61,29 @@ export async function validate(
         //   });
         // }
 
-        // TODO: refactor this to use util function instead of accessing the database directly
-        await db.createIndex({
-          index: {
-            fields: ['data.collection_reference_number'],
-            partial_filter_selector: getDataTypeSelector('collection'),
+        const dataWithSameCrn = await getData(
+          'collection',
+          {
+            collection_reference_number: datum.collection_reference_number,
           },
-        });
-        const response = await db.find({
-          selector: {
-            'data.collection_reference_number':
-              datum.collection_reference_number,
-          },
-          fields: ['_id', 'data.name'],
-        });
-        if (
-          response.docs.some(
-            doc => getDataIdFromPouchDbId(doc._id).id !== datum.__id,
-          )
-        ) {
-          const doc = response.docs.find(
-            dd => getDataIdFromPouchDbId(dd._id).id !== datum.__id,
+          {},
+          { db, logger },
+        );
+
+        if (dataWithSameCrn.some(d => d.__id !== datum.__id)) {
+          const dWithSameCrn = dataWithSameCrn.find(
+            dd => dd.__id !== datum.__id,
           );
           issues.push({
             code: 'custom',
             path: ['collection_reference_number'],
             message: `Must be unique (reference number ${
               datum.collection_reference_number
-            } is already taken by collection "${(doc as any)?.data?.name}")`,
+            } is already taken by collection "${
+              typeof dWithSameCrn?.name === 'string'
+                ? dWithSameCrn.name
+                : dWithSameCrn?.__id
+            }")`,
           });
         }
       }

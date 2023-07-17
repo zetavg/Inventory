@@ -1,5 +1,11 @@
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, TouchableHighlight, View } from 'react-native';
+
+import Color from 'color';
+
+import commonStyles from '@app/utils/commonStyles';
+
+import useColors from '@app/hooks/useColors';
 
 import Icon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
@@ -26,8 +32,10 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     adjustsDetailFontSizeToFit,
     icon,
     iconColor,
+    rightElement,
     ...restProps
   } = props;
+  const { contentTextColor } = useColors();
   const leftElement = (() => {
     if (icon) {
       return (
@@ -44,12 +52,13 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
 
     return undefined;
   })();
-  return (
+  const element = (
     <InsetGroup.Item
       label={label}
       labelTextStyle={[
         labelTextStyle,
         verticalArrangedNormalLabelIOS && styles.normalSizedLabel_labelText,
+        verticalArrangedLargeTextIOS && styles.largeText_labelText,
       ]}
       detail={detail}
       detailTextStyle={[
@@ -62,14 +71,52 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
       vertical2={verticalArrangedLargeTextIOS}
       selected={selected}
       arrow={navigable}
-      onPress={onPress}
+      onPress={
+        rightElement
+          ? undefined /* will use a TouchableHighlight to wrap the whole thing later */
+          : onPress
+      }
       button={button}
       destructive={destructive}
       disabled={disabled}
       adjustsDetailFontSizeToFit={adjustsDetailFontSizeToFit}
+      containerStyle={commonStyles.flex1}
       {...restProps}
     />
   );
+
+  if (rightElement) {
+    const elementWithRightElement = (
+      <View style={styles.itemAndRightElementContainer}>
+        {element}
+        <View style={styles.rightElementContainer}>
+          {(() => {
+            if (typeof rightElement === 'function') {
+              return rightElement({
+                textProps: { style: {} },
+                iconProps: { size: 40, showBackground: true },
+              });
+            }
+
+            return rightElement;
+          })()}
+        </View>
+      </View>
+    );
+
+    if (!onPress) return elementWithRightElement;
+
+    return (
+      <TouchableHighlight
+        onPress={onPress}
+        underlayColor={Color(contentTextColor).opaquer(-0.92).hexa()}
+      >
+        {elementWithRightElement}
+      </TouchableHighlight>
+    );
+  }
+
+  return element;
 }
 
 export function UIGroupListItemSwitch(
@@ -103,7 +150,19 @@ const styles = StyleSheet.create({
   iosItemIcon: { marginRight: -2 },
   normalSizedLabel_labelText: { fontSize: 16 },
   normalSizedLabel_detailText: { fontSize: 12 },
+  largeText_labelText: {
+    fontWeight: '500',
+  },
   monospaceDetail_detailText: {
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  itemAndRightElementContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rightElementContainer: {
+    marginRight: InsetGroup.MARGIN_HORIZONTAL,
+    flexDirection: 'row',
   },
 });

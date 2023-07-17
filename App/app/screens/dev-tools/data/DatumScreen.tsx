@@ -38,9 +38,9 @@ function DatumScreen({
   const scrollViewRef = useRef<ScrollView>(null);
   const { type, id, preloadedTitle } = route.params;
 
-  const { loading, data, rawData, refresh, refreshing } = useData(type, id);
+  const { loading, data, refresh, refreshing } = useData(type, id);
 
-  const save = useSave();
+  const { save } = useSave();
   const handleDelete = useCallback(() => {
     Alert.alert(
       'Confirmation',

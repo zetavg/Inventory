@@ -160,7 +160,24 @@ logger.for = function (t: LoggerForT): typeof logger {
   l.warn = l.bind(null, 'warn');
   l.error = l.bind(null, 'error');
   l.for = logger.for;
+  l.off = logger.off;
   l.forT = t;
+
+  return l;
+};
+logger.off = function (): typeof logger {
+  function l(_level: LogLevel, _message: unknown, _tt?: LoggerD) {
+    return;
+  }
+
+  l.debug = () => {};
+  l.info = () => {};
+  l.log = () => {};
+  l.success = () => {};
+  l.warn = () => {};
+  l.error = () => {};
+  l.for = logger.for;
+  l.off = logger.off;
 
   return l;
 };

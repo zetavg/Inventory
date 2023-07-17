@@ -4,9 +4,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import { ZodError } from 'zod';
 
-import { useConfig, useData, useSave } from '@app/data';
+import { onlyValid, useConfig, useData, useSave } from '@app/data';
 
-import commonStyles from '@app/utils/commonStyles';
 import moveItemInArray from '@app/utils/moveItemInArray';
 
 import type { StackParamList } from '@app/navigation';
@@ -30,15 +29,18 @@ function CollectionsScreen({
     reload,
     refresh: refreshData,
     refreshing: dataRefreshing,
-  } = useData('collection', {}, { sort: [{ __created_at: 'desc' }] });
+  } = useData('collection', {}, { sort: [{ __created_at: 'asc' }] });
   const {
     config,
     updateConfig,
     refresh: refreshConfig,
     refreshing: configRefreshing,
   } = useConfig();
-  const save = useSave();
-  const [orderedData] = useOrdered(data, config?.collections_order || []);
+  const { save } = useSave();
+  const [orderedData] = useOrdered(
+    data && onlyValid(data),
+    config?.collections_order || [],
+  );
 
   const [editing, setEditing] = useState(false);
   const [editingWithDelay, setEditingWithDelay] = useState(false);
@@ -87,7 +89,10 @@ function CollectionsScreen({
       if (!orderedData) return;
       const d = orderedData[index];
       try {
-        await save({ ...d, __type: d.__type, __id: d.__id, __deleted: true });
+        await save(
+          { ...d, __type: d.__type, __id: d.__id, __deleted: true },
+          { showErrorAlert: false },
+        );
         reload();
       } catch (e) {
         if (e instanceof ZodError) {
@@ -169,7 +174,7 @@ function CollectionsScreen({
             }
           >
             <UIGroup.FirstGroupSpacing iosLargeTitle />
-            <UIGroup>
+            <UIGroup placeholder="No Collections">
               {!!orderedData &&
                 orderedData.length > 0 &&
                 UIGroup.ListItemSeparator.insertBetween(
@@ -181,9 +186,8 @@ function CollectionsScreen({
                           collection={collection}
                           reloadCounter={refreshCounter}
                           onPress={() =>
-                            navigation.push('Datum', {
-                              type: 'collection',
-                              id: collection.__id,
+                            navigation.push('Collection', {
+                              id: collection.__id || '',
                               preloadedTitle: collection.name,
                             })
                           }

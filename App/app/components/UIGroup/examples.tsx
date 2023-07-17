@@ -305,6 +305,16 @@ export function WithListItems() {
           label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
           detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedLargeTextIOS
+          label="With Right Element"
+          detail="An Icon as Right Element"
+          // eslint-disable-next-line react/no-unstable-nested-components
+          rightElement={({ iconProps }) => (
+            <Icon name="cube-outline" color="grey" {...iconProps} />
+          )}
+        />
       </UIGroup>
 
       <UIGroup header="Monospace Detail">
@@ -400,7 +410,7 @@ export function WithListItems() {
         <UIGroup.ListTextInputItem
           label="With Button"
           placeholder="Placeholder"
-          rightElement={
+          controlElement={
             <UIGroup.ListTextInputItem.Button
               onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
             >
@@ -412,7 +422,7 @@ export function WithListItems() {
         <UIGroup.ListTextInputItem
           label="With Icon on Button"
           placeholder="Placeholder"
-          rightElement={
+          controlElement={
             <UIGroup.ListTextInputItem.Button
               onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
             >
@@ -424,6 +434,17 @@ export function WithListItems() {
               )}
             </UIGroup.ListTextInputItem.Button>
           }
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          label="With Right Element"
+          placeholder="Placeholder"
+          // eslint-disable-next-line react/no-unstable-nested-components
+          rightElement={({ iconProps }) => (
+            <TouchableOpacity onPress={() => Alert.alert('Pressed')}>
+              <Icon {...iconProps} name="cube-outline" color="grey" />
+            </TouchableOpacity>
+          )}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
@@ -495,7 +516,7 @@ export function WithListItems() {
           horizontalLabel
           label="With Button"
           placeholder="Placeholder"
-          rightElement={
+          controlElement={
             <UIGroup.ListTextInputItem.Button
               onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
             >
@@ -508,7 +529,7 @@ export function WithListItems() {
           horizontalLabel
           label="With Icon on Button"
           placeholder="Placeholder"
-          rightElement={
+          controlElement={
             <UIGroup.ListTextInputItem.Button
               onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
             >
@@ -550,7 +571,7 @@ export function WithListItems() {
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
           label="With Custom Input Element And Button"
-          rightElement={
+          controlElement={
             <UIGroup.ListTextInputItem.Button
               onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
             >

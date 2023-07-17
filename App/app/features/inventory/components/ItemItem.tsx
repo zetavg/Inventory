@@ -12,7 +12,7 @@ import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SFSymbol } from 'react-native-sfsymbols';
 
-export default function ItemItem({
+export default function ItemItem_old({
   item,
   onPress,
   onLongPress,
