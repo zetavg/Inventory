@@ -27,8 +27,19 @@ function useSave(): SaveFn {
 
   return useCallback<SaveFn>(
     async d => {
-      let { __type, __id, __rev, __deleted, ...pureData } = d;
+      let {
+        __type,
+        __id,
+        __rev,
+        __deleted,
+        __created_at,
+        __updated_at,
+        ...unfilteredPureData
+      } = d;
       const s = schema[__type];
+      const pureData: typeof unfilteredPureData = Object.fromEntries(
+        Object.entries(unfilteredPureData).filter(([k]) => !k.startsWith('__')),
+      ) as any;
 
       let existingDoc = {};
       try {

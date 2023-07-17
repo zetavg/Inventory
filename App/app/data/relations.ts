@@ -1,5 +1,8 @@
 import { DataTypeName } from './schema';
-import { DataTypeWithAdditionalInfo } from './types';
+import {
+  DataTypeWithAdditionalInfo,
+  InvalidDataTypeWithAdditionalInfo,
+} from './types';
 
 export type RelationConfig = {
   type_name: DataTypeName;
@@ -53,6 +56,10 @@ export type DataRelationTypeName<
       ? U
       : never);
 
+type DataRelationBaseType<T extends DataTypeName> =
+  | DataTypeWithAdditionalInfo<T>
+  | InvalidDataTypeWithAdditionalInfo<T>;
+
 export type DataRelationType<
   T extends DataTypeWithRelationDefsName,
   DRN extends DataRelationName<T>,
@@ -60,12 +67,12 @@ export type DataRelationType<
   | ((typeof relation_definitions)[T] extends {
       belongs_to: Record<DRN, { type_name: infer U extends DataTypeName }>;
     }
-      ? DataTypeWithAdditionalInfo<U> | null
+      ? DataRelationBaseType<U> | null
       : never)
   | ((typeof relation_definitions)[T] extends {
       has_many: Record<DRN, { type_name: infer U extends DataTypeName }>;
     }
-      ? Array<DataTypeWithAdditionalInfo<U>>
+      ? Array<DataRelationBaseType<U>>
       : never);
 
 export function getRelationTypeAndConfig<

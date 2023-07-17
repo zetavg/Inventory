@@ -10,7 +10,10 @@ import useLogger from '@app/hooks/useLogger';
 import getDatum from '../functions/getDatum';
 import { getDataTypeSelector, getDatumFromDoc } from '../pouchdb-utils';
 import { DataType, DataTypeName } from '../schema';
-import { DataTypeWithAdditionalInfo } from '../types';
+import {
+  DataTypeWithAdditionalInfo,
+  InvalidDataTypeWithAdditionalInfo,
+} from '../types';
 
 type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
 
@@ -24,14 +27,11 @@ export default function useData<
     skip = 0,
     limit = 20,
     disable = false,
-    validate = true,
     sort,
   }: {
     skip?: number;
     limit?: number;
     disable?: boolean;
-    /** Warning: Setting this to `false` will break type safety. */
-    validate?: boolean;
     sort?: Sort;
   } = {},
 ): {
@@ -39,8 +39,10 @@ export default function useData<
   data:
     | null
     | (CT extends string
-        ? DataTypeWithAdditionalInfo<T>
-        : ReadonlyArray<null | DataTypeWithAdditionalInfo<T>>);
+        ? DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
+        : ReadonlyArray<
+            DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
+          >);
   ids: ReadonlyArray<string> | null;
   rawData: unknown;
   reload: () => void;
@@ -112,14 +114,13 @@ export default function useData<
 
         case typeof cachedCond === 'string': {
           const id: string = cachedCond as any;
-          const { datum: d, rawDatum: rd } = await getDatum(type, id, {
+          const d = await getDatum(type, id, {
             db,
             logger,
-            validate,
           });
           setIds(null);
           setData(d as any);
-          setRawData(rd);
+          setRawData(d);
           break;
         }
 
@@ -183,7 +184,7 @@ export default function useData<
               })) || null;
           setData(
             (response?.docs.map(d =>
-              getDatumFromDoc(type, d, logger, { validate }),
+              getDatumFromDoc(type, d, logger),
             ) as any) || null,
           );
           setIds(
@@ -199,7 +200,7 @@ export default function useData<
     } finally {
       setLoading(false);
     }
-  }, [cachedCond, db, limit, logger, skip, cachedSort, type, validate]);
+  }, [cachedCond, db, limit, logger, skip, cachedSort, type]);
 
   useFocusEffect(
     useCallback(() => {

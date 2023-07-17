@@ -79,7 +79,7 @@ function DatumScreen({
     <ScreenContent
       navigation={navigation}
       title={
-        data?.name ||
+        (typeof data?.name === 'string' && data?.name) ||
         preloadedTitle ||
         getHumanTypeName(type, { titleCase: true, plural: false })
       }
@@ -148,7 +148,7 @@ function DatumScreen({
                 const humanPropertyName = toTitleCase(
                   propertyName.replace(/_/g, ' '),
                 );
-                const value: any = data[propertyName];
+                const value: unknown = data[propertyName];
                 switch (propertyType) {
                   case 'boolean': {
                     return (
@@ -156,8 +156,10 @@ function DatumScreen({
                         key={propertyName}
                         label={humanPropertyName}
                         detail={
-                          value === undefined
+                          typeof value === 'undefined'
                             ? '(undefined)'
+                            : typeof value !== 'boolean'
+                            ? `(invalid type: ${typeof value})`
                             : value
                             ? 'true'
                             : 'false'
@@ -172,7 +174,13 @@ function DatumScreen({
                       <UIGroup.ListItem
                         key={propertyName}
                         label={humanPropertyName}
-                        detail={value === undefined ? '(undefined)' : value}
+                        detail={
+                          typeof value === 'undefined'
+                            ? '(undefined)'
+                            : typeof value !== 'string'
+                            ? `(invalid type: ${typeof value})`
+                            : value
+                        }
                         verticalArrangedLargeTextIOS
                       />
                     );
@@ -223,27 +231,81 @@ function DatumScreen({
             <UIGroup.ListItem
               verticalArrangedLargeTextIOS
               label="Created At"
-              detail={data.__created_at}
+              detail={
+                typeof data.__created_at === 'number'
+                  ? data.__created_at
+                  : '(unknown)'
+              }
             />
             <UIGroup.ListItemSeparator />
             <UIGroup.ListItem
               verticalArrangedLargeTextIOS
               label="Updated At"
-              detail={data.__updated_at}
+              detail={
+                typeof data.__updated_at === 'number'
+                  ? data.__updated_at
+                  : '(unknown)'
+              }
             />
           </UIGroup>
         )}
 
-        {!data && !!rawData && (
-          <UIGroup header="Raw Data">
+        {!!data && (
+          <UIGroup header="Advanced">
             <UIGroup.ListTextInputItem
-              label="(JSON)"
+              label="Data JSON"
               monospaced
               multiline
               small
               showSoftInputOnFocus={false}
-              value={JSON.stringify(rawData, null, 2)}
+              value={JSON.stringify(data, null, 2)}
             />
+            {/*
+            <UIGroup.ListItemSeparator />
+            <UIGroup.ListTextInputItem
+              label="Data JSON (Spread)"
+              monospaced
+              multiline
+              small
+              showSoftInputOnFocus={false}
+              value={JSON.stringify({ ...data }, null, 2)}
+            />
+            */}
+            <UIGroup.ListItemSeparator />
+            <UIGroup.ListTextInputItem
+              label="Raw"
+              monospaced
+              multiline
+              small
+              showSoftInputOnFocus={false}
+              value={JSON.stringify(data.__raw, null, 2)}
+            />
+            {!!data.__errors && (
+              <>
+                <UIGroup.ListItemSeparator />
+                <UIGroup.ListTextInputItem
+                  label="Errors"
+                  monospaced
+                  multiline
+                  small
+                  showSoftInputOnFocus={false}
+                  value={JSON.stringify(data.__errors, null, 2)}
+                />
+              </>
+            )}
+            {!!data.__error_details && (
+              <>
+                <UIGroup.ListItemSeparator />
+                <UIGroup.ListTextInputItem
+                  label="Errors"
+                  monospaced
+                  multiline
+                  small
+                  showSoftInputOnFocus={false}
+                  value={JSON.stringify(data.__error_details, null, 2)}
+                />
+              </>
+            )}
           </UIGroup>
         )}
       </ScreenContent.ScrollView>
@@ -266,13 +328,19 @@ function BelongsToItem<T extends DataTypeWithRelationDefsName>({
       verticalArrangedLargeTextIOS
       label={toTitleCase(String(relationName).replace(/_/g, ' '))}
       detail={
-        loading ? 'Loading...' : Array.isArray(d) ? 'Invalid' : d?.name || '-'
+        loading
+          ? 'Loading...'
+          : Array.isArray(d)
+          ? 'Invalid'
+          : typeof d?.name === 'string'
+          ? d?.name
+          : d?.__id || '-'
       }
       navigable={!!d && !Array.isArray(d)}
       onPress={
         d && !Array.isArray(d)
           ? () => {
-              onPress({ type: d.__type, id: d.__id });
+              onPress({ type: d.__type, id: d.__id || '' });
             }
           : undefined
       }
@@ -307,11 +375,11 @@ function HasManyGroup<T extends DataTypeWithRelationDefsName>({
           ? d.map(dd => (
               <UIGroup.ListItem
                 key={dd.__id}
-                label={dd.name}
+                label={typeof dd?.name === 'string' ? dd?.name : '-'}
                 detail={`ID: ${dd.__id}`}
                 verticalArrangedIOS
                 navigable
-                onPress={() => onPress({ type: dd.__type, id: dd.__id })}
+                onPress={() => onPress({ type: dd.__type, id: dd.__id || '' })}
               />
             ))
           : []),

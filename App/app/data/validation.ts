@@ -18,14 +18,17 @@ import { DataTypeWithAdditionalInfo } from './types';
 const logger = appLogger.for({ module: 'data/validation' });
 
 export async function validate(
-  d: DataTypeWithAdditionalInfo<DataTypeName>,
+  datum: DataTypeWithAdditionalInfo<DataTypeName>,
   { db }: { db: PouchDB.Database },
 ): Promise<Array<ZodIssue>> {
   const issues: Array<ZodIssue> = [];
 
-  switch (d.__type) {
+  switch (datum.__type) {
     case 'collection': {
-      if (d.collection_reference_number) {
+      if (
+        datum.collection_reference_number &&
+        typeof datum.collection_reference_number === 'string'
+      ) {
         const config = await getConfig({ db });
         const collectionReferenceDigitsLimit =
           EPCUtils.getCollectionReferenceDigitsLimit({
@@ -34,8 +37,9 @@ export async function validate(
           });
 
         if (
-          typeof d.collection_reference_number === 'string' &&
-          d.collection_reference_number.length > collectionReferenceDigitsLimit
+          typeof datum.collection_reference_number === 'string' &&
+          datum.collection_reference_number.length >
+            collectionReferenceDigitsLimit
         ) {
           issues.push({
             code: 'custom',
@@ -64,23 +68,24 @@ export async function validate(
         });
         const response = await db.find({
           selector: {
-            'data.collection_reference_number': d.collection_reference_number,
+            'data.collection_reference_number':
+              datum.collection_reference_number,
           },
           fields: ['_id', 'data.name'],
         });
         if (
           response.docs.some(
-            doc => getDataIdFromPouchDbId(doc._id).id !== d.__id,
+            doc => getDataIdFromPouchDbId(doc._id).id !== datum.__id,
           )
         ) {
           const doc = response.docs.find(
-            dd => getDataIdFromPouchDbId(dd._id).id !== d.__id,
+            dd => getDataIdFromPouchDbId(dd._id).id !== datum.__id,
           );
           issues.push({
             code: 'custom',
             path: ['collection_reference_number'],
             message: `Must be unique (reference number ${
-              d.collection_reference_number
+              datum.collection_reference_number
             } is already taken by collection "${(doc as any)?.data?.name}")`,
           });
         }
@@ -89,33 +94,36 @@ export async function validate(
     }
 
     case 'item': {
-      const data = d as DataTypeWithAdditionalInfo<'item'>;
       let collection;
-      if (data.collection_id) {
-        const result = await getDatum('collection', data.collection_id, {
+      if (datum.collection_id && typeof datum.collection_id === 'string') {
+        collection = await getDatum('collection', datum.collection_id, {
           db,
           logger,
-          validate: false,
         });
-        collection = result.datum;
         if (!collection) {
           issues.push({
             code: 'custom',
             path: ['collection_id'],
-            message: `Can't find collection with ID "${data.collection_id}"`,
+            message: `Can't find collection with ID "${datum.collection_id}"`,
           });
         }
       }
 
-      if (data.item_reference_number) {
+      if (
+        datum.item_reference_number &&
+        datum.item_reference_number === 'string' &&
+        (typeof datum.serial === 'string' ||
+          typeof datum.serial === 'undefined') &&
+        typeof collection?.collection_reference_number === 'string'
+      ) {
         const config = await getConfig({ db });
         if (collection) {
           try {
             EPCUtils.encodeIndividualAssetReference(
               parseInt(config.rfid_tag_prefix, 10),
               collection.collection_reference_number,
-              data.item_reference_number,
-              parseInt(data.serial || '0', 10),
+              datum.item_reference_number,
+              parseInt(datum.serial || '0', 10),
               { companyPrefix: config.rfid_tag_company_prefix },
             );
           } catch (e) {
@@ -128,9 +136,9 @@ export async function validate(
         }
       }
 
-      if (data.epc_tag_uri) {
+      if (datum.epc_tag_uri && typeof datum.epc_tag_uri === 'string') {
         try {
-          EPCUtils.encodeHexEPC(data.epc_tag_uri);
+          EPCUtils.encodeHexEPC(datum.epc_tag_uri);
         } catch (e) {
           issues.push({
             code: 'custom',
@@ -140,7 +148,10 @@ export async function validate(
         }
       }
 
-      if (data.rfid_tag_epc_memory_bank_contents) {
+      if (
+        datum.rfid_tag_epc_memory_bank_contents &&
+        typeof datum.rfid_tag_epc_memory_bank_contents === 'string'
+      ) {
         try {
           // TODO: verify that rfid_tag_epc_memory_bank_contents is a valid hex
         } catch (e) {
@@ -166,19 +177,23 @@ export async function validateDelete(
 
   switch (d.__type) {
     case 'collection': {
-      const { datum: collection } = await getDatum('collection', d.__id || '', {
+      const collection = await getDatum('collection', d.__id || '', {
         db,
         logger,
-        validate: false,
       });
       if (collection) {
         const items = await getRelated(collection, 'items', {
           db,
           logger,
-          validate: false,
         });
 
-        if (items.length > 0) {
+        if (!items) {
+          issues.push({
+            code: 'custom',
+            path: [],
+            message: 'Cannot check if this collection has no items.',
+          });
+        } else if (items.length > 0) {
           issues.push({
             code: 'custom',
             path: [],

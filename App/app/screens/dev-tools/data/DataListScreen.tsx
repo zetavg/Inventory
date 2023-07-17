@@ -26,7 +26,6 @@ function DataListScreen({
   const {
     loading,
     data,
-    ids,
     refresh: refreshData,
     refreshing: refreshingData,
   } = useData(type, {}, { skip, limit });
@@ -89,35 +88,18 @@ function DataListScreen({
             data.length > 0 &&
             UIGroup.ListItemSeparator.insertBetween(
               data.map((d, i) =>
-                d ? (
+                d.__valid ? (
                   <UIGroup.ListItem
                     verticalArrangedIOS
                     navigable
-                    key={d.__id}
+                    key={d.__id || `no_id-${i}`}
                     label={d.name}
                     detail={`ID: ${d.__id}`}
                     onPress={() => {
                       navigation.navigate('Datum', {
                         type: d.__type,
-                        id: d.__id,
+                        id: d.__id || '',
                         preloadedTitle: d.name,
-                      });
-                    }}
-                  />
-                ) : ids && ids[i] ? (
-                  <UIGroup.ListItem
-                    verticalArrangedIOS
-                    navigable
-                    key={ids[i]}
-                    label={`(Invalid ${getHumanTypeName(type, {
-                      titleCase: false,
-                      plural: false,
-                    })}: ${ids[i]})`}
-                    detail={`ID: ${ids[i]}`}
-                    onPress={() => {
-                      navigation.navigate('Datum', {
-                        type: type,
-                        id: ids[i],
                       });
                     }}
                   />
@@ -125,12 +107,18 @@ function DataListScreen({
                   <UIGroup.ListItem
                     verticalArrangedIOS
                     navigable
-                    key={i}
-                    label={`(Invalid ${getHumanTypeName(type, {
-                      titleCase: false,
-                      plural: false,
-                    })} with unknown ID})`}
-                    detail="Unknown ID"
+                    key={d.__id || `no_id-${i}`}
+                    label={
+                      (typeof d.name === 'string' ? `${d.name} ` : '') +
+                      '(invalid)'
+                    }
+                    detail={`ID: ${d.__id}`}
+                    onPress={() => {
+                      navigation.navigate('Datum', {
+                        type: type,
+                        id: d.__id || '',
+                      });
+                    }}
                   />
                 ),
               ),

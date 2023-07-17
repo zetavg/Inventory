@@ -10,26 +10,26 @@ import {
   DataRelationType,
   DataTypeWithRelationDefsName,
   getRelationTypeAndConfig,
-  relation_definitions,
 } from '../relations';
-import { DataTypeWithAdditionalInfo } from '../types';
+import {
+  DataTypeWithAdditionalInfo,
+  InvalidDataTypeWithAdditionalInfo,
+} from '../types';
 
 export default async function getRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
 >(
-  d: DataTypeWithAdditionalInfo<T>,
+  d: DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>,
   relationName: N,
   {
     db,
     logger,
-    validate,
   }: {
     db: PouchDB.Database;
     logger: typeof appLogger;
-    validate?: boolean;
   },
-): Promise<DataRelationType<T, N>> {
+): Promise<DataRelationType<T, N> | null> {
   const [relationType, relationConfig] = getRelationTypeAndConfig(
     d.__type,
     relationName,
@@ -37,9 +37,9 @@ export default async function getRelated<
 
   switch (relationType) {
     case 'belongs_to': {
-      const foreignId = (d as any)[relationConfig.foreign_key];
-      if (!foreignId) {
-        return null as any;
+      const foreignId = d[relationConfig.foreign_key];
+      if (typeof foreignId !== 'string') {
+        return null;
       }
 
       try {
@@ -47,9 +47,7 @@ export default async function getRelated<
           getPouchDbId(relationConfig.type_name, foreignId),
         );
 
-        return getDatumFromDoc(relationConfig.type_name, doc, logger, {
-          validate: typeof validate === 'boolean' ? validate : true,
-        }) as any;
+        return getDatumFromDoc(relationConfig.type_name, doc, logger) as any;
       } catch (e) {
         if (e instanceof Error && e.name === 'not_found') {
           return null as any;
@@ -75,18 +73,22 @@ export default async function getRelated<
       };
       const response = await db.find(findRequest);
       return (
-        (
-          response?.docs.map(ddd =>
-            getDatumFromDoc(relationConfig.type_name, ddd, logger, {
-              validate: typeof validate === 'boolean' ? validate : true,
-            }),
-          ) as any
-        ).filter((dddd: any) => !!dddd) || null
+        (response?.docs.map(ddd =>
+          getDatumFromDoc(relationConfig.type_name, ddd, logger),
+        ) as any) || null
       );
     }
 
     default: {
-      throw new Error(`Unsupported relation type: ${relationType}`);
+      logger.error(`Unsupported relation type: ${relationType}`, {
+        details: JSON.stringify({
+          d,
+          relationName,
+          relationType,
+          relationConfig,
+        }),
+      });
+      return null;
     }
   }
 }

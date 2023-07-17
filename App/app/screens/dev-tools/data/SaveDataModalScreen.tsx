@@ -37,7 +37,6 @@ function SaveDataModalScreen({
   const save = useSave();
   const { data: originalData, loading } = useData(type, id || '', {
     disable: !id,
-    validate: false,
   });
   const [data, setData] = useState<
     Partial<DataTypeWithAdditionalInfo<keyof typeof schema>> & {
@@ -45,7 +44,7 @@ function SaveDataModalScreen({
     }
   >({ __type: type as any, __id: id });
   useEffect(() => {
-    setData(d => ({ ...d, ...originalData, ...initialData }));
+    setData(d => ({ ...d, ...originalData, ...(initialData as any) }));
   }, [initialData, originalData]);
 
   const safeParseResults = useMemo(
@@ -194,10 +193,20 @@ function SaveDataModalScreen({
 
         <UIGroup header="Advanced">
           <UIGroup.ListTextInputItem
-            label="Preview"
+            label="Data"
             multiline
             monospaced
             small
+            showSoftInputOnFocus={false}
+            value={JSON.stringify(data, null, 2)}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Validation Results"
+            multiline
+            monospaced
+            small
+            showSoftInputOnFocus={false}
             value={JSON.stringify(safeParseResults, null, 2)}
           />
         </UIGroup>
