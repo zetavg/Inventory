@@ -177,8 +177,8 @@ export default function DBSyncManager() {
         onComplete,
       }: {
         onChange?: (arg: {
-          localDBUpdateSeq: number | undefined;
-          remoteDBUpdateSeq: number | undefined;
+          localDBUpdateSeq?: number | undefined;
+          remoteDBUpdateSeq?: number | undefined;
           pushLastSeq?: number;
           pullLastSeq?: number;
         }) => void;
@@ -222,8 +222,9 @@ export default function DBSyncManager() {
         }
 
         const payload = {
-          localDBUpdateSeq,
-          remoteDBUpdateSeq,
+          // Only update the local or remote seq based on the current operation
+          ...(direction === 'push' ? { localDBUpdateSeq } : {}),
+          ...(direction === 'pull' ? { remoteDBUpdateSeq } : {}),
           [direction === 'push' ? 'pushLastSeq' : 'pullLastSeq']: lastSeq,
         };
         dispatch(actions.dbSync.updateSyncProgress([server.id, payload]));
