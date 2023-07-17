@@ -30,7 +30,7 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 export const DEFAULT_SEARCH_FIELDS = {
-  id: 5,
+  _id: 5,
   name: 5,
   'data.name': 5,
   value: 5,
