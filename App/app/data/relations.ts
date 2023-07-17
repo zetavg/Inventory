@@ -60,10 +60,34 @@ export type DataRelationType<
   | ((typeof relation_definitions)[T] extends {
       belongs_to: Record<DRN, { type_name: infer U extends DataTypeName }>;
     }
-      ? DataTypeWithAdditionalInfo<U>
+      ? DataTypeWithAdditionalInfo<U> | null
       : never)
   | ((typeof relation_definitions)[T] extends {
       has_many: Record<DRN, { type_name: infer U extends DataTypeName }>;
     }
       ? Array<DataTypeWithAdditionalInfo<U>>
       : never);
+
+export function getRelationTypeAndConfig<
+  T extends DataTypeWithRelationDefsName,
+>(type: T, relationName: DataRelationName<T>): [RelationType, RelationConfig] {
+  const relD = relation_definitions[type] as any;
+
+  if (relD.belongs_to) {
+    if (relD.belongs_to[relationName]) {
+      return ['belongs_to', relD.belongs_to[relationName]];
+    }
+  }
+
+  if (relD.has_many) {
+    if (relD.has_many[relationName]) {
+      return ['has_many', relD.has_many[relationName]];
+    }
+  }
+
+  throw new Error(
+    `Cannot find relation "${String(relationName)}" on defn ${JSON.stringify(
+      relD,
+    )}`,
+  );
+}

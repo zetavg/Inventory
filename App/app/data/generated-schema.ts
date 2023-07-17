@@ -3,12 +3,24 @@
 import { z } from 'zod';
 
 export const schema = {
+  config: z
+    .object({
+      rfid_tag_access_password: z.string().regex(new RegExp('^[a-f0-9]{8}$')),
+      rfid_tag_access_password_encoding: z
+        .string()
+        .regex(new RegExp('^[a-f0-9]{8}$')),
+      rfid_tag_company_prefix: z.string().regex(new RegExp('^[0-9]{6,12}$')),
+      rfid_tag_prefix: z.string().regex(new RegExp('^[0-9]{0,3}$')),
+      collections_order: z.array(z.string()),
+    })
+    .catchall(z.unknown()),
   collection: z
     .object({
       name: z.string().min(1),
       icon_name: z.string(),
       icon_color: z.string(),
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
+      item_default_icon_name: z.string().optional(),
     })
     .catchall(z.unknown()),
   item: z
@@ -19,6 +31,7 @@ export const schema = {
       collection_id: z.string(),
       item_reference_number: z.string().optional(),
       serial: z.string().optional(),
+      _individual_asset_reference: z.string().optional(),
       epc_tag_uri: z.string().optional(),
       epc_tag_uri_manually_set: z.boolean().optional(),
       rfid_tag_epc_memory_bank_contents: z

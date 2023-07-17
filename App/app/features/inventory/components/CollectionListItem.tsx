@@ -1,9 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
 
 import { DataTypeWithAdditionalInfo, useDataCount } from '@app/data';
-
-import useDB from '@app/hooks/useDB';
 
 import { IconName } from '@app/components/Icon';
 import UIGroup from '@app/components/UIGroup';
@@ -38,13 +35,11 @@ export default function CollectionListItem({
 
   return (
     <UIGroup.ListItem
-      key={collection.id}
-      verticalArrangedIOS={!hideDetails}
+      key={collection.__id}
+      verticalArrangedNormalLabelIOS={!hideDetails}
       label={collection.name}
       icon={collection.icon_name as IconName}
       iconColor={collection.icon_color}
-      labelTextStyle={styles.collectionListItemLabelText}
-      detailTextStyle={styles.collectionListItemDetailText}
       onPress={onPress}
       navigable={!!onPress}
       detail={
@@ -52,7 +47,9 @@ export default function CollectionListItem({
           ? undefined
           : [
               collection.collection_reference_number,
-              itemsCount !== null && `${itemsCount} items`,
+              itemsCount !== null && itemsCount === 1
+                ? `${itemsCount} item`
+                : `${itemsCount} items`,
             ]
               .filter(s => s)
               .join(' | ')
@@ -61,9 +58,3 @@ export default function CollectionListItem({
     />
   );
 }
-
-const styles = StyleSheet.create({
-  collectionListItemIcon: { marginRight: -2 },
-  collectionListItemLabelText: { fontSize: 16 },
-  collectionListItemDetailText: { fontSize: 12 },
-});

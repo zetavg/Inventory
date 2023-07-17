@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
-import InsetGroup from '@app/components/InsetGroup';
-import Icon, { IconName } from '@app/components/Icon';
-
-import useDB from '@app/hooks/useDB';
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
-export default function CollectionItem({
+import useDB from '@app/hooks/useDB';
+
+import Icon, { IconName } from '@app/components/Icon';
+import InsetGroup from '@app/components/InsetGroup';
+
+export default function CollectionItem_old({
   collection,
   onPress,
   hideDetails,

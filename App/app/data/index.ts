@@ -1,3 +1,4 @@
+import useConfig from './hooks/useConfig';
 import useData from './hooks/useData';
 import useDataCount from './hooks/useDataCount';
 import useRelated from './hooks/useRelated';
@@ -22,6 +23,7 @@ export {
   schema,
   toTitleCase,
   typePlurals,
+  useConfig,
   useData,
   useDataCount,
   useRelated,

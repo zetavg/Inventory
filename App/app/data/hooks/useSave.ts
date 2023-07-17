@@ -8,10 +8,9 @@ import { useDB } from '@app/db';
 import useLogger from '@app/hooks/useLogger';
 
 import { beforeSave } from '../callbacks';
+import { getDatumFromDoc } from '../pouchdb-utils';
 import schema, { DataType, DataTypeName } from '../schema';
-import { validate } from '../validation';
-
-import { getDatumFromDoc } from './useData';
+import { validate, validateDelete } from '../validation';
 
 type SaveFn = <T extends DataTypeName>(
   d: Partial<DataType<T>> & {
@@ -80,7 +79,7 @@ function useSave(): SaveFn {
 
         if (!updateDocProxy) throw new Error('updateDocProxy is null');
 
-        beforeSave(updateDocProxy);
+        await beforeSave(updateDocProxy, { db });
 
         // Validation
         // (Do not need to validate if we are going to delete the document.)
@@ -107,6 +106,14 @@ function useSave(): SaveFn {
 
           if (zodError) {
             throw zodError;
+          }
+        } else {
+          const issues = await validateDelete(
+            { __type, __id, __deleted },
+            { db },
+          );
+          if (issues.length > 0) {
+            throw new ZodError(issues);
           }
         }
 

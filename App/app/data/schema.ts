@@ -7,9 +7,14 @@ import {
   ZodString,
 } from 'zod';
 
-import { schema } from './generated-schema';
+import { filterObjectKeysReverse } from '@app/utils/filterObjectKeys';
 
-export default schema;
+import { schema as generatedSchema } from './generated-schema';
+
+export const schema = filterObjectKeysReverse(generatedSchema, ['config']);
+
+export const configSchema = generatedSchema.config;
+export type ConfigType = z.infer<typeof configSchema>;
 
 export const plurals: Record<keyof typeof schema, string> = {
   collection: 'collections',
@@ -58,3 +63,5 @@ export function getPropertyType<T extends DataTypeName>(
   const zodType = (schema[type].shape as any)[propertyName];
   return getTypeFromZodTypeDef(zodType);
 }
+
+export default schema;

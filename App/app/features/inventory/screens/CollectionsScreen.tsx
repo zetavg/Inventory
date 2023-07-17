@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, RefreshControl } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { useData } from '@app/data';
+import { ZodError } from 'zod';
+
+import { useConfig, useData, useSave } from '@app/data';
+
+import commonStyles from '@app/utils/commonStyles';
+import moveItemInArray from '@app/utils/moveItemInArray';
 
 import type { StackParamList } from '@app/navigation';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
+import useLogger from '@app/hooks/useLogger';
+import useOrdered from '@app/hooks/useOrdered';
+
+import EditingListView from '@app/components/EditingListView';
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
@@ -13,11 +24,94 @@ import CollectionListItem from '../components/CollectionListItem';
 function CollectionsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'Collections'>) {
-  const { data } = useData(
-    'collection',
-    {},
-    { sort: [{ __created_at: 'desc' }] },
+  const logger = useLogger('CollectionsScreen');
+  const {
+    data,
+    reload,
+    refresh: refreshData,
+    refreshing: dataRefreshing,
+  } = useData('collection', {}, { sort: [{ __created_at: 'desc' }] });
+  const {
+    config,
+    updateConfig,
+    refresh: refreshConfig,
+    refreshing: configRefreshing,
+  } = useConfig();
+  const save = useSave();
+  const [orderedData] = useOrdered(data, config?.collections_order || []);
+
+  const [editing, setEditing] = useState(false);
+  const [editingWithDelay, setEditingWithDelay] = useState(false);
+  useEffect(() => {
+    if (!editing) {
+      setEditingWithDelay(false);
+      return;
+    }
+
+    const timer = setTimeout(() => setEditingWithDelay(true), 10);
+    return () => clearTimeout(timer);
+  }, [editing]);
+  const [editingWithDelayOff, setEditingWithDelayOff] = useState(false);
+  useEffect(() => {
+    if (editing) {
+      setEditingWithDelayOff(true);
+      return;
+    }
+
+    const timer = setTimeout(() => setEditingWithDelayOff(false), 300);
+    return () => clearTimeout(timer);
+  }, [editing]);
+
+  const startEdit = useCallback(() => {
+    if (!orderedData) return null;
+    setEditing(true);
+  }, [orderedData]);
+  const endEdit = useCallback(() => {
+    setEditing(false);
+  }, []);
+  const handleItemMove = useCallback(
+    ({ from, to }: { from: number; to: number }) => {
+      if (!editing) return;
+      if (!orderedData) return;
+      const newOrder = moveItemInArray(
+        orderedData.map(d => d.__id || ''),
+        from,
+        to,
+      );
+      updateConfig({ collections_order: newOrder });
+    },
+    [editing, orderedData, updateConfig],
   );
+  const handleItemDelete = useCallback(
+    async (index: number) => {
+      if (!orderedData) return;
+      const d = orderedData[index];
+      try {
+        await save({ ...d, __type: d.__type, __id: d.__id, __deleted: true });
+        reload();
+      } catch (e) {
+        if (e instanceof ZodError) {
+          Alert.alert(
+            'Cannot delete collection',
+            e.issues.map(i => i.message).join('\n'),
+          );
+        } else {
+          logger.error(e, { showAlert: true });
+        }
+      }
+    },
+    [logger, orderedData, reload, save],
+  );
+
+  const [refreshCounter, setRefreshCounter] = useState(0);
+  const refresh = useCallback(() => {
+    refreshData();
+    refreshConfig();
+    setRefreshCounter(n => n + 1);
+  }, [refreshConfig, refreshData]);
+  const refreshing = dataRefreshing || configRefreshing;
+
+  const rootNavigation = useRootNavigation();
 
   return (
     <ScreenContent
@@ -25,59 +119,67 @@ function CollectionsScreen({
       title="Collections"
       // showSearch
       // onSearchChangeText={setSearchText}
-      // action1Label={editing ? 'Done' : 'Add'}
-      // action1SFSymbolName={editing ? undefined : 'rectangle.stack.badge.plus'}
-      // action1MaterialIconName={editing ? undefined : 'plus'}
-      // onAction1Press={() =>
-      //   editing ? endEdit() : rootNavigation?.navigate('SaveCollection', {})
-      // }
+      action1Label={editing ? 'Done' : 'Add'}
+      action1SFSymbolName={editing ? undefined : 'plus.square'}
+      action1MaterialIconName={editing ? undefined : 'plus'}
+      onAction1Press={() =>
+        editing ? endEdit() : rootNavigation?.navigate('SaveCollection', {})
+      }
       // TODO: Not supported on Android yet, still need to implement the EditingListView
       // on Android
-      // action2SFSymbolName={
-      //   orderedData && orderedData.length && !editing
-      //     ? 'list.bullet.indent'
-      //     : undefined
-      // }
-      // onAction2Press={
-      //   orderedData && orderedData.length > 0 && !editing
-      //     ? () => startEdit()
-      //     : undefined
-      // }
+      action2SFSymbolName={
+        orderedData && orderedData.length && !editing ? 'pencil' : undefined
+      }
+      action2MaterialIconName={
+        orderedData && orderedData.length && !editing
+          ? 'circle-edit-outline'
+          : undefined
+      }
+      onAction2Press={
+        orderedData && orderedData.length > 0 && !editing
+          ? () => startEdit()
+          : undefined
+      }
     >
       {(() => {
-        // if (orderedData && (editing || editingWithDelayOff)) {
-        //   return (
-        //     <EditingListView
-        //       style={commonStyles.flex1}
-        //       editing={editingWithDelayOn}
-        //       onItemMove={handleItemMove}
-        //       onItemDelete={handleItemDelete}
-        //       key={editingListViewKey}
-        //     >
-        //       {orderedData.map(collection => (
-        //         <EditingListView.Item
-        //           key={collection.id}
-        //           label={collection.name}
-        //         />
-        //       ))}
-        //     </EditingListView>
-        //   );
-        // }
+        if (orderedData && (editing || editingWithDelayOff)) {
+          return (
+            <EditingListView
+              withIOSLargeTitle
+              canMove
+              canDelete
+              editing={editingWithDelay}
+              onItemMove={handleItemMove}
+              onItemDelete={handleItemDelete}
+            >
+              {orderedData.map(collection => (
+                <EditingListView.Item
+                  key={collection.__id}
+                  label={collection.name}
+                />
+              ))}
+            </EditingListView>
+          );
+        }
 
         return (
-          <ScreenContent.ScrollView>
+          <ScreenContent.ScrollView
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+            }
+          >
             <UIGroup.FirstGroupSpacing iosLargeTitle />
             <UIGroup>
-              {!!data &&
-                data.length > 0 &&
+              {!!orderedData &&
+                orderedData.length > 0 &&
                 UIGroup.ListItemSeparator.insertBetween(
-                  data
+                  orderedData
                     .map(collection =>
                       collection ? (
                         <CollectionListItem
                           key={collection.__id}
                           collection={collection}
-                          reloadCounter={0}
+                          reloadCounter={refreshCounter}
                           onPress={() =>
                             navigation.push('Datum', {
                               type: 'collection',

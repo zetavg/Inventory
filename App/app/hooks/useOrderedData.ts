@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 import useDB from './useDB';
 
-export default function useOrderedData<T extends { id?: string }>({
+export default function useOrderedData_old<T extends { id?: string }>({
   data,
   settingName,
   settingPriority,
