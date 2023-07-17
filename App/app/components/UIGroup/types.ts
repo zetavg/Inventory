@@ -46,9 +46,11 @@ export type ListItemProps = {
         textProps: React.ComponentProps<typeof Text>;
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
+  monospaceDetail?: boolean;
   icon?: React.ComponentProps<typeof Icon>['name'];
   iconColor?: React.ComponentProps<typeof Icon>['color'];
   verticalArrangedLargeTextIOS?: boolean;
+  verticalArrangedNormalLabelIOS?: boolean;
   verticalArrangedIOS?: boolean;
   selected?: boolean;
   navigable?: boolean;
@@ -67,6 +69,7 @@ export type ListItemSeparatorProps = {
 export type ListTextInputItemProps = {
   label?: string;
   unit?: string;
+  onUnitPress?: () => void;
   disabled?: boolean;
   readonly?: boolean;
   horizontalLabel?: boolean;

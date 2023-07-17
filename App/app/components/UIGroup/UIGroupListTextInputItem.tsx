@@ -20,11 +20,13 @@ export default function UIGroupListTextInputItem(
   ref: React.ForwardedRef<TextInput>,
 ): JSX.Element {
   const isDarkMode = useIsDarkMode();
-  const { contentSecondaryTextColor, contentDisabledTextColor } = useColors();
+  const { contentSecondaryTextColor, contentDisabledTextColor, iosTintColor } =
+    useColors();
 
   const {
     label,
     unit,
+    onUnitPress,
     disabled,
     readonly,
     horizontalLabel,
@@ -118,7 +120,22 @@ export default function UIGroupListTextInputItem(
               ]}
             />
           )}
-          {unit ? <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix> : null}
+          {unit ? (
+            onUnitPress ? (
+              <TouchableOpacity
+                onPress={onUnitPress}
+                style={styles.pressableUnitContainer}
+              >
+                <InsetGroup.ItemAffix
+                  style={[styles.pressableUnitText, { color: iosTintColor }]}
+                >
+                  {unit}
+                </InsetGroup.ItemAffix>
+              </TouchableOpacity>
+            ) : (
+              <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
+            )
+          ) : null}
           {rightElement && !vertical2 ? (
             <View style={styles.insetGroupTextInputRightElementContainer}>
               {rightElement}
@@ -216,5 +233,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 2,
+  },
+  pressableUnitContainer: {
+    marginTop: -12,
+    marginBottom: -12,
+    marginRight: -12,
+  },
+  pressableUnitText: {
+    marginTop: 12,
+    marginBottom: 8,
+    marginRight: 12,
   },
 });

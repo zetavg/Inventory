@@ -239,6 +239,40 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="Vertical Arranged Normal Label iOS">
+        <UIGroup.ListItem
+          verticalArrangedNormalLabelIOS
+          label="Name"
+          detail="iPhone"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedNormalLabelIOS
+          label="Software Version"
+          detail="15.5"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedNormalLabelIOS
+          label="Model Name"
+          detail="iPhone 12 mini"
+          navigable
+          onPress={() => Alert.alert('Model Name', 'Pressed.')}
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedNormalLabelIOS
+          label="Model Number"
+          detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          verticalArrangedNormalLabelIOS
+          label="Serial Numberrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr"
+          detail="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        />
+      </UIGroup>
+
       <UIGroup header="Vertical Arranged Large Text iOS">
         <UIGroup.ListItem
           verticalArrangedLargeTextIOS
@@ -273,6 +307,31 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="Monospace Detail">
+        <UIGroup.ListItem monospaceDetail label="Name" detail="iPhone" />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          monospaceDetail
+          verticalArrangedIOS
+          label="Software Version"
+          detail="15.5"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          monospaceDetail
+          verticalArrangedNormalLabelIOS
+          label="Model Name"
+          detail="iPhone 12 mini"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListItem
+          monospaceDetail
+          verticalArrangedLargeTextIOS
+          label="Model Number"
+          detail="ABCD1234"
+        />
+      </UIGroup>
+
       <UIGroup header="With Icon">
         <UIGroup.ListItem label="Food" icon="food" />
         <UIGroup.ListItemSeparator forItemWithIcon />
@@ -280,9 +339,20 @@ export function WithListItems() {
         <UIGroup.ListItemSeparator forItemWithIcon />
         <UIGroup.ListItem label="With Color" icon="cup" iconColor="blue" />
         <UIGroup.ListItemSeparator forItemWithIcon />
-        <UIGroup.ListItem label="Coffee" icon="coffee" iconColor="brown" />
+        <UIGroup.ListItem
+          label="Coffee"
+          icon="coffee"
+          iconColor="brown"
+          detail="With Detail"
+        />
         <UIGroup.ListItemSeparator forItemWithIcon />
-        <UIGroup.ListItem label="Beer" icon="beer" iconColor="yellow" />
+        <UIGroup.ListItem
+          label="Beer"
+          icon="beer"
+          iconColor="yellow"
+          detail="With Detail (verticalArrangedNormalLabelIOS)"
+          verticalArrangedNormalLabelIOS
+        />
       </UIGroup>
 
       <UIGroup header="Text Input">
@@ -317,6 +387,14 @@ export function WithListItems() {
           placeholder="0"
           keyboardType="number-pad"
           unit="Units"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          label="With Pressable Unit"
+          placeholder="0"
+          keyboardType="number-pad"
+          unit="USD"
+          onUnitPress={() => Alert.alert('Unit Pressed')}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
@@ -368,6 +446,90 @@ export function WithListItems() {
         />
       </UIGroup>
 
+      <UIGroup header="Text Input with Horizontal Label">
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Label"
+          placeholder="Placeholder"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Value"
+          placeholder="Placeholder"
+          value="Input value."
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Disabled"
+          disabled
+          value="Disabled Input Value"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Readonly"
+          readonly
+          value="Readonly Input Value"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Unit"
+          placeholder="0"
+          keyboardType="number-pad"
+          unit="Units"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Pressable Unit"
+          placeholder="0"
+          keyboardType="number-pad"
+          unit="USD"
+          onUnitPress={() => Alert.alert('Unit Pressed')}
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Button"
+          placeholder="Placeholder"
+          rightElement={
+            <UIGroup.ListTextInputItem.Button
+              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
+            >
+              Select
+            </UIGroup.ListTextInputItem.Button>
+          }
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Icon on Button"
+          placeholder="Placeholder"
+          rightElement={
+            <UIGroup.ListTextInputItem.Button
+              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
+            >
+              {({ iconProps, textProps }) => (
+                <>
+                  <Icon {...iconProps} name="add" />
+                  <Text {...textProps}>Add</Text>
+                </>
+              )}
+            </UIGroup.ListTextInputItem.Button>
+          }
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Monospaced"
+          monospaced
+          placeholder="Monospaced"
+        />
+      </UIGroup>
+
       <UIGroup header="Custom Input Element">
         <UIGroup.ListTextInputItem
           label="With Custom Input Element"
@@ -414,80 +576,23 @@ export function WithListItems() {
             </TouchableOpacity>
           }
         />
-      </UIGroup>
-
-      <UIGroup header="Text Input with Horizontal Label">
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="Label"
-          placeholder="Placeholder"
-        />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
+          label="Horizontal Label With Custom Input"
           horizontalLabel
-          label="With Value"
-          placeholder="Placeholder"
-          value="Input value."
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="Disabled"
-          disabled
-          value="Disabled Input Value"
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="Readonly"
-          readonly
-          value="Readonly Input Value"
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="With Unit"
-          placeholder="0"
-          keyboardType="number-pad"
-          unit="Units"
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="With Button"
-          placeholder="Placeholder"
-          rightElement={
-            <UIGroup.ListTextInputItem.Button
-              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
+          inputElement={
+            <TouchableOpacity
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{ flexDirection: 'row', flexWrap: 'wrap' }}
+              onPress={() => Alert.alert('Pressed')}
             >
-              Select
-            </UIGroup.ListTextInputItem.Button>
+              {'A Custom Element. A Custom Element. A Custom Element.'
+                .split('')
+                .map((c, i) => (
+                  <UIText key={i}>{c}</UIText>
+                ))}
+            </TouchableOpacity>
           }
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="With Icon on Button"
-          placeholder="Placeholder"
-          rightElement={
-            <UIGroup.ListTextInputItem.Button
-              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
-            >
-              {({ iconProps, textProps }) => (
-                <>
-                  <Icon {...iconProps} name="add" />
-                  <Text {...textProps}>Add</Text>
-                </>
-              )}
-            </UIGroup.ListTextInputItem.Button>
-          }
-        />
-        <UIGroup.ListItemSeparator />
-        <UIGroup.ListTextInputItem
-          horizontalLabel
-          label="Monospaced"
-          monospaced
-          placeholder="Monospaced"
         />
       </UIGroup>
 

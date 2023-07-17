@@ -13,7 +13,9 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     labelTextStyle,
     detail,
     detailTextStyle,
+    monospaceDetail,
     verticalArrangedIOS,
+    verticalArrangedNormalLabelIOS,
     verticalArrangedLargeTextIOS,
     selected,
     navigable,
@@ -45,11 +47,18 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
   return (
     <InsetGroup.Item
       label={label}
-      labelTextStyle={labelTextStyle}
+      labelTextStyle={[
+        labelTextStyle,
+        verticalArrangedNormalLabelIOS && styles.normalSizedLabel_labelText,
+      ]}
       detail={detail}
-      detailTextStyle={detailTextStyle}
+      detailTextStyle={[
+        detailTextStyle,
+        verticalArrangedNormalLabelIOS && styles.normalSizedLabel_detailText,
+        monospaceDetail && styles.monospaceDetail_detailText,
+      ]}
       leftElement={leftElement}
-      vertical={verticalArrangedIOS}
+      vertical={verticalArrangedIOS || verticalArrangedNormalLabelIOS}
       vertical2={verticalArrangedLargeTextIOS}
       selected={selected}
       arrow={navigable}
@@ -92,4 +101,9 @@ const styles = StyleSheet.create({
     marginVertical: -4,
   },
   iosItemIcon: { marginRight: -2 },
+  normalSizedLabel_labelText: { fontSize: 16 },
+  normalSizedLabel_detailText: { fontSize: 12 },
+  monospaceDetail_detailText: {
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
 });
