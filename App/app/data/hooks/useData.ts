@@ -7,91 +7,12 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { getDataIdFromPouchDbId, getDataTypeSelector } from '../pouchdb-utils';
-import schema, { DataType, DataTypeName } from '../schema';
+import getDatum from '../functions/getDatum';
+import { getDataTypeSelector, getDatumFromDoc } from '../pouchdb-utils';
+import { DataType, DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
 
 type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
-
-export function getDatumFromDoc<T extends DataTypeName>(
-  type: T,
-  doc: PouchDB.Core.ExistingDocument<{}> | null,
-  logger: ReturnType<typeof useLogger>,
-  { validate = true }: { validate?: boolean } = {},
-): DataTypeWithAdditionalInfo<T> | null {
-  if (!doc) return null;
-
-  let id: undefined | string;
-  if (doc._id) {
-    const { type: typeName, id: iid } = getDataIdFromPouchDbId(doc._id);
-    id = iid;
-
-    if (typeName !== type) {
-      logger.error(
-        `Error parsing "${type}" ID "${doc._id}": document type is ${typeName}`,
-        {
-          details: JSON.stringify({ doc }, null, 2),
-        },
-      );
-      return null;
-    }
-  }
-
-  try {
-    if (validate) {
-      schema[type].parse((doc as any).data);
-    }
-    if (typeof (doc as any).data !== 'object') {
-      throw new Error('doc.data is not an object');
-    }
-
-    return new Proxy((doc as any).data, {
-      get: function (target, prop) {
-        if (prop === '__type') {
-          return type;
-        }
-
-        if (prop === '__id') {
-          return id;
-        }
-
-        if (prop === '__rev') {
-          return doc._rev;
-        }
-
-        if (prop === '__deleted') {
-          return (doc as any)._deleted;
-        }
-
-        if (prop === '__created_at') {
-          return (doc as any).created_at;
-        }
-
-        if (prop === '__updated_at') {
-          return (doc as any).updated_at;
-        }
-
-        return target[prop];
-      },
-      set: function (target, prop, value) {
-        if (prop === '__deleted') {
-          return ((doc as any)._deleted = value);
-        }
-
-        // Only allow assigning known properties
-        if (Object.keys(schema[type].shape).includes(prop as string)) {
-          return (target[prop] = value);
-        }
-      },
-    }) as any;
-  } catch (e) {
-    const errMsg = e instanceof Error ? e.message : JSON.stringify(e, null, 2);
-    logger.error(`Error parsing "${type}" ID "${doc._id}": ${errMsg}`, {
-      details: JSON.stringify({ doc }, null, 2),
-    });
-    return null;
-  }
-}
 
 export default function useData<
   T extends DataTypeName,
@@ -185,9 +106,25 @@ export default function useData<
     try {
       switch (true) {
         case Array.isArray(cachedCond): {
+          // TODO: Support this
           break;
         }
-        case typeof cachedCond === 'object': {
+
+        case typeof cachedCond === 'string': {
+          const id: string = cachedCond as any;
+          const { datum: d, rawDatum: rd } = await getDatum(type, id, {
+            db,
+            logger,
+            validate,
+          });
+          setIds(null);
+          setData(d as any);
+          setRawData(rd);
+          break;
+        }
+
+        default: {
+          // TODO: use cachedCond to build selector (if cachedCond is object)
           const selector = {
             ...getDataTypeSelector(type),
           };
@@ -254,14 +191,6 @@ export default function useData<
               null,
           );
           setRawData(response);
-          break;
-        }
-        default: {
-          const id = cachedCond;
-          const doc = (await db?.get(`${type}-${id}`)) || null;
-          setData(getDatumFromDoc(type, doc, logger, { validate }) as any);
-          setIds(null);
-          setRawData(doc);
           break;
         }
       }
