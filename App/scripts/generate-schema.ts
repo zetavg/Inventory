@@ -43,4 +43,7 @@ async function writeLintedCode(code: string, outputPath: string) {
   console.log(`Generated code written to "${outputPath}".`);
 }
 
-writeLintedCode(jsFileContent, outputFilePath);
+writeLintedCode(
+  jsFileContent.replace(/catchall\(z\.any\(\)\)/g, 'catchall(z.unknown())'),
+  outputFilePath,
+);

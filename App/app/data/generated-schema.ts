@@ -10,7 +10,7 @@ export const schema = {
       icon_color: z.string(),
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
     })
-    .catchall(z.any()),
+    .catchall(z.unknown()),
   item: z
     .object({
       name: z.string().min(1),
@@ -35,7 +35,7 @@ export const schema = {
         .optional(),
       dedicated_container_id: z.string().optional(),
     })
-    .catchall(z.any()),
+    .catchall(z.unknown()),
 };
 
 export default schema;
