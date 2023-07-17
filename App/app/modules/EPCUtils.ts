@@ -1,11 +1,44 @@
 import epcTds from 'epc-tds';
 
-const COLLECTION_REFERENCE_REGEX = /^[0-9]{4}$/;
-// TODO: Calculate this base on companyPrefix length
-const ITEM_REFERENCE_REGEX = /^[0-9]{1,7}$/;
-const MIN_PREFIX = 10;
-const MAX_PREFIX = 99;
+const COLLECTION_REFERENCE_REGEX = /^[0-9]+$/;
+const ITEM_REFERENCE_REGEX = /^[0-9]+$/;
+const MIN_PREFIX = 0;
+const MAX_PREFIX = 999;
 const MAX_SERIAL = 9999;
+
+const getCollectionReferenceDigitsLimit = ({
+  tagPrefixDigits,
+  companyPrefixDigits,
+}: {
+  tagPrefixDigits: number;
+  companyPrefixDigits: number;
+}): number => {
+  if (tagPrefixDigits + companyPrefixDigits < 10) {
+    return 4;
+  } else {
+    return 3;
+  }
+};
+
+const getItemReferenceDigitsLimit = ({
+  tagPrefixDigits,
+  companyPrefixDigits,
+}: {
+  tagPrefixDigits: number;
+  companyPrefixDigits: number;
+}): number => {
+  const collectionReferenceDigitsLimit = getCollectionReferenceDigitsLimit({
+    tagPrefixDigits,
+    companyPrefixDigits,
+  });
+  return (
+    24 -
+    4 /* serial length */ -
+    collectionReferenceDigitsLimit -
+    tagPrefixDigits -
+    companyPrefixDigits
+  );
+};
 
 const EPCUtils = {
   COLLECTION_REFERENCE_REGEX: COLLECTION_REFERENCE_REGEX,
@@ -21,6 +54,8 @@ const EPCUtils = {
     const epc = epcTds.fromTagURI(uri);
     return [epc.toHexString(), epc];
   },
+  getCollectionReferenceDigitsLimit,
+  getItemReferenceDigitsLimit,
   encodeIndividualAssetReference: (
     prefix: number,
     collectionReference: string,
@@ -29,7 +64,13 @@ const EPCUtils = {
     {
       joinBy = '',
       includePrefix = true,
-    }: { joinBy?: string; includePrefix?: boolean } = {},
+      companyPrefix,
+    }: {
+      joinBy?: string;
+      includePrefix?: boolean;
+      /** This is only used to check if the GIAI Individual Asset Reference field will be out of range */
+      companyPrefix?: string;
+    } = {},
   ): string => {
     if (!prefix || prefix < MIN_PREFIX)
       throw new Error(`prefix must be larger than ${MIN_PREFIX}`);
@@ -46,9 +87,32 @@ const EPCUtils = {
     if (serial > MAX_SERIAL)
       throw new Error(`serial must be smaller than ${MAX_SERIAL}`);
 
+    if (typeof companyPrefix === 'string') {
+      const companyPrefixDigits = companyPrefix.length;
+      const tagPrefixDigits = prefix.toString().length;
+      const collectionReferenceDigitsLimit = getCollectionReferenceDigitsLimit({
+        companyPrefixDigits,
+        tagPrefixDigits,
+      });
+      if (collectionReference.length > collectionReferenceDigitsLimit) {
+        throw new Error(
+          `collection reference is too long (max. ${collectionReferenceDigitsLimit} digits)`,
+        );
+      }
+      const itemReferenceDigitsLimit = getItemReferenceDigitsLimit({
+        companyPrefixDigits,
+        tagPrefixDigits,
+      });
+      if (itemReference.length > itemReferenceDigitsLimit) {
+        throw new Error(
+          `item reference is too long (max. ${itemReferenceDigitsLimit} digits)`,
+        );
+      }
+    }
+
     return [
-      includePrefix && prefix.toString().padStart(2, '0'),
-      collectionReference.padStart(4, '0'),
+      includePrefix && prefix.toString(),
+      collectionReference,
       itemReference,
       serial.toString().padStart(4, '0'),
     ]

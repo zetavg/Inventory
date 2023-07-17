@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { ScrollView, Text, Switch } from 'react-native';
-import epcTds from 'epc-tds';
+import { ScrollView, Switch, Text } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
+
+import epcTds from 'epc-tds';
+
 import commonStyles from '@app/utils/commonStyles';
-import useNumberInputChangeHandler from '@app/hooks/useNumberInputChangeHandler';
+
 import EPCUtils from '@app/modules/EPCUtils';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+
+import useNumberInputChangeHandler from '@app/hooks/useNumberInputChangeHandler';
+
+import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
 
 const EXAMPLE_HEX = '3074257bf7194e4000001a85';
 const EXAMPLE_EPC = 'urn:epc:tag:giai-96:0.0000000.1';
@@ -55,7 +61,11 @@ function EPCTDSScreen({
       encodeIARCollectionRef,
       encodeIARItemRef,
       encodeIARSerial || 0,
-      { joinBy: encodeIARJoinBy, includePrefix: encodeIARIncludePrefix },
+      {
+        joinBy: encodeIARJoinBy,
+        includePrefix: encodeIARIncludePrefix,
+        companyPrefix: encodeIARCompanyPrefix,
+      },
     );
   } catch (e) {
     iar = { error: e };
