@@ -1,13 +1,8 @@
-import Color from 'color';
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Platform, ScrollView, Text, View } from 'react-native';
-import {
-  RadioButton,
-  Divider,
-  List,
-  Switch,
-  useTheme,
-} from 'react-native-paper';
+
+import commonStyles from '@app/utils/commonStyles';
+
 import TableViewIOS from './TableViewIOS';
 
 type Insets = {
@@ -24,9 +19,10 @@ type Props = {
   contentInset?: Insets;
   scrollIndicatorInsets?: Insets;
   style?: React.ComponentProps<typeof ScrollView>['style'];
-  onItemMove: (d: { from: number; to: number }) => void;
-  onItemDelete: (index: number) => void;
+  onItemMove?: (d: { from: number; to: number }) => void;
+  onItemDelete?: (index: number) => void;
   scrollToTopOnLoad?: boolean;
+  withIOSLargeTitle?: boolean;
 };
 
 function EditingListView({
@@ -41,7 +37,9 @@ function EditingListView({
   scrollIndicatorInsets,
   style,
   scrollToTopOnLoad,
+  withIOSLargeTitle,
 }: Props) {
+  const [key, setKey] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => {
     if (!scrollToTopOnLoad) return;
@@ -73,28 +71,38 @@ function EditingListView({
 
       const { label }: EditingListViewItemProps = item.props;
 
-      return <TableViewIOS.Item key={item.key} label={label} />;
+      return <TableViewIOS.Item key={item.key} label={label} canEdit />;
     });
 
     return (
       <TableViewIOS
+        key={key}
         ref={scrollViewRef}
-        style={style as any}
-        contentInset={contentInsets || contentInset}
+        style={[commonStyles.flex1, style as any]}
+        contentInset={{
+          top: withIOSLargeTitle ? 8 : 16,
+          ...(contentInsets || contentInset),
+        }}
         scrollIndicatorInsets={scrollIndicatorInsets}
         tableViewStyle={TableViewIOS.Consts.Style.InsetGrouped}
+        tableViewCellEditingStyle={
+          canDelete
+            ? TableViewIOS.Consts.CellEditingStyle.Delete
+            : TableViewIOS.Consts.CellEditingStyle.None
+        }
         tableViewCellStyle={TableViewIOS.Consts.CellStyle.Value1}
         editing={typeof editing === 'boolean' ? editing : true}
         onChange={(d: any) => {
           if (d.mode === 'move')
-            onItemMove({ from: d.sourceIndex, to: d.destinationIndex });
-          else if (d.mode === 'delete') onItemDelete(d.selectedIndex);
+            onItemMove &&
+              onItemMove({ from: d.sourceIndex, to: d.destinationIndex });
+          else if (d.mode === 'delete')
+            onItemDelete && onItemDelete(d.selectedIndex);
+
+          setKey(k => k + 1);
         }}
       >
-        <TableViewIOS.Section
-          canMove={typeof canMove === 'boolean' ? canMove : true}
-          canEdit={typeof canDelete === 'boolean' ? canDelete : true}
-        >
+        <TableViewIOS.Section canMove={canMove} canEdit>
           {iosChildren}
         </TableViewIOS.Section>
       </TableViewIOS>

@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text } from 'react-native';
+import { Alert, Text, View } from 'react-native';
+
 import { action } from '@storybook/addon-actions';
 
-import EditingListView from './EditingListView';
-import useColors from '@app/hooks/useColors';
 import commonStyles from '@app/utils/commonStyles';
+
+import useColors from '@app/hooks/useColors';
+
+import EditingListView from './EditingListView';
 
 export default {
   title: 'EditingListView',
   component: EditingListView,
   args: {
     editing: true,
-    canMove: true,
-    canDelete: true,
+    // canMove: true,
+    // canDelete: true,
   },
   argTypes: {
     // iosStyle: {
@@ -29,10 +32,10 @@ function DemoComponent(props: React.ComponentProps<typeof EditingListView>) {
     <View style={[commonStyles.flex1, { backgroundColor }]}>
       <EditingListView
         {...props}
-        onItemMove={action('onItemMove')}
-        onItemDelete={action('onItemDelete')}
-        style={commonStyles.flex1}
-        contentInset={{ top: 8 }}
+        onItemMove={({ from, to }) =>
+          Alert.alert('Item Move', `From ${from} to ${to}.`)
+        }
+        onItemDelete={index => Alert.alert('Item Delete', `${index}.`)}
       >
         <EditingListView.Item label="Item A" />
         <EditingListView.Item label="Item B" />
@@ -46,8 +49,20 @@ function DemoComponent(props: React.ComponentProps<typeof EditingListView>) {
   );
 }
 
-export const Default = (
+export const CanMove = (
   props: React.ComponentProps<typeof EditingListView>,
 ) => {
-  return <DemoComponent {...props} />;
+  return <DemoComponent {...props} canMove />;
+};
+
+export const CanDelete = (
+  props: React.ComponentProps<typeof EditingListView>,
+) => {
+  return <DemoComponent {...props} canDelete />;
+};
+
+export const CanMoveAndDelete = (
+  props: React.ComponentProps<typeof EditingListView>,
+) => {
+  return <DemoComponent {...props} canMove canDelete />;
 };
