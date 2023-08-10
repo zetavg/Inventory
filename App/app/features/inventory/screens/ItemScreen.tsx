@@ -1,28 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   Alert,
-  ScrollView,
   StyleSheet,
   Text as RNText,
-  TouchableHighlight,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-
-import Color from 'color';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 import { onlyValid, useConfig, useData, useRelated, useSave } from '@app/data';
 
-import { useRelationalData } from '@app/db';
-import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-
 import commonStyles from '@app/utils/commonStyles';
-
-import EPCUtils from '@app/modules/EPCUtils';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
@@ -30,22 +21,13 @@ import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import useActionSheet from '@app/hooks/useActionSheet';
 import useColors from '@app/hooks/useColors';
-import useDB from '@app/hooks/useDB';
 import useOrdered from '@app/hooks/useOrdered';
 
-import Button from '@app/components/Button';
-import Icon, {
-  IconColor,
-  IconName,
-  verifyIconColorWithDefault,
-  verifyIconNameWithDefault,
-} from '@app/components/Icon';
+import Icon, { verifyIconNameWithDefault } from '@app/components/Icon';
 import ScreenContent from '@app/components/ScreenContent';
 import Text from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
-import ChecklistItem from '../components/ChecklistItem';
-import ItemItem from '../components/ItemItem';
 import ItemListItem from '../components/ItemListItem';
 import useCheckItems from '../hooks/useCheckItems';
 
@@ -570,14 +552,7 @@ function ItemScreen({
                                 })
                               }
                             >
-                              <Icon
-                                name="rfid-write"
-                                size={44}
-                                sfSymbolWeight="medium"
-                                showBackground
-                                backgroundColor="transparent"
-                                color={iosTintColor}
-                              />
+                              <RFIDWriteIcon />
                               <Text
                                 style={[
                                   styles.buttonAnnotationText,
@@ -603,6 +578,7 @@ function ItemScreen({
                                 !item.actual_rfid_tag_epc_memory_bank_contents
                               }
                             >
+                              {/*
                               <Icon
                                 name="rfid-locate"
                                 size={44}
@@ -611,6 +587,8 @@ function ItemScreen({
                                 backgroundColor="transparent"
                                 color={iosTintColor}
                               />
+                              */}
+                              <RFIDLocateIcon />
                               <Text
                                 style={[
                                   styles.buttonAnnotationText,
@@ -746,6 +724,94 @@ function ItemScreen({
   );
 }
 
+function RFIDWriteIcon() {
+  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
+    useColors();
+
+  return (
+    <View style={styles.customIconContainer}>
+      <Svg height="50" width="50" viewBox="0 0 512 512">
+        <Path
+          fillRule="evenodd"
+          clipRule="evenodd"
+          d="M201.333 288.043H172.625C168.034 288.043 163.844 287.575 160.073 286.649C170.521 279.625 181.789 273.808 193.681 269.293H318.372C330.169 273.785 341.358 279.557 351.772 286.494C347.853 287.523 343.464 288.043 338.625 288.043H310.715C293.828 281.713 275.47 278.375 256.219 278.375C236.877 278.375 218.349 281.686 201.333 288.043ZM369.417 274.422C373.181 268.705 375.125 261.223 375.125 252.043V178.918C375.125 155.293 362.25 142.918 338.625 142.918H172.625C149 142.918 136 155.293 136 178.918V252.043C136 261.474 138.072 269.113 142.065 274.887C147.548 270.823 153.25 267.074 159.146 263.65C157.166 260.98 156.125 257.41 156.125 253.043V177.918C156.125 167.543 162 161.668 172.375 161.668H338.75C349.125 161.668 355 167.543 355 177.918V253.043C355 257.21 354.052 260.651 352.246 263.277C358.167 266.677 363.898 270.396 369.417 274.422Z"
+          fill={iosTintColor}
+        />
+        <Rect
+          x="184.5"
+          y="202.5"
+          width="35.6"
+          height="35.6"
+          rx="8"
+          fill={iosTintColor}
+        />
+        <Rect
+          x="238.5"
+          y="202.5"
+          width="35.6"
+          height="35.6"
+          rx="8"
+          fill={iosTintColor}
+          fillOpacity="0.5"
+        />
+        <Rect
+          x="292.5"
+          y="202.5"
+          width="35.6"
+          height="35.6"
+          rx="8"
+          fill={iosTintColor}
+          fillOpacity="0.25"
+        />
+        <Path
+          d="M374.969 320.25C379.219 316.375 379.719 309.625 374.719 304.875C343.594 275.125 301.844 258 256.219 258C210.594 258 168.469 274.875 137.594 304.875C132.594 309.625 133.094 316.375 137.344 320.25C141.719 324.125 147.844 323.25 152.594 318.75C179.469 292.625 216.094 278.375 256.219 278.375C296.344 278.375 332.594 292.875 359.719 318.75C364.469 323.25 370.719 324.125 374.969 320.25Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M341.719 356.375C346.344 352.375 346.344 345.375 341.094 340.5C318.594 319.75 288.594 308.125 256.219 308.125C223.844 308.125 193.719 319.625 171.344 340.5C165.969 345.375 165.969 352.375 170.719 356.375C175.219 360.375 181.094 359.125 186.219 354.625C204.719 337.75 229.219 328.5 256.219 328.5C283.094 328.5 307.594 337.875 326.219 354.625C331.344 359.125 337.094 360.375 341.719 356.375Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M306.094 391.375C310.719 387.25 310.844 379.75 305.219 375.375C291.719 364.5 274.594 358.125 256.219 358.125C237.844 358.125 220.594 364.5 207.219 375.375C201.469 379.75 201.594 387.25 206.344 391.375C210.844 395.375 216.344 393.625 221.844 389.75C231.219 382.375 243.219 378.5 256.219 378.5C269.219 378.5 281.219 382.25 290.594 389.75C295.969 393.75 301.594 395.375 306.094 391.375Z"
+          fill={iosTintColor}
+        />
+      </Svg>
+    </View>
+  );
+}
+
+function RFIDLocateIcon() {
+  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
+    useColors();
+
+  return (
+    <View style={styles.customIconContainer}>
+      <Svg height="50" width="50" viewBox="0 0 512 512">
+        <Path
+          d="M144 213.75C150.625 213.75 154.125 210 154.125 203.5V174C154.125 161 161 154.375 173.5 154.375H203.75C210.375 154.375 214 150.75 214 144.25C214 137.75 210.375 134.25 203.75 134.25H173.25C147.125 134.25 134 147.125 134 172.875V203.5C134 210 137.625 213.75 144 213.75ZM368.625 213.75C375.25 213.75 378.75 210 378.75 203.5V172.875C378.75 147.125 365.625 134.25 339.5 134.25H308.875C302.375 134.25 298.75 137.75 298.75 144.25C298.75 150.75 302.375 154.375 308.875 154.375H339.125C351.5 154.375 358.625 161 358.625 174V203.5C358.625 210 362.25 213.75 368.625 213.75ZM173.25 378.875H203.75C210.375 378.875 214 375.25 214 368.875C214 362.375 210.375 358.75 203.75 358.75H173.5C161 358.75 154.125 352.125 154.125 339.125V309.625C154.125 303 150.5 299.375 144 299.375C137.5 299.375 134 303 134 309.625V340.125C134 366 147.125 378.875 173.25 378.875ZM308.875 378.875H339.5C365.625 378.875 378.75 365.875 378.75 340.125V309.625C378.75 303 375.125 299.375 368.625 299.375C362.125 299.375 358.625 303 358.625 309.625V339.125C358.625 352.125 351.5 358.75 339.125 358.75H308.875C302.375 358.75 298.75 362.375 298.75 368.875C298.75 375.25 302.375 378.875 308.875 378.875Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M274.821 337.711C278.518 341.944 285.222 342.258 289.469 337.674C309.432 316.186 320.138 287.478 320.138 256.275C320.138 225.131 309.469 196.368 289.469 174.917C285.222 170.333 278.518 170.647 274.821 174.82C271.244 178.831 271.614 184.303 275.464 188.369C292.127 206.105 300.966 230.03 300.966 256.275C300.966 282.58 291.73 306.209 275.464 324.222C271.674 328.349 271.244 333.719 274.821 337.711Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M249.229 312.906C252.944 317.435 259.446 318.095 264.912 312.513C278.257 298.609 284.965 278.129 284.965 256.275C284.965 234.542 277.615 213.202 264.912 200.096C259.446 194.496 252.944 195.097 249.229 199.704C245.754 203.853 247.02 208.927 250.689 213.05C260.518 223.839 265.792 239.421 265.792 256.275C265.792 273.17 260.499 288.752 250.689 299.56C247.02 303.622 245.754 308.678 249.229 312.906Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M224.165 288.589C227.598 293.178 234.654 293.497 239.506 288.279C246.343 280.814 249.99 268.847 249.99 256.275C249.99 243.643 246.343 231.658 239.506 224.21C234.654 219.035 227.598 219.293 224.165 223.9C221.05 227.93 222.03 232.828 225.006 237.066C228.261 241.459 230.818 249.483 230.818 256.275C230.818 263.006 228.28 271.03 225.006 275.483C222.011 279.703 221.05 284.56 224.165 288.589Z"
+          fill={iosTintColor}
+        />
+        <Path
+          d="M177 256.118C177 265.121 184.802 272.645 193.962 272.645C203.122 272.645 210.707 265.121 210.707 255.96C210.707 246.602 203.279 239.077 193.962 239.077C184.663 239.077 177 246.879 177 256.118Z"
+          fill={iosTintColor}
+        />
+      </Svg>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   buttonWithAnnotationText: {
     marginBottom: 7,
@@ -758,6 +824,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 8,
     fontWeight: '500',
+  },
+  customIconContainer: {
+    marginVertical: -4,
+    marginHorizontal: -4,
   },
 });
 
