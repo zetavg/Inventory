@@ -37,7 +37,7 @@ function CollectionScreen({
     loading: itemsLoading,
     refresh: refreshItems,
     refreshing: itemsRefreshing,
-  } = useRelated(data, 'items');
+  } = useRelated(data, 'items', { sort: [{ __created_at: 'asc' }] });
   // const {
   //   data: items,
   //   loading: itemsLoading,
@@ -69,9 +69,13 @@ function CollectionScreen({
               : undefined,
         },
         afterSave: item => {
-          item.__id &&
-            item.rfid_tag_epc_memory_bank_contents &&
+          if (
+            item.__id &&
+            (item.rfid_tag_epc_memory_bank_contents ||
+              item.collection_id !== id)
+          ) {
             navigation.push('Item', { id: item.__id });
+          }
           refreshItems();
         },
       }),

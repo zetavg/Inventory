@@ -1,32 +1,27 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  TouchableWithoutFeedback,
-} from 'react-native';
+import { LayoutAnimation, ScrollView, StyleSheet, View } from 'react-native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import SearchBar from 'react-native-platform-searchbar';
 
-import type { StackScreenProps } from '@react-navigation/stack';
+import { onlyValid, useConfig, useData } from '@app/data';
+
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
-
-import cs from '@app/utils/commonStyles';
-
-import useColors from '@app/hooks/useColors';
-import ModalContent from '@app/components/ModalContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Icon from '@app/components/Icon';
-
-import { ICONS } from '@app/consts/icons';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import objectEntries from '@app/utils/objectEntries';
-import { useRelationalData } from '@app/db';
-import useOrderedData from '@app/hooks/useOrderedData';
-import CollectionItem from '../components/CollectionItem';
+import useOrdered from '@app/hooks/useOrdered';
 
-function SelectCollectionScreen({
+import InsetGroup from '@app/components/InsetGroup';
+import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
+
+import CollectionListItem from '../components/CollectionListItem';
+
+const LAYOUT_ANIMATION_CONFIG = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 100,
+};
+
+function SelectCollectionModalScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'SelectCollection'>) {
@@ -34,11 +29,18 @@ function SelectCollectionScreen({
   const [value, setValue] = useState(defaultValue);
   const [search, setSearch] = useState('');
 
-  const { data, reloadData } = useRelationalData('collection');
-  const { orderedData, reloadOrder, updateOrder } = useOrderedData({
-    data,
-    settingName: 'collections',
-  });
+  const { data, loading: dataLoading } = useData(
+    'collection',
+    {},
+    { sort: [{ __created_at: 'asc' }] },
+  );
+  const { config, loading: configLoading } = useConfig();
+  const [orderedData] = useOrdered(
+    data && onlyValid(data),
+    config?.collections_order || [],
+  );
+
+  const loading = dataLoading || configLoading;
 
   const collections = useMemo(() => {
     if (!orderedData) return orderedData;
@@ -46,20 +48,18 @@ function SelectCollectionScreen({
     if (search) {
       const searchTerm = search.toLowerCase();
       return orderedData.filter(c =>
-        `${c.collectionReferenceNumber} ${c.name.toLowerCase()}`.match(
+        `${c.collection_reference_number} ${c.name.toLowerCase()}`.match(
           searchTerm,
         ),
       );
     }
 
+    LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+
     return orderedData;
   }, [orderedData, search]);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
-
-  const isDarkMode = useIsDarkMode();
-  const { iosTintColor } = useColors();
 
   const handleSelect = useCallback(() => {
     if (!value) return;
@@ -85,6 +85,8 @@ function SelectCollectionScreen({
     navigation.goBack();
   }, [navigation]);
 
+  const isDarkMode = useIsDarkMode();
+
   return (
     <ModalContent
       navigation={navigation}
@@ -96,13 +98,9 @@ function SelectCollectionScreen({
       action1Label={value ? 'Select' : undefined}
       // action1MaterialIconName="check"
       onAction1Press={handleSelect}
+      action1Variant="strong"
     >
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
+      <ModalContent.ScrollView ref={scrollViewRef}>
         <View style={styles.searchBarContainer}>
           <SearchBar
             theme={isDarkMode ? 'dark' : 'light'}
@@ -112,28 +110,27 @@ function SelectCollectionScreen({
             onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
           />
         </View>
-        <InsetGroup loading={!orderedData}>
+        <UIGroup loading={loading}>
           {collections &&
             collections
               .flatMap(collection => [
-                <CollectionItem
-                  key={collection.id}
+                <CollectionListItem
+                  key={collection.__id}
                   reloadCounter={0}
                   hideDetails
                   collection={collection}
-                  onPress={() => setValue(collection.id)}
-                  arrow={false}
-                  selected={collection.id === value}
+                  onPress={() => setValue(collection.__id)}
+                  navigable={false}
+                  selected={collection.__id === value}
                 />,
-                <InsetGroup.ItemSeparator
-                  key={`s-${collection.id}`}
-                  // leftInset={50}
-                  leftInset={60}
+                <UIGroup.ListItemSeparator
+                  forItemWithIcon
+                  key={`s-${collection.__id}`}
                 />,
               ])
               .slice(0, -1)}
-        </InsetGroup>
-      </ScrollView>
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }
@@ -144,25 +141,6 @@ const styles = StyleSheet.create({
     marginHorizontal: InsetGroup.MARGIN_HORIZONTAL,
     marginBottom: InsetGroup.MARGIN_HORIZONTAL,
   },
-  iconsContainer: {
-    marginHorizontal: 'auto',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-evenly',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-  },
-  iconItemContainer: {
-    marginVertical: 4,
-    marginHorizontal: 4,
-    width: 40,
-    height: 40,
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 });
 
-export default SelectCollectionScreen;
+export default SelectCollectionModalScreen;

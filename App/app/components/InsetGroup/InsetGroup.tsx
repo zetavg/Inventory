@@ -625,7 +625,7 @@ InsetGroup.ITEM_AFFIX_FONT_SIZE = ITEM_AFFIX_FONT_SIZE;
 const MARGIN_HORIZONTAL = 16;
 InsetGroup.MARGIN_HORIZONTAL = MARGIN_HORIZONTAL;
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: {
     marginTop: 0,
     marginBottom: 35,

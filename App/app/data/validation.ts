@@ -106,6 +106,39 @@ export async function validate(
         }
       }
 
+      let hasIARError = false;
+      if (
+        datum._individual_asset_reference &&
+        typeof datum._individual_asset_reference === 'string'
+      ) {
+        const itemsWithSameIAR = await getData(
+          'item',
+          {
+            _individual_asset_reference: datum._individual_asset_reference,
+          },
+          {},
+          { db, logger },
+        );
+        const differentItemsWithSameIAR = itemsWithSameIAR.filter(
+          i => i.__id !== datum.__id,
+        );
+        if (differentItemsWithSameIAR.length > 0) {
+          hasIARError = true;
+          const i = differentItemsWithSameIAR[0];
+          issues.push({
+            code: 'custom',
+            path: ['item_reference_number'],
+            message: `Individual Asset Reference should be unique, but "${
+              datum._individual_asset_reference
+            }" is already used by item ${
+              typeof i.name === 'string'
+                ? `"${i.name}" (ID: ${i.__id})`
+                : i.__id
+            }`,
+          });
+        }
+      }
+
       if (
         datum.item_reference_number &&
         datum.item_reference_number === 'string' &&
@@ -147,7 +180,8 @@ export async function validate(
 
       if (
         datum.rfid_tag_epc_memory_bank_contents &&
-        typeof datum.rfid_tag_epc_memory_bank_contents === 'string'
+        typeof datum.rfid_tag_epc_memory_bank_contents === 'string' &&
+        !hasIARError
       ) {
         try {
           // TODO: verify that rfid_tag_epc_memory_bank_contents is a valid hex
@@ -156,6 +190,59 @@ export async function validate(
             code: 'custom',
             path: ['rfid_tag_epc_memory_bank_contents'],
             message: e instanceof Error ? e.message : JSON.stringify(e),
+          });
+        }
+
+        const itemsWithSameRfidTagEpc = await getData(
+          'item',
+          {
+            rfid_tag_epc_memory_bank_contents:
+              datum.rfid_tag_epc_memory_bank_contents,
+          },
+          {},
+          { db, logger },
+        );
+        const differentItemsWithSameRfidTagEpc = itemsWithSameRfidTagEpc.filter(
+          i => i.__id !== datum.__id,
+        );
+        if (differentItemsWithSameRfidTagEpc.length > 0) {
+          const i = differentItemsWithSameRfidTagEpc[0];
+          issues.push({
+            code: 'custom',
+            path: ['rfid_tag_epc_memory_bank_contents'],
+            message: `RFID tag EPC memory bank contents should be unique, but "${
+              datum.rfid_tag_epc_memory_bank_contents
+            }" is already used by item ${
+              typeof i.name === 'string'
+                ? `"${i.name}" (ID: ${i.__id})`
+                : i.__id
+            }`,
+          });
+        }
+
+        const itemsWithMatchedActualRfidTagEpc = await getData(
+          'item',
+          {
+            actual_rfid_tag_epc_memory_bank_contents:
+              datum.rfid_tag_epc_memory_bank_contents,
+          },
+          {},
+          { db, logger },
+        );
+        const differentItemsWithMatchedActualRfidTagEpc =
+          itemsWithMatchedActualRfidTagEpc.filter(i => i.__id !== datum.__id);
+        if (differentItemsWithMatchedActualRfidTagEpc.length > 0) {
+          const i = differentItemsWithMatchedActualRfidTagEpc[0];
+          issues.push({
+            code: 'custom',
+            path: ['rfid_tag_epc_memory_bank_contents'],
+            message: `RFID tag EPC memory bank contents should be unique, but "${
+              datum.rfid_tag_epc_memory_bank_contents
+            }" is already used by item ${
+              typeof i.name === 'string'
+                ? `"${i.name}" (ID: ${i.__id})`
+                : i.__id
+            } as the actual RFID EPC memory bank contents`,
           });
         }
       }

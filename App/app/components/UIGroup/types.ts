@@ -83,7 +83,9 @@ export type ListTextInputItemProps = {
     | ((context: RenderFunctionProps) => React.ReactNode);
   monospaced?: boolean;
   small?: boolean;
-  inputElement?: JSX.Element;
+  inputElement?:
+    | React.ReactNode
+    | ((context: RenderFunctionProps) => React.ReactNode);
 } & React.ComponentProps<typeof TextInput>;
 
 export type ListTextInputItemButtonProps = {

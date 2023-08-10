@@ -13,7 +13,9 @@ import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
-import InsetGroup from '@app/components/InsetGroup';
+import InsetGroup, {
+  styles as insetGroupStyles,
+} from '@app/components/InsetGroup';
 
 import { ListTextInputItemButtonProps, ListTextInputItemProps } from './types';
 
@@ -22,8 +24,12 @@ export default function UIGroupListTextInputItem(
   ref: React.ForwardedRef<TextInput>,
 ): JSX.Element {
   const isDarkMode = useIsDarkMode();
-  const { contentSecondaryTextColor, contentDisabledTextColor, iosTintColor } =
-    useColors();
+  const {
+    contentTextColor,
+    contentSecondaryTextColor,
+    contentDisabledTextColor,
+    iosTintColor,
+  } = useColors();
 
   const {
     label,
@@ -110,7 +116,24 @@ export default function UIGroupListTextInputItem(
       detail={
         <View style={styles.insetGroupTextInputContainer}>
           {inputElement ? (
-            inputElement
+            typeof inputElement === 'function' ? (
+              inputElement({
+                textProps: {
+                  style: [
+                    {
+                      color: contentTextColor,
+                    },
+                    insetGroupStyles.insetGroupTextInput,
+                  ],
+                },
+                iconProps: {
+                  size: 32,
+                  showBackground: true,
+                },
+              })
+            ) : (
+              inputElement
+            )
           ) : (
             <InsetGroup.TextInput
               ref={ref}

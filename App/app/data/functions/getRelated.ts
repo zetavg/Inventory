@@ -18,12 +18,19 @@ import {
 
 import getData from './getData';
 
+type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
+
 export default async function getRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
 >(
   d: DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>,
   relationName: N,
+  {
+    sort,
+  }: {
+    sort?: Sort;
+  },
   {
     db,
     logger,
@@ -63,7 +70,7 @@ export default async function getRelated<
         {
           [relationConfig.foreign_key]: d.__id,
         },
-        {},
+        { sort },
         { db, logger },
       );
       return data as any;

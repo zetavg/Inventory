@@ -36,9 +36,11 @@ import SaveChecklistScreen from '@app/features/inventory/screens/SaveChecklistSc
 import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollectionScreen';
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
-import SelectCollectionScreen from '@app/features/inventory/screens/SelectCollectionScreen';
+import SelectCollectionModalScreen from '@app/features/inventory/screens/SelectCollectionModalScreen';
 import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
+import SelectItemModalScreen from '@app/features/inventory/screens/SelectItemModalScreen';
 import SelectItemsScreen from '@app/features/inventory/screens/SelectItemsScreen';
+import SelectItemTypeModalScreen from '@app/features/inventory/screens/SelectItemTypeModalScreen';
 import CreateOrUpdateProfileScreen from '@app/features/profiles/screens/CreateOrUpdateProfileScreen';
 import DeleteProfileScreen from '@app/features/profiles/screens/DeleteProfileScreen';
 import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
@@ -99,7 +101,13 @@ export type RootStackParamList = {
     callback: (value: string) => void;
     defaultValue?: string;
   };
+  SelectItem: {
+    callback: (value: string) => void;
+    defaultValue?: string;
+    as?: 'container';
+  };
   SelectContainer: {
+    // Old
     callback: (value: string) => void;
     defaultValue?: string;
   };
@@ -114,6 +122,10 @@ export type RootStackParamList = {
     initialData?: Partial<DataTypeWithAdditionalInfo<'item'>>;
     afterSave?: (data: Partial<DataTypeWithAdditionalInfo<'item'>>) => void;
     afterDelete?: () => void;
+  };
+  SelectItemType: {
+    callback: (itemType: DataType<'item'>['item_type']) => void;
+    defaultValue?: DataType<'item'>['item_type'];
   };
   SaveChecklist: {
     initialData?: Partial<DataTypeWithID<'checklist'>>;
@@ -354,8 +366,13 @@ function Navigation({
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
             <Stack.Screen
               name="SelectCollection"
-              component={SelectCollectionScreen}
+              component={SelectCollectionModalScreen}
             />
+            <Stack.Screen
+              name="SelectItemType"
+              component={SelectItemTypeModalScreen}
+            />
+            <Stack.Screen name="SelectItem" component={SelectItemModalScreen} />
             <Stack.Screen
               name="SelectContainer"
               component={SelectContainerScreen}

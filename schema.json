@@ -57,6 +57,7 @@
         "rfid_tag_epc_memory_bank_contents_manually_set": { "type": "boolean" },
         "actual_rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
         "item_type": { "enum": ["container", "generic_container", "item_with_parts"] },
+        "_can_contain_items": { "type": "boolean" },
         "dedicated_container_id": { "type": "string" }
       },
       "required": [

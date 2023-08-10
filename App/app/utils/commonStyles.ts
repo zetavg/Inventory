@@ -4,6 +4,9 @@ import { Platform, StyleSheet } from 'react-native';
  * Common, utility styles,
  */
 const commonStyles = StyleSheet.create({
+  flex0: {
+    flex: 0,
+  },
   flex1: {
     flex: 1,
   },
@@ -301,6 +304,9 @@ const commonStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  justifyContentFlexEnd: {
+    justifyContent: 'flex-end',
+  },
   alignItemsCenter: {
     alignItems: 'center',
   },
@@ -333,6 +339,9 @@ const commonStyles = StyleSheet.create({
   },
   tac: {
     textAlign: 'center',
+  },
+  tar: {
+    textAlign: 'right',
   },
   fwBold: {
     fontWeight: 'bold',

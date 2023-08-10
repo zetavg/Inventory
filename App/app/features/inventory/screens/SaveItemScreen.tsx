@@ -3,14 +3,22 @@ import {
   Alert,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import RNPickerSelect from 'react-native-picker-select';
 
-import { DataTypeWithAdditionalInfo, useConfig, useSave } from '@app/data';
+import {
+  DataTypeWithAdditionalInfo,
+  useConfig,
+  useData,
+  useSave,
+} from '@app/data';
 
+import commonStyles from '@app/utils/commonStyles';
 import randomInt from '@app/utils/randomInt';
 
 import EPCUtils from '@app/modules/EPCUtils';
@@ -121,25 +129,47 @@ function SaveItemScreen({
   //   loadSelectedDedicatedContainerData();
   // }, [loadSelectedDedicatedContainerData]);
 
+  const { data: selectedCollection } = useData(
+    'collection',
+    data.collection_id || '',
+    {
+      disable: !data.collection_id,
+    },
+  );
   const handleOpenSelectCollection = useCallback(() => {
-    // navigation.navigate('SelectCollection', {
-    //   defaultValue: data.collection,
-    //   callback: collection => {
-    //     setData(d => ({ ...d, collection }));
-    //     setHasUnsavedChanges(true);
-    //   },
-    // });
-  }, []);
+    navigation.navigate('SelectCollection', {
+      defaultValue: data.collection_id,
+      callback: collection_id => {
+        setData(d => ({ ...d, collection_id }));
+      },
+    });
+  }, [data.collection_id, navigation]);
 
+  const handleOpenSelectItemType = useCallback(() => {
+    navigation.navigate('SelectItemType', {
+      defaultValue: data.item_type,
+      callback: item_type => {
+        setData(d => ({ ...d, item_type }));
+      },
+    });
+  }, [data.item_type, navigation]);
+
+  const { data: selectedDedicatedContainer } = useData(
+    'item',
+    data.dedicated_container_id || '',
+    {
+      disable: !data.dedicated_container_id,
+    },
+  );
   const handleOpenSelectDedicatedContainer = useCallback(() => {
-    // navigation.navigate('SelectContainer', {
-    //   defaultValue: data.dedicatedContainer,
-    //   callback: dedicatedContainer => {
-    //     setData(d => ({ ...d, dedicatedContainer }));
-    //     setHasUnsavedChanges(true);
-    //   },
-    // });
-  }, []);
+    navigation.navigate('SelectItem', {
+      as: 'container',
+      defaultValue: data.dedicated_container_id,
+      callback: dedicated_container_id => {
+        setData(d => ({ ...d, dedicated_container_id }));
+      },
+    });
+  }, [data.dedicated_container_id, navigation]);
 
   const [
     referenceNumberIsRandomlyGenerated,
@@ -262,12 +292,146 @@ function SaveItemScreen({
             )}
             {...kiaTextInputProps}
           />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Collection"
+            // eslint-disable-next-line react/no-unstable-nested-components
+            inputElement={({ textProps, iconProps }) => (
+              <TouchableOpacity
+                style={commonStyles.flex1}
+                onPress={handleOpenSelectCollection}
+              >
+                <View
+                  style={[
+                    commonStyles.flex1,
+                    commonStyles.row,
+                    commonStyles.alignItemsCenter,
+                    { gap: 8, marginVertical: 4 },
+                  ]}
+                >
+                  {/* eslint-disable-next-line react/no-unstable-nested-components */}
+                  {(() => {
+                    if (!data.collection_id) {
+                      return (
+                        <Text
+                          {...textProps}
+                          style={[textProps.style, commonStyles.opacity05]}
+                        >
+                          Select...
+                        </Text>
+                      );
+                    } else if (
+                      data.collection_id === selectedCollection?.__id
+                    ) {
+                      return (
+                        <>
+                          <Icon
+                            {...iconProps}
+                            name={verifyIconNameWithDefault(
+                              selectedCollection.icon_name,
+                            )}
+                            color={verifyIconColorWithDefault(
+                              selectedCollection.icon_color,
+                            )}
+                          />
+                          <Text {...textProps}>
+                            {typeof selectedCollection.name === 'string'
+                              ? selectedCollection.name
+                              : selectedCollection.__id}
+                          </Text>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <Text
+                          {...textProps}
+                          style={[textProps.style, commonStyles.opacity05]}
+                        >
+                          Loading ({data.collection_id})...
+                        </Text>
+                      );
+                    }
+                  })()}
+                </View>
+              </TouchableOpacity>
+            )}
+            controlElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={handleOpenSelectCollection}
+              >
+                Select
+              </UIGroup.ListTextInputItem.Button>
+            }
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Item Type"
+            horizontalLabel
+            // eslint-disable-next-line react/no-unstable-nested-components
+            inputElement={({ textProps, iconProps }) => (
+              <TouchableOpacity
+                style={commonStyles.flex1}
+                onPress={handleOpenSelectItemType}
+              >
+                <View
+                  style={[
+                    commonStyles.flex1,
+                    commonStyles.row,
+                    commonStyles.alignItemsCenter,
+                    commonStyles.justifyContentFlexEnd,
+                  ]}
+                >
+                  {/*
+                  <Icon
+                    {...iconProps}
+                    size={16}
+                    showBackground={false}
+                    color={contentSecondaryTextColor}
+                    style={commonStyles.mr4}
+                    name="box"
+                  />
+                  */}
+                  <Text
+                    {...textProps}
+                    style={[
+                      textProps.style,
+                      commonStyles.tar,
+                      commonStyles.alignItemsCenter,
+                      commonStyles.flex0,
+                    ]}
+                  >
+                    {(() => {
+                      switch (data.item_type) {
+                        case 'container':
+                          return 'Container';
+                        case 'generic_container':
+                          return 'Generic Container';
+                        case 'item_with_parts':
+                          return 'Item with Parts';
+                        default:
+                          return 'Item';
+                      }
+                    })()}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+            controlElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={handleOpenSelectItemType}
+              >
+                Select
+              </UIGroup.ListTextInputItem.Button>
+            }
+            {...kiaTextInputProps}
+          />
         </UIGroup>
 
         <UIGroup>
           <UIGroup.ListTextInputItem
             ref={refNumberInputRef}
-            label="Reference Number"
+            label="Reference No."
             horizontalLabel
             keyboardType="number-pad"
             monospaced
@@ -288,7 +452,7 @@ function SaveItemScreen({
               setReferenceNumberIsRandomlyGenerated(false);
             }}
             controlElement={
-              (!data.collection_reference_number ||
+              (!data.item_reference_number ||
                 referenceNumberIsRandomlyGenerated) && (
                 <UIGroup.ListTextInputItem.Button
                   onPress={randomGenerateReferenceNumber}
@@ -319,6 +483,103 @@ function SaveItemScreen({
                 serial: t,
               }));
             }}
+            {...kiaTextInputProps}
+          />
+        </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListTextInputItem
+            label={(() => {
+              switch (selectedDedicatedContainer?.item_type) {
+                case 'container':
+                  return 'Content of';
+                case 'item_with_parts':
+                  return 'Part of';
+                default:
+                  return 'Dedicated Container';
+              }
+            })()}
+            // eslint-disable-next-line react/no-unstable-nested-components
+            inputElement={({ textProps, iconProps }) => (
+              <TouchableOpacity
+                style={commonStyles.flex1}
+                onPress={handleOpenSelectDedicatedContainer}
+              >
+                <View
+                  style={[
+                    commonStyles.flex1,
+                    commonStyles.row,
+                    commonStyles.alignItemsCenter,
+                    { gap: 8, marginVertical: 4 },
+                  ]}
+                >
+                  {/* eslint-disable-next-line react/no-unstable-nested-components */}
+                  {(() => {
+                    if (!data.dedicated_container_id) {
+                      return (
+                        <Text
+                          {...textProps}
+                          style={[textProps.style, commonStyles.opacity05]}
+                        >
+                          None
+                        </Text>
+                      );
+                    } else if (
+                      data.dedicated_container_id ===
+                      selectedDedicatedContainer?.__id
+                    ) {
+                      return (
+                        <>
+                          <Icon
+                            {...iconProps}
+                            name={verifyIconNameWithDefault(
+                              selectedDedicatedContainer.icon_name,
+                            )}
+                            color={verifyIconColorWithDefault(
+                              selectedDedicatedContainer.icon_color,
+                            )}
+                          />
+                          <Text {...textProps}>
+                            {typeof selectedDedicatedContainer.name === 'string'
+                              ? selectedDedicatedContainer.name
+                              : selectedDedicatedContainer.__id}
+                          </Text>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <Text
+                          {...textProps}
+                          style={[textProps.style, commonStyles.opacity05]}
+                        >
+                          Loading ({data.dedicated_container_id})...
+                        </Text>
+                      );
+                    }
+                  })()}
+                </View>
+              </TouchableOpacity>
+            )}
+            controlElement={
+              data.dedicated_container_id ? (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() =>
+                    setData(d => ({
+                      ...d,
+                      dedicated_container_id: undefined,
+                    }))
+                  }
+                >
+                  Clear
+                </UIGroup.ListTextInputItem.Button>
+              ) : (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={handleOpenSelectDedicatedContainer}
+                >
+                  Select
+                </UIGroup.ListTextInputItem.Button>
+              )
+            }
             {...kiaTextInputProps}
           />
         </UIGroup>

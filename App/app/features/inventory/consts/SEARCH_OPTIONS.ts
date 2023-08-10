@@ -1,13 +1,13 @@
-import { Platform } from 'react-native';
-
 export const SEARCH_OPTIONS = {
   fields: {
     'data.name': 10,
-    'data.description': 4,
+    'data._individual_asset_reference': 8,
+    'data.model_name': 8,
+    'data.epc_tag_uri': 7,
     'data.notes': 2,
-    'data.individualAssetReference': 8,
-    'data.modelName': 8,
-    'data.purchasedFrom': 2,
+    'data.purchased_from': 1,
+    'data.rfid_tag_epc_memory_bank_contents': 1,
+    'data.actual_rfid_tag_epc_memory_bank_contents': 1,
   },
   filter: function (doc: any) {
     return (
@@ -16,18 +16,26 @@ export const SEARCH_OPTIONS = {
       doc.type === 'checklist'
     );
   },
-  // TODO: support zh searching on Android
-  // `language: ['zh', 'en']` will not work well
-  // See: patches/Search-quick-search+1.3.0.patch, uncomment `console.log('queryTerms', queryTerms)` and see the tokens got from string
-  language: Platform.OS === 'ios' ? 'zh' : 'en',
-  include_docs: true,
-  limit: 100,
+  language: ['zh', 'en'],
 };
 
 export const SEARCH_ITEMS_OPTIONS = {
   ...SEARCH_OPTIONS,
   filter: function (doc: any) {
     return doc.type === 'item';
+  },
+};
+
+export const SEARCH_ITEM_AS_CONTAINER_OPTIONS = {
+  ...SEARCH_OPTIONS,
+  filter: function (doc: any) {
+    if (doc.type !== 'item') {
+      return false;
+    }
+    if (typeof doc.data !== 'object') {
+      return false;
+    }
+    return doc.data._can_contain_items;
   },
 };
 

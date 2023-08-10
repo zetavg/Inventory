@@ -22,6 +22,8 @@ import {
   InvalidDataTypeWithAdditionalInfo,
 } from '../types';
 
+type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
+
 export default function useRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
@@ -33,8 +35,10 @@ export default function useRelated<
   relationName: N,
   {
     disable = false,
+    sort,
   }: {
     disable?: boolean;
+    sort?: Sort;
   } = {},
 ): {
   loading: boolean;
@@ -66,6 +70,13 @@ export default function useRelated<
     return getRelationTypeAndConfig(cachedD.__type, relationName);
   }, [relationName, cachedD]);
 
+  const [cachedSort, setCachedSort] = useState(sort);
+  useEffect(() => {
+    if (Object.keys(diff(sort as any, cachedSort as any)).length > 0) {
+      setCachedSort(sort);
+    }
+  }, [sort, cachedSort]);
+
   const [loading, setLoading] = useState(false);
 
   const [data, setData] = useState<null | DataRelationType<T, N>>(null);
@@ -76,13 +87,20 @@ export default function useRelated<
 
     setLoading(true);
     try {
-      setData(await getRelated(cachedD, relationName, { db, logger }));
+      setData(
+        await getRelated(
+          cachedD,
+          relationName,
+          { sort: cachedSort },
+          { db, logger },
+        ),
+      );
     } catch (e) {
       logger.error(e);
     } finally {
       setLoading(false);
     }
-  }, [cachedD, db, logger, relationName]);
+  }, [cachedD, cachedSort, db, logger, relationName]);
 
   useFocusEffect(
     useCallback(() => {

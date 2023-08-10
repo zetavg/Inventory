@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 import objectEntries from '@app/utils/objectEntries';
+import { unknown } from 'zod';
 
 export const ICON_COLORS = [
   'blue',
@@ -1105,11 +1106,12 @@ export const ICONS = {
 
   // App
   'rfid-locate': {
-    sfSymbolName: 'dot.viewfinder',
+    sfSymbolName: 'dot.radiowaves.forward',
     materialIconName: 'magnify-scan',
   },
   'rfid-write': {
-    sfSymbolName: 'dot.radiowaves.forward',
+    // sfSymbolName: 'arrowtriangle.left.square',
+    sfSymbolName: 'arrow.down.left.square',
     // sfSymbolStyle: {},
     materialIconName: 'square-edit-outline',
   },
@@ -1212,7 +1214,7 @@ export const ICON_NAMES = objectEntries(ICONS).map(([name]) => name);
 export type IconName = keyof typeof ICONS;
 
 export function verifyIconName(
-  iconName: string | undefined,
+  iconName: string | undefined | unknown,
 ): IconName | undefined {
   if (!iconName) return undefined;
 
@@ -1224,14 +1226,14 @@ export function verifyIconName(
 }
 
 export function verifyIconNameWithDefault(
-  iconName: string | undefined,
+  iconName: string | undefined | unknown,
   df: IconName = 'cube-outline',
 ): IconName {
   return verifyIconName(iconName) || df;
 }
 
 export function verifyIconColor(
-  iconColor: string | undefined,
+  iconColor: string | undefined | unknown,
 ): IconColor | undefined {
   if (!iconColor) return undefined;
 
@@ -1243,7 +1245,7 @@ export function verifyIconColor(
 }
 
 export function verifyIconColorWithDefault(
-  iconColor: string | undefined,
+  iconColor: string | undefined | unknown,
   df: IconColor = 'gray',
 ): IconColor {
   return verifyIconColor(iconColor) || df;

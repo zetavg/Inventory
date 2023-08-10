@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  LayoutAnimation,
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -24,6 +25,11 @@ import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
 
+const LAYOUT_ANIMATION_CONFIG = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 100,
+};
+
 function SelectIconScreen({
   navigation,
   route,
@@ -41,6 +47,8 @@ function SelectIconScreen({
         `${k} ${(v as any).keywords}`.match(searchTerm),
       );
     }
+
+    LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
 
     return iconEntries.map(([k]) => k);
   }, [search]);

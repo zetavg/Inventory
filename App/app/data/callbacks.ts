@@ -43,6 +43,14 @@ export async function beforeSave(
     }
     case 'item': {
       if (
+        typeof datum.item_type === 'string' &&
+        ['container', 'generic_container', 'item_with_parts'].includes(
+          datum.item_type,
+        )
+      ) {
+        datum._can_contain_items = true;
+      }
+      if (
         datum.item_reference_number &&
         typeof datum.item_reference_number === 'string' &&
         (typeof datum.serial === 'string' ||
@@ -52,6 +60,7 @@ export async function beforeSave(
         const collection = await getRelated(
           datum as DataTypeWithAdditionalInfo<'item'>,
           'collection',
+          {},
           {
             db,
             logger,

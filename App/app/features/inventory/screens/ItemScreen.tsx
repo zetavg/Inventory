@@ -46,6 +46,7 @@ import UIGroup from '@app/components/UIGroup';
 
 import ChecklistItem from '../components/ChecklistItem';
 import ItemItem from '../components/ItemItem';
+import ItemListItem from '../components/ItemListItem';
 import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
@@ -85,7 +86,9 @@ function ItemScreen({
     loading: dedicatedContentsLoading,
     refresh: refreshDedicatedContents,
     refreshing: dedicatedContentsRefreshing,
-  } = useRelated(data, 'dedicated_contents');
+  } = useRelated(data, 'dedicated_contents', {
+    sort: [{ __created_at: 'asc' }],
+  });
   const refresh = useCallback(() => {
     refreshData();
     refreshCollection();
@@ -162,11 +165,11 @@ function ItemScreen({
     });
   }, []);
 
-  const handleAddNewDedicatedContent = useCallback(
+  const handleNewDedicatedContent = useCallback(
     () =>
       rootNavigation?.push('SaveItem', {
         initialData: {
-          dedicated_container: data?.__id,
+          dedicated_container_id: data?.__id,
           collection_id:
             typeof data?.collection_id === 'string'
               ? data?.collection_id
@@ -178,7 +181,8 @@ function ItemScreen({
         },
         afterSave: it => {
           it.__id &&
-            it._individual_asset_reference &&
+            (it.rfid_tag_epc_memory_bank_contents ||
+              it.dedicated_container_id !== data?.__id) &&
             navigation.push('Item', { id: it.__id });
         },
       }),
@@ -240,7 +244,7 @@ function ItemScreen({
     //       typeof buttonIndex === 'number' ? options[buttonIndex] : null;
     //     switch (selectedOption) {
     //       case 'new-dedicated-item':
-    //         return handleAddNewDedicatedContent();
+    //         return handleNewDedicatedContent();
     //       case 'duplicate':
     //         if (!item) return;
     //         rootNavigation?.navigate('SaveItem', {
@@ -682,6 +686,61 @@ function ItemScreen({
             );
           })()}
         </UIGroup>
+
+        {typeof data?.item_type === 'string' &&
+          ['container', 'generic_container', 'item_with_parts'].includes(
+            data.item_type,
+          ) && (
+            <UIGroup
+              largeTitle
+              header={(() => {
+                switch (data?.item_type) {
+                  case 'item_with_parts':
+                    return 'Parts';
+                  default:
+                    return 'Contents';
+                }
+              })()}
+              placeholder={dedicatedContentsLoading ? undefined : 'No items'}
+              headerRight={
+                <>
+                  <UIGroup.TitleButton onPress={() => {}}>
+                    {({ iconProps }) => (
+                      <Icon {...iconProps} name="app-reorder" />
+                    )}
+                  </UIGroup.TitleButton>
+                  <UIGroup.TitleButton
+                    primary
+                    onPress={handleNewDedicatedContent}
+                  >
+                    {({ iconProps, textProps }) => (
+                      <>
+                        <Icon {...iconProps} name="add" />
+                        <Text {...textProps}>New</Text>
+                      </>
+                    )}
+                  </UIGroup.TitleButton>
+                </>
+              }
+            >
+              {!!dedicatedContents &&
+                onlyValid(dedicatedContents).length > 0 &&
+                UIGroup.ListItemSeparator.insertBetween(
+                  onlyValid(dedicatedContents).map(i => (
+                    <ItemListItem
+                      key={i.__id}
+                      item={i}
+                      onPress={() =>
+                        navigation.push('Item', {
+                          id: i.__id || '',
+                          preloadedTitle: i.name,
+                        })
+                      }
+                    />
+                  )),
+                )}
+            </UIGroup>
+          )}
       </ScreenContent.ScrollView>
     </ScreenContent>
   );

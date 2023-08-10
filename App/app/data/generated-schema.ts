@@ -47,6 +47,7 @@ export const schema = {
       item_type: z
         .enum(['container', 'generic_container', 'item_with_parts'])
         .optional(),
+      _can_contain_items: z.boolean().optional(),
       dedicated_container_id: z.string().optional(),
     })
     .catchall(z.unknown()),
