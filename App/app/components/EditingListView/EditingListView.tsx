@@ -42,7 +42,7 @@ function EditingListView({
   const [key, setKey] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   useEffect(() => {
-    if (!scrollToTopOnLoad) return;
+    if (scrollToTopOnLoad === false) return;
 
     const timer = setTimeout(() => {
       scrollViewRef.current?.scrollTo(0, -100, false);
@@ -80,8 +80,10 @@ function EditingListView({
         ref={scrollViewRef}
         style={[commonStyles.flex1, style as any]}
         contentInset={{
-          top: withIOSLargeTitle ? 8 : 16,
           ...(contentInsets || contentInset),
+          top: withIOSLargeTitle
+            ? 8
+            : ((contentInsets || contentInset || {}).top || 0) + 16,
         }}
         scrollIndicatorInsets={scrollIndicatorInsets}
         tableViewStyle={TableViewIOS.Consts.Style.InsetGrouped}
@@ -99,7 +101,7 @@ function EditingListView({
           else if (d.mode === 'delete')
             onItemDelete && onItemDelete(d.selectedIndex);
 
-          setKey(k => k + 1);
+          // setKey(k => k + 1);
         }}
       >
         <TableViewIOS.Section canMove={canMove} canEdit>

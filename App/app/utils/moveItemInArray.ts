@@ -1,5 +1,5 @@
 export default function moveItemInArray<T>(
-  array: T[],
+  array: ReadonlyArray<T>,
   fromIndex: number,
   toIndex: number,
 ): T[] {

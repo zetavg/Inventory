@@ -71,6 +71,7 @@ function CollectionsScreen({
   const endEdit = useCallback(() => {
     setEditing(false);
   }, []);
+  const [editingListViewKey, setEditingListViewKey] = useState(0);
   const handleItemMove = useCallback(
     ({ from, to }: { from: number; to: number }) => {
       if (!editing) return;
@@ -103,6 +104,7 @@ function CollectionsScreen({
         } else {
           logger.error(e, { showAlert: true });
         }
+        setEditingListViewKey(n => n + 1);
       }
     },
     [logger, orderedData, reload, save],
@@ -156,6 +158,7 @@ function CollectionsScreen({
               editing={editingWithDelay}
               onItemMove={handleItemMove}
               onItemDelete={handleItemDelete}
+              key={editingListViewKey}
             >
               {orderedData.map(collection => (
                 <EditingListView.Item

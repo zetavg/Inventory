@@ -31,7 +31,11 @@
         "icon_name": { "type": "string" },
         "icon_color": { "type": "string" },
         "collection_reference_number": { "type": "string", "pattern": "^[0-9]{2,4}$" },
-        "item_default_icon_name": { "type": "string" }
+        "item_default_icon_name": { "type": "string" },
+        "items_order": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       },
       "required": [
         "name",
@@ -58,7 +62,11 @@
         "actual_rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
         "item_type": { "enum": ["container", "generic_container", "item_with_parts"] },
         "_can_contain_items": { "type": "boolean" },
-        "dedicated_container_id": { "type": "string" }
+        "container_id": { "type": "string" },
+        "contents_order": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
       },
       "required": [
         "name",

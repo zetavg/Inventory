@@ -1,72 +1,107 @@
-import React, { useCallback, useState } from 'react';
-
+import React, { useCallback, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/Navigation';
 
-import ModalContent from '@app/components/ModalContent';
-import EditingListView from '@app/components/EditingListView';
+import { useData } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 import moveItemInArray from '@app/utils/moveItemInArray';
-import { Alert } from 'react-native';
+
+import type { RootStackParamList } from '@app/navigation/Navigation';
+
+import EditingListView from '@app/components/EditingListView';
+import ModalContent, { ConfirmCloseFn } from '@app/components/ModalContent';
 
 function OrderItemsScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'OrderItems'>) {
-  const { orderedItems, updateOrderFunctionRef, itemDeleteFunctionRef, title } =
-    route.params;
-  const [orderedItemsMap] = useState(
-    Object.fromEntries(orderedItems.map(item => [item.id, item])),
-  );
-  const [newOrder, setNewOrder] = useState<string[]>(
-    orderedItems.map(d => d.id).filter((id): id is string => !!id),
-  );
+  const { title, orderedItems, onSaveFunctionRef } = route.params;
+
+  // const [originalItems] = useState(orderedItems);
+  const [items, setItems] = useState(orderedItems);
+
+  const isClosing = useRef(false);
 
   const handleItemMove = useCallback(
     ({ from, to }: { from: number; to: number }) => {
-      const newNewOrder = moveItemInArray(newOrder, from, to);
-      setNewOrder(newNewOrder);
-      updateOrderFunctionRef.current(newNewOrder);
+      setItems(its => moveItemInArray(its, from, to));
     },
-    [newOrder, updateOrderFunctionRef],
+    [],
   );
-  const [editingListViewKey, setEditingListViewKey] = useState(0);
-  const handleItemDelete = useCallback(
-    async (index: number) => {
-      const id = newOrder[index];
 
-      if (itemDeleteFunctionRef) {
-        const isSuccess = await itemDeleteFunctionRef.current(id);
-        if (!isSuccess) setEditingListViewKey(v => v + 1);
-      } else {
-        Alert.alert("Can't delete item", "Items can't be deleted from here.");
-        setEditingListViewKey(v => v + 1);
+  const handleCancel = useCallback(() => {
+    if (items.every((item, i) => item.__id === orderedItems[i]?.__id)) {
+      isClosing.current = true;
+      navigation.goBack();
+      return;
+    }
+    Alert.alert(
+      'Unsaved Changes',
+      'Are you sure you want to discard unsaved changes?',
+      [
+        {
+          text: 'No, Continue Editing',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes, Discard',
+          style: 'destructive',
+          onPress: async () => {
+            isClosing.current = true;
+            navigation.goBack();
+          },
+        },
+      ],
+    );
+  }, [items, orderedItems, navigation]);
+
+  const handleSave = useCallback(async (): Promise<boolean> => {
+    const onSave = onSaveFunctionRef.current;
+    const result = await onSave(items);
+
+    if (result && !isClosing.current) {
+      isClosing.current = true;
+      navigation.goBack();
+    }
+
+    return result;
+  }, [items, navigation, onSaveFunctionRef]);
+
+  const handleClose = useCallback<ConfirmCloseFn>(
+    async confirm => {
+      if (isClosing.current) {
+        confirm();
+        return;
       }
+
+      const result = await handleSave();
+      if (result) confirm();
     },
-    [newOrder, itemDeleteFunctionRef],
+    [handleSave],
   );
 
   return (
     <ModalContent
       navigation={navigation}
-      title={title || 'Order Items'}
-      backButtonLabel="Done"
+      title={title || 'Reorder Items'}
+      preventClose
+      confirmCloseFn={handleClose}
+      // TODO: Update Android Icon
+      showBackButton={false}
+      action1Label="Save"
+      onAction1Press={handleSave}
+      action1Variant="strong"
+      action2Label="Cancel"
+      onAction2Press={handleCancel}
     >
-      <EditingListView
-        style={[commonStyles.flex1]}
-        contentInset={{ topA: 24 } as any}
-        editing
-        onItemMove={handleItemMove}
-        onItemDelete={handleItemDelete}
-        key={editingListViewKey}
-        scrollToTopOnLoad
-      >
-        {newOrder
-          .map(id => orderedItemsMap[id])
-          .map(item => (
-            <EditingListView.Item key={item.id} label={item.name} />
-          ))}
+      <EditingListView canMove editing onItemMove={handleItemMove}>
+        {items.map((item, i) => (
+          <EditingListView.Item
+            key={typeof item.__id === 'string' ? item.__id || i : i}
+            label={item.name}
+          />
+        ))}
       </EditingListView>
     </ModalContent>
   );

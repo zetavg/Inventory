@@ -100,7 +100,7 @@ function SaveItemScreen({
   //   loadSelectedCollectionData();
   // }, [loadSelectedCollectionData]);
 
-  // const [selectedDedicatedContainerData, setSelectedDedicatedContainerData] =
+  // const [selectedContainerData, setSelectedContainerData] =
   //   useState<
   //     | null
   //     | string
@@ -112,22 +112,22 @@ function SaveItemScreen({
   //         isContainerType: string;
   //       }
   //   >(null);
-  // const loadSelectedDedicatedContainerData = useCallback(async () => {
-  //   if (!data.dedicatedContainer) return;
+  // const loadSelectedContainerData = useCallback(async () => {
+  //   if (!data.container) return;
 
   //   try {
-  //     const doc: any = await db.get(`item-2-${data.dedicatedContainer}`);
+  //     const doc: any = await db.get(`item-2-${data.container}`);
   //     const { data: d } = doc;
   //     if (typeof d !== 'object') throw new Error(`${d} is not an object`);
-  //     setSelectedDedicatedContainerData(d);
+  //     setSelectedContainerData(d);
   //   } catch (e) {
-  //     setSelectedDedicatedContainerData(`Error: ${e}`);
+  //     setSelectedContainerData(`Error: ${e}`);
   //   }
-  // }, [data.dedicatedContainer, db]);
+  // }, [data.container, db]);
   // useEffect(() => {
-  //   setSelectedDedicatedContainerData(null);
-  //   loadSelectedDedicatedContainerData();
-  // }, [loadSelectedDedicatedContainerData]);
+  //   setSelectedContainerData(null);
+  //   loadSelectedContainerData();
+  // }, [loadSelectedContainerData]);
 
   const { data: selectedCollection } = useData(
     'collection',
@@ -154,22 +154,18 @@ function SaveItemScreen({
     });
   }, [data.item_type, navigation]);
 
-  const { data: selectedDedicatedContainer } = useData(
-    'item',
-    data.dedicated_container_id || '',
-    {
-      disable: !data.dedicated_container_id,
-    },
-  );
-  const handleOpenSelectDedicatedContainer = useCallback(() => {
+  const { data: selectedContainer } = useData('item', data.container_id || '', {
+    disable: !data.container_id,
+  });
+  const handleOpenSelectContainer = useCallback(() => {
     navigation.navigate('SelectItem', {
       as: 'container',
-      defaultValue: data.dedicated_container_id,
-      callback: dedicated_container_id => {
-        setData(d => ({ ...d, dedicated_container_id }));
+      defaultValue: data.container_id,
+      callback: container_id => {
+        setData(d => ({ ...d, container_id }));
       },
     });
-  }, [data.dedicated_container_id, navigation]);
+  }, [data.container_id, navigation]);
 
   const [
     referenceNumberIsRandomlyGenerated,
@@ -184,9 +180,9 @@ function SaveItemScreen({
     setReferenceNumberIsRandomlyGenerated(true);
   }, [defaultItemReferenceDigitsLimit]);
   const copyReferenceNumberFromContainer = useCallback(() => {
-    // if (typeof selectedDedicatedContainerData !== 'object') return;
+    // if (typeof selectedContainerData !== 'object') return;
     // const itemReferenceNumber =
-    //   selectedDedicatedContainerData?.itemReferenceNumber;
+    //   selectedContainerData?.itemReferenceNumber;
     // if (!itemReferenceNumber) return;
     // setData(d => ({ ...d, itemReferenceNumber }));
     // setReferenceNumberIsRandomlyGenerated(true);
@@ -490,20 +486,20 @@ function SaveItemScreen({
         <UIGroup>
           <UIGroup.ListTextInputItem
             label={(() => {
-              switch (selectedDedicatedContainer?.item_type) {
+              switch (selectedContainer?.item_type) {
                 case 'container':
                   return 'Content of';
                 case 'item_with_parts':
                   return 'Part of';
                 default:
-                  return 'Dedicated Container';
+                  return 'Container';
               }
             })()}
             // eslint-disable-next-line react/no-unstable-nested-components
             inputElement={({ textProps, iconProps }) => (
               <TouchableOpacity
                 style={commonStyles.flex1}
-                onPress={handleOpenSelectDedicatedContainer}
+                onPress={handleOpenSelectContainer}
               >
                 <View
                   style={[
@@ -515,7 +511,7 @@ function SaveItemScreen({
                 >
                   {/* eslint-disable-next-line react/no-unstable-nested-components */}
                   {(() => {
-                    if (!data.dedicated_container_id) {
+                    if (!data.container_id) {
                       return (
                         <Text
                           {...textProps}
@@ -524,25 +520,22 @@ function SaveItemScreen({
                           None
                         </Text>
                       );
-                    } else if (
-                      data.dedicated_container_id ===
-                      selectedDedicatedContainer?.__id
-                    ) {
+                    } else if (data.container_id === selectedContainer?.__id) {
                       return (
                         <>
                           <Icon
                             {...iconProps}
                             name={verifyIconNameWithDefault(
-                              selectedDedicatedContainer.icon_name,
+                              selectedContainer.icon_name,
                             )}
                             color={verifyIconColorWithDefault(
-                              selectedDedicatedContainer.icon_color,
+                              selectedContainer.icon_color,
                             )}
                           />
                           <Text {...textProps}>
-                            {typeof selectedDedicatedContainer.name === 'string'
-                              ? selectedDedicatedContainer.name
-                              : selectedDedicatedContainer.__id}
+                            {typeof selectedContainer.name === 'string'
+                              ? selectedContainer.name
+                              : selectedContainer.__id}
                           </Text>
                         </>
                       );
@@ -552,7 +545,7 @@ function SaveItemScreen({
                           {...textProps}
                           style={[textProps.style, commonStyles.opacity05]}
                         >
-                          Loading ({data.dedicated_container_id})...
+                          Loading ({data.container_id})...
                         </Text>
                       );
                     }
@@ -561,12 +554,12 @@ function SaveItemScreen({
               </TouchableOpacity>
             )}
             controlElement={
-              data.dedicated_container_id ? (
+              data.container_id ? (
                 <UIGroup.ListTextInputItem.Button
                   onPress={() =>
                     setData(d => ({
                       ...d,
-                      dedicated_container_id: undefined,
+                      container_id: undefined,
                     }))
                   }
                 >
@@ -574,7 +567,7 @@ function SaveItemScreen({
                 </UIGroup.ListTextInputItem.Button>
               ) : (
                 <UIGroup.ListTextInputItem.Button
-                  onPress={handleOpenSelectDedicatedContainer}
+                  onPress={handleOpenSelectContainer}
                 >
                   Select
                 </UIGroup.ListTextInputItem.Button>

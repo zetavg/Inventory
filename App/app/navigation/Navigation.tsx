@@ -132,9 +132,14 @@ export type RootStackParamList = {
     afterDelete?: () => void;
   };
   OrderItems: {
-    orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;
-    updateOrderFunctionRef: { current: (newOrder: string[]) => void };
-    itemDeleteFunctionRef?: { current: (id: string) => Promise<boolean> };
+    orderedItems: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>;
+    onSaveFunctionRef: {
+      current: (
+        orderedItems: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
+      ) => Promise<boolean>;
+    };
+    // updateOrderFunctionRef?: { current: (newOrder: string[]) => void };
+    // itemDeleteFunctionRef?: { current: (id: string) => Promise<boolean> };
     title?: string;
   };
   SearchOptions: {

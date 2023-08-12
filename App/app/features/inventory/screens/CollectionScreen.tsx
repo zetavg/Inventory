@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { RefreshControl, Text, TouchableWithoutFeedback } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
@@ -7,7 +7,13 @@ import {
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
 
-import { onlyValid, useData, useRelated } from '@app/data';
+import {
+  DataTypeWithAdditionalInfo,
+  onlyValid,
+  useData,
+  useRelated,
+  useSave,
+} from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
@@ -29,6 +35,7 @@ function CollectionScreen({
   const {
     data,
     loading: dataLoading,
+    reload: reloadData,
     refresh: refreshData,
     refreshing: dataRefreshing,
   } = useData('collection', id);
@@ -48,6 +55,7 @@ function CollectionScreen({
   //   { collection_id: id },
   //   { sort: [{ __created_at: 'asc' }] },
   // );
+
   const refreshing = dataRefreshing || itemsRefreshing;
   const [reloadCounter, setReloadCounter] = useState(0);
   const refresh = useCallback(() => {
@@ -56,7 +64,10 @@ function CollectionScreen({
     setReloadCounter(n => n + 1);
   }, [refreshData, refreshItems]);
 
-  const [orderedItems] = useOrdered(items && onlyValid(items), []);
+  const [orderedItems] = useOrdered(
+    items && onlyValid(items),
+    data?.__valid ? data.items_order || [] : [],
+  );
 
   const handleAddNewItem = useCallback(
     () =>
@@ -87,6 +98,31 @@ function CollectionScreen({
       rootNavigation,
     ],
   );
+
+  const { save } = useSave();
+  const handleUpdateItemsOrder = useCallback<
+    (
+      items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
+    ) => Promise<boolean>
+  >(
+    async its => {
+      if (!data || !data.__valid) return false;
+
+      try {
+        await save({
+          ...data,
+          items_order: its.map(it => it.__id).filter((s): s is string => !!s),
+        });
+        reloadData();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    [data, reloadData, save],
+  );
+  const handleUpdateItemsOrderFnRef = useRef(handleUpdateItemsOrder);
+  handleUpdateItemsOrderFnRef.current = handleUpdateItemsOrder;
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
@@ -178,9 +214,20 @@ function CollectionScreen({
           placeholder={itemsLoading ? undefined : 'No Items'}
           headerRight={
             <>
-              <UIGroup.TitleButton onPress={() => {}}>
-                {({ iconProps }) => <Icon {...iconProps} name="app-reorder" />}
-              </UIGroup.TitleButton>
+              {!!orderedItems && (
+                <UIGroup.TitleButton
+                  onPress={() =>
+                    rootNavigation?.push('OrderItems', {
+                      orderedItems,
+                      onSaveFunctionRef: handleUpdateItemsOrderFnRef,
+                    })
+                  }
+                >
+                  {({ iconProps }) => (
+                    <Icon {...iconProps} name="app-reorder" />
+                  )}
+                </UIGroup.TitleButton>
+              )}
               <UIGroup.TitleButton primary onPress={handleAddNewItem}>
                 {({ iconProps, textProps }) => (
                   <>

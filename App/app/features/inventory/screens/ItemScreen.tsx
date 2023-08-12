@@ -11,7 +11,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import Svg, { Path, Rect } from 'react-native-svg';
 
-import { onlyValid, useConfig, useData, useRelated, useSave } from '@app/data';
+import {
+  DataTypeWithAdditionalInfo,
+  onlyValid,
+  useConfig,
+  useData,
+  useRelated,
+  useSave,
+} from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -48,6 +55,7 @@ function ItemScreen({
   const {
     data,
     loading: dataLoading,
+    reload: reloadData,
     refresh: refreshData,
     refreshing: dataRefreshing,
   } = useData('item', id);
@@ -58,36 +66,31 @@ function ItemScreen({
     refreshing: collectionRefreshing,
   } = useRelated(data, 'collection');
   const {
-    data: dedicatedContainer,
-    loading: dedicatedContainerLoading,
-    refresh: refreshDedicatedContainer,
-    refreshing: dedicatedContainerRefreshing,
-  } = useRelated(data, 'dedicated_container');
+    data: container,
+    loading: containerLoading,
+    refresh: refreshContainer,
+    refreshing: containerRefreshing,
+  } = useRelated(data, 'container');
   const {
-    data: dedicatedContents,
-    loading: dedicatedContentsLoading,
-    refresh: refreshDedicatedContents,
-    refreshing: dedicatedContentsRefreshing,
-  } = useRelated(data, 'dedicated_contents', {
+    data: contents,
+    loading: contentsLoading,
+    refresh: refreshContents,
+    refreshing: contentsRefreshing,
+  } = useRelated(data, 'contents', {
     sort: [{ __created_at: 'asc' }],
   });
   const refresh = useCallback(() => {
     refreshData();
     refreshCollection();
-    refreshDedicatedContainer();
-    refreshDedicatedContents();
+    refreshContainer();
+    refreshContents();
     setReloadCounter(v => v + 1);
-  }, [
-    refreshCollection,
-    refreshData,
-    refreshDedicatedContainer,
-    refreshDedicatedContents,
-  ]);
+  }, [refreshCollection, refreshData, refreshContainer, refreshContents]);
   const refreshing =
     dataRefreshing ||
     collectionRefreshing ||
-    dedicatedContainerRefreshing ||
-    dedicatedContentsRefreshing;
+    containerRefreshing ||
+    contentsRefreshing;
 
   useFocusEffect(
     useCallback(() => {
@@ -95,31 +98,36 @@ function ItemScreen({
     }, []),
   );
 
-  const [orderedDedicatedContents] = useOrdered(
-    dedicatedContents && onlyValid(dedicatedContents),
-    [],
+  const [orderedContents] = useOrdered(
+    contents && onlyValid(contents),
+    data?.__valid ? data.contents_order || [] : [],
   );
-  const updateDedicatedContentsOrder = useCallback(
-    (newOrder: string[]) => {
-      newOrder;
-      refreshData();
-    },
-    [refreshData],
-  );
-  const updateDedicatedContentsOrderFunctionRef = useRef(
-    updateDedicatedContentsOrder,
-  );
-  updateDedicatedContentsOrderFunctionRef.current =
-    updateDedicatedContentsOrder;
 
-  const dedicatedItemsName = (() => {
-    switch (data && data.item_type) {
-      case 'item_with_parts':
-        return 'Parts';
-      default:
-        return 'Dedicated Items';
-    }
-  })();
+  const handleUpdateContentsOrder = useCallback<
+    (
+      items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
+    ) => Promise<boolean>
+  >(
+    async its => {
+      if (!data || !data.__valid) return false;
+
+      try {
+        await save({
+          ...data,
+          contents_order: its
+            .map(it => it.__id)
+            .filter((s): s is string => !!s),
+        });
+        reloadData();
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    [data, reloadData, save],
+  );
+  const handleUpdateContentsOrderFnRef = useRef(handleUpdateContentsOrder);
+  handleUpdateContentsOrderFnRef.current = handleUpdateContentsOrder;
 
   const writeActualEpcContent = useCallback(async () => {
     if (!data || !data.__valid) return;
@@ -147,11 +155,11 @@ function ItemScreen({
     });
   }, []);
 
-  const handleNewDedicatedContent = useCallback(
+  const handleNewContent = useCallback(
     () =>
       rootNavigation?.push('SaveItem', {
         initialData: {
-          dedicated_container_id: data?.__id,
+          container_id: data?.__id,
           collection_id:
             typeof data?.collection_id === 'string'
               ? data?.collection_id
@@ -164,7 +172,7 @@ function ItemScreen({
         afterSave: it => {
           it.__id &&
             (it.rfid_tag_epc_memory_bank_contents ||
-              it.dedicated_container_id !== data?.__id) &&
+              it.container_id !== data?.__id) &&
             navigation.push('Item', { id: it.__id });
         },
       }),
@@ -226,7 +234,7 @@ function ItemScreen({
     //       typeof buttonIndex === 'number' ? options[buttonIndex] : null;
     //     switch (selectedOption) {
     //       case 'new-dedicated-item':
-    //         return handleNewDedicatedContent();
+    //         return handleNewContent();
     //       case 'duplicate':
     //         if (!item) return;
     //         rootNavigation?.navigate('SaveItem', {
@@ -391,15 +399,14 @@ function ItemScreen({
             const item = data && onlyValid(data);
             if (!item) return null;
 
-            const validDedicatedContainer =
-              dedicatedContainer && onlyValid(dedicatedContainer);
+            const validContainer = container && onlyValid(container);
             const validCollection = collection && onlyValid(collection);
 
-            const handleDedicatedContainerPress = () =>
-              item.dedicated_container_id &&
+            const handleContainerPress = () =>
+              item.container_id &&
               navigation.push('Item', {
-                id: item.dedicated_container_id,
-                preloadedTitle: validDedicatedContainer?.name,
+                id: item.container_id,
+                preloadedTitle: validContainer?.name,
               });
 
             const handleCollectionPress = () =>
@@ -464,39 +471,39 @@ function ItemScreen({
                     />
                   </>
                 )}
-                {!!item.dedicated_container_id && (
+                {!!item.container_id && (
                   <>
                     <UIGroup.ListItemSeparator />
-                    {validDedicatedContainer ? (
+                    {validContainer ? (
                       <UIGroup.ListItem
                         verticalArrangedLargeTextIOS
                         label={(() => {
-                          switch (validDedicatedContainer.item_type) {
+                          switch (validContainer.item_type) {
                             case 'item_with_parts':
                               return 'Part of';
                             default:
-                              return 'Dedicated Container';
+                              return 'Container';
                           }
                         })()}
-                        detail={validDedicatedContainer.name}
+                        detail={validContainer.name}
                         // eslint-disable-next-line react/no-unstable-nested-components
                         rightElement={({ iconProps }) => (
                           <Icon
                             name={verifyIconNameWithDefault(
-                              validDedicatedContainer.icon_name,
+                              validContainer.icon_name,
                             )}
-                            color={validDedicatedContainer.icon_color}
+                            color={validContainer.icon_color}
                             {...iconProps}
                           />
                         )}
-                        onPress={handleDedicatedContainerPress}
+                        onPress={handleContainerPress}
                       />
                     ) : (
                       <UIGroup.ListItem
                         verticalArrangedLargeTextIOS
-                        label="Dedicated Container"
+                        label="Container"
                         detail="Loading..."
-                        onPress={handleDedicatedContainerPress}
+                        onPress={handleContainerPress}
                       />
                     )}
                   </>
@@ -679,18 +686,24 @@ function ItemScreen({
                     return 'Contents';
                 }
               })()}
-              placeholder={dedicatedContentsLoading ? undefined : 'No items'}
+              placeholder={contentsLoading ? undefined : 'No items'}
               headerRight={
                 <>
-                  <UIGroup.TitleButton onPress={() => {}}>
-                    {({ iconProps }) => (
-                      <Icon {...iconProps} name="app-reorder" />
-                    )}
-                  </UIGroup.TitleButton>
-                  <UIGroup.TitleButton
-                    primary
-                    onPress={handleNewDedicatedContent}
-                  >
+                  {!!orderedContents && (
+                    <UIGroup.TitleButton
+                      onPress={() =>
+                        rootNavigation?.push('OrderItems', {
+                          orderedItems: orderedContents,
+                          onSaveFunctionRef: handleUpdateContentsOrderFnRef,
+                        })
+                      }
+                    >
+                      {({ iconProps }) => (
+                        <Icon {...iconProps} name="app-reorder" />
+                      )}
+                    </UIGroup.TitleButton>
+                  )}
+                  <UIGroup.TitleButton primary onPress={handleNewContent}>
                     {({ iconProps, textProps }) => (
                       <>
                         <Icon {...iconProps} name="add" />
@@ -701,10 +714,10 @@ function ItemScreen({
                 </>
               }
             >
-              {!!dedicatedContents &&
-                onlyValid(dedicatedContents).length > 0 &&
+              {!!orderedContents &&
+                orderedContents.length > 0 &&
                 UIGroup.ListItemSeparator.insertBetween(
-                  onlyValid(dedicatedContents).map(i => (
+                  orderedContents.map(i => (
                     <ItemListItem
                       key={i.__id}
                       item={i}

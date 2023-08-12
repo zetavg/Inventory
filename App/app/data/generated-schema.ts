@@ -22,6 +22,7 @@ export const schema = {
       icon_color: z.string(),
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
       item_default_icon_name: z.string().optional(),
+      items_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),
   item: z
@@ -48,7 +49,8 @@ export const schema = {
         .enum(['container', 'generic_container', 'item_with_parts'])
         .optional(),
       _can_contain_items: z.boolean().optional(),
-      dedicated_container_id: z.string().optional(),
+      container_id: z.string().optional(),
+      contents_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),
 };

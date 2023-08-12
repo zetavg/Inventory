@@ -22,6 +22,10 @@ export async function beforeSave(
     case 'collection': {
       const config = await getConfig({ db });
 
+      if (typeof datum.name === 'string') {
+        datum.name = datum.name.trim();
+      }
+
       if (
         typeof datum.collection_reference_number === 'string' &&
         datum.collection_reference_number
@@ -42,6 +46,10 @@ export async function beforeSave(
       break;
     }
     case 'item': {
+      if (typeof datum.name === 'string') {
+        datum.name = datum.name.trim();
+      }
+
       if (
         typeof datum.item_type === 'string' &&
         ['container', 'generic_container', 'item_with_parts'].includes(

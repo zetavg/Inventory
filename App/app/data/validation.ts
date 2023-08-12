@@ -266,10 +266,15 @@ export async function validateDelete(
         logger,
       });
       if (collection) {
-        const items = await getRelated(collection, 'items', {
-          db,
-          logger,
-        });
+        const items = await getRelated(
+          collection,
+          'items',
+          {},
+          {
+            db,
+            logger,
+          },
+        );
 
         if (!items) {
           issues.push({

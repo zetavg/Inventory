@@ -15,7 +15,7 @@ import { toTitleCase } from '../utils';
 type SaveFn = <T extends DataTypeName>(
   d: Partial<DataTypeWithAdditionalInfo<T>>,
   options?: { showErrorAlert?: boolean },
-) => Promise<{ type: T; id: string }>;
+) => Promise<DataTypeWithAdditionalInfo<T>>;
 
 function useSave(): { save: SaveFn; saving: boolean } {
   const logger = useLogger('useSave');
@@ -46,7 +46,7 @@ function useSave(): { save: SaveFn; saving: boolean } {
           }
         } else {
           logger.error(e, {
-            showAlert: true,
+            showAlert: options?.showErrorAlert,
             details: JSON.stringify({ data: d }, null, 2),
           });
         }

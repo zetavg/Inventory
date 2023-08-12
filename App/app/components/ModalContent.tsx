@@ -19,13 +19,15 @@ import useModalClosingHandler, {
 import AppBarIOS from './AppBarIOS';
 import ModalContentScrollView from './ModalContentScrollView';
 
+export type ConfirmCloseFn = typeof defaultConfirmCloseFn;
+
 type Props = {
   navigation: StackScreenProps<RootStackParamList>['navigation'];
   showAppBar?: boolean;
   showBackButton?: boolean;
   backButtonLabel?: string;
   preventClose?: boolean;
-  confirmCloseFn?: typeof defaultConfirmCloseFn;
+  confirmCloseFn?: ConfirmCloseFn;
   title: string;
   children: JSX.Element;
   action1Label?: string;
