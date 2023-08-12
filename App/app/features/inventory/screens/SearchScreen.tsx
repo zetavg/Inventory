@@ -1,19 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Platform,
+  ActionSheetIOS,
   Alert,
-  StyleSheet,
+  LayoutAnimation,
+  Platform,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   View,
-  ActionSheetIOS,
-  LayoutAnimation,
 } from 'react-native';
-import {
-  Camera,
-  useCameraDevices,
-  useFrameProcessor,
-} from 'react-native-vision-camera';
 // import {
 //   useScanBarcodes,
 //   BarcodeFormat,
@@ -21,38 +16,47 @@ import {
 //   Barcode,
 // } from 'vision-camera-code-scanner';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-
-import useDB from '@app/hooks/useDB';
-import { DBContent } from '@app/db/types';
-import { getDataFromDocs } from '@app/db/hooks';
-
-import { useAppSelector, useAppDispatch } from '@app/redux';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
-import useColors from '@app/hooks/useColors';
-import useActionSheet from '@app/hooks/useActionSheet';
-import commonStyles from '@app/utils/commonStyles';
-import ScreenContent from '@app/components/ScreenContent';
-import InsetGroup from '@app/components/InsetGroup';
-import Text from '@app/components/Text';
-import ItemItem from '@app/features/inventory/components/ItemItem';
-import CollectionItem from '@app/features/inventory/components/CollectionItem';
-import ChecklistItem from '@app/features/inventory/components/ChecklistItem';
-
-import {
-  addRecentSearchQuery,
-  removeRecentSearchQuery,
-  clearRecentSearchQueries,
-  selectRecentSearchQueries,
-} from '../slice';
-
-import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
 import { runOnJS } from 'react-native-reanimated';
+import {
+  Camera,
+  useCameraDevices,
+  useFrameProcessor,
+} from 'react-native-vision-camera';
+
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
+import ChecklistItem from '@app/features/inventory/components/ChecklistItem';
+import CollectionItem from '@app/features/inventory/components/CollectionItem';
+import ItemItem from '@app/features/inventory/components/ItemItem';
+
+import { DataTypeWithAdditionalInfo, onlyValid, useData } from '@app/data';
+import { getDatumFromDoc } from '@app/data/pouchdb-utils';
+
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { TypeName } from '@app/db/old_schema';
+
+import commonStyles from '@app/utils/commonStyles';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useActionSheet from '@app/hooks/useActionSheet';
+import useColors from '@app/hooks/useColors';
+import useDB from '@app/hooks/useDB';
+import useLogger from '@app/hooks/useLogger';
+import { usePersistedState } from '@app/hooks/usePersistedState';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+
+import InsetGroup from '@app/components/InsetGroup';
+import ScreenContent from '@app/components/ScreenContent';
+import Text from '@app/components/Text';
+import UIGroup from '@app/components/UIGroup';
+
+import CollectionListItem from '../components/CollectionListItem';
+import ItemListItem from '../components/ItemListItem';
+import SEARCH_OPTIONS, {
+  DEFAULT_SEARCH_LANGUAGES,
+} from '../consts/SEARCH_OPTIONS';
 
 const LAYOUT_ANIMATION_CONFIG = {
   ...LayoutAnimation.Presets.easeInEaseOut,
@@ -63,417 +67,258 @@ function SearchScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Search'>) {
+  const logger = useLogger('SearchScreen');
   const { query: queryFromParams } = route.params || {};
 
   const { db } = useDB();
-  const rootNavigation = useRootNavigation();
-  const { showActionSheetWithOptions } = useActionSheet();
 
-  // const recentSearchQueries = useAppSelector(selectRecentSearchQueries);
-  const recentSearchQueries: any = [];
-  const dispatch = useAppDispatch();
+  const [searchText, setSearchText] = useState('');
+  const searchTextRef = useRef(searchText);
+  searchTextRef.current = searchText;
 
-  // const numberOfItemsPerPageList = [5, 10, 20, 50];
-  // const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
-  // const [page, setPage] = React.useState<number>(0);
+  const [data, setData] = useState<
+    Array<
+      | DataTypeWithAdditionalInfo<'item'>
+      | DataTypeWithAdditionalInfo<'collection'>
+    >
+  >([]);
+  const [loading, setLoading] = useState(false);
 
-  const [searchText, setSearchText] = useState(queryFromParams || '');
-
-  const [data, setData] =
-    useState<PouchDB.Core.AllDocsResponse<DBContent> | null>(null);
-  // const totalRows = data ? data.total_rows : 0;
-  // const numberOfPages = Math.ceil(totalRows / perPage);
-
-  // const skip = perPage * page;
-  // const limit = perPage;
-  const [loading, setLoading] = useState(true);
-
-  const prevSearchText = useRef(searchText);
   const getData = useCallback(async () => {
-    if (prevSearchText.current !== searchText) setLoading(true);
-    prevSearchText.current = searchText;
+    if (!db) return;
 
+    setLoading(true);
     try {
-      const results = await (db as any).search({
-        ...SEARCH_OPTIONS,
-        query: searchText,
-      });
-      LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
-      setData(results);
+      const results = await (searchText
+        ? (db as any).search({
+            query: searchText,
+            ...SEARCH_OPTIONS,
+            include_docs: true,
+            // highlighting: true,
+            // highlighting_pre: '<|\x1fsearch_match\x1f|><|\x1fmatch\x1f|>',
+            // highlighting_post: '<|\x1fsearch_match\x1f|>',
+            skip: 0,
+            limit: 50,
+          })
+        : { rows: [] });
+      if (searchTextRef.current === searchText) {
+        const dd = results.rows.map(
+          (
+            r: any,
+          ):
+            | DataTypeWithAdditionalInfo<'item'>
+            | DataTypeWithAdditionalInfo<'collection'>
+            | null => {
+            switch (true) {
+              case r.id.startsWith('item'): {
+                const d = getDatumFromDoc('item', r.doc, logger, {});
+                if (d.__valid) return d;
+                return null;
+              }
+              case r.id.startsWith('collection'): {
+                const d = getDatumFromDoc('collection', r.doc, logger, {});
+                if (d.__valid) return d;
+                return null;
+              }
+              default:
+                return null;
+            }
+          },
+        );
+
+        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        setData(dd.filter((d: any) => !!d));
+      }
     } catch (e: any) {
       Alert.alert(e?.message, JSON.stringify(e?.stack));
     } finally {
-      setLoading(false);
+      if (searchTextRef.current === searchText) {
+        setLoading(false);
+      }
     }
-  }, [db, searchText]);
-
-  const [recentData, setRecentData] = useState<null | Array<{
-    type: TypeName;
-    data: DataTypeWithID<TypeName>;
-  }>>(null);
-  const loadRecentData = useCallback(async () => {
-    try {
-      const results = await db.find({
-        selector: {
-          $and: [{ type: 'item' }, { 'data.updatedAt': { $exists: true } }],
-        },
-        sort: [{ type: 'desc' }, { 'data.updatedAt': 'desc' }],
-        limit: 10,
-        use_index: 'index-type-updatedAt',
-      });
-      const ds = results.docs.map(doc => ({
-        type: doc.type,
-        data: getDataFromDocs('item', [doc])[0],
-      }));
-      setRecentData(ds);
-    } catch (e) {
-      throw e;
-    } finally {
-    }
-  }, [db]);
-
-  const [reloadCounter, setReloadCounter] = useState(0);
+  }, [db, logger, searchText]);
   useEffect(() => {
     getData();
-    loadRecentData();
-  }, [getData, loadRecentData]);
+  }, [getData]);
   useFocusEffect(
     useCallback(() => {
-      setReloadCounter(v => v + 1);
       getData();
-      loadRecentData();
-    }, [getData, loadRecentData]),
+    }, [getData]),
   );
+
+  const recentViewedItemIds = useAppSelector(
+    selectors.inventory.recentViewedItemIds,
+  );
+
+  const { data: recentItems, refresh: refreshRecentItems } = useData(
+    'item',
+    {},
+    { limit: 10, sort: [{ __updated_at: 'desc' }] },
+  );
+  const verifiedRecentItems = recentItems && onlyValid(recentItems);
+  const hasRecentItems = verifiedRecentItems && verifiedRecentItems.length > 0;
 
   const [refreshing, setRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await getData();
+      refreshRecentItems();
     } catch (e) {
     } finally {
       setRefreshing(false);
     }
-  }, [getData]);
-
-  const handleSearchBlur = useCallback(() => {
-    dispatch(addRecentSearchQuery({ query: searchText }));
-  }, [dispatch, searchText]);
-
-  const [isScanBarcodeMode, setIsScanBarcodeMode] = useState(false);
-  const [hasCameraPermission, setHasCameraPermission] = useState(false);
-  const devices = useCameraDevices();
-  const device = devices.back;
-  // const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
-  //   checkInverted: true,
-  // });
-  // const [barcodes, setBarcodes] = useState<Barcode[]>([]);
-  // const frameProcessor = useFrameProcessor(frame => {
-  //   'worklet';
-  //   const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE]);
-  //   runOnJS(setBarcodes)(detectedBarcodes);
-  // }, []);
-
-  React.useEffect(() => {
-    if (!isScanBarcodeMode) return;
-    (async () => {
-      const status = await Camera.requestCameraPermission();
-      setHasCameraPermission(status === 'authorized');
-    })();
-  }, [isScanBarcodeMode]);
+  }, [getData, refreshRecentItems]);
 
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
+
+  const dispatch = useAppDispatch();
 
   return (
     <ScreenContent
       navigation={navigation}
       title={queryFromParams ? queryFromParams : 'Search'}
       showSearch={!queryFromParams}
-      onSearchBlur={handleSearchBlur}
+      // searchPlaceholder="Name, reference number, notes..."
+      // onSearchBlur={handleSearchBlur}
       searchHideWhenScrollingIOS={!!queryFromParams}
       searchCanBeClosedAndroid={!!queryFromParams}
       onSearchChangeText={setSearchText}
-      action1Label="Settings"
-      action1SFSymbolName="gearshape.fill"
-      action1MaterialIconName="cog"
-      onAction1Press={() =>
-        rootNavigation?.push('SearchOptions', {
-          defaultValue: '',
-          callback: _ => {},
-        })
-      }
-      action2Label="Scan"
-      action2SFSymbolName="barcode.viewfinder"
-      action2MaterialIconName="barcode-scan"
-      onAction2Press={() => setIsScanBarcodeMode(v => !v)}
+      // action1Label="Settings"
+      // action1SFSymbolName="gearshape.fill"
+      // action1MaterialIconName="cog"
+      // onAction1Press={() =>
+      //   rootNavigation?.push('SearchOptions', {
+      //     defaultValue: '',
+      //     callback: _ => {},
+      //   })
+      // }
+      // action2Label="Scan"
+      // action2SFSymbolName="barcode.viewfinder"
+      // action2MaterialIconName="barcode-scan"
+      // onAction2Press={() => setIsScanBarcodeMode(v => !v)}
     >
-      <ScrollView
+      <ScreenContent.ScrollView
         ref={scrollViewRef}
-        // automaticallyAdjustKeyboardInsets
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
+        automaticallyAdjustKeyboardInsets={false}
       >
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
         {!searchText ? (
-          recentSearchQueries.length <= 0 ? (
-            <InsetGroup loading={loading} style={commonStyles.mt16}>
-              <Text
-                style={[
-                  commonStyles.mv80,
-                  commonStyles.mh16,
-                  commonStyles.tac,
-                  commonStyles.opacity05,
-                ]}
-              >
-                Type to start search
-              </Text>
-            </InsetGroup>
-          ) : (
+          hasRecentItems || recentViewedItemIds.length > 0 ? (
             <>
-              <InsetGroup
-                label="Recent Searches"
-                labelVariant="large"
-                loading={loading}
-                labelRight={
-                  <InsetGroup.LabelButton
-                    title="Clear"
-                    onPress={() => {
-                      showActionSheetWithOptions(
-                        {
-                          options: ['Cancel', 'Clear search history'],
-                          destructiveButtonIndex: 1,
-                          cancelButtonIndex: 0,
-                        },
-                        buttonIndex => {
-                          if (buttonIndex === 0) {
-                            // cancel action
-                            return;
-                          } else if (buttonIndex === 1) {
-                            dispatch(clearRecentSearchQueries({}));
-                          }
-                        },
-                      );
-                    }}
-                  />
-                }
-                labelContainerStyle={commonStyles.mt16}
-              >
-                {recentSearchQueries
-                  .slice(0, 10)
-                  .flatMap((query, i) => [
-                    <InsetGroup.Item
-                      key={i}
-                      label={query}
-                      arrow
-                      onPress={() => {
-                        // setSearchText(query);
-                        navigation.push('Search', { query });
-                      }}
-                      onLongPress={() => {
-                        showActionSheetWithOptions(
-                          {
-                            options: ['Cancel', 'Remove Item'],
-                            destructiveButtonIndex: 1,
-                            cancelButtonIndex: 0,
-                          },
-                          buttonIndex => {
-                            if (buttonIndex === 0) {
-                              // cancel action
-                              return;
-                            } else if (buttonIndex === 1) {
-                              dispatch(
-                                removeRecentSearchQuery({
-                                  query,
-                                }),
-                              );
-                            }
-                          },
-                        );
-                      }}
-                    />,
-                    <InsetGroup.ItemSeparator key={`s-${i}`} />,
-                  ])
-                  .slice(0, -1)}
-              </InsetGroup>
-              {!!recentData && recentData.length > 0 && (
-                <InsetGroup
-                  label="Recently Changed"
-                  labelVariant="large"
-                  labelContainerStyle={commonStyles.mt16}
-                >
-                  {recentData
-                    .flatMap(d => {
-                      switch (d.type) {
-                        case 'item': {
-                          const item: DataTypeWithID<'item'> = d.data as any;
-                          return [
-                            <ItemItem
-                              key={`item-${item.id}`}
-                              item={item}
-                              arrow
-                              onPress={() =>
-                                navigation.push('Item', {
-                                  id: item.id || '',
-                                  initialTitle: item.name,
-                                })
-                              }
-                            />,
-                            <InsetGroup.ItemSeparator
-                              key={`s-item-${item.id}`}
-                              leftInset={60}
-                            />,
-                          ];
-                        }
-
-                        default:
-                          return [];
+              {recentViewedItemIds.length > 0 && (
+                <UIGroup
+                  header="Recently Viewed"
+                  largeTitle
+                  headerRight={
+                    <UIGroup.TitleButton
+                      onPress={() =>
+                        dispatch(actions.inventory.clearRecentViewedItemId())
                       }
-                    })
-                    .slice(0, -1)}
-                </InsetGroup>
+                    >
+                      Clear
+                    </UIGroup.TitleButton>
+                  }
+                >
+                  {UIGroup.ListItemSeparator.insertBetween(
+                    recentViewedItemIds
+                      .slice(0, 7)
+                      .map(id => (
+                        <ItemListItemById
+                          key={id}
+                          id={id}
+                          onPress={() => navigation.push('Item', { id })}
+                        />
+                      )),
+                    { forItemWithIcon: true },
+                  )}
+                </UIGroup>
+              )}
+              {hasRecentItems && (
+                <UIGroup header="Recently Changed" largeTitle>
+                  {UIGroup.ListItemSeparator.insertBetween(
+                    verifiedRecentItems.map(it => (
+                      <ItemListItem
+                        key={it.__id}
+                        item={it}
+                        onPress={() =>
+                          navigation.push('Item', { id: it.__id || '' })
+                        }
+                      />
+                    )),
+                    { forItemWithIcon: true },
+                  )}
+                </UIGroup>
               )}
             </>
+          ) : (
+            <UIGroup placeholder="Type to start search" />
           )
         ) : (
-          <InsetGroup
-            loading={loading}
-            style={[commonStyles.mt16, { minHeight: 0 }]}
-          >
-            {(() => {
-              if (!data || data.rows.length <= 0) {
-                if (loading) {
-                  return (
-                    <Text
-                      key="loading"
-                      style={[
-                        commonStyles.mv80,
-                        commonStyles.mh16,
-                        commonStyles.tac,
-                        commonStyles.opacity05,
-                      ]}
-                    >
-                      {' '}
-                    </Text>
-                  );
-                }
-                return (
-                  <Text
-                    key="no-results"
-                    style={[
-                      commonStyles.mv80,
-                      commonStyles.mh16,
-                      commonStyles.tac,
-                      commonStyles.opacity05,
-                    ]}
-                  >
-                    No Results
-                  </Text>
-                );
-              }
-
-              return data.rows
-                .flatMap(row => [
-                  (() => {
-                    switch (row?.doc?.type) {
-                      case 'item': {
-                        const [item] = getDataFromDocs('item', [row.doc]);
-                        return (
-                          <ItemItem
-                            key={row.id}
-                            item={item}
-                            reloadCounter={reloadCounter}
-                            onPress={() => {
-                              dispatch(
-                                addRecentSearchQuery({ query: searchText }),
-                              );
-                              if (!item.id) return;
-                              navigation.push('Item', {
-                                id: item.id,
-                                initialTitle: item.name,
-                              });
-                            }}
-                          />
-                        );
-                      }
-
-                      case 'collection': {
-                        const [collection] = getDataFromDocs('collection', [
-                          row.doc,
-                        ]);
-                        return (
-                          <CollectionItem
-                            key={row.id}
-                            collection={collection}
-                            reloadCounter={reloadCounter}
-                            onPress={() => {
-                              dispatch(
-                                addRecentSearchQuery({ query: searchText }),
-                              );
-                              if (!collection.id) return;
-                              navigation.push('Collection', {
-                                id: collection.id,
-                                initialTitle: collection.name,
-                              });
-                            }}
-                          />
-                        );
-                      }
-
-                      case 'checklist': {
-                        const [checklist] = getDataFromDocs('checklist', [
-                          row.doc,
-                        ]);
-                        return (
-                          <ChecklistItem
-                            key={row.id}
-                            checklist={checklist}
-                            reloadCounter={reloadCounter}
-                            onPress={() => {
-                              dispatch(
-                                addRecentSearchQuery({ query: searchText }),
-                              );
-                              if (!checklist.id) return;
-                              navigation.push('Checklist', {
-                                id: checklist.id,
-                                initialTitle: checklist.name,
-                              });
-                            }}
-                          />
-                        );
-                      }
-                    } // End of switch
-
-                    return null;
-                  })(),
-                  <InsetGroup.ItemSeparator
-                    key={`s-${row.id}`}
-                    leftInset={60}
-                  />,
-                ])
-                .slice(0, -1);
-            })()}
-          </InsetGroup>
+          <UIGroup placeholder="No Results">
+            {data.length > 0 &&
+              UIGroup.ListItemSeparator.insertBetween(
+                data.map(d => {
+                  switch (d.__type) {
+                    case 'item':
+                      return (
+                        <ItemListItem
+                          key={d.__id}
+                          item={d}
+                          onPress={() =>
+                            navigation.push('Item', { id: d.__id || '' })
+                          }
+                        />
+                      );
+                    case 'collection':
+                      return (
+                        <CollectionListItem
+                          key={d.__id}
+                          collection={d}
+                          onPress={() =>
+                            navigation.push('Collection', { id: d.__id || '' })
+                          }
+                        />
+                      );
+                  }
+                }),
+                { forItemWithIcon: true },
+              )}
+          </UIGroup>
         )}
-        {isScanBarcodeMode && device != null && hasCameraPermission && (
-          <>
-            <Camera
-              style={StyleSheet.absoluteFill}
-              device={device}
-              isActive={true}
-              // frameProcessor={frameProcessor}
-              // frameProcessorFps={5}
-            />
-            {/*{barcodes.map((barcode, idx) => (
-              <Text key={idx}>{barcode.displayValue}</Text>
-            ))}*/}
-          </>
-        )}
-      </ScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
+}
+
+function ItemListItemById({
+  id,
+  onPress,
+}: {
+  id: string;
+  onPress: () => void;
+}) {
+  const { data } = useData('item', id);
+
+  if (!data) {
+    return (
+      <UIGroup.ListItem
+        disabled
+        label="Loading..."
+        icon="cube-outline"
+        iconColor="transparent"
+      />
+    );
+  }
+
+  if (!data.__valid) {
+    return <UIGroup.ListItem disabled label={id} />;
+  }
+
+  return <ItemListItem item={data} onPress={onPress} />;
 }
 
 export default SearchScreen;

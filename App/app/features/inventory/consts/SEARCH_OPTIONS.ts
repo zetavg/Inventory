@@ -19,6 +19,8 @@ export const SEARCH_OPTIONS = {
   language: ['zh', 'en'],
 };
 
+export const DEFAULT_SEARCH_LANGUAGES = ['zh', 'en'];
+
 export const SEARCH_ITEMS_OPTIONS = {
   ...SEARCH_OPTIONS,
   filter: function (doc: any) {

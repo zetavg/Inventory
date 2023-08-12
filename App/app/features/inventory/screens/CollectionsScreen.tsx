@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl } from 'react-native';
+import { Alert, LayoutAnimation, RefreshControl } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { ZodError } from 'zod';
@@ -19,6 +19,11 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 import CollectionListItem from '../components/CollectionListItem';
+
+const LAYOUT_ANIMATION_CONFIG = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 100,
+};
 
 function CollectionsScreen({
   navigation,
@@ -110,6 +115,16 @@ function CollectionsScreen({
     [logger, orderedData, reload, save],
   );
 
+  const [searchText, setSearchText] = useState('');
+  const dataToShow = searchText
+    ? orderedData &&
+      orderedData.filter(
+        d =>
+          d.name.toLowerCase().match(searchText.toLowerCase()) ||
+          d.collection_reference_number.match(searchText),
+      )
+    : orderedData;
+
   const [refreshCounter, setRefreshCounter] = useState(0);
   const refresh = useCallback(() => {
     refreshData();
@@ -124,8 +139,12 @@ function CollectionsScreen({
     <ScreenContent
       navigation={navigation}
       title="Collections"
-      // showSearch
-      // onSearchChangeText={setSearchText}
+      showSearch
+      searchPlaceholder="Search Collections..."
+      onSearchChangeText={text => {
+        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        setSearchText(text);
+      }}
       action1Label={editing ? 'Done' : 'Add'}
       action1SFSymbolName={editing ? undefined : 'plus.square'}
       action1MaterialIconName={editing ? undefined : 'plus'}
@@ -175,13 +194,18 @@ function CollectionsScreen({
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={refresh} />
             }
+            automaticallyAdjustKeyboardInsets={false}
           >
             <UIGroup.FirstGroupSpacing iosLargeTitle />
-            <UIGroup placeholder="No Collections">
-              {!!orderedData &&
-                orderedData.length > 0 &&
+            <UIGroup
+              placeholder={
+                searchText ? 'No Matched Collections' : 'No Collections'
+              }
+            >
+              {!!dataToShow &&
+                dataToShow.length > 0 &&
                 UIGroup.ListItemSeparator.insertBetween(
-                  orderedData
+                  dataToShow
                     .map(collection =>
                       collection ? (
                         <CollectionListItem

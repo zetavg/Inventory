@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { diff } from 'deep-object-diff';
@@ -77,9 +77,11 @@ export default function useRelated<
     }
   }, [sort, cachedSort]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [data, setData] = useState<null | DataRelationType<T, N>>(null);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   const loadData = useCallback(async () => {
     if (!cachedD) return;
@@ -105,7 +107,16 @@ export default function useRelated<
   useFocusEffect(
     useCallback(() => {
       if (disable) return;
-      loadData();
+
+      if (!dataRef.current) {
+        setTimeout(() => {
+          loadData();
+        }, 0);
+      } else {
+        setTimeout(() => {
+          loadData();
+        }, 2);
+      }
     }, [disable, loadData]),
   );
 

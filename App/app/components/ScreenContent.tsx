@@ -1,29 +1,35 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
+  BackHandler,
   Platform,
   StyleSheet,
-  View,
-  TouchableOpacity,
   Text,
   TextInput,
-  BackHandler,
+  TouchableOpacity,
+  View,
 } from 'react-native';
-import { Appbar } from 'react-native-paper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import useTabBarInsets from '@app/hooks/useTabBarInsets';
-import { SFSymbol } from 'react-native-sfsymbols';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import type { StackParamList } from '@app/navigation/MainStack';
-import useColors from '@app/hooks/useColors';
-import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
+import { Appbar } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SFSymbol } from 'react-native-sfsymbols';
+
 import commonStyles from '@app/utils/commonStyles';
+import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityIconName';
+
+import type { StackParamList } from '@app/navigation/MainStack';
+
+import useColors from '@app/hooks/useColors';
+import useTabBarInsets from '@app/hooks/useTabBarInsets';
+
 import ScreenContentScrollView from './ScreenContentScrollView';
 
 type Props = {
   navigation: StackScreenProps<StackParamList>['navigation'];
   showAppBar?: boolean;
   showSearch?: boolean;
+  searchPlaceholder?: string;
+  onSearchFocus?: () => void;
   onSearchBlur?: () => void;
   searchHideWhenScrollingIOS?: boolean;
   searchCanBeClosedAndroid?: boolean;
@@ -63,6 +69,8 @@ function ScreenContent({
   navigation,
   showAppBar = true,
   showSearch,
+  searchPlaceholder,
+  onSearchFocus,
   onSearchBlur,
   searchHideWhenScrollingIOS = true,
   searchCanBeClosedAndroid = true,
@@ -115,6 +123,8 @@ function ScreenContent({
               onChangeText: (event: any) =>
                 onSearchChangeText &&
                 onSearchChangeText(event?.nativeEvent?.text || ''),
+              placeholder: searchPlaceholder,
+              onFocus: onSearchFocus,
               onBlur: onSearchBlur,
             },
           }
@@ -240,6 +250,8 @@ function ScreenContent({
     searchHideWhenScrollingIOS,
     title,
     headerLargeTitle,
+    searchPlaceholder,
+    onSearchFocus,
   ]);
 
   const verifiedAction1MaterialIconName = verifyMaterialCommunityIconName(

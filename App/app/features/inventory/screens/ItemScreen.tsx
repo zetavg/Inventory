@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   StyleSheet,
@@ -10,6 +10,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import Svg, { Path, Rect } from 'react-native-svg';
+
+import { actions, selectors, useAppDispatch } from '@app/redux';
 
 import {
   DataTypeWithAdditionalInfo,
@@ -264,6 +266,11 @@ function ItemScreen({
     //   },
     // );
   }, []);
+
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(actions.inventory.addRecentViewedItemId({ id }));
+  }, [dispatch, id]);
 
   return (
     <ScreenContent

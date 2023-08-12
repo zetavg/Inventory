@@ -107,7 +107,7 @@ export default function ItemListItem({
             ({ textProps, iconProps }) => {
               const detailElements = [
                 !!additionalDetails && (
-                  <Text {...textProps}>{additionalDetails}</Text>
+                  <React.Fragment>{additionalDetails}</React.Fragment>
                 ),
                 itemsCount !== null &&
                   // eslint-disable-next-line react/no-unstable-nested-components
@@ -115,18 +115,12 @@ export default function ItemListItem({
                     switch (item.item_type) {
                       case 'item_with_parts':
                         return (
-                          <Text
-                            key="containerInfo"
-                            {...textProps}
-                          >{`+${itemsCount} parts`}</Text>
+                          <React.Fragment key="containerInfo">{`+${itemsCount} parts`}</React.Fragment>
                         );
 
                       case 'container':
                         return (
-                          <Text
-                            key="containerInfo"
-                            {...textProps}
-                          >{`${itemsCount} items`}</Text>
+                          <React.Fragment key="containerInfo">{`${itemsCount} items`}</React.Fragment>
                         );
 
                       default:
@@ -134,7 +128,7 @@ export default function ItemListItem({
                     }
                   })(),
                 !hideCollectionDetails && !!validatedCollection && (
-                  <Text key="collection" {...textProps}>
+                  <React.Fragment key="collection">
                     <Icon
                       name={verifyIconNameWithDefault(
                         validatedCollection.icon_name,
@@ -142,10 +136,10 @@ export default function ItemListItem({
                       {...iconProps}
                     />{' '}
                     {validatedCollection.name}
-                  </Text>
+                  </React.Fragment>
                 ),
                 !hideContainerDetails && !!validatedContainer && (
-                  <Text key="container" {...textProps}>
+                  <React.Fragment key="container">
                     <Icon
                       name={verifyIconNameWithDefault(
                         validatedContainer.icon_name,
@@ -153,10 +147,10 @@ export default function ItemListItem({
                       {...iconProps}
                     />{' '}
                     {validatedContainer.name}
-                  </Text>
+                  </React.Fragment>
                 ),
                 item._individual_asset_reference && (
-                  <Text key="itemReference" {...textProps}>
+                  <React.Fragment key="itemReference">
                     {item.rfid_tag_epc_memory_bank_contents &&
                       item.rfid_tag_epc_memory_bank_contents !==
                         item.actual_rfid_tag_epc_memory_bank_contents && (
@@ -168,11 +162,11 @@ export default function ItemListItem({
                       .split('.')
                       .slice(1)
                       .join('.')}
-                  </Text>
+                  </React.Fragment>
                 ),
               ].filter(n => n);
               return (
-                <View style={commonStyles.row}>
+                <Text {...textProps} numberOfLines={1}>
                   {(detailElements.length
                     ? detailElements
                     : [
@@ -190,7 +184,7 @@ export default function ItemListItem({
                       </Text>,
                     ])
                     .slice(0, -1)}
-                </View>
+                </Text>
               );
             }
         // hideDetails

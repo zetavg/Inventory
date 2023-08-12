@@ -26,6 +26,14 @@ import {
   selectors as dbSyncSelectors,
 } from '@app/features/db-sync/slice';
 import {
+  actions as inventorySliceActions,
+  initialState as inventoryInitialState,
+  InventoryState,
+  name as inventorySliceName,
+  reducer as inventoryReducer,
+  selectors as inventorySelectors,
+} from '@app/features/inventory/slice';
+import {
   actions as settingsSliceActions,
   initialState as settingsInitialState,
   name as settingsSliceName,
@@ -59,6 +67,7 @@ interface ProfileState {
   color: ProfileColor;
   dbSync: DBSyncState;
   settings: SettingsState;
+  inventory: InventoryState;
   [cacheSliceName]: CacheState;
 }
 
@@ -74,6 +83,7 @@ const profileInitialState: ProfileState = {
   color: 'blue' as const,
   dbSync: dbSyncInitialState,
   settings: settingsInitialState,
+  inventory: inventoryInitialState,
   [cacheSliceName]: cacheInitialState,
 };
 
@@ -158,6 +168,20 @@ export const profilesSlice = createSlice({
       settingsSliceName,
     ),
     mapActionReducers(
+      inventorySliceActions.inventory,
+      actionCreator => (state: ProfilesState, action: any) => {
+        if (!state.currentProfile || !state.profiles[state.currentProfile]) {
+          return;
+        }
+
+        state.profiles[state.currentProfile].inventory = inventoryReducer(
+          state.profiles[state.currentProfile].inventory,
+          actionCreator(action.payload),
+        );
+      },
+      inventorySliceName,
+    ),
+    mapActionReducers(
       cacheSliceActions.cache,
       actionCreator => (state: ProfilesState, action: any) => {
         if (!state.currentProfile || !state.profiles[state.currentProfile]) {
@@ -190,6 +214,11 @@ export const actions = {
     settingsSliceActions.settings,
     profilesSlice.actions,
     settingsSliceName,
+  ),
+  inventory: overrideActions(
+    inventorySliceActions.inventory,
+    profilesSlice.actions,
+    inventorySliceName,
   ),
   cache: overrideActions(
     cacheSliceActions.cache,
@@ -231,6 +260,11 @@ export const selectors = {
     selector => (state: ProfilesState) =>
       selector(state.profiles[state.currentProfile || '']?.settings),
   ),
+  inventory: mapSelectors(
+    inventorySelectors.inventory,
+    selector => (state: ProfilesState) =>
+      selector(state.profiles[state.currentProfile || '']?.inventory),
+  ),
   cache: mapSelectors(
     cacheSelectors.cache,
     selector => (state: ProfilesState) =>
@@ -255,6 +289,9 @@ reducer.dehydrate = (state: ProfilesState) => {
       ...(settingsReducer.dehydrate
         ? { settings: settingsReducer.dehydrate(s.settings) }
         : {}),
+      ...(inventoryReducer.dehydrate
+        ? { inventory: inventoryReducer.dehydrate(s.inventory) }
+        : {}),
     })),
   };
 
@@ -276,6 +313,9 @@ reducer.rehydrate = (dehydratedState: DeepPartial<ProfilesState>) => {
         : {}),
       ...(settingsReducer.rehydrate && s && s.settings
         ? { settings: settingsReducer.rehydrate(s.settings) }
+        : {}),
+      ...(inventoryReducer.rehydrate && s && s.inventory
+        ? { inventory: inventoryReducer.rehydrate(s.inventory) }
         : {}),
     })),
   };
@@ -311,6 +351,9 @@ reducer.dehydrateSensitive = (state: ProfilesState) => {
             ...(s.settings && settingsReducer.dehydrateSensitive
               ? { settings: settingsReducer.dehydrateSensitive(s.settings) }
               : {}),
+            ...(s.inventory && inventoryReducer.dehydrateSensitive
+              ? { inventory: inventoryReducer.dehydrateSensitive(s.inventory) }
+              : {}),
           })),
         }
       : {}),
@@ -334,6 +377,9 @@ reducer.rehydrateSensitive = dehydratedState => {
               : {}),
             ...(s.dbSync && dbSyncReducer.rehydrateSensitive
               ? { dbSync: dbSyncReducer.rehydrateSensitive(s.dbSync) }
+              : {}),
+            ...(s.inventory && inventoryReducer.rehydrateSensitive
+              ? { inventory: inventoryReducer.rehydrateSensitive(s.inventory) }
               : {}),
           })),
         }

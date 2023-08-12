@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { QuickSQLite } from 'react-native-quick-sqlite';
 
@@ -49,7 +49,9 @@ export default function useDataCount<T extends DataTypeName>(
   const { db } = useDB();
 
   const [count, setCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const countRef = useRef(count);
+  countRef.current = count;
+  const [loading, setLoading] = useState(true);
 
   const [cachedCond, setCachedCond] = useState(cond);
   useEffect(() => {
@@ -191,7 +193,16 @@ export default function useDataCount<T extends DataTypeName>(
   useFocusEffect(
     useCallback(() => {
       if (disable) return;
-      loadData();
+
+      if (countRef.current === null) {
+        setTimeout(() => {
+          loadData();
+        }, 1);
+      } else {
+        setTimeout(() => {
+          loadData();
+        }, 5);
+      }
     }, [disable, loadData]),
   );
 

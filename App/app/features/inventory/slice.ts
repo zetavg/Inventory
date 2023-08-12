@@ -1,115 +1,52 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { RootState } from '@app/redux/store';
-import { persistReducer } from 'redux-persist';
-import { selectActiveProfileName } from '@app/features/profiles/selectors';
 
-// Define a type for the slice state
-interface InventoryState {
-  [profileName: string]:
-    | {
-        recentSearchQueries?: Array<string>;
-      }
-    | undefined;
+import { PersistableReducer } from '@app/redux/types';
+
+export interface InventoryState {
+  recentViewedItemIds: Array<string>;
 }
 
-// Define the initial state using that type
-const initialState: InventoryState = {};
+export const initialState: InventoryState = {
+  recentViewedItemIds: [],
+};
 
 export const inventorySlice = createSlice({
   name: 'inventory',
-  // `createSlice` will infer the state type from the `initialState` argument
   initialState,
   reducers: {
-    addRecentSearchQuery: (
-      state,
-      action: PayloadAction<{ query: string; activeProfileName?: string }>,
-    ) => {
-      const { activeProfileName, query } = action.payload;
-      if (!activeProfileName) return;
-      if (!query) return;
+    addRecentViewedItemId: (state, action: PayloadAction<{ id: string }>) => {
+      const { id } = action.payload;
 
-      if (!state[activeProfileName]) {
-        state[activeProfileName] = {};
-      }
-
-      const s = state[activeProfileName];
-      if (!s) return;
-
-      if (!s.recentSearchQueries) {
-        s.recentSearchQueries = [];
-      }
-
-      s.recentSearchQueries = [
-        query,
-        ...s.recentSearchQueries.filter(q => q !== query),
+      state.recentViewedItemIds = [
+        id,
+        ...state.recentViewedItemIds.filter(q => q !== id),
       ];
 
-      s.recentSearchQueries = s.recentSearchQueries.slice(0, 30);
+      state.recentViewedItemIds = state.recentViewedItemIds.slice(0, 30);
     },
-    removeRecentSearchQuery: (
-      state,
-      action: PayloadAction<{ query: string; activeProfileName?: string }>,
-    ) => {
-      const { activeProfileName } = action.payload;
-      if (!activeProfileName) return;
-
-      const s = state[activeProfileName];
-      if (!s) return;
-      if (!s.recentSearchQueries) return;
-
-      s.recentSearchQueries = s.recentSearchQueries.filter(
-        q => q !== action.payload.query,
-      );
+    clearRecentViewedItemId: state => {
+      state.recentViewedItemIds = [];
     },
-    clearRecentSearchQueries: (
-      state,
-      action: PayloadAction<{ activeProfileName?: string }>,
-    ) => {
-      const { activeProfileName } = action.payload;
-      if (!activeProfileName) return;
-
-      const s = state[activeProfileName];
-      if (!s) return;
-
-      s.recentSearchQueries = [];
-    },
+    reset: () => initialState,
   },
 });
 
-export const {
-  addRecentSearchQuery,
-  removeRecentSearchQuery,
-  clearRecentSearchQueries,
-} = Object.fromEntries(
-  Object.entries(inventorySlice.actions).map(([name, fn]) => [
-    name,
-    (payload: any) => {
-      const store = (global as any).reduxStore;
-      if (!store) throw new Error('Store is not ready');
+export const name = inventorySlice.name;
 
-      const activeProfileName = selectActiveProfileName(store.getState());
-      return fn({
-        ...payload,
-        activeProfileName: payload.activeProfileName || activeProfileName,
-      });
-    },
-  ]),
-) as typeof inventorySlice.actions;
+export const reducer: PersistableReducer<typeof inventorySlice.reducer> =
+  inventorySlice.reducer;
 
-// Other code such as selectors can use the imported `RootState` type
-export const selectRecentSearchQueries = (state: RootState) => {
-  const activeProfileName = selectActiveProfileName(state);
-  return (
-    (state.inventory[activeProfileName || ''] || {}).recentSearchQueries || []
-  );
+export const actions = {
+  inventory: inventorySlice.actions,
 };
 
-export default persistReducer(
-  {
-    key: 'inventory',
-    storage: AsyncStorage,
-    timeout: 50000,
+export const selectors = {
+  inventory: {
+    recentViewedItemIds: (state: InventoryState) => state.recentViewedItemIds,
   },
-  inventorySlice.reducer,
-);
+};
+
+reducer.dehydrate = (state: InventoryState) => ({
+  recentViewedItemIds: state.recentViewedItemIds,
+});
+reducer.rehydrate = dehydratedState => dehydratedState;
