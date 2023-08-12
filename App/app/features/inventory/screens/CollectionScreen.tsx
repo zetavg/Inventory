@@ -39,12 +39,22 @@ function CollectionScreen({
     refresh: refreshData,
     refreshing: dataRefreshing,
   } = useData('collection', id);
+  // const {
+  //   data: items,
+  //   loading: itemsLoading,
+  //   refresh: refreshItems,
+  //   refreshing: itemsRefreshing,
+  // } = useRelated(data, 'items', { sort: [{ __created_at: 'asc' }] });
   const {
     data: items,
     loading: itemsLoading,
     refresh: refreshItems,
     refreshing: itemsRefreshing,
-  } = useRelated(data, 'items', { sort: [{ __created_at: 'asc' }] });
+  } = useData(
+    'item',
+    { collection_id: id, _show_in_collection: true },
+    { sort: [{ __created_at: 'asc' }] },
+  );
   // const {
   //   data: items,
   //   loading: itemsLoading,
@@ -252,6 +262,7 @@ function CollectionScreen({
                       id: item.__id || '',
                     })
                   }
+                  hideCollectionDetails
                 />
               )),
               { forItemWithIcon: true },

@@ -14,6 +14,25 @@ import { getDataTypeSelector, getTypeIdStartAndEndKey } from '../pouchdb-utils';
 import { DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
 
+let ddocUpdating = false;
+let ddocUpdatingPromiseResolvers: Array<() => void> = [];
+function obtainDdocUpdatingLock(): Promise<void> {
+  if (!ddocUpdating) {
+    ddocUpdating = true;
+    return Promise.resolve();
+  }
+
+  return new Promise(resolve => ddocUpdatingPromiseResolvers.push(resolve));
+}
+function releaseDdocUpdatingLock() {
+  if (ddocUpdatingPromiseResolvers.length > 0) {
+    const r = ddocUpdatingPromiseResolvers.pop();
+    if (r) r();
+  } else {
+    ddocUpdating = false;
+  }
+}
+
 export default function useDataCount<T extends DataTypeName>(
   type: T,
   cond?: Partial<DataTypeWithAdditionalInfo<T>>,
@@ -112,30 +131,36 @@ export default function useDataCount<T extends DataTypeName>(
             }
 
             if (shouldHandleErrorByUpdatingIndex) {
-              const indexDdoc = {
-                views: {
-                  [indexName]: {
-                    map: `function (doc) { emit(doc && doc._id.startsWith('${type}' + '-') && [${Object.keys(
-                      condData,
-                    )}].join('--')); }`,
-                  },
+              const indexDdocView = {
+                [indexName]: {
+                  map: `function (doc) { emit(doc && doc._id.startsWith('${type}' + '-') && [${Object.keys(
+                    condData,
+                  )}].join('--')); }`,
                 },
               };
               logger.info(
                 `Updating design doc "${ddocID}" for counting ${type} with matched ${Object.keys(
                   cachedCond,
                 )}`,
-                { details: JSON.stringify({ ddoc: indexDdoc }) },
+                { details: JSON.stringify({ ddocView: indexDdocView }) },
               );
               try {
+                await obtainDdocUpdatingLock();
                 await db
                   .get(ddocID)
                   .catch(() => {
                     return { _id: ddocID };
                   })
                   .then(doc => {
-                    return db.put({ ...doc, ...indexDdoc } as any);
-                  });
+                    return db.put({
+                      ...doc,
+                      views: {
+                        ...(doc as any).views,
+                        ...indexDdocView,
+                      },
+                    } as any);
+                  })
+                  .finally(() => releaseDdocUpdatingLock());
               } catch (err) {
                 logger.warn(err);
               }

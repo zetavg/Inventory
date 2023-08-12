@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View, Text, Platform } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { SFSymbol } from 'react-native-sfsymbols';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
+import { DataType } from '@app/db/old_schema';
 
 import useColors from '@app/hooks/useColors';
-import commonStyles from '@app/utils/commonStyles';
-import InsetGroup from '@app/components/InsetGroup';
-import Icon, { IconName } from '@app/components/Icon';
-
 import useDB from '@app/hooks/useDB';
-import { DataType } from '@app/db/old_schema';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { SFSymbol } from 'react-native-sfsymbols';
+
+import Icon, { IconName } from '@app/components/Icon';
+import InsetGroup from '@app/components/InsetGroup';
 
 export default function ItemItem_old({
   item,

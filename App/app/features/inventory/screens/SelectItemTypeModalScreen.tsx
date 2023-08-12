@@ -12,11 +12,11 @@ import UIGroup from '@app/components/UIGroup';
 function getFooterText(value: DataType<'item'>['item_type']): string {
   switch (value) {
     case 'container':
-      return 'A storage container such as a toolbox or a case. It will contain other items that should be stored inside it as content.';
+      return 'A storage container such as a toolbox or a case. It can contain other items that should be stored inside of it.';
     case 'generic_container':
       return ''; // TODO: explain
     case 'item_with_parts':
-      return 'With type set as "Item with Parts", this item will have the ability to nest other items under it.';
+      return 'An item that can have nested items.';
     case undefined:
       return 'A normal item.';
   }

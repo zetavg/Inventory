@@ -727,6 +727,10 @@ function ItemScreen({
                           preloadedTitle: i.name,
                         })
                       }
+                      hideContainerDetails
+                      hideCollectionDetails={
+                        i.collection_id === data.collection_id
+                      }
                     />
                   )),
                 )}

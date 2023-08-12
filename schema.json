@@ -60,9 +60,12 @@
         "rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
         "rfid_tag_epc_memory_bank_contents_manually_set": { "type": "boolean" },
         "actual_rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
+        "rfid_tag_access_password": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
         "item_type": { "enum": ["container", "generic_container", "item_with_parts"] },
         "_can_contain_items": { "type": "boolean" },
         "container_id": { "type": "string" },
+        "always_show_in_collection": { "type": "boolean" },
+        "_show_in_collection": { "type": "boolean" },
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }

@@ -45,11 +45,17 @@ export const schema = {
         .string()
         .regex(new RegExp('^[A-F0-9]+$'))
         .optional(),
+      rfid_tag_access_password: z
+        .string()
+        .regex(new RegExp('^[a-f0-9]{8}$'))
+        .optional(),
       item_type: z
         .enum(['container', 'generic_container', 'item_with_parts'])
         .optional(),
       _can_contain_items: z.boolean().optional(),
       container_id: z.string().optional(),
+      always_show_in_collection: z.boolean().optional(),
+      _show_in_collection: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),

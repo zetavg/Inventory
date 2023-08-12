@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import appLogger from '@app/logger';
 
 import EPCUtils from '@app/modules/EPCUtils';
@@ -121,6 +123,32 @@ export async function beforeSave(
           } catch (e) {}
         } else {
           datum.rfid_tag_epc_memory_bank_contents = undefined;
+        }
+      }
+
+      if (!datum.rfid_tag_access_password) {
+        const [generatedHex] = uuidv4().split('-');
+        datum.rfid_tag_access_password = generatedHex;
+      }
+
+      if (datum.always_show_in_collection) {
+        datum._show_in_collection = true;
+      } else {
+        datum._show_in_collection = true;
+        if (datum.container_id) {
+          const container = await getRelated(
+            datum as DataTypeWithAdditionalInfo<'item'>,
+            'container',
+            {},
+            {
+              db,
+              logger,
+            },
+          );
+
+          if (container?.collection_id === datum.collection_id) {
+            datum._show_in_collection = false;
+          }
         }
       }
 

@@ -19,6 +19,7 @@ import isTextContent from '@app/utils/isTextContent';
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
+import Icon from '../Icon';
 import LoadingOverlay from '../LoadingOverlay';
 
 const FONT_SIZE = 17;
@@ -226,6 +227,7 @@ type InsetGroupItemProps = {
     | React.ReactNode
     | ((context: {
         textProps: React.ComponentProps<typeof Text>;
+        iconProps: Partial<React.ComponentProps<typeof Icon>>;
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   detailAsText?: boolean;
@@ -373,9 +375,16 @@ function InsetGroupItem({
                   selectable: !onLongPress,
                   adjustsFontSizeToFit: adjustsDetailFontSizeToFit,
                 };
+                const iconProps: Partial<React.ComponentProps<typeof Icon>> = {
+                  color: vertical2
+                    ? contentTextColor
+                    : contentSecondaryTextColor,
+                  size: 11,
+                  style: styles.itemDetailIcon,
+                };
 
                 if (typeof detail === 'function') {
-                  return detail({ textProps });
+                  return detail({ textProps, iconProps });
                 }
                 if (isTextContent(detail) || detailAsText) {
                   return <Text {...textProps}>{detail}</Text>;
@@ -788,6 +797,10 @@ export const styles = StyleSheet.create({
   insetGroupLabelButtonText: {
     fontWeight: '500',
     fontSize: 15,
+  },
+  itemDetailIcon: {
+    opacity: 0.7,
+    marginBottom: -1.5,
   },
 });
 

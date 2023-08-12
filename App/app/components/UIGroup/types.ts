@@ -45,6 +45,7 @@ export type ListItemProps = {
     | React.ReactNode
     | ((context: {
         textProps: React.ComponentProps<typeof Text>;
+        iconProps: Partial<React.ComponentProps<typeof Icon>>;
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   monospaceDetail?: boolean;

@@ -247,6 +247,11 @@ function SaveItemScreen({
     disable: !!data.name,
   });
 
+  const wouldBeHiddenInCollection =
+    !!data.container_id &&
+    (!selectedContainer ||
+      selectedContainer.collection_id === data.collection_id);
+
   return (
     <ModalContent
       navigation={navigation}
@@ -483,7 +488,15 @@ function SaveItemScreen({
           />
         </UIGroup>
 
-        <UIGroup>
+        <UIGroup
+          footer={
+            wouldBeHiddenInCollection
+              ? data.always_show_in_collection
+                ? undefined
+                : 'This item will be hidden in the collection since its container belongs to the same collection.'
+              : undefined
+          }
+        >
           <UIGroup.ListTextInputItem
             label={(() => {
               switch (selectedContainer?.item_type) {
@@ -575,6 +588,23 @@ function SaveItemScreen({
             }
             {...kiaTextInputProps}
           />
+          {wouldBeHiddenInCollection && (
+            <>
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Show in Collection"
+                horizontalLabel
+                inputElement={
+                  <UIGroup.ListItem.Switch
+                    value={data.always_show_in_collection}
+                    onValueChange={v =>
+                      setData(d => ({ ...d, always_show_in_collection: v }))
+                    }
+                  />
+                }
+              />
+            </>
+          )}
         </UIGroup>
 
         <IconInputUIGroup
