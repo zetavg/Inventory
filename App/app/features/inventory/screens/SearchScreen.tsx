@@ -244,6 +244,7 @@ function SearchScreen({
                       <ItemListItem
                         key={it.__id}
                         item={it}
+                        hideContentDetails
                         onPress={() =>
                           navigation.push('Item', { id: it.__id || '' })
                         }
@@ -318,7 +319,7 @@ function ItemListItemById({
     return <UIGroup.ListItem disabled label={id} />;
   }
 
-  return <ItemListItem item={data} onPress={onPress} />;
+  return <ItemListItem item={data} onPress={onPress} hideContentDetails />;
 }
 
 export default SearchScreen;

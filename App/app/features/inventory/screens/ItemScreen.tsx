@@ -73,6 +73,16 @@ function ItemScreen({
     refresh: refreshContainer,
     refreshing: containerRefreshing,
   } = useRelated(data, 'container');
+  const [dContentsLoading, setDContentsLoading] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDContentsLoading(false);
+    }, 2);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, []);
   const {
     data: contents,
     loading: contentsLoading,
@@ -80,6 +90,7 @@ function ItemScreen({
     refreshing: contentsRefreshing,
   } = useRelated(data, 'contents', {
     sort: [{ __created_at: 'asc' }],
+    disable: dContentsLoading,
   });
   const refresh = useCallback(() => {
     refreshData();
@@ -693,6 +704,7 @@ function ItemScreen({
                     return 'Contents';
                 }
               })()}
+              loading={contentsLoading}
               placeholder={contentsLoading ? undefined : 'No items'}
               headerRight={
                 <>

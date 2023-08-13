@@ -26,6 +26,7 @@ export default function ItemListItem({
   additionalDetails,
   hideCollectionDetails,
   hideContainerDetails,
+  hideContentDetails,
   ...props
 }: {
   item: DataTypeWithAdditionalInfo<'item'>;
@@ -35,6 +36,7 @@ export default function ItemListItem({
   reloadCounter?: number;
   hideCollectionDetails?: boolean;
   hideContainerDetails?: boolean;
+  hideContentDetails?: boolean;
   additionalDetails?: string;
 } & React.ComponentProps<typeof UIGroup.ListItem>) {
   const [disableAdditionalDataLoading, setDisableAdditionalDataLoading] =
@@ -54,7 +56,7 @@ export default function ItemListItem({
     {
       container_id: item.__id,
     },
-    { disable: disableAdditionalDataLoading },
+    { disable: hideContentDetails || disableAdditionalDataLoading },
   );
 
   const { data: collection, refresh: refreshCollection } = useRelated(
@@ -109,7 +111,8 @@ export default function ItemListItem({
                 !!additionalDetails && (
                   <React.Fragment>{additionalDetails}</React.Fragment>
                 ),
-                itemsCount !== null &&
+                !hideContentDetails &&
+                  itemsCount !== null &&
                   // eslint-disable-next-line react/no-unstable-nested-components
                   (() => {
                     switch (item.item_type) {
