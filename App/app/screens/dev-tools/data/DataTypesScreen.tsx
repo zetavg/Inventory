@@ -47,6 +47,16 @@ function DataTypesScreen({
             }}
           />
         </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListItem
+            label="Data Migration"
+            navigable
+            onPress={() => {
+              navigation.navigate('DevDataMigration');
+            }}
+          />
+        </UIGroup>
       </ScreenContent.ScrollView>
     </ScreenContent>
   );

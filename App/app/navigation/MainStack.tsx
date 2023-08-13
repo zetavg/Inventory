@@ -33,6 +33,7 @@ import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
+import DevDataMigrationScreen from '@app/screens/dev-tools/data/DevDataMigrationScreen';
 import FixDataConsistencyErrorScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorScreen';
 import FixDataConsistencyErrorsScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorsScreen';
 import FixDataConsistencyScreen from '@app/screens/dev-tools/data/FixDataConsistencyScreen';
@@ -132,6 +133,7 @@ export type StackParamList = {
   FixDataConsistencyError: {
     error: { id?: string; rawId: string; error: unknown };
   };
+  DevDataMigration: undefined;
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
   RelationalPouchDB: undefined;
@@ -256,6 +258,10 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="FixDataConsistencyError"
         component={FixDataConsistencyErrorScreen}
+      />
+      <Stack.Screen
+        name="DevDataMigration"
+        component={DevDataMigrationScreen}
       />
       <Stack.Screen name="DBSync" component={DBSyncScreen} />
       <Stack.Screen
