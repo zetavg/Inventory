@@ -67,6 +67,7 @@ import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { getDataFromDocs } from '@app/db/hooks';
 import useActionSheet from '@app/hooks/useActionSheet';
 import getChildrenDedicatedItemIds from '../inventory/utils/getChildrenDedicatedItemIds';
+import { useConfig } from '@app/data';
 
 export type OnScannedItemPressFn = (
   data: ScanData,
@@ -438,17 +439,18 @@ function RFIDSheet(
 
   // #region Configs from DB //
   const { db } = useDB();
-  const [config, setConfig] = useState<ConfigStoredInDB | null>(null);
+  const { config } = useConfig();
+  const epcCompanyPrefix = config?.rfid_tag_company_prefix;
+  const epcPrefix = config?.rfid_tag_prefix;
+  // const [config, setConfig] = useState<ConfigStoredInDB | null>(null);
   const [defaultFilter, setDefaultFilter] = useState<string | null>(null);
   useEffect(() => {
-    getConfigInDB(db).then(c => {
-      setConfig(c);
-      const [f] = EPCUtils.encodeHexEPC(
-        `urn:epc:tag:giai-96:0.${c.epcCompanyPrefix}.${c.epcPrefix}`,
-      );
-      setDefaultFilter(f.slice(0, 8));
-    });
-  }, [db]);
+    if (!epcCompanyPrefix || !epcPrefix) return;
+    const [f] = EPCUtils.encodeHexEPC(
+      `urn:epc:tag:giai-96:0.${epcCompanyPrefix}.${epcPrefix}`,
+    );
+    setDefaultFilter(f.slice(0, 8));
+  }, [epcCompanyPrefix, epcPrefix]);
   // #endregion //
 
   // #region Functionalities //
