@@ -40,7 +40,9 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 import ItemListItem from '../components/ItemListItem';
-import SEARCH_OPTIONS, { getItemSearchOptionsForCollection } from '../consts/SEARCH_OPTIONS';
+import SEARCH_OPTIONS, {
+  getItemSearchOptionsForCollection,
+} from '../consts/SEARCH_OPTIONS';
 
 function CollectionScreen({
   navigation,
@@ -226,16 +228,15 @@ function CollectionScreen({
   const [searchFocused, setSearchFocused] = useState(false);
   const [devModeCounter, setDevModeCounter] = useState(0);
 
+  const collectionName =
+    typeof data?.name === 'string' ? data.name : preloadedTitle || 'Collection';
+
   return (
     <ScreenContent
       navigation={navigation}
-      title={
-        typeof data?.name === 'string'
-          ? data.name
-          : preloadedTitle || 'Collection'
-      }
+      title={collectionName}
       showSearch
-      searchPlaceholder="Search Item..."
+      searchPlaceholder={`Search Item in ${collectionName}...`}
       onSearchChangeText={setSearchText}
       onSearchFocus={() => {
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG_SLOWER);

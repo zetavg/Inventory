@@ -67,6 +67,12 @@
         "always_show_in_collection": { "type": "boolean" },
         "_show_in_collection": { "type": "boolean" },
         "notes": { "type": "string" },
+        "model_name": { "type": "string" },
+        "purchase_price_x1000": { "type": "number" },
+        "purchase_price_currency": { "type": "string" },
+        "purchased_from": { "type": "string" },
+        "purchase_date": { "type": "number" },
+        "expiry_date": { "type": "number" },
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }

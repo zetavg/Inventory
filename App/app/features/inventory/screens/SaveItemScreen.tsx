@@ -11,6 +11,8 @@ import {
 import type { StackScreenProps } from '@react-navigation/stack';
 import RNPickerSelect from 'react-native-picker-select';
 
+import { ZodError } from 'zod';
+
 import {
   DataTypeWithAdditionalInfo,
   useConfig,
@@ -28,7 +30,9 @@ import type { RootStackParamList } from '@app/navigation/Navigation';
 import useAutoFocus from '@app/hooks/useAutoFocus';
 import useColors from '@app/hooks/useColors';
 import useDeepCompare from '@app/hooks/useDeepCompare';
+import useLogger from '@app/hooks/useLogger';
 
+import DatePicker from '@app/components/DatePicker';
 import Icon, {
   verifyIconColor,
   verifyIconColorWithDefault,
@@ -44,7 +48,8 @@ function SaveItemScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'SaveItem'>) {
-  const { initialData: initialDataFromParams } = route.params;
+  const logger = useLogger('SaveItemScreen');
+  const { initialData: initialDataFromParams, afterDelete } = route.params;
 
   const { save, saving } = useSave();
   const { config } = useConfig();
@@ -154,6 +159,15 @@ function SaveItemScreen({
     });
   }, [data.item_type, navigation]);
 
+  const handleOpenSelectPurchasePriceCurrency = useCallback(() => {
+    navigation.navigate('SelectCurrency', {
+      defaultValue: data.purchase_price_currency,
+      callback: purchase_price_currency => {
+        setData(d => ({ ...d, purchase_price_currency }));
+      },
+    });
+  }, [data.purchase_price_currency, navigation]);
+
   const { data: selectedContainer } = useData('item', data.container_id || '', {
     disable: !data.container_id,
   });
@@ -199,6 +213,17 @@ function SaveItemScreen({
     [data.icon_name, navigation],
   );
 
+  // const handleOpenPurchaseDatePicker = useCallback(
+  //   () =>
+  //     navigation.navigate('DatePicker', {
+  //       defaultValue: verifyIconName(data.icon_name),
+  //       callback: icon_name => {
+  //         setData(d => ({ ...d, icon_name }));
+  //       },
+  //     }),
+  //   [data.icon_name, navigation],
+  // );
+
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
     try {
@@ -236,6 +261,9 @@ function SaveItemScreen({
     [saving],
   );
 
+  const [purchasePriceInputTailing, setPurchasePriceInputTailing] =
+    useState('');
+
   const scrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps } =
     ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
@@ -251,6 +279,50 @@ function SaveItemScreen({
     !!data.container_id &&
     (!selectedContainer ||
       selectedContainer.collection_id === data.collection_id);
+
+  const doDelete = useCallback(async () => {
+    try {
+      await save(
+        {
+          ...initialData,
+          __type: initialData.__type,
+          __id: initialData.__id,
+          __deleted: true,
+        },
+        { showErrorAlert: false },
+      );
+      navigation.goBack();
+      if (typeof afterDelete === 'function') {
+        afterDelete();
+      }
+    } catch (e) {
+      if (e instanceof ZodError) {
+        Alert.alert(
+          'Cannot delete item',
+          e.issues.map(i => i.message).join('\n'),
+        );
+      } else {
+        logger.error(e, { showAlert: true });
+      }
+    }
+  }, [afterDelete, initialData, logger, navigation, save]);
+  const handleDeleteButtonPressed = useCallback(() => {
+    Alert.alert(
+      'Confirmation',
+      `Are you sure you want to delete the item "${initialData.name}"?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: doDelete,
+        },
+      ],
+    );
+  }, [doDelete, initialData.name]);
 
   return (
     <ModalContent
@@ -638,19 +710,223 @@ function SaveItemScreen({
                 notes: text,
               }));
             }}
+            {...kiaTextInputProps}
           />
         </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListTextInputItem
+            label="Model Name"
+            placeholder="Enter Model Name"
+            autoCapitalize="words"
+            returnKeyType="done"
+            value={data.model_name}
+            onChangeText={text => {
+              setData(d => ({
+                ...d,
+                model_name: text,
+              }));
+            }}
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Purchase Price"
+            horizontalLabel
+            placeholder="000.00"
+            keyboardType="numeric"
+            returnKeyType="done"
+            value={
+              typeof data.purchase_price_x1000 === 'number'
+                ? (() => {
+                    const str = data.purchase_price_x1000.toString();
+                    const a = str.slice(0, -3) || '0';
+                    const b = str.slice(-3).padStart(3, '0').replace(/0+$/, '');
+                    if (!b) {
+                      return a;
+                    }
+                    return a + '.' + b;
+                  })() + (purchasePriceInputTailing || '')
+                : ''
+            }
+            onChangeText={t => {
+              const [, tailing1] = t.match(/^[0-9]*(\.[0]*)$/) || [];
+              const [tailing2] = (t.match(/\./) && t.match(/[0]*$/)) || [];
+              setPurchasePriceInputTailing(tailing1 || tailing2 || '');
+              setData(d => ({
+                ...d,
+                purchase_price_x1000: t
+                  ? (() => {
+                      try {
+                        const [a0, b0] = t.split('.');
+                        const a1 = a0 ? a0 : '0';
+                        const b1 = b0 ? b0 : '0';
+                        const b2 = b1.slice(0, 3);
+                        const b3 = b2.padEnd(3, '0');
+                        const number =
+                          parseInt(a1, 10) * 1000 + parseInt(b3, 10);
+                        if (isNaN(number)) return undefined;
+                        return number;
+                      } catch (e) {
+                        return undefined;
+                      }
+                    })()
+                  : undefined,
+                ...(t
+                  ? {
+                      purchase_price_currency:
+                        d.purchase_price_currency || 'USD',
+                    }
+                  : {}),
+              }));
+            }}
+            unit={data.purchase_price_currency}
+            onUnitPress={handleOpenSelectPurchasePriceCurrency}
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Purchased From"
+            placeholder="Enter Supplier Name"
+            autoCapitalize="words"
+            returnKeyType="done"
+            value={data.purchased_from}
+            onChangeText={text => {
+              setData(d => ({
+                ...d,
+                purchased_from: text,
+              }));
+            }}
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Purchase Date"
+            horizontalLabel
+            // eslint-disable-next-line react/no-unstable-nested-components
+            inputElement={({ textProps }) => {
+              const date =
+                typeof data.purchase_date === 'number'
+                  ? new Date(data.purchase_date)
+                  : null;
+              return (
+                <DatePicker
+                  value={
+                    date && {
+                      y: date.getFullYear(),
+                      m: date.getMonth() + 1,
+                      d: date.getDate(),
+                    }
+                  }
+                  textProps={textProps}
+                  onChangeValue={v => {
+                    if (!v) {
+                      setData(d => ({
+                        ...d,
+                        purchase_date: undefined,
+                      }));
+                      return;
+                    }
+
+                    const d = new Date(v.y, v.m - 1, v.d);
+                    d.setHours(0, 0, 0, 0);
+
+                    setData(dta => ({
+                      ...dta,
+                      purchase_date: d.getTime(),
+                    }));
+                  }}
+                />
+              );
+            }}
+            controlElement={
+              data.purchase_date ? (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => {
+                    setData(d => ({
+                      ...d,
+                      purchase_date: undefined,
+                    }));
+                  }}
+                >
+                  Clear
+                </UIGroup.ListTextInputItem.Button>
+              ) : undefined
+            }
+            {...kiaTextInputProps}
+          />
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListTextInputItem
+            label="Expiry Date"
+            horizontalLabel
+            // eslint-disable-next-line react/no-unstable-nested-components
+            inputElement={({ textProps }) => {
+              const date =
+                typeof data.expiry_date === 'number'
+                  ? new Date(data.expiry_date)
+                  : null;
+              return (
+                <DatePicker
+                  value={
+                    date && {
+                      y: date.getFullYear(),
+                      m: date.getMonth() + 1,
+                      d: date.getDate(),
+                    }
+                  }
+                  textProps={textProps}
+                  onChangeValue={v => {
+                    if (!v) {
+                      setData(d => ({
+                        ...d,
+                        expiry_date: undefined,
+                      }));
+                      return;
+                    }
+
+                    const d = new Date(v.y, v.m - 1, v.d);
+                    d.setHours(23, 59, 59, 59);
+
+                    setData(dta => ({
+                      ...dta,
+                      expiry_date: d.getTime(),
+                    }));
+                  }}
+                />
+              );
+            }}
+            controlElement={
+              data.expiry_date ? (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={() => {
+                    setData(d => ({
+                      ...d,
+                      expiry_date: undefined,
+                    }));
+                  }}
+                >
+                  Clear
+                </UIGroup.ListTextInputItem.Button>
+              ) : undefined
+            }
+            {...kiaTextInputProps}
+          />
+        </UIGroup>
+
+        {!!initialData.__id && (
+          <UIGroup>
+            <UIGroup.ListItem
+              button
+              destructive
+              label={`Delete "${initialData?.name}"`}
+              onPress={handleDeleteButtonPressed}
+            />
+          </UIGroup>
+        )}
       </ModalContent.ScrollView>
     </ModalContent>
   );
 }
-
-const styles = StyleSheet.create({
-  affixCurrencyPickerSelect: {
-    marginLeft: 8,
-    marginBottom: 1,
-    alignSelf: 'flex-end',
-  },
-});
 
 export default SaveItemScreen;

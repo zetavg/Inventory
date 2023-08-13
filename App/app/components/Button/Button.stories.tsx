@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { action } from '@storybook/addon-actions';
-import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
+
 import StorybookSection from '@app/components/StorybookSection';
+import StorybookStoryContainer from '@app/components/StorybookStoryContainer';
 
 import Button from './Button';
 

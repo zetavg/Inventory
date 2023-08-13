@@ -57,6 +57,12 @@ export const schema = {
       always_show_in_collection: z.boolean().optional(),
       _show_in_collection: z.boolean().optional(),
       notes: z.string().optional(),
+      model_name: z.string().optional(),
+      purchase_price_x1000: z.number().optional(),
+      purchase_price_currency: z.string().optional(),
+      purchased_from: z.string().optional(),
+      purchase_date: z.number().optional(),
+      expiry_date: z.number().optional(),
       contents_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),

@@ -71,7 +71,9 @@ export default function useScrollViewAutomaticallyAdjustKeyboardInsetsFix(
     event => {
       const loc = event.nativeEvent.pageY;
       const windowHeight = Dimensions.get('window').height;
-      const shouldDisableNextKeyboardInsetsAdjustment = loc < windowHeight / 2;
+      // Magic number here
+      const shouldDisableNextKeyboardInsetsAdjustment =
+        loc < windowHeight / 2 + 40;
       logger.debug(
         `TextInput touched at ${loc}, window height: ${windowHeight}, shouldDisableNextKeyboardInsetsAdjustment: ${shouldDisableNextKeyboardInsetsAdjustment}`,
       );

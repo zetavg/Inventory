@@ -106,6 +106,31 @@ export async function validate(
         }
       }
 
+      const contents = await getRelated(
+        datum as DataTypeWithAdditionalInfo<'item'>,
+        'contents',
+        {},
+        {
+          db,
+          logger,
+        },
+      );
+      if (contents && contents.length > 0) {
+        if (
+          !['container', 'generic_container', 'item_with_parts'].includes(
+            (datum as DataTypeWithAdditionalInfo<'item'>).item_type || '',
+          )
+        ) {
+          issues.push({
+            code: 'custom',
+            path: ['item_type'],
+            message: `This item already contains items, cannot set item type to ${
+              (datum as DataTypeWithAdditionalInfo<'item'>).item_type || 'item'
+            }`,
+          });
+        }
+      }
+
       let hasIARError = false;
       if (
         datum._individual_asset_reference &&
@@ -287,6 +312,39 @@ export async function validateDelete(
             code: 'custom',
             path: [],
             message: 'Cannot delete a collection that contain items.',
+          });
+        }
+      }
+      break;
+    }
+
+    case 'item': {
+      const item = await getDatum('item', d.__id || '', {
+        db,
+        logger,
+      });
+      if (item) {
+        const items = await getRelated(
+          item,
+          'contents',
+          {},
+          {
+            db,
+            logger,
+          },
+        );
+
+        if (!items) {
+          issues.push({
+            code: 'custom',
+            path: [],
+            message: 'Cannot check if this item has no contents.',
+          });
+        } else if (items.length > 0) {
+          issues.push({
+            code: 'custom',
+            path: [],
+            message: 'Cannot delete a item that contain items.',
           });
         }
       }

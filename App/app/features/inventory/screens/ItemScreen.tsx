@@ -188,6 +188,9 @@ function ItemScreen({
               it.container_id !== data?.__id) &&
             navigation.push('Item', { id: it.__id });
         },
+        afterDelete: () => {
+          navigation.goBack();
+        },
       }),
     [
       collection?.item_default_icon_name,
@@ -763,6 +766,110 @@ function ItemScreen({
             </UIGroup.ListItem>
           </UIGroup>
         )}
+
+        {(() => {
+          const detailElements = [];
+
+          if (typeof data?.model_name === 'string') {
+            detailElements.push(
+              <UIGroup.ListItem
+                key="modelName"
+                verticalArrangedLargeTextIOS
+                label="Model Name"
+                detail={data.model_name}
+              />,
+            );
+          }
+
+          if (typeof data?.purchase_price_x1000 === 'number') {
+            // const strValue = (() => {
+            //   const str = item.purchase_price_x1000.toString();
+            //   const a = str.slice(0, -3) || '0';
+            //   const b = str.slice(-3).padStart(3, '0').replace(/0+$/, '');
+            //   if (!b) {
+            //     return a;
+            //   }
+            //   return a + '.' + b;
+            // })();
+            const strValue = new Intl.NumberFormat('en-US').format(
+              data.purchase_price_x1000 / 1000.0,
+            );
+            detailElements.push(
+              <UIGroup.ListItem
+                key="purchasePrice"
+                verticalArrangedLargeTextIOS
+                label="Purchase Price"
+                // eslint-disable-next-line react/no-unstable-nested-components
+                detail={({ textProps }) => (
+                  <Text {...textProps}>
+                    {strValue}
+                    {typeof data?.purchase_price_currency === 'string' && (
+                      <Text
+                        {...textProps}
+                        style={[textProps.style, styles.unitText]}
+                      >
+                        {' ' + data.purchase_price_currency}
+                      </Text>
+                    )}
+                  </Text>
+                )}
+              />,
+            );
+          }
+
+          if (typeof data?.purchased_from === 'string') {
+            detailElements.push(
+              <UIGroup.ListItem
+                key="purchasedFrom"
+                verticalArrangedLargeTextIOS
+                label="Purchased From"
+                detail={data.purchased_from}
+              />,
+            );
+          }
+
+          if (data?.__valid && data?.purchase_date) {
+            detailElements.push(
+              <UIGroup.ListItem
+                key="purchaseDate"
+                verticalArrangedLargeTextIOS
+                label="Purchase Date"
+                // eslint-disable-next-line react/no-unstable-nested-components
+                detail={({ textProps }) => (
+                  <DateDisplay
+                    textProps={textProps}
+                    date={new Date(data.purchase_date || 0)}
+                  />
+                )}
+              />,
+            );
+          }
+
+          if (data?.__valid && data?.expiry_date) {
+            detailElements.push(
+              <UIGroup.ListItem
+                key="expiryDate"
+                verticalArrangedLargeTextIOS
+                label="Expiry Date"
+                // eslint-disable-next-line react/no-unstable-nested-components
+                detail={({ textProps }) => (
+                  <DateDisplay
+                    textProps={textProps}
+                    date={new Date(data.expiry_date || 0)}
+                  />
+                )}
+              />,
+            );
+          }
+
+          if (detailElements.length <= 0) return;
+
+          return (
+            <UIGroup header="Details" largeTitle>
+              {UIGroup.ListItemSeparator.insertBetween(detailElements)}
+            </UIGroup>
+          );
+        })()}
       </ScreenContent.ScrollView>
     </ScreenContent>
   );
@@ -856,6 +963,56 @@ function RFIDLocateIcon() {
   );
 }
 
+const DATE_DISPLAY_MODES = ['date', 'datetime', 'unix'] as const;
+function DateDisplay({
+  date,
+  textProps,
+}: {
+  date: Date;
+  textProps: React.ComponentProps<typeof RNText>;
+}) {
+  const [mode, setMode] = useState<(typeof DATE_DISPLAY_MODES)[number]>(
+    DATE_DISPLAY_MODES[0],
+  );
+  const handleSwitchToNextMode = useCallback(() => {
+    setMode(m => {
+      const currentIndex = DATE_DISPLAY_MODES.indexOf(m);
+      let nextIndex = currentIndex + 1;
+      if (nextIndex > DATE_DISPLAY_MODES.length - 1) {
+        nextIndex = 0;
+      }
+
+      return DATE_DISPLAY_MODES[nextIndex];
+    });
+  }, []);
+  return (
+    <TouchableWithoutFeedback onPress={handleSwitchToNextMode}>
+      <View>
+        <Text
+          {...textProps}
+          style={[
+            textProps.style,
+            mode === 'unix' ? commonStyles.fontMonospaced : {},
+          ]}
+        >
+          {(() => {
+            switch (mode) {
+              case 'datetime':
+                return (
+                  date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+                );
+              case 'unix':
+                return date.getTime().toString();
+              default:
+                return date.toLocaleDateString();
+            }
+          })()}
+        </Text>
+      </View>
+    </TouchableWithoutFeedback>
+  );
+}
+
 const styles = StyleSheet.create({
   buttonWithAnnotationText: {
     marginBottom: 7,
@@ -872,6 +1029,10 @@ const styles = StyleSheet.create({
   customIconContainer: {
     marginVertical: -4,
     marginHorizontal: -4,
+  },
+  unitText: {
+    opacity: 0.5,
+    fontSize: 14,
   },
 });
 

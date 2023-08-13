@@ -15,6 +15,7 @@ import UIText from '@app/components/Text';
 import Icon from '../Icon';
 
 import UIGroup from './UIGroup';
+import DatePicker from '../DatePicker';
 
 export function Basic() {
   const uiGroupStyles = UIGroup.useStyles();
@@ -548,6 +549,12 @@ export function WithListItems() {
           label="Monospaced"
           monospaced
           placeholder="Monospaced"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Date Picker"
+          inputElement={<DatePicker value={{ y: 2023, m: 1, d: 1 }} />}
         />
       </UIGroup>
 

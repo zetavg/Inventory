@@ -38,6 +38,7 @@ import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
 import SelectCollectionModalScreen from '@app/features/inventory/screens/SelectCollectionModalScreen';
 import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
+import SelectCurrencyModalScreen from '@app/features/inventory/screens/SelectCurrencyModalScreen';
 import SelectItemModalScreen from '@app/features/inventory/screens/SelectItemModalScreen';
 import SelectItemsScreen from '@app/features/inventory/screens/SelectItemsScreen';
 import SelectItemTypeModalScreen from '@app/features/inventory/screens/SelectItemTypeModalScreen';
@@ -56,6 +57,7 @@ import { TypeName } from '@app/db/old_schema';
 import commonStyles from '@app/utils/commonStyles';
 
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
+import DatePickerModalScreen from '@app/screens/DatePickerModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/dev-tools/pouchdb/PouchDBPutDataModalScreen';
@@ -106,6 +108,10 @@ export type RootStackParamList = {
     defaultValue?: string;
     as?: 'container';
   };
+  SelectCurrency: {
+    callback: (value: string) => void;
+    defaultValue?: string;
+  };
   SelectContainer: {
     // Old
     callback: (value: string) => void;
@@ -151,6 +157,10 @@ export type RootStackParamList = {
   SelectIcon: {
     callback: (iconName: IconName) => void;
     defaultValue?: IconName;
+  };
+  DatePicker: {
+    callback: (value: string) => void;
+    defaultValue?: string;
   };
   AppLogsFilter: {
     initialState: {
@@ -368,6 +378,7 @@ function Navigation({
               name="RelationalPouchDBTypeDataSelect"
               component={RelationalPouchDBTypeDataSelectScreen}
             />
+            <Stack.Screen name="DatePicker" component={DatePickerModalScreen} />
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
             <Stack.Screen
               name="SelectCollection"
@@ -378,6 +389,10 @@ function Navigation({
               component={SelectItemTypeModalScreen}
             />
             <Stack.Screen name="SelectItem" component={SelectItemModalScreen} />
+            <Stack.Screen
+              name="SelectCurrency"
+              component={SelectCurrencyModalScreen}
+            />
             <Stack.Screen
               name="SelectContainer"
               component={SelectContainerScreen}

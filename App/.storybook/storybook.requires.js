@@ -24,6 +24,7 @@ const getStories = () => {
     require("../app/components/_README/README.stories.tsx"),
     require("../app/components/ActionSheet/ActionSheet.stories.tsx"),
     require("../app/components/Button/Button.stories.tsx"),
+    require("../app/components/DatePicker/DatePicker.stories.tsx"),
     require("../app/components/EditingListView/EditingListView.stories.tsx"),
     require("../app/components/ElevatedButton/ElevatedButton.stories.tsx"),
     require("../app/components/Icon/Icon.stories.tsx"),

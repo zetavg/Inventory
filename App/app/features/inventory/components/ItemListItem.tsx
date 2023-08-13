@@ -122,12 +122,20 @@ export default function ItemListItem({
                     switch (item.item_type) {
                       case 'item_with_parts':
                         return (
-                          <React.Fragment key="containerInfo">{`+${itemsCount} parts`}</React.Fragment>
+                          <React.Fragment key="containerInfo">
+                            {itemsCount === 1
+                              ? `+${itemsCount} part`
+                              : `+${itemsCount} parts`}
+                          </React.Fragment>
                         );
 
                       case 'container':
                         return (
-                          <React.Fragment key="containerInfo">{`${itemsCount} items`}</React.Fragment>
+                          <React.Fragment key="containerInfo">
+                            {itemsCount === 1
+                              ? `${itemsCount} item`
+                              : `${itemsCount} items`}
+                          </React.Fragment>
                         );
 
                       default:
