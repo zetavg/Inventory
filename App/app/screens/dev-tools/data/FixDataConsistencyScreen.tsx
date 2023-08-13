@@ -55,6 +55,11 @@ function FixDataConsistencyScreen({
             ...d,
             [data.__type]: (d[data.__type] || 0) + 1,
           }));
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve();
+            }, 2);
+          });
         },
         errorCallback: info => {
           setErrors(d => ({
@@ -64,6 +69,11 @@ function FixDataConsistencyScreen({
               { id: info.id, rawId: info.rawId, error: info.error },
             ],
           }));
+          return new Promise(resolve => {
+            setTimeout(() => {
+              resolve();
+            }, 2);
+          });
         },
       });
     } catch (e) {

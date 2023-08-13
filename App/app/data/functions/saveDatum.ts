@@ -14,9 +14,11 @@ export default async function saveDatum<T extends DataTypeName>(
   {
     db,
     logger,
+    noTouch,
   }: {
     db: PouchDB.Database;
     logger: typeof appLogger;
+    noTouch?: boolean;
   },
 ): Promise<DataTypeWithAdditionalInfo<T>> {
   let {
@@ -76,7 +78,7 @@ export default async function saveDatum<T extends DataTypeName>(
     updateDoc.created_at = new Date().getTime();
   }
 
-  updateDoc.updated_at = new Date().getTime();
+  if (!noTouch) updateDoc.updated_at = new Date().getTime();
 
   const updateDocProxy = getDatumFromDoc(
     __type,

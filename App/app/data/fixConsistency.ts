@@ -1,11 +1,11 @@
 import appLogger from '@app/logger';
 
+import saveDatum from './functions/saveDatum';
 import { beforeSave } from './callbacks';
 import { getDatumFromDoc } from './pouchdb-utils';
 import { getDataIdFromPouchDbId, getDataTypeSelector } from './pouchdb-utils';
 import schema, { DATA_TYPE_NAMES, DataTypeName } from './schema';
 import { DataTypeWithAdditionalInfo } from './types';
-import saveDatum from './functions/saveDatum';
 
 const logger = appLogger.for({ module: 'fixConsistency' });
 
@@ -19,13 +19,15 @@ export default async function fixConsistency({
   batchSize = 10,
 }: {
   db: PouchDB.Database;
-  successCallback: (data: DataTypeWithAdditionalInfo<DataTypeName>) => void;
+  successCallback: (
+    data: DataTypeWithAdditionalInfo<DataTypeName>,
+  ) => Promise<void>;
   errorCallback: (info: {
     type: string;
     id?: string;
     rawId: string;
     error: unknown;
-  }) => void;
+  }) => Promise<void>;
   batchSize?: number;
 }) {
   for (const typeName of DATA_TYPE_NAMES) {
@@ -56,11 +58,11 @@ export default async function fixConsistency({
                 2,
               )}`,
             );
-          await saveDatum(data, { db, logger });
+          await saveDatum(data, { db, logger, noTouch: true });
 
-          successCallback(data);
+          await successCallback(data);
         } catch (e) {
-          errorCallback({
+          await errorCallback({
             type: typeName,
             id,
             rawId: doc._id,
