@@ -32,6 +32,7 @@ import useActionSheet from '@app/hooks/useActionSheet';
 import useColors from '@app/hooks/useColors';
 import useOrdered from '@app/hooks/useOrdered';
 
+import Button from '@app/components/Button';
 import Icon, { verifyIconNameWithDefault } from '@app/components/Icon';
 import ScreenContent from '@app/components/ScreenContent';
 import Text from '@app/components/Text';
@@ -285,6 +286,15 @@ function ItemScreen({
   useEffect(() => {
     dispatch(actions.inventory.addRecentViewedItemId({ id }));
   }, [dispatch, id]);
+
+  const dedicatedItemsName = (() => {
+    switch (data?.item_type) {
+      case 'item_with_parts':
+        return 'Parts';
+      default:
+        return 'Contents';
+    }
+  })();
 
   return (
     <ScreenContent
@@ -574,7 +584,8 @@ function ItemScreen({
                                 openRfidSheet({
                                   functionality: 'write',
                                   epc: item.rfid_tag_epc_memory_bank_contents,
-                                  tagAccessPassword: item.rfidTagAccessPassword,
+                                  tagAccessPassword:
+                                    item.rfid_tag_access_password,
                                   afterWriteSuccessRef:
                                     afterRFIDTagWriteSuccessRef,
                                 })
@@ -697,66 +708,73 @@ function ItemScreen({
           ['container', 'generic_container', 'item_with_parts'].includes(
             data.item_type,
           ) && (
-            <UIGroup
-              largeTitle
-              header={(() => {
-                switch (data?.item_type) {
-                  case 'item_with_parts':
-                    return 'Parts';
-                  default:
-                    return 'Contents';
-                }
-              })()}
-              loading={contentsLoading}
-              placeholder={contentsLoading ? undefined : 'No items'}
-              headerRight={
-                <>
-                  {!!orderedContents && (
-                    <UIGroup.TitleButton
-                      onPress={() =>
-                        rootNavigation?.push('OrderItems', {
-                          orderedItems: orderedContents,
-                          onSaveFunctionRef: handleUpdateContentsOrderFnRef,
-                        })
-                      }
-                    >
-                      {({ iconProps }) => (
-                        <Icon {...iconProps} name="app-reorder" />
+            <>
+              {(orderedContents || []).length > 0 && (
+                <UIGroup transparentBackground>
+                  <Button mode="text" onPress={handleCheckContents}>
+                    <Icon
+                      name="checklist"
+                      sfSymbolWeight="bold"
+                      color={iosTintColor}
+                    />{' '}
+                    Check {dedicatedItemsName}
+                  </Button>
+                </UIGroup>
+              )}
+              <UIGroup
+                largeTitle
+                header={dedicatedItemsName}
+                loading={contentsLoading}
+                placeholder={contentsLoading ? undefined : 'No items'}
+                headerRight={
+                  <>
+                    {!!orderedContents && (
+                      <UIGroup.TitleButton
+                        onPress={() =>
+                          rootNavigation?.push('OrderItems', {
+                            orderedItems: orderedContents,
+                            onSaveFunctionRef: handleUpdateContentsOrderFnRef,
+                          })
+                        }
+                      >
+                        {({ iconProps }) => (
+                          <Icon {...iconProps} name="app-reorder" />
+                        )}
+                      </UIGroup.TitleButton>
+                    )}
+                    <UIGroup.TitleButton primary onPress={handleNewContent}>
+                      {({ iconProps, textProps }) => (
+                        <>
+                          <Icon {...iconProps} name="add" />
+                          <Text {...textProps}>New</Text>
+                        </>
                       )}
                     </UIGroup.TitleButton>
+                  </>
+                }
+              >
+                {!!orderedContents &&
+                  orderedContents.length > 0 &&
+                  UIGroup.ListItemSeparator.insertBetween(
+                    orderedContents.map(i => (
+                      <ItemListItem
+                        key={i.__id}
+                        item={i}
+                        onPress={() =>
+                          navigation.push('Item', {
+                            id: i.__id || '',
+                            preloadedTitle: i.name,
+                          })
+                        }
+                        hideContainerDetails
+                        hideCollectionDetails={
+                          i.collection_id === data.collection_id
+                        }
+                      />
+                    )),
                   )}
-                  <UIGroup.TitleButton primary onPress={handleNewContent}>
-                    {({ iconProps, textProps }) => (
-                      <>
-                        <Icon {...iconProps} name="add" />
-                        <Text {...textProps}>New</Text>
-                      </>
-                    )}
-                  </UIGroup.TitleButton>
-                </>
-              }
-            >
-              {!!orderedContents &&
-                orderedContents.length > 0 &&
-                UIGroup.ListItemSeparator.insertBetween(
-                  orderedContents.map(i => (
-                    <ItemListItem
-                      key={i.__id}
-                      item={i}
-                      onPress={() =>
-                        navigation.push('Item', {
-                          id: i.__id || '',
-                          preloadedTitle: i.name,
-                        })
-                      }
-                      hideContainerDetails
-                      hideCollectionDetails={
-                        i.collection_id === data.collection_id
-                      }
-                    />
-                  )),
-                )}
-            </UIGroup>
+              </UIGroup>
+            </>
           )}
 
         {typeof data?.notes === 'string' && (

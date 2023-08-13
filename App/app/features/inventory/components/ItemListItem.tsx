@@ -21,6 +21,7 @@ import UIGroup from '@app/components/UIGroup';
 export default function ItemListItem({
   item,
   onPress,
+  onLongPress,
   hideDetails,
   reloadCounter,
   additionalDetails,
@@ -31,6 +32,7 @@ export default function ItemListItem({
 }: {
   item: DataTypeWithAdditionalInfo<'item'>;
   onPress: () => void;
+  onLongPress: () => void;
   hideDetails?: boolean;
   /** Can be used to reload the data in this component. Set this to a different value that isn't 0 to trigger an reload. */
   reloadCounter?: number;
@@ -101,6 +103,7 @@ export default function ItemListItem({
       icon={verifyIconNameWithDefault(item.icon_name)}
       iconColor={verifyIconColorWithDefault(item.icon_color)}
       onPress={onPress}
+      onLongPress={onLongPress}
       navigable={!!onPress}
       detail={
         hideDetails

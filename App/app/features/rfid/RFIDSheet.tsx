@@ -6,21 +6,22 @@ import React, {
   useState,
 } from 'react';
 import {
-  StyleSheet,
-  View,
-  TouchableOpacity,
   ActivityIndicator,
-  Switch,
-  ScrollView,
-  useWindowDimensions,
-  TouchableWithoutFeedback,
   Alert,
   LayoutAnimation,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import { AutoSizeText, ResizeTextMode } from 'react-native-auto-size-text';
-import Slider from '@react-native-community/slider';
 import LinearGradient from 'react-native-linear-gradient';
 import Modal from 'react-native-modal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
   BottomSheetBackdrop,
@@ -31,43 +32,47 @@ import {
   BottomSheetScrollView,
   BottomSheetScrollViewMethods,
 } from '@gorhom/bottom-sheet';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
+import Slider from '@react-native-community/slider';
 import Color from 'color';
-import commonStyles from '@app/utils/commonStyles';
-import InsetGroup from '@app/components/InsetGroup';
-import Text from '@app/components/Text';
-import ElevatedButton, {
-  SecondaryButton,
-} from '@app/components/ElevatedButton';
-import AppIcon from '@app/components/Icon';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import useForwardedRef from '@app/hooks/useForwardedRef';
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import useColors from '@app/hooks/useColors';
+import { useConfig, useData } from '@app/data';
 
-import useDB from '@app/hooks/useDB';
-import { ConfigStoredInDB } from '@app/db/types';
 import { getConfigInDB } from '@app/db/configUtils';
-import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
-import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
-import EPCUtils from '@app/modules/EPCUtils';
+import { getDataFromDocs } from '@app/db/hooks';
+import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { DataType } from '@app/db/old_schema';
+import { ConfigStoredInDB } from '@app/db/types';
 
-import { getTagAccessPassword } from './utils';
-import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
-import { usePersistedState } from '@app/hooks/usePersistedState';
+import commonStyles from '@app/utils/commonStyles';
+
+import EPCUtils from '@app/modules/EPCUtils';
+import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
 import RFIDWithUHFBLEModule, {
   DeviceConnectStatusPayload,
   ScanDevicesData,
 } from '@app/modules/RFIDWithUHFBLEModule';
-import ItemItem from '../inventory/components/ItemItem';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import { getDataFromDocs } from '@app/db/hooks';
+import RFIDWithUHFUARTModule from '@app/modules/RFIDWithUHFUARTModule';
+
 import useActionSheet from '@app/hooks/useActionSheet';
+import useColors from '@app/hooks/useColors';
+import useDB from '@app/hooks/useDB';
+import useForwardedRef from '@app/hooks/useForwardedRef';
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import { usePersistedState } from '@app/hooks/usePersistedState';
+
+import ElevatedButton, {
+  SecondaryButton,
+} from '@app/components/ElevatedButton';
+import AppIcon from '@app/components/Icon';
+import InsetGroup from '@app/components/InsetGroup';
+import Text from '@app/components/Text';
+
+import ItemItem from '../inventory/components/ItemItem';
+import ItemListItem from '../inventory/components/ItemListItem';
 import getChildrenDedicatedItemIds from '../inventory/utils/getChildrenDedicatedItemIds';
-import { useConfig } from '@app/data';
+
+import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
+import { getTagAccessPassword } from './utils';
 
 export type OnScannedItemPressFn = (
   data: ScanData,
@@ -2003,37 +2008,41 @@ function ScannedTag({
   const { db } = useDB();
   const { showActionSheetWithOptions } = useActionSheet();
 
-  const [loadedItem, setLoadedItem] = useState<DataTypeWithID<any> | null>(
-    null,
-  );
-  const [loadedItemType, setLoadedItemType] = useState<string | null>(null);
-  const loadItem = useCallback(async () => {
-    try {
-      const data = await db.find({
-        use_index: 'index-field-actualRfidTagEpcMemoryBankContents',
-        selector: {
-          'data.actualRfidTagEpcMemoryBankContents': { $eq: tag.epc },
-        },
-      });
-      const doc = (data as any)?.docs && (data as any)?.docs[0];
+  const { data: loadedItems } = useData('item', {
+    actual_rfid_tag_epc_memory_bank_contents: tag.epc,
+  });
+  const loadedItem = loadedItems && loadedItems[0];
+  // const [loadedItem, setLoadedItem] = useState<DataTypeWithID<any> | null>(
+  //   null,
+  // );
+  // const [loadedItemType, setLoadedItemType] = useState<string | null>(null);
+  // const loadItem = useCallback(async () => {
+  //   try {
+  //     const data = await db.find({
+  //       use_index: 'index-field-actualRfidTagEpcMemoryBankContents',
+  //       selector: {
+  //         'data.actualRfidTagEpcMemoryBankContents': { $eq: tag.epc },
+  //       },
+  //     });
+  //     const doc = (data as any)?.docs && (data as any)?.docs[0];
 
-      const lItemType = (doc as any).type || null;
-      setLoadedItemType(lItemType);
-      if (!['item'].includes(lItemType)) return;
+  //     const lItemType = (doc as any).type || null;
+  //     setLoadedItemType(lItemType);
+  //     if (!['item'].includes(lItemType)) return;
 
-      const lItem = getDataFromDocs(lItemType, [doc])[0];
-      setLoadedItem(lItem);
+  //     const lItem = getDataFromDocs(lItemType, [doc])[0];
+  //     setLoadedItem(lItem);
 
-      if (lItemType === 'item') {
-        onItemLoad && onItemLoad(lItem as any);
-      }
-    } catch (e) {
-      // TODO: Handle other error
-    }
-  }, [db, tag.epc, onItemLoad]);
-  useEffect(() => {
-    loadItem();
-  }, [loadItem]);
+  //     if (lItemType === 'item') {
+  //       onItemLoad && onItemLoad(lItem as any);
+  //     }
+  //   } catch (e) {
+  //     // TODO: Handle other error
+  //   }
+  // }, [db, tag.epc, onItemLoad]);
+  // useEffect(() => {
+  //   loadItem();
+  // }, [loadItem]);
   const handleItemLongPress = useCallback(() => {
     const options = [
       loadedItem && onPressRef?.current && 'view',
@@ -2068,7 +2077,7 @@ function ScannedTag({
         switch (selectedOption) {
           case 'view':
             onPressRef?.current &&
-              onPressRef.current(tag, 'item', loadedItem?.id || null);
+              onPressRef.current(tag, 'item', loadedItem?.__id || null);
             return;
           case 'remove':
             if (!removeScannedItem) return;
@@ -2092,24 +2101,22 @@ function ScannedTag({
   ]);
 
   if (loadedItem) {
-    if (loadedItemType === 'item') {
-      return (
-        <ItemItem
-          item={loadedItem as any}
-          additionalDetails={tag.rssi && `RSSI: ${tag.rssi}`}
-          arrow={false}
-          onPress={
-            onPressRef
-              ? () => {
-                  onPressRef.current &&
-                    onPressRef.current(tag, 'item', loadedItem.id || null);
-                }
-              : undefined
-          }
-          onLongPress={handleItemLongPress}
-        />
-      );
-    }
+    return (
+      <ItemListItem
+        item={loadedItem as any}
+        additionalDetails={tag.rssi && `RSSI: ${tag.rssi}`}
+        navigable={false}
+        onPress={
+          onPressRef
+            ? () => {
+                onPressRef.current &&
+                  onPressRef.current(tag, 'item', loadedItem.__id || null);
+              }
+            : () => {}
+        }
+        onLongPress={handleItemLongPress}
+      />
+    );
 
     // return (
     //   <InsetGroup.Item

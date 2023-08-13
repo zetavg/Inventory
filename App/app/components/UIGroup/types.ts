@@ -60,6 +60,7 @@ export type ListItemProps = {
   selected?: boolean;
   navigable?: boolean;
   onPress?: () => void;
+  onLongPress?: () => void;
   button?: boolean;
   destructive?: boolean;
   disabled?: boolean;
