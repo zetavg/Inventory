@@ -66,6 +66,7 @@
         "container_id": { "type": "string" },
         "always_show_in_collection": { "type": "boolean" },
         "_show_in_collection": { "type": "boolean" },
+        "notes": { "type": "string" },
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }

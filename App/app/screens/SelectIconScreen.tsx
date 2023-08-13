@@ -9,6 +9,7 @@ import {
 import type { StackScreenProps } from '@react-navigation/stack';
 import SearchBar from 'react-native-platform-searchbar';
 
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 import { ICONS } from '@app/consts/icons';
 
 import cs from '@app/utils/commonStyles';
@@ -24,11 +25,6 @@ import Icon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
-
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
-};
 
 function SelectIconScreen({
   navigation,
@@ -48,7 +44,7 @@ function SelectIconScreen({
       );
     }
 
-    LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
 
     return iconEntries.map(([k]) => k);
   }, [search]);

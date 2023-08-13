@@ -24,6 +24,8 @@ import {
   useFrameProcessor,
 } from 'react-native-vision-camera';
 
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import ChecklistItem from '@app/features/inventory/components/ChecklistItem';
 import CollectionItem from '@app/features/inventory/components/CollectionItem';
@@ -58,15 +60,18 @@ import SEARCH_OPTIONS, {
   DEFAULT_SEARCH_LANGUAGES,
 } from '../consts/SEARCH_OPTIONS';
 
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
+type SearchResultItem = {
+  highlight: React.ComponentProps<typeof UIGroup.ListItem>['detail'] | null;
+  d:
+    | DataTypeWithAdditionalInfo<'item'>
+    | DataTypeWithAdditionalInfo<'collection'>;
 };
 
 function SearchScreen({
   navigation,
   route,
 }: StackScreenProps<StackParamList, 'Search'>) {
+  const rootNavigation = useRootNavigation();
   const logger = useLogger('SearchScreen');
   const { query: queryFromParams } = route.params || {};
 
@@ -76,12 +81,7 @@ function SearchScreen({
   const searchTextRef = useRef(searchText);
   searchTextRef.current = searchText;
 
-  const [data, setData] = useState<
-    Array<
-      | DataTypeWithAdditionalInfo<'item'>
-      | DataTypeWithAdditionalInfo<'collection'>
-    >
-  >([]);
+  const [data, setData] = useState<Array<SearchResultItem>>([]);
   const [loading, setLoading] = useState(false);
 
   const getData = useCallback(async () => {
@@ -94,39 +94,61 @@ function SearchScreen({
             query: searchText,
             ...SEARCH_OPTIONS,
             include_docs: true,
-            // highlighting: true,
-            // highlighting_pre: '<|\x1fsearch_match\x1f|><|\x1fmatch\x1f|>',
-            // highlighting_post: '<|\x1fsearch_match\x1f|>',
+            highlighting: true,
+            highlighting_pre: '<|\x1fsearch_match\x1f|><|\x1fmatch\x1f|>',
+            highlighting_post: '<|\x1fsearch_match\x1f|>',
             skip: 0,
             limit: 50,
           })
         : { rows: [] });
-      if (searchTextRef.current === searchText) {
-        const dd = results.rows.map(
-          (
-            r: any,
-          ):
-            | DataTypeWithAdditionalInfo<'item'>
-            | DataTypeWithAdditionalInfo<'collection'>
-            | null => {
-            switch (true) {
-              case r.id.startsWith('item'): {
-                const d = getDatumFromDoc('item', r.doc, logger, {});
-                if (d.__valid) return d;
-                return null;
-              }
-              case r.id.startsWith('collection'): {
-                const d = getDatumFromDoc('collection', r.doc, logger, {});
-                if (d.__valid) return d;
-                return null;
-              }
-              default:
-                return null;
-            }
-          },
-        );
 
-        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+      if (
+        // Prevent outdated request overriding shown results
+        searchTextRef.current === searchText
+      ) {
+        const dd = results.rows.map((r: any): SearchResultItem | null => {
+          switch (true) {
+            case r.id.startsWith('item'): {
+              const d = getDatumFromDoc('item', r.doc, logger, {});
+              const [, highlightStr] =
+                Object.entries(r.highlighting || {}).filter(([k, v]) => {
+                  return ![
+                    'data.name',
+                    'data._individual_asset_reference',
+                    'data.item_reference_number',
+                    'data.serial',
+                    'data.epc_tag_uri',
+                    'data.rfid_tag_epc_memory_bank_contents',
+                    'data.actual_rfid_tag_epc_memory_bank_contents',
+                  ].includes(k);
+                })[0] || [];
+              const highlight = getHighlightFromStr(highlightStr);
+              if (d.__valid) {
+                return { d, highlight };
+              }
+              return null;
+            }
+            case r.id.startsWith('collection'): {
+              const d = getDatumFromDoc('collection', r.doc, logger, {});
+              const [, highlightStr] =
+                Object.entries(r.highlighting || {}).filter(([k, v]) => {
+                  return ![
+                    'data.name',
+                    'data.collection_reference_number',
+                  ].includes(k);
+                })[0] || [];
+              const highlight = getHighlightFromStr(highlightStr);
+              if (d.__valid) {
+                return { d, highlight };
+              }
+              return null;
+            }
+            default:
+              return null;
+          }
+        });
+
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
         setData(dd.filter((d: any) => !!d));
       }
     } catch (e: any) {
@@ -137,14 +159,21 @@ function SearchScreen({
       }
     }
   }, [db, logger, searchText]);
+
   useEffect(() => {
-    getData();
-  }, [getData]);
-  useFocusEffect(
-    useCallback(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
       getData();
-    }, [getData]),
-  );
+    }, 500);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [getData]);
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     getData();
+  //   }, [getData]),
+  // );
 
   const recentViewedItemIds = useAppSelector(
     selectors.inventory.recentViewedItemIds,
@@ -157,6 +186,16 @@ function SearchScreen({
   );
   const verifiedRecentItems = recentItems && onlyValid(recentItems);
   const hasRecentItems = verifiedRecentItems && verifiedRecentItems.length > 0;
+
+  const [searchFocused, setSearchFocused] = useState(false);
+  const handleSearchFocus = useCallback(() => {
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+    setSearchFocused(true);
+  }, []);
+  const handleSearchBlur = useCallback(() => {
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+    setSearchFocused(false);
+  }, []);
 
   const [refreshing, setRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
@@ -180,19 +219,20 @@ function SearchScreen({
       title={queryFromParams ? queryFromParams : 'Search'}
       showSearch={!queryFromParams}
       // searchPlaceholder="Name, reference number, notes..."
-      // onSearchBlur={handleSearchBlur}
+      onSearchFocus={handleSearchFocus}
+      onSearchBlur={handleSearchBlur}
       searchHideWhenScrollingIOS={!!queryFromParams}
       searchCanBeClosedAndroid={!!queryFromParams}
       onSearchChangeText={setSearchText}
-      // action1Label="Settings"
-      // action1SFSymbolName="gearshape.fill"
-      // action1MaterialIconName="cog"
-      // onAction1Press={() =>
-      //   rootNavigation?.push('SearchOptions', {
-      //     defaultValue: '',
-      //     callback: _ => {},
-      //   })
-      // }
+      action1Label="Settings"
+      action1SFSymbolName="gearshape.fill"
+      action1MaterialIconName="cog"
+      onAction1Press={() =>
+        rootNavigation?.push('SearchOptions', {
+          defaultValue: '',
+          callback: _ => {},
+        })
+      }
       // action2Label="Scan"
       // action2SFSymbolName="barcode.viewfinder"
       // action2MaterialIconName="barcode-scan"
@@ -207,7 +247,8 @@ function SearchScreen({
       >
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         {!searchText ? (
-          hasRecentItems || recentViewedItemIds.length > 0 ? (
+          !searchFocused &&
+          (hasRecentItems || recentViewedItemIds.length > 0) ? (
             <>
               {recentViewedItemIds.length > 0 && (
                 <UIGroup
@@ -259,10 +300,13 @@ function SearchScreen({
             <UIGroup placeholder="Type to start search" />
           )
         ) : (
-          <UIGroup placeholder="No Results">
+          <UIGroup
+            placeholder={loading ? undefined : 'No Results'}
+            loading={loading}
+          >
             {data.length > 0 &&
               UIGroup.ListItemSeparator.insertBetween(
-                data.map(d => {
+                data.map(({ d, highlight }) => {
                   switch (d.__type) {
                     case 'item':
                       return (
@@ -272,6 +316,7 @@ function SearchScreen({
                           onPress={() =>
                             navigation.push('Item', { id: d.__id || '' })
                           }
+                          additionalDetails={highlight}
                         />
                       );
                     case 'collection':
@@ -282,8 +327,11 @@ function SearchScreen({
                           onPress={() =>
                             navigation.push('Collection', { id: d.__id || '' })
                           }
+                          additionalDetails={highlight}
                         />
                       );
+                    default:
+                      return <UIGroup.ListItem label={JSON.stringify(d)} />;
                   }
                 }),
                 { forItemWithIcon: true },
@@ -320,6 +368,51 @@ function ItemListItemById({
   }
 
   return <ItemListItem item={data} onPress={onPress} hideContentDetails />;
+}
+
+function getHighlightFromStr(
+  highlightStr: unknown,
+): SearchResultItem['highlight'] {
+  if (typeof highlightStr !== 'string') return undefined;
+  const highlight: React.ComponentProps<typeof UIGroup.ListItem>['detail'] =
+    highlightStr
+      ? ({ textProps }) => (
+          <>
+            {(highlightStr as string)
+              .split('<|\x1fsearch_match\x1f|>')
+              .map((s, i, arr) =>
+                s.startsWith('<|\x1fmatch\x1f|>') ? (
+                  <Text
+                    {...textProps}
+                    style={[textProps.style, commonStyles.fwBold]}
+                  >
+                    {s.slice('<|\x1fmatch\x1f|>'.length)}
+                  </Text>
+                ) : (
+                  (() => {
+                    if (i === 0) {
+                      if (s.length > 16) {
+                        return '...' + s.slice(s.length - 16);
+                      } else {
+                        return s;
+                      }
+                    } else if (i === arr.length - 1) {
+                      if (s.length > 8) {
+                        return s.slice(0, 8) + '...';
+                      } else {
+                        return s;
+                      }
+                    } else {
+                      return s;
+                    }
+                  })()
+                ),
+              )}
+          </>
+        )
+      : undefined;
+
+  return highlight;
 }
 
 export default SearchScreen;

@@ -9,6 +9,8 @@ import { LayoutAnimation, ScrollView, StyleSheet, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import SearchBar from 'react-native-platform-searchbar';
 
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+
 import {
   DataTypeWithAdditionalInfo,
   onlyValid,
@@ -35,11 +37,6 @@ import {
   SEARCH_ITEM_AS_CONTAINER_OPTIONS,
   SEARCH_ITEMS_OPTIONS,
 } from '../consts/SEARCH_OPTIONS';
-
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
-};
 
 function SelectItemModalScreen({
   navigation,
@@ -116,7 +113,7 @@ function SelectItemModalScreen({
   const items = useMemo(() => {
     if (!orderedData) return orderedData;
 
-    LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
 
     if (search) {
       if ((searchResults?.length || 0) <= 0) return null;
@@ -174,14 +171,18 @@ function SelectItemModalScreen({
       onAction1Press={handleSelect}
       action1Variant="strong"
     >
-      <ModalContent.ScrollView ref={scrollViewRef}>
+      <ModalContent.ScrollView
+        ref={scrollViewRef}
+        automaticallyAdjustKeyboardInsets={false}
+      >
         <View style={styles.searchBarContainer}>
           <SearchBar
             theme={isDarkMode ? 'dark' : 'light'}
             value={search}
             onChangeText={setSearch}
             placeholder="Search"
-            onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
+            // onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
+            autoFocus
           />
         </View>
         <UIGroup

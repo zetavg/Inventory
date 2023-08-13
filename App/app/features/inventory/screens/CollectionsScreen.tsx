@@ -4,6 +4,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import { ZodError } from 'zod';
 
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+
 import { onlyValid, useConfig, useData, useSave } from '@app/data';
 
 import moveItemInArray from '@app/utils/moveItemInArray';
@@ -19,11 +21,6 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 import CollectionListItem from '../components/CollectionListItem';
-
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
-};
 
 function CollectionsScreen({
   navigation,
@@ -140,9 +137,9 @@ function CollectionsScreen({
       navigation={navigation}
       title="Collections"
       showSearch
-      searchPlaceholder="Search Collections..."
+      searchPlaceholder="Find Collection..."
       onSearchChangeText={text => {
-        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
         setSearchText(text);
       }}
       action1Label={editing ? 'Done' : 'Add'}

@@ -37,7 +37,7 @@ export default function ItemListItem({
   hideCollectionDetails?: boolean;
   hideContainerDetails?: boolean;
   hideContentDetails?: boolean;
-  additionalDetails?: string;
+  additionalDetails?: React.ComponentProps<typeof UIGroup.ListItem>['detail'];
 } & React.ComponentProps<typeof UIGroup.ListItem>) {
   const [disableAdditionalDataLoading, setDisableAdditionalDataLoading] =
     useState(true);
@@ -109,7 +109,11 @@ export default function ItemListItem({
             ({ textProps, iconProps }) => {
               const detailElements = [
                 !!additionalDetails && (
-                  <React.Fragment>{additionalDetails}</React.Fragment>
+                  <React.Fragment key="additionalDetails">
+                    {typeof additionalDetails === 'function'
+                      ? additionalDetails({ textProps, iconProps })
+                      : additionalDetails}
+                  </React.Fragment>
                 ),
                 !hideContentDetails &&
                   itemsCount !== null &&

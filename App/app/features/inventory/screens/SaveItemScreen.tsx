@@ -528,7 +528,7 @@ function SaveItemScreen({
                       return (
                         <Text
                           {...textProps}
-                          style={[textProps.style, commonStyles.opacity05]}
+                          style={[textProps.style, commonStyles.opacity02]}
                         >
                           None
                         </Text>
@@ -624,6 +624,22 @@ function SaveItemScreen({
             }));
           }}
         />
+
+        <UIGroup>
+          <UIGroup.ListTextInputItem
+            label="Notes"
+            placeholder="Enter Notes..."
+            multiline
+            autoCapitalize="sentences"
+            value={data.notes}
+            onChangeText={text => {
+              setData(d => ({
+                ...d,
+                notes: text,
+              }));
+            }}
+          />
+        </UIGroup>
       </ModalContent.ScrollView>
     </ModalContent>
   );

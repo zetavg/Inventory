@@ -295,7 +295,7 @@ const commonStyles = StyleSheet.create({
     opacity: 0.5,
   },
   opacity04: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   opacity02: {
     opacity: 0.2,

@@ -755,6 +755,14 @@ function ItemScreen({
                 )}
             </UIGroup>
           )}
+
+        {typeof data?.notes === 'string' && (
+          <UIGroup header="Notes" largeTitle>
+            <UIGroup.ListItem>
+              <Text>{data.notes}</Text>
+            </UIGroup.ListItem>
+          </UIGroup>
+        )}
       </ScreenContent.ScrollView>
     </ScreenContent>
   );

@@ -56,6 +56,7 @@ export const schema = {
       container_id: z.string().optional(),
       always_show_in_collection: z.boolean().optional(),
       _show_in_collection: z.boolean().optional(),
+      notes: z.string().optional(),
       contents_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),

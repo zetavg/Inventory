@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Text } from 'react-native';
 
 import { DataTypeWithAdditionalInfo, useDataCount } from '@app/data';
 
@@ -10,10 +11,12 @@ export default function CollectionListItem({
   onPress,
   hideDetails,
   reloadCounter,
+  additionalDetails,
   ...props
 }: {
   collection: DataTypeWithAdditionalInfo<'collection'>;
   onPress: () => void;
+  additionalDetails?: React.ComponentProps<typeof UIGroup.ListItem>['detail'];
   hideDetails?: boolean;
   /** Can be used to reload the data in this component. Set this to a different value that isn't 0 to trigger an reload. */
   reloadCounter?: number;
@@ -45,14 +48,49 @@ export default function CollectionListItem({
       detail={
         hideDetails
           ? undefined
-          : [
-              collection.collection_reference_number,
-              itemsCount !== null && itemsCount === 1
-                ? `${itemsCount} item`
-                : `${itemsCount} items`,
-            ]
-              .filter(s => s)
-              .join(' | ')
+          : // eslint-disable-next-line react/no-unstable-nested-components
+            ({ textProps, iconProps }) => {
+              const detailElements = [
+                !!additionalDetails && (
+                  <React.Fragment key="additionalDetails">
+                    {typeof additionalDetails === 'function'
+                      ? additionalDetails({ textProps, iconProps })
+                      : additionalDetails}
+                  </React.Fragment>
+                ),
+                <React.Fragment key="collectionReferenceNumber">
+                  {collection.collection_reference_number}
+                </React.Fragment>,
+                itemsCount !== null && (
+                  <React.Fragment key="itemsCount">
+                    {itemsCount === 1
+                      ? `${itemsCount} item`
+                      : `${itemsCount} items`}
+                  </React.Fragment>
+                ),
+              ].filter(s => s);
+              return (
+                <Text {...textProps} numberOfLines={1}>
+                  {(detailElements.length
+                    ? detailElements
+                    : [
+                        <Text key="N" {...textProps}>
+                          {' '}
+                          -{' '}
+                        </Text>,
+                      ]
+                  )
+                    .flatMap((node, i) => [
+                      node,
+                      <Text key={`s-${i}`} {...textProps}>
+                        {' '}
+                        |{' '}
+                      </Text>,
+                    ])
+                    .slice(0, -1)}
+                </Text>
+              );
+            }
       }
       {...props}
     />

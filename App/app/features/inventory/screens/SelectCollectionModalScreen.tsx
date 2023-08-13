@@ -3,6 +3,8 @@ import { LayoutAnimation, ScrollView, StyleSheet, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import SearchBar from 'react-native-platform-searchbar';
 
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+
 import { onlyValid, useConfig, useData } from '@app/data';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -15,11 +17,6 @@ import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
 
 import CollectionListItem from '../components/CollectionListItem';
-
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
-};
 
 function SelectCollectionModalScreen({
   navigation,
@@ -54,7 +51,7 @@ function SelectCollectionModalScreen({
       );
     }
 
-    LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
 
     return orderedData;
   }, [orderedData, search]);
@@ -106,7 +103,7 @@ function SelectCollectionModalScreen({
             theme={isDarkMode ? 'dark' : 'light'}
             value={search}
             onChangeText={setSearch}
-            placeholder="Search"
+            placeholder="Find by name"
             onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
           />
         </View>

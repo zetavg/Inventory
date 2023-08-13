@@ -10,6 +10,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import {
+  DEFAULT_LAYOUT_ANIMATION_CONFIG,
+  DEFAULT_LAYOUT_ANIMATION_CONFIG_SLOWER,
+} from '@app/consts/animations';
+import {
   verifyIconColorWithDefault,
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
@@ -36,17 +40,7 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 import ItemListItem from '../components/ItemListItem';
-import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
-
-const LAYOUT_ANIMATION_CONFIG = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 100,
-};
-
-const LAYOUT_ANIMATION_CONFIG_S = {
-  ...LayoutAnimation.Presets.easeInEaseOut,
-  duration: 200,
-};
+import SEARCH_OPTIONS, { getItemSearchOptionsForCollection } from '../consts/SEARCH_OPTIONS';
 
 function CollectionScreen({
   navigation,
@@ -117,10 +111,7 @@ function CollectionScreen({
       const results = await (searchText
         ? (db as any).search({
             query: searchText,
-            ...SEARCH_OPTIONS,
-            filter: function (doc: any) {
-              return doc?.type === 'item' && doc?.data?.collection_id === id;
-            },
+            ...getItemSearchOptionsForCollection(id),
             include_docs: true,
             // highlighting: true,
             // highlighting_pre: '<|\x1fsearch_match\x1f|><|\x1fmatch\x1f|>',
@@ -144,7 +135,7 @@ function CollectionScreen({
           },
         );
 
-        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
         setSearchResults(dd.filter((d: any) => !!d));
       }
     } catch (e: any) {
@@ -247,11 +238,11 @@ function CollectionScreen({
       searchPlaceholder="Search Item..."
       onSearchChangeText={setSearchText}
       onSearchFocus={() => {
-        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG_S);
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG_SLOWER);
         setSearchFocused(true);
       }}
       onSearchBlur={() => {
-        LayoutAnimation.configureNext(LAYOUT_ANIMATION_CONFIG);
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
         setSearchFocused(false);
       }}
       action1Label="Edit"
