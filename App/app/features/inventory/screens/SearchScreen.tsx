@@ -162,9 +162,10 @@ function SearchScreen({
 
   useEffect(() => {
     setLoading(true);
+    // Debounce
     const timer = setTimeout(() => {
       getData();
-    }, 500);
+    }, 300);
     return () => {
       clearTimeout(timer);
     };

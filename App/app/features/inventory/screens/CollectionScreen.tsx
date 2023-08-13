@@ -106,9 +106,13 @@ function CollectionScreen({
     Array<DataTypeWithAdditionalInfo<'item'>>
   >([]);
   const loadSearchResults = useCallback(async () => {
-    if (!db) return;
+    if (!db) {
+      setSearchLoading(false);
+      return;
+    }
 
     setSearchLoading(true);
+
     try {
       const results = await (searchText
         ? (db as any).search({
@@ -149,13 +153,20 @@ function CollectionScreen({
     }
   }, [db, id, logger, searchText]);
   useEffect(() => {
-    loadSearchResults();
-  }, [loadSearchResults]);
-  useFocusEffect(
-    useCallback(() => {
+    setSearchLoading(true);
+    // Debounce
+    const timer = setTimeout(() => {
       loadSearchResults();
-    }, [loadSearchResults]),
-  );
+    }, 100);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [loadSearchResults]);
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     loadSearchResults();
+  //   }, [loadSearchResults]),
+  // );
 
   const refreshing = dataRefreshing || itemsRefreshing;
   const [reloadCounter, setReloadCounter] = useState(0);
