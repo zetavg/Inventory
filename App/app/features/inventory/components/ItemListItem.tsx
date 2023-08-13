@@ -32,7 +32,7 @@ export default function ItemListItem({
 }: {
   item: DataTypeWithAdditionalInfo<'item'>;
   onPress: () => void;
-  onLongPress: () => void;
+  onLongPress?: () => void;
   hideDetails?: boolean;
   /** Can be used to reload the data in this component. Set this to a different value that isn't 0 to trigger an reload. */
   reloadCounter?: number;

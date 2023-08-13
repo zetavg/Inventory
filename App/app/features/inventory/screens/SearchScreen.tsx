@@ -379,6 +379,7 @@ function getHighlightFromStr(
       ? ({ textProps }) => (
           <>
             {(highlightStr as string)
+              .replace(/\n/gm, ' ')
               .split('<|\x1fsearch_match\x1f|>')
               .map((s, i, arr) =>
                 s.startsWith('<|\x1fmatch\x1f|>') ? (
