@@ -39,7 +39,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
   } = props;
   const { contentTextColor } = useColors();
   const leftElement = (() => {
-    if (icon) {
+    if (typeof icon === 'string') {
       return (
         <Icon
           name={icon}
@@ -50,6 +50,16 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
           backgroundPadding={4}
         />
       );
+    } else if (typeof icon === 'function') {
+      const iconProps = {
+        color: iconColor,
+        style: styles.iosItemIcon,
+        size: 30,
+        showBackground: true,
+        backgroundPadding: 4,
+      };
+
+      return icon({ iconProps });
     }
 
     return undefined;

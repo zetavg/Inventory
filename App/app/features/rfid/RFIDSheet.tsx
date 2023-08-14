@@ -104,6 +104,7 @@ export type RFIDSheetOptions = {
       // ignoreScannedChildren?: boolean;
       playSoundOnlyForEpcs?: string[];
       useDefaultFilter?: boolean;
+      filterOption?: any; // TODO
       autoScroll?: boolean;
       onScannedItemPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
       renderScannedItemsRef?: React.MutableRefObject<RenderScannedItemsFn | null>;
@@ -451,10 +452,11 @@ function RFIDSheet(
   const [defaultFilter, setDefaultFilter] = useState<string | null>(null);
   useEffect(() => {
     if (!epcCompanyPrefix || !epcPrefix) return;
-    const [f] = EPCUtils.encodeHexEPC(
-      `urn:epc:tag:giai-96:0.${epcCompanyPrefix}.${epcPrefix}`,
-    );
-    setDefaultFilter(f.slice(0, 8));
+    const f = EPCUtils.getEpcFilter({
+      companyPrefix: epcCompanyPrefix,
+      tagPrefix: epcPrefix,
+    });
+    setDefaultFilter(f);
   }, [epcCompanyPrefix, epcPrefix]);
   // #endregion //
 
@@ -580,6 +582,8 @@ function RFIDSheet(
           bitCount: (defaultFilter?.length || 0) * 4,
           data: defaultFilter || '',
         }
+      : options?.filterOption
+      ? options.filterOption
       : enableScanFilter
       ? {
           memoryBank: 'EPC' as const,

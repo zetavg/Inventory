@@ -221,8 +221,8 @@ function ItemScreen({
   };
 
   const [handleCheckContents] = useCheckItems({
-    scanName: `container-${id}-scan`,
-    items: [],
+    scanName: `container-${id}-check-items`,
+    items: orderedContents || [],
     navigation,
   });
 

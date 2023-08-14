@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
+import { SFSymbol } from 'react-native-sfsymbols';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
   verifyIconColorWithDefault,
@@ -15,6 +17,8 @@ import {
 
 import commonStyles from '@app/utils/commonStyles';
 
+import useColors from '@app/hooks/useColors';
+
 import Icon from '@app/components/Icon';
 import UIGroup from '@app/components/UIGroup';
 
@@ -28,6 +32,8 @@ export default function ItemListItem({
   hideCollectionDetails,
   hideContainerDetails,
   hideContentDetails,
+  checkStatus,
+  grayOut,
   ...props
 }: {
   item: DataTypeWithAdditionalInfo<'item'>;
@@ -40,6 +46,13 @@ export default function ItemListItem({
   hideContainerDetails?: boolean;
   hideContentDetails?: boolean;
   additionalDetails?: React.ComponentProps<typeof UIGroup.ListItem>['detail'];
+  checkStatus?:
+    | 'checked'
+    | 'unchecked'
+    | 'partially-checked'
+    | 'manually-checked'
+    | 'no-rfid-tag';
+  grayOut?: boolean;
 } & React.ComponentProps<typeof UIGroup.ListItem>) {
   const [disableAdditionalDataLoading, setDisableAdditionalDataLoading] =
     useState(true);
@@ -95,12 +108,26 @@ export default function ItemListItem({
     refreshContainer,
   ]);
 
+  const iconName = verifyIconNameWithDefault(item.icon_name);
+
   return (
     <UIGroup.ListItem
       key={item.__id}
       verticalArrangedNormalLabelIOS={!hideDetails}
       label={item.name}
-      icon={verifyIconNameWithDefault(item.icon_name)}
+      labelTextStyle={[grayOut && styles.itemItemLabelTextGrayOut]}
+      detailTextStyle={[grayOut && styles.itemItemDetailTextGrayOut]}
+      icon={
+        checkStatus
+          ? // eslint-disable-next-line react/no-unstable-nested-components
+            ({ iconProps }) => (
+              <View>
+                <Icon {...iconProps} name={iconName} />
+                <CheckStatusIcon status={checkStatus} />
+              </View>
+            )
+          : iconName
+      }
       iconColor={verifyIconColorWithDefault(item.icon_color)}
       onPress={onPress}
       onLongPress={onLongPress}
@@ -225,3 +252,167 @@ export default function ItemListItem({
     />
   );
 }
+
+function CheckStatusIcon({
+  status,
+}: {
+  status:
+    | 'checked'
+    | 'unchecked'
+    | 'partially-checked'
+    | 'manually-checked'
+    | 'no-rfid-tag';
+}) {
+  const { green, gray, yellow } = useColors();
+
+  if (Platform.OS === 'ios') {
+    switch (status) {
+      case 'checked':
+      case 'manually-checked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            <SFSymbol
+              name="checkmark.circle.fill"
+              color={status === 'checked' ? green : gray}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+      case 'partially-checked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            <SFSymbol
+              name="ellipsis.circle.fill"
+              color={yellow}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+
+      case 'unchecked':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            {/*<SFSymbol
+              style={styles.checkStatusIconIosLayer1}
+              name="questionmark.app.dashed"
+              color={contentBackgroundColor}
+              size={16}
+              weight="heavy"
+            />*/}
+            <SFSymbol
+              // style={styles.checkStatusIconIosLayer2}
+              name="questionmark.app.dashed"
+              color={gray}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+
+      case 'no-rfid-tag':
+        return (
+          <View style={styles.checkStatusIconContainer}>
+            {/*<SFSymbol
+              style={styles.checkStatusIconIosLayer2}
+              name="antenna.radiowaves.left.and.right.slash"
+              color={contentBackgroundColor}
+              size={16}
+              weight="heavy"
+            />*/}
+            <SFSymbol
+              // style={styles.checkStatusIconIosLayer2}
+              name="antenna.radiowaves.left.and.right.slash"
+              color={gray}
+              size={16}
+              weight="regular"
+            />
+          </View>
+        );
+    }
+  }
+
+  switch (status) {
+    case 'checked':
+    case 'manually-checked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="check-circle"
+            color={status === 'checked' ? green : gray}
+            size={16}
+          />
+        </View>
+      );
+    case 'partially-checked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="dots-horizontal-circle"
+            color={yellow}
+            size={16}
+          />
+        </View>
+      );
+
+    case 'unchecked':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="progress-question"
+            color={gray}
+            size={16}
+          />
+        </View>
+      );
+
+    case 'no-rfid-tag':
+      return (
+        <View style={styles.checkStatusIconContainer}>
+          <MaterialCommunityIcon
+            name="access-point-off"
+            color={gray}
+            size={16}
+          />
+        </View>
+      );
+  }
+}
+
+const styles = StyleSheet.create({
+  itemItemIcon: { marginRight: -2 },
+  itemItemIconUnchecked: {
+    opacity: 0.3,
+  },
+  itemItemLabelText: { fontSize: 16 },
+  itemItemDetailText: { fontSize: 12 },
+  itemItemLabelTextGrayOut: {
+    opacity: 0.5,
+  },
+  itemItemDetailTextGrayOut: {
+    opacity: 0.5,
+  },
+  itemDetailCollectionIcon: {
+    opacity: 0.7,
+    marginBottom: -1.5,
+  },
+  checkStatusIconContainer:
+    Platform.OS === 'ios'
+      ? {
+          position: 'absolute',
+          right: 2,
+          bottom: 5,
+        }
+      : {
+          position: 'absolute',
+          right: -4,
+          bottom: -3,
+        },
+  checkStatusIconIosLayer1: {
+    position: 'absolute',
+  },
+  checkStatusIconIosLayer2: {
+    position: 'absolute',
+  },
+});

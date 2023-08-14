@@ -49,7 +49,11 @@ export type ListItemProps = {
       }) => React.ReactNode);
   detailTextStyle?: React.ComponentProps<typeof Text>['style'];
   monospaceDetail?: boolean;
-  icon?: React.ComponentProps<typeof Icon>['name'];
+  icon?:
+    | React.ComponentProps<typeof Icon>['name']
+    | ((p: {
+        iconProps: Partial<React.ComponentProps<typeof Icon>>;
+      }) => JSX.Element);
   iconColor?: React.ComponentProps<typeof Icon>['color'];
   rightElement?:
     | React.ReactNode

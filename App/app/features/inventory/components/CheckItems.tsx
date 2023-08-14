@@ -6,27 +6,31 @@ import React, {
   useState,
 } from 'react';
 import {
-  StyleSheet,
-  Platform,
-  LayoutAnimation,
   Alert,
-  View,
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
   TouchableHighlight,
+  View,
 } from 'react-native';
-import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SFSymbol } from 'react-native-sfsymbols';
-
-import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Color from 'color';
-import useColors from '@app/hooks/useColors';
+
+import { DataTypeWithAdditionalInfo } from '@app/data';
+
 import commonStyles from '@app/utils/commonStyles';
+
+import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
+
+import useActionSheet from '@app/hooks/useActionSheet';
+import useColors from '@app/hooks/useColors';
+
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
 
-import ItemItem from './ItemItem';
-import useActionSheet from '@app/hooks/useActionSheet';
+import ItemListItem from './ItemListItem';
 
 const UI_REORDER_ANIMATION_DELAY = 500;
 
@@ -41,14 +45,14 @@ export default function CheckItems({
   resultSeenIdsRef,
   resultManuallyCheckedIdsRef,
 }: {
-  items: ReadonlyArray<DataTypeWithID<'item'>>;
+  items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>;
   scannedItems: Record<string, ScanData>;
   clearScannedDataCounter: number;
   contentBackgroundColor: string;
   dedicatedIdsMap: Record<string, Array<string>>;
   loadedItemsMapRef: React.MutableRefObject<Map<
     string,
-    DataTypeWithID<'item'>
+    DataTypeWithAdditionalInfo<'item'>
   > | null>;
   onViewItemPress: (itemId: string) => void;
   resultSeenIdsRef?: React.MutableRefObject<Set<string> | null>;
@@ -68,7 +72,7 @@ export default function CheckItems({
   // Not used anymore, replaced by epcItemIdMap
   // const itemIdEpcMap = useMemo<Record<string, string>>(() => {
   //   return Object.fromEntries(
-  //     items.map(it => [it.id, it.actualRfidTagEpcMemoryBankContents]),
+  //     items.map(it => [it.__id, it.actual_rfid_tag_epc_memory_bank_contents]),
   //   );
   // }, [items]);
   /** An object of `{ [EPC of item A]: ID of item A }` */
@@ -76,7 +80,10 @@ export default function CheckItems({
     const notFoundIds: string[] = [];
     const object = {
       ...Object.fromEntries(
-        topLevelItems.map(it => [it.actualRfidTagEpcMemoryBankContents, it.id]),
+        topLevelItems.map(it => [
+          it.actual_rfid_tag_epc_memory_bank_contents,
+          it.__id,
+        ]),
       ),
       ...Object.fromEntries(
         Object.keys(itemIdDedicatedContainerIdMap)
@@ -95,12 +102,12 @@ export default function CheckItems({
               return null;
             }
 
-            const { actualRfidTagEpcMemoryBankContents } = data;
-            if (!actualRfidTagEpcMemoryBankContents) {
+            const { actual_rfid_tag_epc_memory_bank_contents } = data;
+            if (!actual_rfid_tag_epc_memory_bank_contents) {
               return null;
             }
 
-            return [actualRfidTagEpcMemoryBankContents, id];
+            return [actual_rfid_tag_epc_memory_bank_contents, id];
           })
           .filter((e): e is [string, string] => !!e),
       ),
@@ -123,7 +130,7 @@ export default function CheckItems({
    */
   const allIds = useMemo(() => {
     return [
-      ...topLevelItems.map(it => it.id),
+      ...topLevelItems.map(it => it.__id),
       ...Object.keys(itemIdDedicatedContainerIdMap),
     ]
       .filter((s): s is string => !!s)
@@ -369,15 +376,15 @@ export default function CheckItems({
     // `delayedNotSeenItemIdsChange` is used here to give the re-order some delay
     delayedNotSeenItemIdsChangeCounter;
 
-    const seenItems: Array<DataTypeWithID<'item'>> = [];
-    const partiallySeenItems: Array<DataTypeWithID<'item'>> = [];
-    const notSeenItems: Array<DataTypeWithID<'item'>> = [];
+    const seenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
+    const partiallySeenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
+    const notSeenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
 
     for (const it of topLevelItems) {
-      if (!it.id) continue;
-      const selfNotSeen = delayedNotSeenItemIds.has(it.id);
-      const allNotSeen = delayedNotSeenItemIds.has(`${it.id}-all`);
-      let someNotSeen = delayedNotSeenItemIds.has(`${it.id}-some`);
+      if (!it.__id) continue;
+      const selfNotSeen = delayedNotSeenItemIds.has(it.__id);
+      const allNotSeen = delayedNotSeenItemIds.has(`${it.__id}-all`);
+      let someNotSeen = delayedNotSeenItemIds.has(`${it.__id}-some`);
 
       if (someNotSeen) {
         if (!allNotSeen) {
@@ -412,8 +419,8 @@ export default function CheckItems({
     notSeenItemIdsChangeCounter;
     return (topLevelItems || []).filter(
       it =>
-        !notSeenItemIds.has(it.id || '') &&
-        !notSeenItemIds.has(`${it.id}-some`),
+        !notSeenItemIds.has(it.__id || '') &&
+        !notSeenItemIds.has(`${it.__id}-some`),
     ).length;
   }, [topLevelItems, notSeenItemIds, notSeenItemIdsChangeCounter]);
 
@@ -507,68 +514,70 @@ export default function CheckItems({
         {itemsToRender
           .flatMap(it => {
             const scannedData =
-              scannedItems[it.actualRfidTagEpcMemoryBankContents || ''];
+              scannedItems[it.actual_rfid_tag_epc_memory_bank_contents || ''];
             const partiallySeen =
-              notSeenItemIds.has(`${it.id}-some`) &&
-              !notSeenItemIds.has(`${it.id}-all`);
+              notSeenItemIds.has(`${it.__id}-some`) &&
+              !notSeenItemIds.has(`${it.__id}-all`);
             const showDedicatedItems =
-              partiallySeen || forceExpandedItems.value.has(it.id || '');
+              partiallySeen || forceExpandedItems.value.has(it.__id || '');
+
+            const checkStatus = (() => {
+              if (!it.actual_rfid_tag_epc_memory_bank_contents) {
+                if (manuallyCheckedIds.value.has(it.__id || '')) {
+                  return 'manually-checked';
+                }
+
+                return 'no-rfid-tag';
+              }
+
+              if (
+                !notSeenItemIds.has(it.__id || '') &&
+                !notSeenItemIds.has(`${it.__id}-some`)
+              ) {
+                if (manuallyCheckedIds.value.has(it.__id || '')) {
+                  return 'manually-checked';
+                }
+
+                return 'checked';
+              }
+
+              if (partiallySeen) {
+                return 'partially-checked';
+              }
+
+              // if (scannedData) {
+              //   return 'checked';
+              // }
+
+              if (manuallyCheckedIds.value.has(it.__id || '')) {
+                return 'manually-checked';
+              }
+
+              return 'unchecked';
+            })();
 
             return [
-              <React.Fragment key={it.id}>
-                <ItemItem
-                  key={it.id}
+              <React.Fragment key={it.__id}>
+                <ItemListItem
+                  key={it.__id}
                   item={it}
-                  onPress={getItemPressHandler(it.id || '')}
-                  onLongPress={getItemPressHandler(it.id || '')}
-                  hideDedicatedContainerDetails
+                  onPress={getItemPressHandler(it.__id || '')}
+                  onLongPress={getItemPressHandler(it.__id || '')}
+                  hideContainerDetails
                   hideCollectionDetails
-                  checkStatus={(() => {
-                    if (!it.actualRfidTagEpcMemoryBankContents) {
-                      if (manuallyCheckedIds.value.has(it.id || '')) {
-                        return 'manually-checked';
-                      }
-
-                      return 'no-rfid-tag';
-                    }
-
-                    if (
-                      !notSeenItemIds.has(it.id || '') &&
-                      !notSeenItemIds.has(`${it.id}-some`)
-                    ) {
-                      if (manuallyCheckedIds.value.has(it.id || '')) {
-                        return 'manually-checked';
-                      }
-
-                      return 'checked';
-                    }
-
-                    if (partiallySeen) {
-                      return 'partially-checked';
-                    }
-
-                    // if (scannedData) {
-                    //   return 'checked';
-                    // }
-
-                    if (manuallyCheckedIds.value.has(it.id || '')) {
-                      return 'manually-checked';
-                    }
-
-                    return 'unchecked';
-                  })()}
+                  checkStatus={checkStatus}
                   grayOut={!scannedData && !partiallySeen}
                   additionalDetails={
                     scannedData?.rssi ? `RSSI: ${scannedData.rssi}` : undefined
                   }
-                  arrow={false}
+                  navigable={false}
                 />
                 {showDedicatedItems && (
                   <View
                     style={styles.itemDedicatedItemsContainer}
-                    key={`${it.id}-di`}
+                    key={`${it.__id}-di`}
                   >
-                    {(dedicatedIdsMap[it.id || ''] || []).flatMap(dId => [
+                    {(dedicatedIdsMap[it.__id || ''] || []).flatMap(dId => [
                       <InsetGroup.ItemSeparator
                         leftInset={25}
                         key={`s-${dId}`}
@@ -589,7 +598,7 @@ export default function CheckItems({
                   </View>
                 )}
               </React.Fragment>,
-              <InsetGroup.ItemSeparator key={`s-${it.id}`} leftInset={60} />,
+              <InsetGroup.ItemSeparator key={`s-${it.__id}`} leftInset={60} />,
             ];
           })
           .slice(0, -1)}
@@ -616,7 +625,7 @@ function DedicatedCheckItem({
   dedicatedIdsMap: Record<string, Array<string>>;
   loadedItemsMapRef: React.MutableRefObject<Map<
     string,
-    DataTypeWithID<'item'>
+    DataTypeWithAdditionalInfo<'item'>
   > | null>;
   manuallyCheckedIds: { value: Set<string> };
   forceExpandedItems: { value: Set<string> };
@@ -627,7 +636,7 @@ function DedicatedCheckItem({
   if (!item) return null;
 
   const scannedData =
-    scannedItems[item.actualRfidTagEpcMemoryBankContents || ''];
+    scannedItems[item.actual_rfid_tag_epc_memory_bank_contents || ''];
   const partiallySeen =
     notSeenItemIds.has(`${id}-some`) && !notSeenItemIds.has(`${id}-all`);
   const showDedicatedItems = partiallySeen || forceExpandedItems.value.has(id);
@@ -644,7 +653,7 @@ function DedicatedCheckItem({
         <View style={styles.dedicatedCheckItemContainer}>
           <DedicatedCheckItemIcon
             status={(() => {
-              if (!item.actualRfidTagEpcMemoryBankContents) {
+              if (!item.actual_rfid_tag_epc_memory_bank_contents) {
                 if (manuallyCheckedIds.value.has(id)) {
                   return 'manually-checked';
                 }
