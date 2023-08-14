@@ -37,6 +37,7 @@ import DevDataMigrationScreen from '@app/screens/dev-tools/data/DevDataMigration
 import FixDataConsistencyErrorScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorScreen';
 import FixDataConsistencyErrorsScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorsScreen';
 import FixDataConsistencyScreen from '@app/screens/dev-tools/data/FixDataConsistencyScreen';
+import EPCUtilsScreen from '@app/screens/dev-tools/EPCUtilsScreen';
 import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
 import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
 import PouchDBItemScreen from '@app/screens/dev-tools/pouchdb/PouchDBItemScreen';
@@ -150,6 +151,7 @@ export type StackParamList = {
   PouchDBAttachment: { id: string };
   RNFS: undefined;
   LinguisticTaggerModuleIOS: undefined;
+  EPCUtils: undefined;
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
   DevChangeIcon: undefined;
@@ -297,6 +299,7 @@ function MainStack({ initialRouteName }: Props) {
         name="LinguisticTaggerModuleIOS"
         component={LinguisticTaggerModuleIOSScreen}
       />
+      <Stack.Screen name="EPCUtils" component={EPCUtilsScreen} />
       <Stack.Screen name="EPCTDS" component={EPCTDSScreen} />
       <Stack.Screen name="RFIDUHFModule" component={RFIDUHFModuleScreen} />
       <Stack.Screen name="SQLite" component={SQLiteScreen} />

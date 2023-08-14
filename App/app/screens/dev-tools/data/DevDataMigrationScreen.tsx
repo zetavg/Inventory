@@ -349,7 +349,7 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
             icon_color: doc?.data?.iconColor,
             collection_id: doc?.data?.collection,
             item_reference_number: doc?.data?.itemReferenceNumber,
-            serial: doc?.data?.serial?.toString(),
+            serial: doc?.data?.serial,
             _individual_asset_reference: undefined,
             epc_tag_uri: undefined,
             epc_tag_uri_manually_set: undefined,

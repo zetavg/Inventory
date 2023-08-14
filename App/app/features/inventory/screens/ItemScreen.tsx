@@ -212,8 +212,7 @@ function ItemScreen({
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
-  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
-    useColors();
+  const { iosTintColor, groupTitleColor } = useColors();
 
   const afterRFIDTagWriteSuccessRef = useRef<(() => void) | null>(null);
   afterRFIDTagWriteSuccessRef.current = () => {
@@ -394,8 +393,8 @@ function ItemScreen({
                 return (
                   <>
                     <Icon
-                      name="app-exclamation"
-                      color="yellow"
+                      name="app-info"
+                      color={groupTitleColor}
                       size={16}
                       style={commonStyles.mbm2}
                     />
@@ -909,8 +908,7 @@ function ItemScreen({
 }
 
 function RFIDWriteIcon() {
-  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
-    useColors();
+  const { iosTintColor } = useColors();
 
   return (
     <View style={styles.customIconContainer}>
@@ -965,8 +963,7 @@ function RFIDWriteIcon() {
 }
 
 function RFIDLocateIcon() {
-  const { iosTintColor, contentTextColor, textOnDarkBackgroundColor } =
-    useColors();
+  const { iosTintColor } = useColors();
 
   return (
     <View style={styles.customIconContainer}>

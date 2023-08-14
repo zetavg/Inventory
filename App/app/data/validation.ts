@@ -8,7 +8,6 @@ import { getConfig } from './functions/config';
 import getData from './functions/getData';
 import getDatum from './functions/getDatum';
 import getRelated from './functions/getRelated';
-import { getDataIdFromPouchDbId, getDataTypeSelector } from './pouchdb-utils';
 import { DataTypeName } from './schema';
 import {
   DataTypeWithAdditionalInfo,
@@ -32,34 +31,23 @@ export async function validate(
         typeof datum.collection_reference_number === 'string'
       ) {
         const config = await getConfig({ db });
-        const collectionReferenceDigitsLimit =
-          EPCUtils.getCollectionReferenceDigitsLimit({
+        const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits(
+          {
             companyPrefixDigits: config.rfid_tag_company_prefix.length,
             tagPrefixDigits: config.rfid_tag_prefix.length,
-          });
+          },
+        );
 
         if (
           typeof datum.collection_reference_number === 'string' &&
-          datum.collection_reference_number.length >
-            collectionReferenceDigitsLimit
+          datum.collection_reference_number.length > collectionReferenceDigits
         ) {
           issues.push({
             code: 'custom',
             path: ['collection_reference_number'],
-            message: `Is too long (max. ${collectionReferenceDigitsLimit} digits)`,
+            message: `Should have ${collectionReferenceDigits} digits`,
           });
         }
-
-        // if (
-        //   typeof d.collection_reference_number === 'string' &&
-        //   d.collection_reference_number.length < collectionReferenceDigitsLimit
-        // ) {
-        //   issues.push({
-        //     code: 'custom',
-        //     path: ['collection_reference_number'],
-        //     message: `Is too short (min. ${collectionReferenceDigitsLimit} digits)`,
-        //   });
-        // }
 
         const dataWithSameCrn = await getData(
           'collection',
@@ -166,21 +154,21 @@ export async function validate(
 
       if (
         datum.item_reference_number &&
-        datum.item_reference_number === 'string' &&
-        (typeof datum.serial === 'string' ||
+        typeof datum.item_reference_number === 'string' &&
+        (typeof datum.serial === 'number' ||
           typeof datum.serial === 'undefined') &&
         typeof collection?.collection_reference_number === 'string'
       ) {
         const config = await getConfig({ db });
         if (collection) {
           try {
-            EPCUtils.encodeIndividualAssetReference(
-              parseInt(config.rfid_tag_prefix, 10),
-              collection.collection_reference_number,
-              datum.item_reference_number,
-              parseInt(datum.serial || '0', 10),
-              { companyPrefix: config.rfid_tag_company_prefix },
-            );
+            EPCUtils.encodeIndividualAssetReference({
+              companyPrefix: config.rfid_tag_company_prefix,
+              tagPrefix: config.rfid_tag_prefix,
+              collectionReference: collection.collection_reference_number,
+              itemReference: datum.item_reference_number,
+              serial: datum.serial || 0,
+            });
           } catch (e) {
             issues.push({
               code: 'custom',

@@ -53,19 +53,15 @@ function SaveItemScreen({
 
   const { save, saving } = useSave();
   const { config } = useConfig();
-  const itemReferenceDigitsLimit = useMemo(
+  const itemReferenceDigits = useMemo(
     () =>
       config
-        ? EPCUtils.getItemReferenceDigitsLimit({
+        ? EPCUtils.getItemReferenceDigits({
             companyPrefixDigits: config.rfid_tag_company_prefix.length,
             tagPrefixDigits: config.rfid_tag_prefix.length,
           })
         : 3,
     [config],
-  );
-  const defaultItemReferenceDigitsLimit = Math.min(
-    itemReferenceDigitsLimit || 3,
-    6,
   );
 
   const { contentTextColor, contentSecondaryTextColor } = useColors();
@@ -187,12 +183,12 @@ function SaveItemScreen({
   ] = useState(false);
   const randomGenerateReferenceNumber = useCallback(() => {
     const number = randomInt(
-      parseInt('1'.padEnd(defaultItemReferenceDigitsLimit, '0'), 10),
-      parseInt('9'.repeat(defaultItemReferenceDigitsLimit), 10),
+      parseInt('1'.padEnd(itemReferenceDigits, '0'), 10),
+      parseInt('9'.repeat(itemReferenceDigits), 10),
     );
     setData(d => ({ ...d, item_reference_number: number.toString() }));
     setReferenceNumberIsRandomlyGenerated(true);
-  }, [defaultItemReferenceDigitsLimit]);
+  }, [itemReferenceDigits]);
   const copyReferenceNumberFromContainer = useCallback(() => {
     // if (typeof selectedContainerData !== 'object') return;
     // const itemReferenceNumber =
@@ -508,9 +504,9 @@ function SaveItemScreen({
             horizontalLabel
             keyboardType="number-pad"
             monospaced
-            readonly={!itemReferenceDigitsLimit}
-            placeholder={'0'.repeat(defaultItemReferenceDigitsLimit)}
-            maxLength={itemReferenceDigitsLimit}
+            readonly={!itemReferenceDigits}
+            placeholder={'0'.repeat(itemReferenceDigits)}
+            maxLength={itemReferenceDigits}
             returnKeyType="done"
             clearButtonMode={
               referenceNumberIsRandomlyGenerated ? undefined : 'while-editing'
@@ -549,11 +545,11 @@ function SaveItemScreen({
             clearButtonMode={
               referenceNumberIsRandomlyGenerated ? undefined : 'while-editing'
             }
-            value={data.serial}
+            value={(data.serial || '').toString()}
             onChangeText={t => {
               setData(d => ({
                 ...d,
-                serial: t,
+                serial: t ? parseInt(t, 10) : undefined,
               }));
             }}
             {...kiaTextInputProps}

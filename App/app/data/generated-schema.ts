@@ -7,7 +7,7 @@ export const schema = {
     .object({
       uuid: z.string(),
       rfid_tag_company_prefix: z.string().regex(new RegExp('^[0-9]{6,12}$')),
-      rfid_tag_prefix: z.string().regex(new RegExp('^[0-9]{0,3}$')),
+      rfid_tag_prefix: z.string().regex(new RegExp('^[1-9][0-9]{0,2}$')),
       rfid_tag_access_password: z.string().regex(new RegExp('^[a-f0-9]{8}$')),
       rfid_tag_access_password_encoding: z
         .string()
@@ -32,7 +32,7 @@ export const schema = {
       icon_color: z.string(),
       collection_id: z.string(),
       item_reference_number: z.string().optional(),
-      serial: z.string().optional(),
+      serial: z.number().int().gte(0).optional(),
       _individual_asset_reference: z.string().optional(),
       epc_tag_uri: z.string().optional(),
       epc_tag_uri_manually_set: z.boolean().optional(),

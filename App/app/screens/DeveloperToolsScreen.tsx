@@ -126,6 +126,12 @@ function DeveloperToolsScreen({
 
         <UIGroup>
           <UIGroup.ListItem
+            label="EPC Utils"
+            navigable
+            onPress={() => navigation.push('EPCUtils')}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
             label="EPC-TDS"
             navigable
             onPress={() => navigation.push('EPCTDS')}

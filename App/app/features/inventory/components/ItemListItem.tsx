@@ -173,7 +173,11 @@ export default function ItemListItem({
                       item.rfid_tag_epc_memory_bank_contents !==
                         item.actual_rfid_tag_epc_memory_bank_contents && (
                         <>
-                          <Icon name="app-exclamation" {...iconProps} />{' '}
+                          {item.actual_rfid_tag_epc_memory_bank_contents ? (
+                            <Icon name="app-info" {...iconProps} />
+                          ) : (
+                            <Icon name="app-exclamation" {...iconProps} />
+                          )}{' '}
                         </>
                       )}
                     {item._individual_asset_reference

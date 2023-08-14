@@ -32,15 +32,16 @@ export async function beforeSave(
         typeof datum.collection_reference_number === 'string' &&
         datum.collection_reference_number
       ) {
-        const collectionReferenceDigitsLimit =
-          EPCUtils.getCollectionReferenceDigitsLimit({
+        const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits(
+          {
             companyPrefixDigits: config.rfid_tag_company_prefix.length,
             tagPrefixDigits: config.rfid_tag_prefix.length,
-          });
+          },
+        );
 
         datum.collection_reference_number =
           datum.collection_reference_number.padStart(
-            collectionReferenceDigitsLimit,
+            collectionReferenceDigits,
             '0',
           );
       }
@@ -60,10 +61,26 @@ export async function beforeSave(
       ) {
         datum._can_contain_items = true;
       }
+
+      // We pad this while generating EPC
+      // if (
+      //   datum.item_reference_number &&
+      //   typeof datum.item_reference_number === 'string'
+      // ) {
+      //   const config = await getConfig({ db });
+      //   const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
+      //     companyPrefixDigits: config.rfid_tag_company_prefix.length,
+      //     tagPrefixDigits: config.rfid_tag_prefix.length,
+      //   });
+      //   datum.item_reference_number = datum.item_reference_number.padStart(
+      //     itemReferenceDigits,
+      //     '0',
+      //   );
+      // }
       if (
         datum.item_reference_number &&
         typeof datum.item_reference_number === 'string' &&
-        (typeof datum.serial === 'string' ||
+        (typeof datum.serial === 'number' ||
           typeof datum.serial === 'undefined')
       ) {
         const config = await getConfig({ db });
@@ -77,16 +94,15 @@ export async function beforeSave(
           },
         );
         if (collection && collection.__valid) {
-          const collectionRefNumber = collection.collection_reference_number;
           try {
             datum._individual_asset_reference =
-              EPCUtils.encodeIndividualAssetReference(
-                parseInt(config.rfid_tag_prefix, 10),
-                collectionRefNumber,
-                datum.item_reference_number,
-                parseInt(datum.serial || '0', 10),
-                { joinBy: '.', includePrefix: true },
-              );
+              EPCUtils.encodeIndividualAssetReference({
+                companyPrefix: config.rfid_tag_company_prefix,
+                tagPrefix: config.rfid_tag_prefix,
+                collectionReference: collection.collection_reference_number,
+                itemReference: datum.item_reference_number,
+                serial: datum.serial || 0,
+              });
           } catch (error) {
             // We will check if it's valid on validation, so here the error will be simply logged and ignored.
             logger.warn(error);
@@ -104,11 +120,10 @@ export async function beforeSave(
           datum._individual_asset_reference &&
           typeof datum._individual_asset_reference === 'string'
         ) {
-          const iar = datum._individual_asset_reference.replace(/\./g, '');
           const config = await getConfig({ db });
-          datum.epc_tag_uri = EPCUtils.encodeGIAI('uri', {
+          datum.epc_tag_uri = EPCUtils.encodeGiaiFromIndividualAssetReference({
             companyPrefix: config.rfid_tag_company_prefix,
-            assetReference: iar,
+            individualAssetReference: datum._individual_asset_reference,
           });
         } else {
           datum.epc_tag_uri = undefined;

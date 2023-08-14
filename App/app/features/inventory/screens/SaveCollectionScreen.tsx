@@ -55,7 +55,7 @@ function SaveCollectionScreen({
   const collectionReferenceDigits = useMemo(
     () =>
       config
-        ? EPCUtils.getCollectionReferenceDigitsLimit({
+        ? EPCUtils.getCollectionReferenceDigits({
             companyPrefixDigits: config.rfid_tag_company_prefix.length,
             tagPrefixDigits: config.rfid_tag_prefix.length,
           })

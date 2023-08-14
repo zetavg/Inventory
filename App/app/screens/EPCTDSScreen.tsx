@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
-import { ScrollView, Switch, Text } from 'react-native';
+import { ScrollView, Text } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import epcTds from 'epc-tds';
 
 import commonStyles from '@app/utils/commonStyles';
 
-import EPCUtils from '@app/modules/EPCUtils';
-
 import type { StackParamList } from '@app/navigation/MainStack';
-
-import useNumberInputChangeHandler from '@app/hooks/useNumberInputChangeHandler';
 
 import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
@@ -37,66 +33,6 @@ function EPCTDSScreen({
     encoded = epcTds.fromTagURI(epcToEncode);
   } catch (e) {
     encoded = { error: e };
-  }
-
-  const [encodeIARPrefix, setEncodeIARPrefix] = useState<number | null>(32);
-  const handleEncodeIARPrefixChange =
-    useNumberInputChangeHandler(setEncodeIARPrefix);
-  const [encodeIARCollectionRef, setEncodeIARCollectionRef] = useState('0010');
-  const [encodeIARItemRef, setEncodeIARItemRef] = useState('1234');
-  const [encodeIARSerial, setEncodeIARSerial] = useState<number | null>(0);
-  const handleEncodeIARSerialChange =
-    useNumberInputChangeHandler(setEncodeIARSerial);
-  const [encodeIARJoinBy, setEncodeIARJoinBy] = useState('.');
-  const [encodeIARIncludePrefix, setEncodeIARIncludePrefix] = useState(true);
-  const [encodeIARCompanyPrefix, setEncodeIARCompanyPrefix] =
-    useState('0000000');
-  let iar: any = null;
-  let iarUri: any = null;
-  let iarHex: any = null;
-
-  try {
-    iar = EPCUtils.encodeIndividualAssetReference(
-      encodeIARPrefix || -1,
-      encodeIARCollectionRef,
-      encodeIARItemRef,
-      encodeIARSerial || 0,
-      {
-        joinBy: encodeIARJoinBy,
-        includePrefix: encodeIARIncludePrefix,
-        companyPrefix: encodeIARCompanyPrefix,
-      },
-    );
-  } catch (e) {
-    iar = { error: e };
-  }
-
-  try {
-    iarUri = EPCUtils.encodeGIAI('uri', {
-      companyPrefix: encodeIARCompanyPrefix,
-      assetReference: EPCUtils.encodeIndividualAssetReference(
-        encodeIARPrefix || -1,
-        encodeIARCollectionRef,
-        encodeIARItemRef,
-        encodeIARSerial || 0,
-      ),
-    });
-  } catch (e) {
-    iarUri = { error: e };
-  }
-
-  try {
-    iarHex = EPCUtils.encodeGIAI('hex', {
-      companyPrefix: encodeIARCompanyPrefix,
-      assetReference: EPCUtils.encodeIndividualAssetReference(
-        encodeIARPrefix || -1,
-        encodeIARCollectionRef,
-        encodeIARItemRef,
-        encodeIARSerial || 0,
-      ),
-    });
-  } catch (e) {
-    iarHex = { error: e };
   }
 
   return (
@@ -173,133 +109,6 @@ function EPCTDSScreen({
                 </Text>
               ) : (
                 encoded.toHexString()
-              )
-            }
-          />
-        </InsetGroup>
-
-        <InsetGroup label="Encode Individual Asset Reference">
-          <InsetGroup.Item
-            vertical2
-            label="Prefix"
-            detail={
-              <InsetGroup.TextInput
-                placeholder="32"
-                value={encodeIARPrefix?.toString()}
-                onChangeText={handleEncodeIARPrefixChange}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Collection Reference"
-            detail={
-              <InsetGroup.TextInput
-                placeholder="0000"
-                value={encodeIARCollectionRef}
-                onChangeText={setEncodeIARCollectionRef}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Item Reference"
-            detail={
-              <InsetGroup.TextInput
-                placeholder="1234"
-                value={encodeIARItemRef}
-                onChangeText={setEncodeIARItemRef}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Serial"
-            detail={
-              <InsetGroup.TextInput
-                placeholder="0"
-                value={encodeIARSerial?.toString()}
-                onChangeText={handleEncodeIARSerialChange}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            label="Join By"
-            detail={
-              <InsetGroup.TextInput
-                alignRight
-                placeholder="."
-                value={encodeIARJoinBy}
-                onChangeText={setEncodeIARJoinBy}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            label="Include Prefix"
-            detail={
-              <Switch
-                value={encodeIARIncludePrefix}
-                onChange={() => setEncodeIARIncludePrefix(v => !v)}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Encoded Data"
-            detailAsText
-            detail={
-              iar.error ? (
-                <Text style={commonStyles.opacity05}>{iar.error.message}</Text>
-              ) : (
-                iar
-              )
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="Company Prefix"
-            detail={
-              <InsetGroup.TextInput
-                placeholder="0000000"
-                value={encodeIARCompanyPrefix}
-                onChangeText={setEncodeIARCompanyPrefix}
-              />
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="EPC Tag URI"
-            detailAsText
-            detail={
-              iarUri.error ? (
-                <Text style={commonStyles.opacity05}>
-                  {iarUri.error.message}
-                </Text>
-              ) : (
-                iarUri
-              )
-            }
-          />
-          <InsetGroup.ItemSeparator />
-          <InsetGroup.Item
-            vertical2
-            label="RFID Tag EPC Memory Bank Contents"
-            detailAsText
-            detail={
-              iarHex.error ? (
-                <Text style={commonStyles.opacity05}>
-                  {iarHex.error.message}
-                </Text>
-              ) : (
-                iarHex
               )
             }
           />

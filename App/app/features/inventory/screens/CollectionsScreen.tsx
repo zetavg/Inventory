@@ -151,7 +151,9 @@ function CollectionsScreen({
       // TODO: Not supported on Android yet, still need to implement the EditingListView
       // on Android
       action2SFSymbolName={
-        orderedData && orderedData.length && !editing ? 'pencil' : undefined
+        orderedData && orderedData.length && !editing
+          ? 'pencil.circle'
+          : undefined
       }
       action2MaterialIconName={
         orderedData && orderedData.length && !editing
