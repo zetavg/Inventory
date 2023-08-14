@@ -28,9 +28,19 @@ type Props = {
   value: DateType | undefined | null;
   onChangeValue?: (value: DateType | undefined) => void;
   textProps?: React.ComponentProps<typeof RNText>;
+  style?: React.ComponentProps<typeof View>['style'];
+  iosStyle?: React.ComponentProps<typeof View>['style'];
+  androidStyle?: React.ComponentProps<typeof View>['style'];
 };
 
-export default function DatePicker({ value, onChangeValue, textProps }: Props) {
+export default function DatePicker({
+  value,
+  onChangeValue,
+  textProps,
+  style,
+  iosStyle,
+  androidStyle,
+}: Props) {
   const { contentBackgroundColor, iosTintColor, contentTextColor } =
     useColors();
   const isDarkMode = useIsDarkMode();
@@ -80,13 +90,13 @@ export default function DatePicker({ value, onChangeValue, textProps }: Props) {
               });
             }
           }}
-          style={commonStyles.flex1}
+          style={styles.iosDatePicker}
           accentColor={iosTintColor}
         />
       );
 
       return (
-        <View style={commonStyles.flex1}>
+        <View style={[styles.iosDatePickerContainer, style, iosStyle]}>
           {element}
           <View
             style={[
@@ -121,7 +131,10 @@ export default function DatePicker({ value, onChangeValue, textProps }: Props) {
     }
     case 'android': {
       return (
-        <TouchableOpacity onPress={androidShowDatePicker}>
+        <TouchableOpacity
+          onPress={androidShowDatePicker}
+          style={[style, androidStyle]}
+        >
           <Text {...textProps}>
             {value ? date.toLocaleDateString() : 'Not Set'}
           </Text>
@@ -134,6 +147,14 @@ export default function DatePicker({ value, onChangeValue, textProps }: Props) {
 }
 
 const styles = StyleSheet.create({
+  iosDatePicker: {
+    flexGrow: 1,
+    flexShrink: 0,
+  },
+  iosDatePickerContainer: {
+    flexGrow: 1,
+    flexShrink: 0,
+  },
   iosPlaceholderContainer: {
     position: 'absolute',
     width: '100%',

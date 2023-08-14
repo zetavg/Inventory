@@ -21,5 +21,13 @@ export const Basic = () => (
         }
       />
     </StorybookSection>
+    <StorybookSection title="With undefined value">
+      <DatePicker
+        value={undefined}
+        onChangeValue={dateObj =>
+          Alert.alert('Date Picked', JSON.stringify(dateObj))
+        }
+      />
+    </StorybookSection>
   </StorybookStoryContainer>
 );

@@ -7,6 +7,7 @@ import commonStyles from '@app/utils/commonStyles';
 
 import useColors from '@app/hooks/useColors';
 
+import DatePicker from '@app/components/DatePicker';
 import Icon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
 import Switch from '@app/components/Switch';
@@ -26,6 +27,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
     selected,
     navigable,
     onPress,
+    onLongPress,
     button,
     destructive,
     disabled,
@@ -75,6 +77,11 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
         rightElement
           ? undefined /* will use a TouchableHighlight to wrap the whole thing later */
           : onPress
+      }
+      onLongPress={
+        rightElement
+          ? undefined /* will use a TouchableHighlight to wrap the whole thing later */
+          : onLongPress
       }
       button={button}
       destructive={destructive}
@@ -128,6 +135,17 @@ export function UIGroupListItemSwitch(
 
 UIGroupListItem.Switch = UIGroupListItemSwitch;
 
+export function UIGroupListItemDatePicker(
+  props: React.ComponentProps<typeof DatePicker>,
+) {
+  const { style, ...restProps } = props;
+  return (
+    <DatePicker style={style} iosStyle={styles.iosDatePicker} {...restProps} />
+  );
+}
+
+UIGroupListItem.DatePicker = UIGroupListItemDatePicker;
+
 UIGroupListItem.styles = StyleSheet.create({
   // Deprecated. Use the `adjustsDetailFontSizeToFit` prop on ListItem instead.
   // iosSmallFont: {
@@ -146,6 +164,9 @@ UIGroupListItem.styles = StyleSheet.create({
 const styles = StyleSheet.create({
   iosSwitch: {
     marginVertical: -4,
+  },
+  iosDatePicker: {
+    marginVertical: -6,
   },
   iosItemIcon: { marginRight: -2 },
   normalSizedLabel_labelText: { fontSize: 16 },

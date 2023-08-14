@@ -810,7 +810,7 @@ function SaveItemScreen({
                   ? new Date(data.purchase_date)
                   : null;
               return (
-                <DatePicker
+                <UIGroup.ListItem.DatePicker
                   value={
                     date && {
                       y: date.getFullYear(),
@@ -867,7 +867,7 @@ function SaveItemScreen({
                   ? new Date(data.expiry_date)
                   : null;
               return (
-                <DatePicker
+                <UIGroup.ListItem.DatePicker
                   value={
                     date && {
                       y: date.getFullYear(),

@@ -12,10 +12,10 @@ import {
 
 import UIText from '@app/components/Text';
 
+import DatePicker from '../DatePicker';
 import Icon from '../Icon';
 
 import UIGroup from './UIGroup';
-import DatePicker from '../DatePicker';
 
 export function Basic() {
   const uiGroupStyles = UIGroup.useStyles();
@@ -554,7 +554,9 @@ export function WithListItems() {
         <UIGroup.ListTextInputItem
           horizontalLabel
           label="Date Picker"
-          inputElement={<DatePicker value={{ y: 2023, m: 1, d: 1 }} />}
+          inputElement={
+            <UIGroup.ListItem.DatePicker value={{ y: 2023, m: 1, d: 1 }} />
+          }
         />
       </UIGroup>
 
