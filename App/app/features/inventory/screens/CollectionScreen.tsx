@@ -85,7 +85,13 @@ function CollectionScreen({
   } = useData(
     'item',
     { collection_id: id, _show_in_collection: true },
-    { sort: [{ __created_at: 'asc' }], disable: d1 },
+    {
+      sort: [{ __created_at: 'asc' }],
+      disable: d1,
+      onInitialLoad: useCallback(() => {
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+      }, []),
+    },
   );
   // const {
   //   data: items,

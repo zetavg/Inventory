@@ -36,9 +36,11 @@ export default function useRelated<
   {
     disable = false,
     sort,
+    onInitialLoad,
   }: {
     disable?: boolean;
     sort?: Sort;
+    onInitialLoad?: () => void;
   } = {},
 ): {
   loading: boolean;
@@ -83,26 +85,32 @@ export default function useRelated<
   const dataRef = useRef(data);
   dataRef.current = data;
 
+  const hasLoaded = useRef(false);
   const loadData = useCallback(async () => {
     if (!cachedD) return;
     if (!db) return;
 
     setLoading(true);
     try {
-      setData(
-        await getRelated(
-          cachedD,
-          relationName,
-          { sort: cachedSort },
-          { db, logger },
-        ),
+      const loadedData = await getRelated(
+        cachedD,
+        relationName,
+        { sort: cachedSort },
+        { db, logger },
       );
+      if (!hasLoaded.current) {
+        if (typeof onInitialLoad === 'function') {
+          onInitialLoad();
+        }
+      }
+      setData(loadedData);
     } catch (e) {
       logger.error(e);
     } finally {
       setLoading(false);
+      hasLoaded.current = true;
     }
-  }, [cachedD, cachedSort, db, logger, relationName]);
+  }, [cachedD, cachedSort, db, logger, onInitialLoad, relationName]);
 
   useFocusEffect(
     useCallback(() => {

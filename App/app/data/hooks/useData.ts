@@ -29,11 +29,13 @@ export default function useData<
     limit = undefined,
     disable = false,
     sort,
+    onInitialLoad,
   }: {
     skip?: number;
     limit?: number;
     disable?: boolean;
     sort?: Sort;
+    onInitialLoad?: () => void;
   } = {},
 ): {
   loading: boolean;
@@ -107,6 +109,7 @@ export default function useData<
   const [ids, setIds] = useState<ReadonlyArray<string> | null>(null);
   const [rawData, setRawData] = useState<unknown>(null);
 
+  const hasLoaded = useRef(false);
   const loadData = useCallback(async () => {
     if (!db) return;
     setLoading(true);
@@ -120,6 +123,11 @@ export default function useData<
             logger,
           });
           setIds(null);
+          if (!hasLoaded.current) {
+            if (typeof onInitialLoad === 'function') {
+              onInitialLoad();
+            }
+          }
           setData(d as any);
           setRawData(d);
           break;
@@ -132,6 +140,11 @@ export default function useData<
             { skip, limit, sort: cachedSort },
             { db, logger },
           );
+          if (!hasLoaded.current) {
+            if (typeof onInitialLoad === 'function') {
+              onInitialLoad();
+            }
+          }
           setData(d as any);
           break;
         }
@@ -140,8 +153,9 @@ export default function useData<
       logger.error(e);
     } finally {
       setLoading(false);
+      hasLoaded.current = true;
     }
-  }, [cachedCond, db, limit, logger, skip, cachedSort, type]);
+  }, [db, cachedCond, type, logger, onInitialLoad, skip, limit, cachedSort]);
 
   useFocusEffect(
     useCallback(() => {

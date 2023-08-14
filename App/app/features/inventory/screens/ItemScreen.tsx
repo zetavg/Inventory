@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  LayoutAnimation,
+  Platform,
+  RefreshControl,
   StyleSheet,
   Text as RNText,
   TouchableOpacity,
@@ -10,6 +13,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import Svg, { Path, Rect } from 'react-native-svg';
+
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch } from '@app/redux';
 
@@ -92,6 +97,9 @@ function ItemScreen({
   } = useRelated(data, 'contents', {
     sort: [{ __created_at: 'asc' }],
     disable: dContentsLoading,
+    onInitialLoad: useCallback(() => {
+      LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+    }, []),
   });
   const refresh = useCallback(() => {
     refreshData();
@@ -320,7 +328,11 @@ function ItemScreen({
       action2MaterialIconName={(data && 'dots-horizontal') || undefined}
       onAction2Press={handleMoreActionsPress}
     >
-      <ScreenContent.ScrollView>
+      <ScreenContent.ScrollView
+        refreshControl={
+          <RefreshControl onRefresh={refresh} refreshing={refreshing} />
+        }
+      >
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup
           loading={dataLoading}
@@ -711,13 +723,16 @@ function ItemScreen({
             <>
               {(orderedContents || []).length > 0 && (
                 <UIGroup transparentBackground>
-                  <Button mode="text" onPress={handleCheckContents}>
-                    <Icon
-                      name="checklist"
-                      sfSymbolWeight="bold"
-                      color={iosTintColor}
-                    />{' '}
-                    Check {dedicatedItemsName}
+                  <Button
+                    mode={Platform.OS === 'ios' ? 'text' : 'contained-tonal'}
+                    onPress={handleCheckContents}
+                  >
+                    {({ textProps, iconProps }) => (
+                      <>
+                        <Icon {...iconProps} name="checklist" />
+                        <Text {...textProps}>Check {dedicatedItemsName}</Text>
+                      </>
+                    )}
                   </Button>
                 </UIGroup>
               )}
