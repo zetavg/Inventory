@@ -509,7 +509,7 @@ function TabNavigator() {
         />
         <Tab.Screen
           name="CheckTab"
-          children={() => <MainStack initialRouteName="Settings" />}
+          children={() => <MainStack initialRouteName="More" />}
           options={{
             title: 'Check',
             tabBarIcon: ({ focused, ...props }) => (
