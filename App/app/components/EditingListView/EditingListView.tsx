@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, ScrollView, Text, View } from 'react-native';
+import { Platform, ScrollView, View } from 'react-native';
 
 import commonStyles from '@app/utils/commonStyles';
+
+import Text from '@app/components/Text';
 
 import TableViewIOS from './TableViewIOS';
 
@@ -112,7 +114,9 @@ function EditingListView({
   }
 
   // Currently not supported on Android
-  return null;
+  return (
+    <Text>This UI (EditingListView) is not yet implemented on Android.</Text>
+  );
 }
 
 type EditingListViewItemProps = {

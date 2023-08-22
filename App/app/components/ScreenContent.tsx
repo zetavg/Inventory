@@ -129,6 +129,7 @@ function ScreenContent({
             },
           }
         : {}),
+      // eslint-disable-next-line react/no-unstable-nested-components
       headerRight: () => (
         <View
           style={[
@@ -272,6 +273,8 @@ function ScreenContent({
       const onBackPress = () => {
         if (searchEnabled && searchCanBeClosedAndroid) {
           setSearchEnabled(false);
+          setSearchText('');
+          onSearchChangeText && onSearchChangeText('');
           return true;
         } else {
           return false;
@@ -282,7 +285,7 @@ function ScreenContent({
 
       return () =>
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [searchEnabled, searchCanBeClosedAndroid]),
+    }, [searchEnabled, searchCanBeClosedAndroid, onSearchChangeText]),
   );
 
   React.useEffect(() => {
@@ -314,9 +317,15 @@ function ScreenContent({
           {navigation.canGoBack() ||
           (searchEnabled && searchCanBeClosedAndroid) ? (
             <Appbar.BackAction
-              onPress={() =>
-                searchEnabled ? setSearchEnabled(false) : navigation.goBack()
-              }
+              onPress={() => {
+                if (searchEnabled) {
+                  setSearchEnabled(false);
+                  setSearchText('');
+                  onSearchChangeText && onSearchChangeText('');
+                } else {
+                  navigation.goBack();
+                }
+              }}
             />
           ) : searchCanBeClosedAndroid ? (
             <View style={styles.appBarSpacer} />
@@ -332,7 +341,7 @@ function ScreenContent({
                 ref={searchInputRef}
                 style={styles.searchTextInput}
                 autoFocus={searchCanBeClosedAndroid}
-                placeholder="Search"
+                placeholder={searchPlaceholder || 'Search'}
                 value={searchText}
                 onChangeText={text => {
                   setSearchText(text);
@@ -348,6 +357,7 @@ function ScreenContent({
                       icon="close"
                       onPress={() => {
                         searchInputRef.current?.clear();
+                        setSearchText('');
                         onSearchChangeText && onSearchChangeText('');
                       }}
                     />

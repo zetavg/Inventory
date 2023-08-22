@@ -136,7 +136,7 @@ function CollectionsScreen({
     <ScreenContent
       navigation={navigation}
       title="Collections"
-      showSearch
+      showSearch={!editing}
       searchPlaceholder="Find Collection..."
       onSearchChangeText={text => {
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
@@ -144,7 +144,7 @@ function CollectionsScreen({
       }}
       action1Label={editing ? 'Done' : 'Add'}
       action1SFSymbolName={editing ? undefined : 'plus.square'}
-      action1MaterialIconName={editing ? undefined : 'plus'}
+      action1MaterialIconName={editing ? 'check' : 'plus'}
       onAction1Press={() =>
         editing ? endEdit() : rootNavigation?.navigate('SaveCollection', {})
       }
