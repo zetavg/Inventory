@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import {
   BottomTabBar,
@@ -11,6 +11,7 @@ import {
 } from '@react-navigation/native';
 import {
   createStackNavigator,
+  StackScreenProps,
   TransitionPresets,
 } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,6 +76,7 @@ import useTheme from '@app/hooks/useTheme';
 import MainStack from './MainStack';
 import RootBottomSheetsContext from './RootBottomSheetsContext';
 import RootNavigationContext from './RootNavigationContext';
+import { selectors, useAppSelector } from '@app/redux';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,
@@ -312,6 +314,7 @@ function Navigation({
                 ) : (
                   <RootNavigationContext.Provider value={navigation}>
                     <TabNavigator />
+                    <OnboardingScreenOpener navigation={navigation} />
                   </RootNavigationContext.Provider>
                 );
               }}
@@ -639,6 +642,18 @@ export function useDefaultTabScreenOptions() {
   );
 
   return defaultTabScreenOptions;
+}
+
+function OnboardingScreenOpener({
+  navigation,
+}: StackScreenProps<RootStackParamList>) {
+  const isSetupNotDone = useAppSelector(selectors.profiles.isSetupNotDone);
+  useEffect(() => {
+    if (isSetupNotDone) {
+      navigation.push('Onboarding');
+    }
+  }, [isSetupNotDone, navigation]);
+  return null;
 }
 
 const styles = StyleSheet.create({

@@ -24,7 +24,14 @@ const logger = appLogger.for({ module: 'DBSync UI' });
 type Props = {
   id?: string;
   afterSave?: () => void;
+  uiGroupProps?: React.ComponentProps<typeof UIGroup>;
   inputProps?: React.ComponentProps<typeof UIGroup.ListTextInputItem>;
+  initialData?: {
+    name?: string;
+    uri?: string;
+    username?: string;
+    password?: string;
+  };
 };
 
 type Return = {
@@ -41,21 +48,20 @@ type Return = {
 export default function useNewOrEditServerUI({
   id,
   afterSave,
+  uiGroupProps,
   inputProps,
+  initialData,
 }: Props): Return {
   const dispatch = useAppDispatch();
   const servers = useAppSelector(selectors.dbSync.servers);
   const editingServer = servers[id || ''];
   const initialState = useMemo(
     () =>
-      filterObjectKeys(editingServer || initialServerState, [
-        'enabled',
-        'name',
-        'uri',
-        'username',
-        'password',
-      ]),
-    [editingServer],
+      filterObjectKeys(
+        editingServer || { ...initialServerState, ...initialData },
+        ['enabled', 'name', 'uri', 'username', 'password'],
+      ),
+    [editingServer, initialData],
   );
   const [state, setState] = useState(initialState);
   const hasUnsavedChanges = useMemo(
@@ -210,7 +216,11 @@ export default function useNewOrEditServerUI({
 
   const newOrEditServerUIElement = (
     <>
-      <UIGroup header="Server Name" footer={nameErrorMessage || undefined}>
+      <UIGroup
+        header="Server Name"
+        footer={nameErrorMessage || undefined}
+        {...uiGroupProps}
+      >
         <UIGroup.ListTextInputItem
           ref={nameInputRef}
           placeholder="My Remote Server"
@@ -229,6 +239,7 @@ export default function useNewOrEditServerUI({
           passwordErrorMessage ||
           undefined
         }
+        {...uiGroupProps}
       >
         <UIGroup.ListTextInputItem
           ref={dbUriInputRef}
@@ -274,6 +285,7 @@ export default function useNewOrEditServerUI({
             ? testConnectionMessage
             : undefined
         }
+        {...uiGroupProps}
       >
         <UIGroup.ListItem
           button

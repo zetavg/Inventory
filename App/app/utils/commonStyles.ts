@@ -313,6 +313,7 @@ const commonStyles = StyleSheet.create({
   alignItemsFlexStart: {
     alignItems: 'flex-start',
   },
+  alignSelfStretch: { alignSelf: 'stretch' },
   touchableSFSymbolContainer: {
     width: 44,
     height: 44,

@@ -65,6 +65,7 @@ export type ProfileColor = (typeof COLORS)[number];
 interface ProfileState {
   name: string;
   color: ProfileColor;
+  setupDone?: boolean;
   dbSync: DBSyncState;
   settings: SettingsState;
   inventory: InventoryState;
@@ -132,11 +133,19 @@ export const profilesSlice = createSlice({
         profile.color = action.payload.color;
       },
       deleteProfile: (state: ProfilesState, action: PayloadAction<string>) => {
+        // Database deletion is now done by the UI (beforeDeleteProfile should be called before dispatching this action).
         delete state.profiles[action.payload];
         if (state.currentProfile === action.payload) {
           state.currentProfile = Object.keys(state.profiles)[0];
         }
-        // TODO: delete database etc.
+      },
+      markCurrentProfileAsSetupDone: (state: ProfilesState) => {
+        const currentProfile = state.currentProfile
+          ? state.profiles[state.currentProfile]
+          : null;
+        if (!currentProfile) return;
+
+        currentProfile.setupDone = true;
       },
     },
     mapActionReducers(
@@ -249,6 +258,10 @@ export const selectors = {
       state.currentProfile
         ? getDbNameFromProfileUuid(state.currentProfile)
         : null,
+    isSetupNotDone: (state: ProfilesState) =>
+      state.currentProfile
+        ? !state.profiles[state.currentProfile || '']?.setupDone
+        : false,
   },
   dbSync: mapSelectors(
     dbSyncSelectors.dbSync,
@@ -283,6 +296,7 @@ reducer.dehydrate = (state: ProfilesState) => {
     profiles: mapObjectValues(state.profiles, s => ({
       name: s.name,
       color: s.color,
+      setupDone: s.setupDone,
       ...(dbSyncReducer.dehydrate
         ? { dbSync: dbSyncReducer.dehydrate(s.dbSync) }
         : {}),
