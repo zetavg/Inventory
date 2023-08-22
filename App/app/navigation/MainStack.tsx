@@ -69,6 +69,7 @@ import StorybookScreen from '@app/screens/StorybookScreen';
 
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import NotImplementedScreen from '@app/screens/NotImplementedScreen';
 
 export type StackParamList = {
   More: undefined;
@@ -167,6 +168,7 @@ export type StackParamList = {
   LoggerLog: undefined;
   DemoHome: undefined;
   DemoDetails: { id: string };
+  NotImplemented: { title?: string };
 };
 
 const Stack =
@@ -335,6 +337,8 @@ function MainStack({ initialRouteName }: Props) {
       />
       <Stack.Screen name="PouchDBSyncLogs" component={PouchDBSyncLogsScreen} />
       <Stack.Screen name="DBSyncConfig" component={DBSyncConfigScreen} />*/}
+
+      <Stack.Screen name="NotImplemented" component={NotImplementedScreen} />
     </Stack.Navigator>
   );
 }

@@ -100,7 +100,9 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             label="Settings"
             icon="cog"
             iosImage="ios-menu.settings.png"
-            onPress={() => navigation.push('Settings')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Settings' })
+            }
           />
           <TableView.Item
             arrow
@@ -122,7 +124,9 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="domain"
             iosImage="ios-menu.site.png"
-            onPress={() => navigation.push('Settings')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Locations' })
+            }
           >
             Locations
           </TableView.Item>
@@ -138,15 +142,19 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="tag"
             iosImage="ios-menu.tag.png"
-            onPress={() => navigation.push('Checklists')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Hashtags' })
+            }
           >
-            Tags
+            Hashtags
           </TableView.Item>
           <TableView.Item
             arrow
             icon="format-list-checks"
             iosImage="ios-menu.checklists.png"
-            onPress={() => navigation.push('Checklists')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Checklists' })
+            }
           >
             Checklists
           </TableView.Item>
@@ -191,7 +199,10 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="database-import"
             iosImage="ios-menu.import.png"
-            onPress={() => rootNavigation?.push('ImportItemsFromCsv')}
+            // onPress={() => rootNavigation?.push('ImportItemsFromCsv')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Import from CSV' })
+            }
           >
             Import from CSV
           </TableView.Item>
@@ -199,7 +210,10 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="database-export"
             iosImage="ios-menu.export.png"
-            onPress={() => rootNavigation?.push('ExportItemsToCsv')}
+            // onPress={() => rootNavigation?.push('ExportItemsToCsv')}
+            onPress={() =>
+              navigation.push('NotImplemented', { title: 'Export to CSV' })
+            }
           >
             Export to CSV
           </TableView.Item>
