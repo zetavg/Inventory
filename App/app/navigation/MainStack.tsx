@@ -30,6 +30,7 @@ import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
+import ConfigurationsScreen from '@app/screens/ConfigurationsScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
@@ -47,11 +48,13 @@ import DevChangeIconScreen from '@app/screens/DevChangeIconScreen';
 import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
+import HowToSwitchBetweenProfilesScreen from '@app/screens/HowToSwitchBetweenProfilesScreen';
 import InventoryTabScreen from '@app/screens/InventoryTabScreen';
 import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
 import LoggerLogScreen from '@app/screens/LoggerLogScreen';
 import MoreScreen from '@app/screens/MoreScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
+import NotImplementedScreen from '@app/screens/NotImplementedScreen';
 import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
@@ -69,7 +72,6 @@ import StorybookScreen from '@app/screens/StorybookScreen';
 
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
-import NotImplementedScreen from '@app/screens/NotImplementedScreen';
 
 export type StackParamList = {
   More: undefined;
@@ -81,6 +83,8 @@ export type StackParamList = {
   Search: { query?: string } | undefined;
   TmpInventoryTab: undefined;
   Settings: undefined;
+  Configurations: undefined;
+  HowToSwitchBetweenProfiles: undefined;
   GenericTextDetails: {
     title?: string;
     details: string;
@@ -226,6 +230,11 @@ function MainStack({ initialRouteName }: Props) {
 
       <Stack.Screen name="TmpInventoryTab" component={InventoryTabScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="Configurations" component={ConfigurationsScreen} />
+      <Stack.Screen
+        name="HowToSwitchBetweenProfiles"
+        component={HowToSwitchBetweenProfilesScreen}
+      />
       <Stack.Screen
         name="GenericTextDetails"
         component={GenericTextDetailsScreen}

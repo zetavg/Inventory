@@ -7,7 +7,7 @@ import { ListItemSeparatorProps } from './types';
 export default function UIGroupListItemSeparator(
   props: ListItemSeparatorProps,
 ): JSX.Element {
-  const { leftInsetIOS, forItemWithIcon, ...restProps } = props;
+  const { leftInsetIOS, forItemWithIcon, color, ...restProps } = props;
 
   let leftInsetIOSOvr;
   if (forItemWithIcon) {
@@ -16,6 +16,7 @@ export default function UIGroupListItemSeparator(
   return (
     <InsetGroup.ItemSeparator
       leftInset={leftInsetIOS || leftInsetIOSOvr}
+      style={[!!color && { backgroundColor: color, opacity: 1 }]}
       {...restProps}
     />
   );

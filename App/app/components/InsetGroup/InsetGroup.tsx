@@ -465,7 +465,11 @@ function InsetGroupItem({
 
 InsetGroup.Item = InsetGroupItem;
 
-function InsetGroupItemSeparator({ leftInset }: { leftInset?: number }) {
+function InsetGroupItemSeparator({
+  leftInset,
+  style,
+  ...restProps
+}: { leftInset?: number } & React.ComponentProps<typeof View>) {
   const { insetGroupSeparatorColor } = useColors();
   const backgroundColorStyle = useMemo(
     () => ({ backgroundColor: insetGroupSeparatorColor }),
@@ -482,7 +486,9 @@ function InsetGroupItemSeparator({ leftInset }: { leftInset?: number }) {
         styles.insetGroupItemSeparator,
         backgroundColorStyle,
         leftInsetStyle,
+        style,
       ]}
+      {...restProps}
     />
   );
 }

@@ -8,6 +8,7 @@
         "rfid_tag_company_prefix": { "type": "string", "pattern": "^[0-9]{6,12}$" },
         "rfid_tag_prefix": { "type": "string", "pattern": "^[1-9][0-9]{0,2}$" },
         "rfid_tag_access_password": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "default_use_mixed_rfid_tag_access_password": { "type": "boolean" },
         "rfid_tag_access_password_encoding": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
         "collections_order": {
           "type": "array",
@@ -61,6 +62,7 @@
         "rfid_tag_epc_memory_bank_contents_manually_set": { "type": "boolean" },
         "actual_rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
         "rfid_tag_access_password": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
+        "use_mixed_rfid_tag_access_password": { "type": "boolean" },
         "item_type": { "enum": ["container", "generic_container", "item_with_parts"] },
         "_can_contain_items": { "type": "boolean" },
         "container_id": { "type": "string" },

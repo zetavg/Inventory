@@ -761,11 +761,7 @@ function RFIDSheet(
 
     const epc = options.epc || writeAndLockFallbackEpc;
     const accessPassword = options.epc
-      ? getTagAccessPassword(
-          config.rfid_tag_access_password,
-          options.tagAccessPassword || '00000000',
-          config.rfid_tag_access_password_encoding,
-        )
+      ? options.tagAccessPassword || '00000000'
       : writeAndLockFallbackAccessPassword;
 
     try {
@@ -805,11 +801,7 @@ function RFIDSheet(
     if (!config) return;
 
     const accessPassword = options.epc
-      ? getTagAccessPassword(
-          config.rfid_tag_access_password,
-          options.tagAccessPassword || '00000000',
-          config.rfid_tag_access_password_encoding,
-        )
+      ? options.tagAccessPassword || '00000000'
       : writeAndLockFallbackAccessPassword;
 
     try {
@@ -1502,15 +1494,7 @@ function RFIDSheet(
                                 vertical2
                                 label="Access Password"
                                 detailTextStyle={commonStyles.monospaced}
-                                detail={
-                                  config
-                                    ? getTagAccessPassword(
-                                        config.rfid_tag_access_password,
-                                        options.tagAccessPassword || '00000000',
-                                        config.rfid_tag_access_password_encoding,
-                                      )
-                                    : 'Config Not Ready'
-                                }
+                                detail={options.tagAccessPassword}
                               />
                             </>
                           )}

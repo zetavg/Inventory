@@ -299,6 +299,7 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
           rfid_tag_company_prefix: doc.epcCompanyPrefix,
           rfid_tag_prefix: doc.epcPrefix,
           rfid_tag_access_password: doc.rfidTagAccessPassword,
+          default_use_mixed_rfid_tag_access_password: true,
           rfid_tag_access_password_encoding: doc.rfidTagAccessPasswordEncoding,
           collections_order: collections_order || [],
         }));
@@ -357,6 +358,7 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
             rfid_tag_epc_memory_bank_contents_manually_set: undefined,
             actual_rfid_tag_epc_memory_bank_contents:
               doc?.data?.actualRfidTagEpcMemoryBankContents,
+            use_mixed_rfid_tag_access_password: true,
             rfid_tag_access_password: doc?.data?.rfidTagAccessPassword,
             item_type: doc?.data?.isContainer
               ? (() => {

@@ -46,21 +46,70 @@ export default function UIGroupListTextInputItem(
     ...restProps
   } = props;
 
-  if (!label) {
-    return (
-      <InsetGroup.Item>
-        <InsetGroup.TextInput
-          {...restProps}
-          editable={!disabled && !readonly}
-          ref={ref}
-        />
-      </InsetGroup.Item>
-    );
-  }
-
   const vertical2 = !horizontalLabel;
   const compactLabel = horizontalLabel;
   const textAlign = horizontalLabel ? 'right' : 'left';
+
+  const textInputElement = (
+    <View style={styles.insetGroupTextInputContainer}>
+      {inputElement ? (
+        typeof inputElement === 'function' ? (
+          inputElement({
+            textProps: {
+              style: [
+                {
+                  color: contentTextColor,
+                },
+                insetGroupStyles.insetGroupTextInput,
+              ],
+            },
+            iconProps: {
+              size: 32,
+              showBackground: true,
+            },
+          })
+        ) : (
+          inputElement
+        )
+      ) : (
+        <InsetGroup.TextInput
+          ref={ref}
+          textAlign={textAlign}
+          {...restProps}
+          style={[
+            monospaced && styles.monospaced,
+            small && styles.small,
+            restProps.style,
+          ]}
+        />
+      )}
+      {unit ? (
+        onUnitPress ? (
+          <TouchableOpacity
+            onPress={onUnitPress}
+            style={styles.pressableUnitContainer}
+          >
+            <InsetGroup.ItemAffix
+              style={[styles.pressableUnitText, { color: iosTintColor }]}
+            >
+              {unit}
+            </InsetGroup.ItemAffix>
+          </TouchableOpacity>
+        ) : (
+          <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
+        )
+      ) : null}
+      {controlElement && (!vertical2 || !label) ? (
+        <View style={styles.insetGroupTextInputRightElementContainer}>
+          {controlElement}
+        </View>
+      ) : null}
+    </View>
+  );
+
+  if (!label) {
+    return <InsetGroup.Item>{textInputElement}</InsetGroup.Item>;
+  }
 
   if (disabled) {
     return (
@@ -113,62 +162,7 @@ export default function UIGroupListTextInputItem(
           </View>
         ) : undefined
       }
-      detail={
-        <View style={styles.insetGroupTextInputContainer}>
-          {inputElement ? (
-            typeof inputElement === 'function' ? (
-              inputElement({
-                textProps: {
-                  style: [
-                    {
-                      color: contentTextColor,
-                    },
-                    insetGroupStyles.insetGroupTextInput,
-                  ],
-                },
-                iconProps: {
-                  size: 32,
-                  showBackground: true,
-                },
-              })
-            ) : (
-              inputElement
-            )
-          ) : (
-            <InsetGroup.TextInput
-              ref={ref}
-              textAlign={textAlign}
-              {...restProps}
-              style={[
-                monospaced && styles.monospaced,
-                small && styles.small,
-                restProps.style,
-              ]}
-            />
-          )}
-          {unit ? (
-            onUnitPress ? (
-              <TouchableOpacity
-                onPress={onUnitPress}
-                style={styles.pressableUnitContainer}
-              >
-                <InsetGroup.ItemAffix
-                  style={[styles.pressableUnitText, { color: iosTintColor }]}
-                >
-                  {unit}
-                </InsetGroup.ItemAffix>
-              </TouchableOpacity>
-            ) : (
-              <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
-            )
-          ) : null}
-          {controlElement && !vertical2 ? (
-            <View style={styles.insetGroupTextInputRightElementContainer}>
-              {controlElement}
-            </View>
-          ) : null}
-        </View>
-      }
+      detail={textInputElement}
       containerStyle={rightElement ? commonStyles.flex1 : undefined}
     />
   );

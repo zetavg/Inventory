@@ -11,7 +11,7 @@ import { ConfigType } from '../schema';
 export default function useConfig(): {
   loading: boolean;
   config: ConfigType | null;
-  updateConfig: (cfg: Partial<ConfigType>) => Promise<void>;
+  updateConfig: (cfg: Partial<ConfigType>) => Promise<boolean>;
   reload: () => void;
   refresh: () => void;
   refreshing: boolean;
@@ -50,8 +50,10 @@ export default function useConfig(): {
 
         const cfg = await updateConfigFn(newCfg, { db });
         setConfig(cfg);
+        return true;
       } catch (e) {
         logger.error(e, { showAlert: true });
+        return false;
       } finally {
         setLoading(false);
       }

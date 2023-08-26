@@ -65,7 +65,7 @@ function SelectCurrencyModalScreen({
   return (
     <ModalContent
       navigation={navigation}
-      title="Select Collection"
+      title="Select Currency"
       preventClose={true}
       confirmCloseFn={handleLeave}
       action2Label="Cancel"

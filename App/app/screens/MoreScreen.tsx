@@ -100,9 +100,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             label="Settings"
             icon="cog"
             iosImage="ios-menu.settings.png"
-            onPress={() =>
-              navigation.push('NotImplemented', { title: 'Settings' })
-            }
+            onPress={() => navigation.push('Settings')}
           />
           <TableView.Item
             arrow

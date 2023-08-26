@@ -352,7 +352,7 @@ function ItemScreen({
                     <RNText>
                       The actual EPC number written to the RFID tag of this item
                       is outdated. Press the "Write Tag" button to open the
-                      Write Tag panel, use "Wipe" to reset a RFID tag and then
+                      Write Tag panel, use "Wipe" to reset an RFID tag and then
                       press "Write" to write the updated EPC content. If you're
                       done with the update, you can
                     </RNText>

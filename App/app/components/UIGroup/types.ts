@@ -73,6 +73,7 @@ export type ListItemProps = {
 
 export type ListItemSeparatorProps = {
   leftInsetIOS?: number;
+  color?: string;
   forItemWithIcon?: boolean;
 };
 

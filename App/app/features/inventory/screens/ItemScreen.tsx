@@ -17,6 +17,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch } from '@app/redux';
+import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import {
   DataTypeWithAdditionalInfo,
@@ -402,7 +403,7 @@ function ItemScreen({
                     <RNText>
                       The actual EPC number written to the RFID tag of this item
                       is outdated. Press the "Write Tag" button to open the
-                      Write Tag panel, use "Wipe" to reset a RFID tag and then
+                      Write Tag panel, use "Wipe" to reset an RFID tag and then
                       press "Write" to write the updated EPC content. If you're
                       done with the update, you can
                     </RNText>
@@ -591,16 +592,25 @@ function ItemScreen({
                                 styles.buttonWithAnnotationText,
                                 commonStyles.mr12,
                               ]}
-                              onPress={() =>
-                                openRfidSheet({
-                                  functionality: 'write',
-                                  epc: item.rfid_tag_epc_memory_bank_contents,
-                                  tagAccessPassword:
-                                    item.rfid_tag_access_password,
-                                  afterWriteSuccessRef:
-                                    afterRFIDTagWriteSuccessRef,
-                                })
+                              onPress={
+                                config
+                                  ? () =>
+                                      openRfidSheet({
+                                        functionality: 'write',
+                                        epc: item.rfid_tag_epc_memory_bank_contents,
+                                        tagAccessPassword: getTagAccessPassword(
+                                          config.rfid_tag_access_password,
+                                          item.rfid_tag_access_password,
+                                          item.use_mixed_rfid_tag_access_password ||
+                                            false,
+                                          config.rfid_tag_access_password_encoding,
+                                        ),
+                                        afterWriteSuccessRef:
+                                          afterRFIDTagWriteSuccessRef,
+                                      })
+                                  : undefined
                               }
+                              disabled={!config}
                             >
                               <RFIDWriteIcon />
                               <Text

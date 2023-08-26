@@ -367,9 +367,22 @@ export function WithListItems() {
       </UIGroup>
 
       <UIGroup header="Text Input">
-        <UIGroup.ListTextInputItem placeholder="Username" horizontalLabel />
+        <UIGroup.ListTextInputItem placeholder="Username" />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem placeholder="Password" secureTextEntry />
+      </UIGroup>
+
+      <UIGroup header="Text Input with Button">
+        <UIGroup.ListTextInputItem
+          placeholder="Placeholder"
+          controlElement={
+            <UIGroup.ListTextInputItem.Button
+              onPress={() => Alert.alert('List Text Input Button', 'Pressed.')}
+            >
+              Select
+            </UIGroup.ListTextInputItem.Button>
+          }
+        />
       </UIGroup>
 
       <UIGroup header="Text Input with Label">
@@ -549,6 +562,12 @@ export function WithListItems() {
           label="Monospaced"
           monospaced
           placeholder="Monospaced"
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="Switch"
+          inputElement={<UIGroup.ListItem.Switch value={true} />}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem

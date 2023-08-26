@@ -21,7 +21,7 @@ function EPCUtilsScreen({
 
   const [companyPrefix, setCompanyPrefix] = useState('0000000');
   const [tagPrefix, setTagPrefix] = useState('100');
-  const [collectionRefNumber, setCollectionRefNumber] = useState('000');
+  const [collectionRefNumber, setCollectionRefNumber] = useState('0000');
   const [itemRefNumber, setItemRefNumber] = useState('123456');
   const [serial, setSerial] = useState(0);
 
@@ -51,8 +51,8 @@ function EPCUtilsScreen({
     companyPrefixDigits,
   });
   const epcFilterLength = EPCUtils.getEpcFilterLength({
-    tagPrefixDigits,
-    companyPrefixDigits,
+    tagPrefix,
+    companyPrefix,
   });
 
   const prefixesFooterMessage = (() => {

@@ -1,5 +1,10 @@
 import { LayoutAnimation } from 'react-native';
 
+export const DEFAULT_LAYOUT_ANIMATION_CONFIG_FASTER = {
+  ...LayoutAnimation.Presets.easeInEaseOut,
+  duration: 50,
+};
+
 export const DEFAULT_LAYOUT_ANIMATION_CONFIG = {
   ...LayoutAnimation.Presets.easeInEaseOut,
   duration: 100,

@@ -3,6 +3,8 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
+import { v4 as uuidv4 } from 'uuid';
+
 import {
   verifyIconColorWithDefault,
   verifyIconNameWithDefault,
@@ -175,6 +177,8 @@ export default function ItemListItem({
                 !hideCollectionDetails && !!validatedCollection && (
                   <React.Fragment key="collection">
                     <Icon
+                      // Do not let this icon to be animated with LayoutAnimation.
+                      // key={uuidv4()}
                       name={verifyIconNameWithDefault(
                         validatedCollection.icon_name,
                       )}
@@ -186,6 +190,8 @@ export default function ItemListItem({
                 !hideContainerDetails && !!validatedContainer && (
                   <React.Fragment key="container">
                     <Icon
+                      // Do not let this icon to be animated with LayoutAnimation.
+                      // key={uuidv4()}
                       name={verifyIconNameWithDefault(
                         validatedContainer.icon_name,
                       )}
@@ -201,9 +207,19 @@ export default function ItemListItem({
                         item.actual_rfid_tag_epc_memory_bank_contents && (
                         <>
                           {item.actual_rfid_tag_epc_memory_bank_contents ? (
-                            <Icon name="app-info" {...iconProps} />
+                            <Icon
+                              name="app-info"
+                              // Do not let this icon to be animated with LayoutAnimation.
+                              key={uuidv4()}
+                              {...iconProps}
+                            />
                           ) : (
-                            <Icon name="app-exclamation" {...iconProps} />
+                            <Icon
+                              name="app-exclamation"
+                              // Do not let this icon to be animated with LayoutAnimation.
+                              key={uuidv4()}
+                              {...iconProps}
+                            />
                           )}{' '}
                         </>
                       )}

@@ -49,6 +49,8 @@ export async function beforeSave(
       break;
     }
     case 'item': {
+      const config = await getConfig({ db });
+
       if (typeof datum.name === 'string') {
         datum.name = datum.name.trim();
       }
@@ -83,7 +85,6 @@ export async function beforeSave(
         (typeof datum.serial === 'number' ||
           typeof datum.serial === 'undefined')
       ) {
-        const config = await getConfig({ db });
         const collection = await getRelated(
           datum as DataTypeWithAdditionalInfo<'item'>,
           'collection',
@@ -141,7 +142,15 @@ export async function beforeSave(
         }
       }
 
-      if (!datum.rfid_tag_access_password) {
+      if (typeof datum.use_mixed_rfid_tag_access_password !== 'boolean') {
+        datum.use_mixed_rfid_tag_access_password =
+          config.default_use_mixed_rfid_tag_access_password;
+      }
+
+      if (
+        datum.use_mixed_rfid_tag_access_password &&
+        !datum.rfid_tag_access_password
+      ) {
         const [generatedHex] = uuidv4().split('-');
         datum.rfid_tag_access_password = generatedHex;
       }

@@ -167,6 +167,9 @@ const commonStyles = StyleSheet.create({
   mrm8: {
     marginRight: -8,
   },
+  mt0: {
+    marginTop: 0,
+  },
   mt1: {
     marginTop: 1,
   },
@@ -205,6 +208,9 @@ const commonStyles = StyleSheet.create({
   },
   mt128: {
     marginTop: 128,
+  },
+  mb0: {
+    marginBottom: 0,
   },
   mb2: {
     marginBottom: 2,

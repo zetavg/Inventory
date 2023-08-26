@@ -4,7 +4,7 @@ import epcTds from 'epc-tds';
 
 const COLLECTION_REFERENCE_REGEX = /^[0-9]+$/;
 const ITEM_REFERENCE_REGEX = /^[0-9]+$/;
-const MIN_PREFIX = 10;
+const MIN_PREFIX = 1;
 const MAX_PREFIX = 999;
 const MAX_SERIAL = 9999;
 
@@ -55,7 +55,7 @@ const getCollectionReferenceDigits = ({
   tagPrefixDigits: number;
   companyPrefixDigits: number;
 }): number => {
-  if (tagPrefixDigits + companyPrefixDigits < 10) {
+  if (tagPrefixDigits + companyPrefixDigits <= 12) {
     return 4;
   } else {
     return 3;
@@ -84,31 +84,63 @@ const getItemReferenceDigits = ({
 };
 
 const getEpcFilterLength = ({
-  tagPrefixDigits,
-  companyPrefixDigits,
+  tagPrefix,
+  companyPrefix,
 }: {
-  tagPrefixDigits: number;
-  companyPrefixDigits: number;
+  tagPrefix: string;
+  companyPrefix: string;
 }): number => {
-  const collectionReferenceDigits = getCollectionReferenceDigits({
-    tagPrefixDigits,
-    companyPrefixDigits,
-  });
-  const itemReferenceDigits = getItemReferenceDigits({
-    tagPrefixDigits,
-    companyPrefixDigits,
-  });
+  try {
+    const tagPrefixDigits = tagPrefix.length;
+    const companyPrefixDigits = companyPrefix.length;
+    const collectionReferenceDigits = getCollectionReferenceDigits({
+      tagPrefixDigits,
+      companyPrefixDigits,
+    });
 
-  if (collectionReferenceDigits === 3 && itemReferenceDigits === 6) {
-    return 12;
+    const sampleIndividualAssetReference1 =
+      EPCUtils.encodeIndividualAssetReference({
+        companyPrefix,
+        tagPrefix,
+        collectionReference: '0'.repeat(collectionReferenceDigits),
+        itemReference: '0',
+        serial: 0,
+      });
+    const sampleGiai1 = EPCUtils.encodeGiaiFromIndividualAssetReference({
+      individualAssetReference: sampleIndividualAssetReference1,
+      companyPrefix,
+    });
+    const sampleHex1 = EPCUtils.encodeEpcHexFromGiai(sampleGiai1);
+
+    const sampleIndividualAssetReference2 =
+      EPCUtils.encodeIndividualAssetReference({
+        companyPrefix,
+        tagPrefix,
+        collectionReference: '9'.repeat(collectionReferenceDigits),
+        itemReference: '9',
+        serial: 9999,
+      });
+    const sampleGiai2 = EPCUtils.encodeGiaiFromIndividualAssetReference({
+      individualAssetReference: sampleIndividualAssetReference2,
+      companyPrefix,
+    });
+    const sampleHex2 = EPCUtils.encodeEpcHexFromGiai(sampleGiai2);
+
+    let commonLength = 0;
+
+    // Loop to compare each character
+    for (let i = 0; i < Math.min(sampleHex1.length, sampleHex2.length); i++) {
+      if (sampleHex1[i] === sampleHex2[i]) {
+        commonLength++;
+      } else {
+        break;
+      }
+    }
+
+    return commonLength;
+  } catch (e) {
+    return 0;
   }
-
-  if (collectionReferenceDigits === 4 && itemReferenceDigits === 6) {
-    return 12;
-  }
-
-  // TODO: Calculate filter length for other cases
-  return 8;
 };
 
 const getEpcFilter = ({
@@ -125,8 +157,8 @@ const getEpcFilter = ({
     companyPrefixDigits,
   });
   const epcFilterLength = getEpcFilterLength({
-    tagPrefixDigits,
-    companyPrefixDigits,
+    tagPrefix,
+    companyPrefix,
   });
 
   const sampleIndividualAssetReference =

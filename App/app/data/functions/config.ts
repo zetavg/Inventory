@@ -4,12 +4,13 @@ import { configSchema, ConfigType } from '../schema';
 
 const CONFIG_ID = '0000-config' as const;
 
-const INITIAL_CONFIG: ConfigType = {
+export const INITIAL_CONFIG: ConfigType = {
   uuid: uuid(),
   rfid_tag_company_prefix: '0000000',
   rfid_tag_prefix: '100',
   rfid_tag_access_password: '12345678',
-  rfid_tag_access_password_encoding: '08192a3b',
+  default_use_mixed_rfid_tag_access_password: false,
+  rfid_tag_access_password_encoding: '082a4c6e',
   collections_order: [],
 };
 
@@ -41,10 +42,6 @@ export async function getConfig({
     return config;
   } catch (e) {
     if (typeof e === 'object' && (e as any).name === 'not_found') {
-      await db.put({
-        _id: CONFIG_ID,
-        ...INITIAL_CONFIG,
-      });
       return INITIAL_CONFIG;
     } else {
       throw e;
@@ -63,6 +60,7 @@ export async function updateConfig(
   const oldConfig = await getConfig({ db });
   const newConfig = configSchema.parse({
     _id: CONFIG_ID,
+    ...INITIAL_CONFIG,
     ...oldConfig,
     ...config,
   });
