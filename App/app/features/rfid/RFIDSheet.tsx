@@ -447,14 +447,14 @@ function RFIDSheet(
   const { db } = useDB();
   const { config } = useConfig();
   const epcCompanyPrefix = config?.rfid_tag_company_prefix;
-  const epcPrefix = config?.rfid_tag_prefix;
+  const epcPrefix = config?.rfid_tag_individual_asset_reference_prefix;
   // const [config, setConfig] = useState<ConfigStoredInDB | null>(null);
   const [defaultFilter, setDefaultFilter] = useState<string | null>(null);
   useEffect(() => {
     if (!epcCompanyPrefix || !epcPrefix) return;
     const f = EPCUtils.getEpcFilter({
       companyPrefix: epcCompanyPrefix,
-      tagPrefix: epcPrefix,
+      iarPrefix: epcPrefix,
     });
     setDefaultFilter(f);
   }, [epcCompanyPrefix, epcPrefix]);

@@ -57,8 +57,8 @@ function SaveItemScreen({
     () =>
       config
         ? EPCUtils.getItemReferenceDigits({
-            companyPrefixDigits: config.rfid_tag_company_prefix.length,
-            tagPrefixDigits: config.rfid_tag_prefix.length,
+            companyPrefix: config.rfid_tag_company_prefix,
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
           })
         : 3,
     [config],
@@ -832,6 +832,7 @@ function SaveItemScreen({
                       purchase_date: d.getTime(),
                     }));
                   }}
+                  iosBlankDateWorkaround="tmr"
                 />
               );
             }}

@@ -30,7 +30,7 @@ export default function Configurations(props: {
           verticalArrangedLargeTextIOS
           label="Individual Asset Reference Prefix"
           monospaceDetail
-          detail={config?.rfid_tag_prefix}
+          detail={config?.rfid_tag_individual_asset_reference_prefix}
         />
       </UIGroup>
 

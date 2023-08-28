@@ -34,8 +34,8 @@ export async function beforeSave(
       ) {
         const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits(
           {
-            companyPrefixDigits: config.rfid_tag_company_prefix.length,
-            tagPrefixDigits: config.rfid_tag_prefix.length,
+            companyPrefix: config.rfid_tag_company_prefix,
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
           },
         );
 
@@ -72,7 +72,7 @@ export async function beforeSave(
       //   const config = await getConfig({ db });
       //   const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
       //     companyPrefixDigits: config.rfid_tag_company_prefix.length,
-      //     tagPrefixDigits: config.rfid_tag_prefix.length,
+      //     tagPrefixDigits: config.rfid_tag_individual_asset_reference_prefix.length,
       //   });
       //   datum.item_reference_number = datum.item_reference_number.padStart(
       //     itemReferenceDigits,
@@ -99,7 +99,7 @@ export async function beforeSave(
             datum._individual_asset_reference =
               EPCUtils.encodeIndividualAssetReference({
                 companyPrefix: config.rfid_tag_company_prefix,
-                tagPrefix: config.rfid_tag_prefix,
+                iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
                 collectionReference: collection.collection_reference_number,
                 itemReference: datum.item_reference_number,
                 serial: datum.serial || 0,
@@ -121,8 +121,8 @@ export async function beforeSave(
           datum._individual_asset_reference &&
           typeof datum._individual_asset_reference === 'string'
         ) {
-          const config = await getConfig({ db });
           datum.epc_tag_uri = EPCUtils.encodeGiaiFromIndividualAssetReference({
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
             companyPrefix: config.rfid_tag_company_prefix,
             individualAssetReference: datum._individual_asset_reference,
           });
@@ -134,7 +134,7 @@ export async function beforeSave(
       if (!datum.rfid_tag_epc_memory_bank_contents_manually_set) {
         if (datum.epc_tag_uri && typeof datum.epc_tag_uri === 'string') {
           try {
-            const [epcHex] = EPCUtils.encodeHexEPC(datum.epc_tag_uri);
+            const epcHex = EPCUtils.encodeEpcHexFromGiai(datum.epc_tag_uri);
             datum.rfid_tag_epc_memory_bank_contents = epcHex;
           } catch (e) {}
         } else {

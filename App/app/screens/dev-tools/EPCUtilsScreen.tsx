@@ -12,7 +12,8 @@ import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
 
 const companyPrefixSchema = configSchema.shape.rfid_tag_company_prefix;
-const tagPrefixSchema = configSchema.shape.rfid_tag_prefix;
+const iarPrefixSchema =
+  configSchema.shape.rfid_tag_individual_asset_reference_prefix;
 
 function EPCUtilsScreen({
   navigation,
@@ -20,38 +21,36 @@ function EPCUtilsScreen({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [companyPrefix, setCompanyPrefix] = useState('0000000');
-  const [tagPrefix, setTagPrefix] = useState('100');
+  const [iarPrefix, setIarPrefix] = useState('100');
   const [collectionRefNumber, setCollectionRefNumber] = useState('0000');
   const [itemRefNumber, setItemRefNumber] = useState('123456');
   const [serial, setSerial] = useState(0);
 
   const companyPrefixParseResult = companyPrefixSchema.safeParse(companyPrefix);
-  const tagPrefixParseResult = tagPrefixSchema.safeParse(tagPrefix);
+  const iarPrefixParseResult = iarPrefixSchema.safeParse(iarPrefix);
 
   const prefixesErrorMessage = (() => {
     if (!companyPrefixParseResult.success) {
       return '⚠ Company Prefix is invalid.';
     }
 
-    if (!tagPrefixParseResult.success) {
-      return '⚠ Tag Prefix is invalid.';
+    if (!iarPrefixParseResult.success) {
+      return '⚠ IAR Prefix is invalid.';
     }
 
     return undefined;
   })();
 
-  const companyPrefixDigits = companyPrefix.length;
-  const tagPrefixDigits = tagPrefix.length;
   const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits({
-    tagPrefixDigits,
-    companyPrefixDigits,
+    iarPrefix,
+    companyPrefix,
   });
   const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
-    tagPrefixDigits,
-    companyPrefixDigits,
+    iarPrefix,
+    companyPrefix,
   });
   const epcFilterLength = EPCUtils.getEpcFilterLength({
-    tagPrefix,
+    iarPrefix,
     companyPrefix,
   });
 
@@ -66,7 +65,7 @@ function EPCUtilsScreen({
   let individualAssetReference = '';
   try {
     individualAssetReference = EPCUtils.encodeIndividualAssetReference({
-      tagPrefix,
+      iarPrefix,
       collectionReference: collectionRefNumber,
       itemReference: itemRefNumber,
       serial,
@@ -83,7 +82,8 @@ function EPCUtilsScreen({
   let giai = '';
   try {
     giai = EPCUtils.encodeGiaiFromIndividualAssetReference({
-      companyPrefix: companyPrefix,
+      companyPrefix,
+      iarPrefix,
       individualAssetReference,
     });
   } catch (error) {
@@ -107,7 +107,7 @@ function EPCUtilsScreen({
 
   let epcFilter = '';
   try {
-    epcFilter = EPCUtils.getEpcFilter({ tagPrefix, companyPrefix });
+    epcFilter = EPCUtils.getEpcFilter({ iarPrefix, companyPrefix });
   } catch (error) {
     if (error instanceof Error) {
       epcFilter = `Error: ${error.message}`;
@@ -115,6 +115,9 @@ function EPCUtilsScreen({
       epcFilter = 'Unknown error.';
     }
   }
+
+  const [toGiaiHex, setToGiaiHex] = useState('341400000000000000000000');
+  const [toHexGiai, setToHexGiai] = useState('urn:epc:tag:giai-96:0.0000000.0');
 
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
@@ -136,13 +139,14 @@ function EPCUtilsScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
-            label="Tag Prefix"
+            label="IAR Prefix"
             horizontalLabel
             monospaced
             keyboardType="number-pad"
             placeholder="000"
-            value={tagPrefix}
-            onChangeText={setTagPrefix}
+            unit={`(max: ${EPCUtils.getMaxIarPrefix({ companyPrefix })})`}
+            value={iarPrefix}
+            onChangeText={setIarPrefix}
             {...kiaTextInputProps}
           />
         </UIGroup>
@@ -223,6 +227,53 @@ function EPCUtilsScreen({
             label="EPC Filter"
             monospaceDetail
             detail={epcFilter}
+          />
+        </UIGroup>
+
+        <UIGroup header="GIAI URI / Hex Conversion" largeTitle>
+          <UIGroup.ListTextInputItem
+            label="GIAI URI"
+            monospaced
+            keyboardType="url"
+            placeholder="urn:epc:tag:giai-96:0.0000000.0"
+            multiline
+            value={toHexGiai}
+            onChangeText={t => {
+              if (t.startsWith('Error: ')) return;
+
+              setToHexGiai(t);
+              try {
+                setToGiaiHex(EPCUtils.encodeEpcHexFromGiai(t));
+              } catch (e) {
+                setToGiaiHex(
+                  `Error: ${e instanceof Error ? e.message : 'unknown error'}`,
+                );
+              }
+            }}
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="EPC Hex"
+            monospaced
+            keyboardType="url"
+            placeholder="341400000000000000000000"
+            multiline
+            value={toGiaiHex}
+            onChangeText={t => {
+              if (t.startsWith('Error: ')) return;
+
+              const v = t.toUpperCase();
+              setToGiaiHex(v);
+              try {
+                setToHexGiai(EPCUtils.getGiaiUriFromEpcHex(v));
+              } catch (e) {
+                setToHexGiai(
+                  `Error: ${e instanceof Error ? e.message : 'unknown error'}`,
+                );
+              }
+            }}
+            {...kiaTextInputProps}
           />
         </UIGroup>
       </ScreenContent.ScrollView>

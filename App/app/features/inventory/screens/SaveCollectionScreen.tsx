@@ -56,8 +56,8 @@ function SaveCollectionScreen({
     () =>
       config
         ? EPCUtils.getCollectionReferenceDigits({
-            companyPrefixDigits: config.rfid_tag_company_prefix.length,
-            tagPrefixDigits: config.rfid_tag_prefix.length,
+            companyPrefix: config.rfid_tag_company_prefix,
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
           })
         : null,
     [config],

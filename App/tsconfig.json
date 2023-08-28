@@ -21,7 +21,7 @@
       "node_modules/@types",
       "app/lib/types"
     ],
-    "types": ["node"]
+    "types": ["node", "jest"]
   },
   "exclude": [
     "node_modules",

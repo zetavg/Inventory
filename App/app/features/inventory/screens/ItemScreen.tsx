@@ -685,13 +685,15 @@ function ItemScreen({
                             );
                           }
                           default:
-                            let iar = item._individual_asset_reference;
-                            if (config?.rfid_tag_prefix) {
-                              const prefixPart = `${config?.rfid_tag_prefix}.`;
-                              if (iar.startsWith(prefixPart)) {
-                                iar = iar.slice(prefixPart.length);
-                              }
-                            }
+                            const iar = item._individual_asset_reference;
+                            // if (
+                            //   config?.rfid_tag_individual_asset_reference_prefix
+                            // ) {
+                            //   const prefixPart = `${config?.rfid_tag_individual_asset_reference_prefix}.`;
+                            //   if (iar.startsWith(prefixPart)) {
+                            //     iar = iar.slice(prefixPart.length);
+                            //   }
+                            // }
                             return (
                               <UIGroup.ListItem
                                 verticalArrangedLargeTextIOS

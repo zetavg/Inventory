@@ -33,8 +33,8 @@ export async function validate(
         const config = await getConfig({ db });
         const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits(
           {
-            companyPrefixDigits: config.rfid_tag_company_prefix.length,
-            tagPrefixDigits: config.rfid_tag_prefix.length,
+            companyPrefix: config.rfid_tag_company_prefix,
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
           },
         );
 
@@ -164,7 +164,7 @@ export async function validate(
           try {
             EPCUtils.encodeIndividualAssetReference({
               companyPrefix: config.rfid_tag_company_prefix,
-              tagPrefix: config.rfid_tag_prefix,
+              iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
               collectionReference: collection.collection_reference_number,
               itemReference: datum.item_reference_number,
               serial: datum.serial || 0,
@@ -181,7 +181,7 @@ export async function validate(
 
       if (datum.epc_tag_uri && typeof datum.epc_tag_uri === 'string') {
         try {
-          EPCUtils.encodeHexEPC(datum.epc_tag_uri);
+          EPCUtils.encodeEpcHexFromGiai(datum.epc_tag_uri);
         } catch (e) {
           issues.push({
             code: 'custom',

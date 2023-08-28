@@ -297,7 +297,7 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
         await updateDoc('0000-config', ({ uuid, collections_order }) => ({
           uuid: uuid || uuidv4(),
           rfid_tag_company_prefix: doc.epcCompanyPrefix,
-          rfid_tag_prefix: doc.epcPrefix,
+          rfid_tag_individual_asset_reference_prefix: doc.epcPrefix,
           rfid_tag_access_password: doc.rfidTagAccessPassword,
           default_use_mixed_rfid_tag_access_password: true,
           rfid_tag_access_password_encoding: doc.rfidTagAccessPasswordEncoding,

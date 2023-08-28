@@ -11,8 +11,6 @@ import DateTimePicker, {
   DateTimePickerAndroid,
 } from '@react-native-community/datetimepicker';
 
-import commonStyles from '@app/utils/commonStyles';
-
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
@@ -31,6 +29,8 @@ type Props = {
   style?: React.ComponentProps<typeof View>['style'];
   iosStyle?: React.ComponentProps<typeof View>['style'];
   androidStyle?: React.ComponentProps<typeof View>['style'];
+  /** iOS DateTimePicker must have a value provided, so if the current value is blank, we use today as the date shown on UI. However, the current date will not be pressable on the DateTimePicker, and it will cause some inconvenience if the user want to select today's date (they will need to select another date, and select back). With this prop, we can change the default shown date to tomorrow to avoid this inconvenience. */
+  iosBlankDateWorkaround?: 'tmr';
 };
 
 export default function DatePicker({
@@ -40,14 +40,23 @@ export default function DatePicker({
   style,
   iosStyle,
   androidStyle,
+  iosBlankDateWorkaround,
 }: Props) {
   const { contentBackgroundColor, iosTintColor, contentTextColor } =
     useColors();
   const isDarkMode = useIsDarkMode();
   const iosBackgroundColor = isDarkMode ? '#313135' : '#EEEEEF';
   const date = useMemo(() => {
-    return value ? new Date(value.y, value.m - 1, value.d) : new Date();
-  }, [value]);
+    return value
+      ? new Date(value.y, value.m - 1, value.d)
+      : (() => {
+          const d = new Date();
+          if (iosBlankDateWorkaround === 'tmr') {
+            d.setDate(d.getDate() - 1);
+          }
+          return d;
+        })();
+  }, [iosBlankDateWorkaround, value]);
 
   const androidShowDatePicker = useCallback(() => {
     if (Platform.OS !== 'android') return;

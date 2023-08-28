@@ -223,10 +223,7 @@ export default function ItemListItem({
                           )}{' '}
                         </>
                       )}
-                    {item._individual_asset_reference
-                      .split('.')
-                      .slice(1)
-                      .join('.')}
+                    {item._individual_asset_reference}
                   </React.Fragment>
                 ),
               ].filter(n => n);

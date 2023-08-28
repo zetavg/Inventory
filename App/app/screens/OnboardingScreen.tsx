@@ -12,6 +12,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
@@ -282,8 +283,8 @@ function OnboardingScreen({
   const gs1CompanyPrefixErrorMessage = useMemo(() => {
     if (!gs1CompanyPrefix) return null;
 
-    if (gs1CompanyPrefix.length < 6 || gs1CompanyPrefix.length > 11) {
-      return '⚠ A Company Prefix should contain between 6 and 11 digits';
+    if (gs1CompanyPrefix.length < 6 || gs1CompanyPrefix.length > 12) {
+      return '⚠ A Company Prefix should contain between 6 and 12 digits';
     }
 
     return null;
@@ -586,11 +587,38 @@ function OnboardingScreen({
   //     setupIarPrefixUIScrollViewRef,
   //   );
 
+  const [iarPrefixShowSampleWith9, setIarPrefixShowSampleWith9] =
+    useState(false);
+
   const setupIarPrefixUI = useCallback(
     (props: StackScreenProps<any>) => {
-      const canGoNext =
-        (haveGs1CompanyPrefix === true && iarPrefix.length > 0) ||
-        (haveGs1CompanyPrefix === false && iarPrefix.length === 3);
+      const maxIarPrefix = EPCUtils.getMaxIarPrefix({
+        companyPrefix: haveGs1CompanyPrefix
+          ? gs1CompanyPrefix
+          : R_GS1_COMPANY_PREFIX,
+      });
+
+      const iarPrefixErrorMessage = (() => {
+        if (iarPrefix.length === 0) return null;
+        const n = parseInt(iarPrefix, 10);
+
+        if (n < 1) {
+          return '⚠ Prefix must be larger than 0.';
+        }
+        if (n > maxIarPrefix) {
+          return `⚠ Prefix must not be larger than ${maxIarPrefix}.`;
+        }
+
+        if (!haveGs1CompanyPrefix && iarPrefix.length < 3) {
+          return '⚠ Prefix must be at least 3 digits.';
+        }
+
+        if (!haveGs1CompanyPrefix && iarPrefix.startsWith('72')) {
+          return '⚠ Prefix starting with "72" is reserved.';
+        }
+      })();
+
+      const canGoNext = !!iarPrefix && !iarPrefixErrorMessage;
 
       const scrollToInput = () => {
         setTimeout(() => {
@@ -601,35 +629,36 @@ function OnboardingScreen({
       };
 
       const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits({
-        tagPrefixDigits: iarPrefix.length,
-        companyPrefixDigits: (haveGs1CompanyPrefix
+        iarPrefix,
+        companyPrefix: haveGs1CompanyPrefix
           ? gs1CompanyPrefix
-          : R_GS1_COMPANY_PREFIX
-        ).length,
+          : R_GS1_COMPANY_PREFIX,
       });
       const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
-        tagPrefixDigits: iarPrefix.length,
-        companyPrefixDigits: (haveGs1CompanyPrefix
+        iarPrefix,
+        companyPrefix: haveGs1CompanyPrefix
           ? gs1CompanyPrefix
-          : R_GS1_COMPANY_PREFIX
-        ).length,
+          : R_GS1_COMPANY_PREFIX,
       });
 
-      const sampleCollectionReference = '12345678'.slice(
-        0,
-        collectionReferenceDigits,
-      );
+      const sampleCollectionReference = iarPrefixShowSampleWith9
+        ? '9'.repeat(collectionReferenceDigits)
+        : '12345678'.slice(0, collectionReferenceDigits);
 
-      const sampleItemReference = '12345678'.slice(0, itemReferenceDigits);
+      const sampleItemReference = iarPrefixShowSampleWith9
+        ? '9'.repeat(itemReferenceDigits)
+        : '12345678'.slice(0, itemReferenceDigits);
       let sampleIndividualAssetReference = '';
       try {
         sampleIndividualAssetReference =
           EPCUtils.encodeIndividualAssetReference({
-            tagPrefix: iarPrefix,
+            iarPrefix,
             collectionReference: sampleCollectionReference,
             itemReference: sampleItemReference,
-            serial: 0,
-            companyPrefix: gs1CompanyPrefix,
+            serial: iarPrefixShowSampleWith9 ? 9999 : 0,
+            companyPrefix: haveGs1CompanyPrefix
+              ? gs1CompanyPrefix
+              : R_GS1_COMPANY_PREFIX,
           });
       } catch (error) {
         if (error instanceof Error) {
@@ -642,6 +671,7 @@ function OnboardingScreen({
       let sampleGiai = '';
       try {
         sampleGiai = EPCUtils.encodeGiaiFromIndividualAssetReference({
+          iarPrefix,
           companyPrefix: haveGs1CompanyPrefix
             ? gs1CompanyPrefix
             : R_GS1_COMPANY_PREFIX,
@@ -669,7 +699,7 @@ function OnboardingScreen({
       let epcFilter = '';
       try {
         epcFilter = EPCUtils.getEpcFilter({
-          tagPrefix: iarPrefix,
+          iarPrefix,
           companyPrefix: haveGs1CompanyPrefix
             ? gs1CompanyPrefix
             : R_GS1_COMPANY_PREFIX,
@@ -704,23 +734,21 @@ function OnboardingScreen({
                 <Text style={styles.text}>
                   Setting a prefix for your Individual Asset Reference number
                   can help you distinguish assets managed by this or other apps.
-                  This should be a 1~3 digit number larger than 0.
+                  This should be number larger than 0 and not bigger than{' '}
+                  {maxIarPrefix}.
                 </Text>
               ) : (
                 <Text style={styles.text}>
                   Since you are not using a unique Company Prefix, please set a
-                  3-digit prefix to reduce the chances of RFID tag collisions.
+                  3-4 digit (max: {maxIarPrefix}) prefix to reduce the chances
+                  of RFID tag collisions.
                 </Text>
               )}
             </UIGroup>
 
             <UIGroup
-              style={[{ backgroundColor: contentBackgroundColor }, cs.mb16]}
-              footer={
-                gs1CompanyPrefixErrorMessage
-                  ? gs1CompanyPrefixErrorMessage
-                  : undefined
-              }
+              style={{ backgroundColor: contentBackgroundColor }}
+              footer={iarPrefixErrorMessage ? iarPrefixErrorMessage : undefined}
               onLayout={event => {
                 iarPrefixInputY.current = event.nativeEvent.layout.y;
               }}
@@ -736,29 +764,27 @@ function OnboardingScreen({
                   LayoutAnimation.configureNext(
                     DEFAULT_LAYOUT_ANIMATION_CONFIG,
                   );
-                  setIarPrefix(
-                    t.replace(/\D/g, '').replace(/^0+/, '').slice(0, 3),
-                  );
+                  setIarPrefix(t.replace(/\D/g, '').replace(/^0+/, ''));
                   scrollToInput();
                 }}
-                maxLength={3}
+                maxLength={maxIarPrefix.toString().length}
                 controlElement={
                   <UIGroup.ListTextInputItem.Button
                     onPress={() => {
                       setIsIarPrefixManuallySet(true);
-                      let randomPrefix = generateRandomIarPrefix().toString();
-                      if (haveGs1CompanyPrefix) {
-                        // Make the prefix shorter if the GS1 Company Prefix is long
-                        if (gs1CompanyPrefix.length > 8) {
-                          randomPrefix = randomPrefix.slice(0, 1);
-                        } else if (gs1CompanyPrefix.length > 7) {
-                          randomPrefix = randomPrefix.slice(0, 2);
-                        }
-                      }
+                      let randomPrefix = 1;
+                      randomPrefix = generateRandomIarPrefix({
+                        companyPrefix: haveGs1CompanyPrefix
+                          ? gs1CompanyPrefix
+                          : R_GS1_COMPANY_PREFIX,
+                        haveGs1CompanyPrefix: haveGs1CompanyPrefix || false,
+                      });
+                      if (randomPrefix > maxIarPrefix)
+                        randomPrefix = (randomPrefix % maxIarPrefix) + 1;
                       LayoutAnimation.configureNext(
                         DEFAULT_LAYOUT_ANIMATION_CONFIG,
                       );
-                      setIarPrefix(randomPrefix);
+                      setIarPrefix(randomPrefix.toString());
                       scrollToInput();
                     }}
                   >
@@ -772,10 +798,26 @@ function OnboardingScreen({
             {canGoNext && (
               <>
                 <UIGroup style={[cs.centerChildren, cs.mb8]}>
-                  {haveGs1CompanyPrefix && (
+                  {haveGs1CompanyPrefix ? (
                     <Text style={styles.text}>
                       By using the prefix "{iarPrefix}" with your company prefix
                       "{gs1CompanyPrefix}", you can have collection reference
+                      numbers with {collectionReferenceDigits} digits and item
+                      reference number with {itemReferenceDigits} digits. This
+                      means you can have up to{' '}
+                      {(
+                        parseInt('9'.repeat(collectionReferenceDigits), 10) + 1
+                      ).toLocaleString()}{' '}
+                      collections and{' '}
+                      {(
+                        parseInt('9'.repeat(itemReferenceDigits), 10) + 1
+                      ).toLocaleString()}{' '}
+                      items under each collection.
+                    </Text>
+                  ) : (
+                    <Text style={styles.text}>
+                      By using the prefix "{iarPrefix}" the company prefix "
+                      {R_GS1_COMPANY_PREFIX}", you can have collection reference
                       numbers with {collectionReferenceDigits} digits and item
                       reference number with {itemReferenceDigits} digits. This
                       means you can have up to{' '}
@@ -803,12 +845,18 @@ function OnboardingScreen({
                     return undefined;
                   })()}
                 >
-                  <UIGroup.ListItem
-                    verticalArrangedLargeTextIOS
-                    label="Individual Asset Reference"
-                    monospaceDetail
-                    detail={sampleIndividualAssetReference}
-                  />
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      setIarPrefixShowSampleWith9(v => !v);
+                    }}
+                  >
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="Individual Asset Reference"
+                      monospaceDetail
+                      detail={sampleIndividualAssetReference}
+                    />
+                  </TouchableWithoutFeedback>
                   <UIGroup.ListItemSeparator />
                   <UIGroup.ListItem
                     verticalArrangedLargeTextIOS
@@ -863,9 +911,9 @@ function OnboardingScreen({
       backgroundColor,
       contentBackgroundColor,
       gs1CompanyPrefix,
-      gs1CompanyPrefixErrorMessage,
       haveGs1CompanyPrefix,
       iarPrefix,
+      iarPrefixShowSampleWith9,
       scrollViewContentContainerPaddingTop,
     ],
   );
@@ -897,7 +945,7 @@ function OnboardingScreen({
       rfid_tag_company_prefix: haveGs1CompanyPrefix
         ? gs1CompanyPrefix
         : R_GS1_COMPANY_PREFIX,
-      rfid_tag_prefix: iarPrefix,
+      rfid_tag_individual_asset_reference_prefix: iarPrefix,
       rfid_tag_access_password: rfidTagAccessPassword,
       default_use_mixed_rfid_tag_access_password: useMixedAccessPassword,
       ...(useMixedAccessPassword
@@ -1585,8 +1633,8 @@ function OnboardingScreen({
       }
     }
 
-    if (config?.rfid_tag_prefix) {
-      setIarPrefix(config.rfid_tag_prefix);
+    if (config?.rfid_tag_individual_asset_reference_prefix) {
+      setIarPrefix(config.rfid_tag_individual_asset_reference_prefix);
       setIsIarPrefixManuallySet(true);
     }
 
@@ -1717,11 +1765,21 @@ function OnboardingScreen({
   );
 }
 
-function generateRandomIarPrefix() {
+function generateRandomIarPrefix({
+  companyPrefix,
+  haveGs1CompanyPrefix,
+}: {
+  companyPrefix: string;
+  haveGs1CompanyPrefix: boolean;
+}) {
+  const maxIarPrefix = EPCUtils.getMaxNsIarPrefix({ companyPrefix });
   let num;
   do {
-    num = Math.floor(Math.random() * 900) + 100;
-  } while (Math.floor(num / 10) === 72);
+    num = Math.floor(Math.random() * maxIarPrefix) + 1;
+  } while (
+    !haveGs1CompanyPrefix &&
+    (num < 100 || num.toString().startsWith('72'))
+  );
   return num;
 }
 

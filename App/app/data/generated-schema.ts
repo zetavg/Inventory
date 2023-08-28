@@ -7,7 +7,9 @@ export const schema = {
     .object({
       uuid: z.string(),
       rfid_tag_company_prefix: z.string().regex(new RegExp('^[0-9]{6,12}$')),
-      rfid_tag_prefix: z.string().regex(new RegExp('^[1-9][0-9]{0,2}$')),
+      rfid_tag_individual_asset_reference_prefix: z
+        .string()
+        .regex(new RegExp('^[1-9][0-9]*$')),
       rfid_tag_access_password: z.string().regex(new RegExp('^[a-f0-9]{8}$')),
       default_use_mixed_rfid_tag_access_password: z.boolean().optional(),
       rfid_tag_access_password_encoding: z
