@@ -5,11 +5,14 @@ import { PersistableReducer } from '@app/redux/types';
 export interface SettingsState {
   devTestValue: number;
   devTestSensitiveValue: number;
+  /** Show detailed instructions on the UI or not. */
+  uiShowDetailedInstructions: boolean;
 }
 
 export const initialState: SettingsState = {
   devTestValue: 0,
   devTestSensitiveValue: 0,
+  uiShowDetailedInstructions: true,
 };
 
 export const settingsSlice = createSlice({
@@ -26,6 +29,9 @@ export const settingsSlice = createSlice({
     },
     devTestSensitiveIncrement: state => {
       state.devTestSensitiveValue += 1;
+    },
+    setUiShowDetailedInstructions: (state, action: PayloadAction<boolean>) => {
+      state.uiShowDetailedInstructions = action.payload;
     },
     reset: () => initialState,
   },
@@ -45,11 +51,14 @@ export const selectors = {
     devTestValue: (state: SettingsState) => state.devTestValue,
     devTestSensitiveValue: (state: SettingsState) =>
       state.devTestSensitiveValue,
+    uiShowDetailedInstructions: (state: SettingsState) =>
+      state.uiShowDetailedInstructions,
   },
 };
 
 reducer.dehydrate = (state: SettingsState) => ({
   devTestValue: state?.devTestValue,
+  uiShowDetailedInstructions: state?.uiShowDetailedInstructions,
 });
 reducer.rehydrate = dehydratedState => dehydratedState;
 

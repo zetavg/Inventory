@@ -16,7 +16,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
-import { actions, selectors, useAppDispatch } from '@app/redux';
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import {
@@ -52,6 +52,10 @@ function ItemScreen({
   route,
 }: StackScreenProps<StackParamList, 'Item'>) {
   const { id, preloadedTitle } = route.params;
+
+  const uiShowDetailedInstructions = useAppSelector(
+    selectors.settings.uiShowDetailedInstructions,
+  );
 
   const rootNavigation = useRootNavigation();
   const { openRfidSheet } = useRootBottomSheets();
@@ -400,38 +404,74 @@ function ItemScreen({
                       style={commonStyles.mbm2}
                     />
                     <RNText> </RNText>
-                    <RNText>
-                      The actual EPC number written to the RFID tag of this item
-                      is outdated. Press the "Write Tag" button to open the
-                      Write Tag panel, use "Wipe" to reset an RFID tag and then
-                      press "Write" to write the updated EPC content. If you're
-                      done with the update, you can
-                    </RNText>
-                    <RNText> </RNText>
-                    <RNText
-                      onPress={() =>
-                        Alert.alert(
-                          'Confirm',
-                          'Are you sure you\'ve done with the RFID tag update? After pressing "Yes", you will not be able to locate or scan this item with the old and outdated EPC number.',
-                          [
-                            {
-                              text: 'No',
-                              style: 'cancel',
-                              onPress: () => {},
-                            },
-                            {
-                              text: 'Yes',
-                              style: 'destructive',
-                              onPress: writeActualEpcContent,
-                            },
-                          ],
-                        )
-                      }
-                      style={{ color: iosTintColor }}
-                    >
-                      manually set this as done
-                    </RNText>
-                    <RNText>.</RNText>
+                    {uiShowDetailedInstructions ? (
+                      <>
+                        <RNText>
+                          The actual EPC number written to the RFID tag of this
+                          item is outdated. Press the "Write Tag" button to open
+                          the Write Tag panel, use "Wipe" to reset an RFID tag
+                          and then press "Write" to write the updated EPC
+                          content. If you're done with the update, you can
+                        </RNText>
+                        <RNText> </RNText>
+                        <RNText
+                          onPress={() =>
+                            Alert.alert(
+                              'Confirm',
+                              'Are you sure you\'ve done with the RFID tag update? After pressing "Yes", you will not be able to locate or scan this item with the old and outdated EPC number.',
+                              [
+                                {
+                                  text: 'No',
+                                  style: 'cancel',
+                                  onPress: () => {},
+                                },
+                                {
+                                  text: 'Yes',
+                                  style: 'destructive',
+                                  onPress: writeActualEpcContent,
+                                },
+                              ],
+                            )
+                          }
+                          style={{ color: iosTintColor }}
+                        >
+                          manually set this as done
+                        </RNText>
+                        <RNText>.</RNText>
+                      </>
+                    ) : (
+                      <>
+                        <RNText>
+                          The EPC number written on the RFID tag is outdated.
+                          After updating,
+                        </RNText>
+                        <RNText> </RNText>
+                        <RNText
+                          onPress={() =>
+                            Alert.alert(
+                              'Confirm',
+                              'Are you sure you\'ve done with the RFID tag update? After pressing "Yes", you will not be able to locate or scan this item with the old and outdated EPC number.',
+                              [
+                                {
+                                  text: 'No',
+                                  style: 'cancel',
+                                  onPress: () => {},
+                                },
+                                {
+                                  text: 'Yes',
+                                  style: 'destructive',
+                                  onPress: writeActualEpcContent,
+                                },
+                              ],
+                            )
+                          }
+                          style={{ color: iosTintColor }}
+                        >
+                          set this as done
+                        </RNText>
+                        <RNText>.</RNText>
+                      </>
+                    )}
                   </>
                 );
               }
