@@ -53,7 +53,7 @@
         "icon_name": { "type": "string" },
         "icon_color": { "type": "string" },
         "collection_id": { "type": "string" },
-        "item_reference_number": { "type": "string" },
+        "item_reference_number": { "type": "string", "pattern": "^[0-9]*$" },
         "serial": { "type": "integer", "minimum": 0 },
         "_individual_asset_reference": { "type": "string" },
         "epc_tag_uri": { "type": "string" },

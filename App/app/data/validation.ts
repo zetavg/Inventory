@@ -13,15 +13,18 @@ import {
   DataTypeWithAdditionalInfo,
   InvalidDataTypeWithAdditionalInfo,
 } from './types';
+import { toTitleCase } from './utils';
 
 const logger = appLogger.for({ module: 'data/validation' });
+
+export type ValidationResults = Array<ZodIssue>;
 
 export async function validate(
   datum:
     | DataTypeWithAdditionalInfo<DataTypeName>
     | InvalidDataTypeWithAdditionalInfo<DataTypeName>,
   { db }: { db: PouchDB.Database },
-): Promise<Array<ZodIssue>> {
+): Promise<ValidationResults> {
   const issues: Array<ZodIssue> = [];
 
   switch (datum.__type) {
@@ -90,6 +93,26 @@ export async function validate(
             code: 'custom',
             path: ['collection_id'],
             message: `Can't find collection with ID "${datum.collection_id}"`,
+          });
+        }
+      }
+
+      if (datum.container_id && typeof datum.container_id === 'string') {
+        const container = await getDatum('item', datum.container_id, {
+          db,
+          logger,
+        });
+        if (!container) {
+          issues.push({
+            code: 'custom',
+            path: ['container_id'],
+            message: `Can't find item with ID "${datum.container_id}"`,
+          });
+        } else if (!container._can_contain_items) {
+          issues.push({
+            code: 'custom',
+            path: ['container_id'],
+            message: `Item with ID "${datum.container_id}" can not be a container`,
           });
         }
       }
@@ -259,6 +282,7 @@ export async function validate(
           });
         }
       }
+
       break;
     }
   }
@@ -341,4 +365,18 @@ export async function validateDelete(
   }
 
   return issues;
+}
+
+export function getValidationResultMessage(
+  validationResults: ValidationResults,
+  { bullet = '', joinWith = ', ' }: { bullet?: string; joinWith?: string } = {},
+) {
+  return validationResults
+    .map(
+      (issue: any) =>
+        `${bullet ? `${bullet} ` : ''}${toTitleCase(
+          issue.path.join('_').replace(/_/g, ' '),
+        )}: ${issue.message.toLowerCase()}`,
+    )
+    .join(joinWith);
 }

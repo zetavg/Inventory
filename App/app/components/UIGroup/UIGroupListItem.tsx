@@ -46,7 +46,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
           color={iconColor}
           style={styles.iosItemIcon}
           size={30}
-          showBackground
+          showBackground={iconColor !== 'transparent'}
           backgroundPadding={4}
         />
       );

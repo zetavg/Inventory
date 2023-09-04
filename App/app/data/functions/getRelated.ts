@@ -17,6 +17,7 @@ import {
 } from '../types';
 
 import getData from './getData';
+import getDatum from './getDatum';
 
 type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
 
@@ -52,11 +53,10 @@ export default async function getRelated<
       }
 
       try {
-        const doc = await db.get(
-          getPouchDbId(relationConfig.type_name, foreignId),
-        );
-
-        return getDatumFromDoc(relationConfig.type_name, doc, logger) as any;
+        return (await getDatum(relationConfig.type_name, foreignId, {
+          db,
+          logger,
+        })) as any;
       } catch (e) {
         if (e instanceof Error && e.name === 'not_found') {
           return null as any;

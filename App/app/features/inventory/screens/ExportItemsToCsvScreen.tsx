@@ -1,30 +1,35 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { ScrollView, View, Alert } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import type { StackScreenProps } from '@react-navigation/stack';
 import { jsonToCSV } from 'react-native-csv';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
-import type { StackScreenProps } from '@react-navigation/stack';
-import type { RootStackParamList } from '@app/navigation/Navigation';
-import { useFocusEffect } from '@react-navigation/native';
-
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
+import { DataTypeWithAdditionalInfo, onlyValid } from '@app/data';
+import getData from '@app/data/functions/getData';
+import getDatum from '@app/data/functions/getDatum';
 
 import commonStyles from '@app/utils/commonStyles';
-import ModalContent from '@app/components/ModalContent';
-import LoadingOverlay from '@app/components/LoadingOverlay';
-import InsetGroup from '@app/components/InsetGroup';
+
+import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useDB from '@app/hooks/useDB';
-import { getDataFromDocs } from '@app/db/hooks';
+import useLogger from '@app/hooks/useLogger';
+import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import { getItemPropertyNameMap } from './ImportItemsFromCsvScreen';
+import ModalContent from '@app/components/ModalContent';
+import UIGroup from '@app/components/UIGroup';
+
+import getChildrenItemIds from '../utils/getChildrenItemIds';
+import itemToCsvRow from '../utils/itemToCsvRow';
 
 function ExportItemsToCsvScreen({
   navigation,
   route,
 }: StackScreenProps<RootStackParamList, 'ExportItemsToCsv'>) {
   const { db } = useDB();
+  const logger = useLogger('ExportItemsToCsvScreen');
 
   const [exportFrom, setExportFrom] = useState<any>(null);
   const [fromId, setFromId] = useState<any>(null);
@@ -40,7 +45,8 @@ function ExportItemsToCsvScreen({
   }, [navigation]);
 
   const handleOpenSelectContainer = useCallback(() => {
-    navigation.navigate('SelectContainer', {
+    navigation.navigate('SelectItem', {
+      as: 'container',
       defaultValue: undefined,
       callback: dedicatedContainer => {
         setExportFrom('container');
@@ -51,79 +57,83 @@ function ExportItemsToCsvScreen({
 
   const [loading, setLoading] = useState(false);
   const handleExport = useCallback(async () => {
+    if (!db) return;
     if (!exportFrom) return;
     setExportFrom(null);
     setLoading(true);
 
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
-      let items = [];
+      let items: DataTypeWithAdditionalInfo<'item'>[] = [];
       switch (exportFrom) {
-        case 'collection':
+        case 'collection': {
+          const collection = await getDatum('collection', fromId, {
+            db,
+            logger,
+          });
+          const data = onlyValid(
+            await getData(
+              'item',
+              { collection_id: fromId },
+              { sort: [{ __created_at: 'desc' }] },
+              { db, logger },
+            ),
+          );
+          const dataMap: Record<
+            string,
+            DataTypeWithAdditionalInfo<'item'>
+          > = Object.fromEntries(data.map(d => [d.__id, d]));
+
+          const order = Array.isArray(collection?.items_order)
+            ? collection.items_order
+            : [];
+          const explicitlyOrderedData = order
+            .map((id: string) => {
+              const d = dataMap[id];
+              return d;
+            })
+            .filter((v): v is NonNullable<typeof v> => !!v);
+          const notExplicitlyOrderedData = data.filter(
+            d => !order.includes(d.__id || ''),
+          );
+
+          items = [...explicitlyOrderedData, ...notExplicitlyOrderedData];
+          break;
+        }
         case 'container': {
-          const queryInverse = (() => {
-            switch (exportFrom) {
-              case 'collection':
-                return 'collection';
-              case 'container':
-                return 'dedicatedContainer';
+          const idsObj = await getChildrenItemIds([fromId], { db });
+
+          const flattenIdsObj = (
+            idsObj_: typeof idsObj,
+            key: string,
+            result: string[] = [],
+          ): string[] => {
+            // Add the current key to the result array
+            result.push(key);
+
+            // Check if the key exists in the tree object, then loop through its children
+            if (idsObj_[key]) {
+              for (const child of idsObj_[key]) {
+                flattenIdsObj(idsObj_, child, result);
+              }
             }
-          })();
 
-          const use_index = `index-item-${queryInverse}`;
-          const query = {
-            selector: {
-              $and: [
-                { type: 'item' },
-                { [`data.${queryInverse}`]: fromId },
-                // { ['data.updatedAt']: { $exists: true } },
-              ],
-            },
-            // sort: [
-            //   { type: 'desc' as const },
-            //   { [`data.${queryInverse}`]: 'desc' as const },
-            //   { ['data.updatedAt']: 'desc' },
-            // ],
-            use_index,
+            return result;
           };
-          try {
-            const { docs } = await db.find(query as any);
-            items = getDataFromDocs('item', docs);
-          } catch (e: any) {
-            e.message = `Error finding documents using index ${use_index}: ${
-              e.message
-            } Query: ${JSON.stringify(query, null, 2)}.`;
-            throw e;
-          }
-
+          const ids = flattenIdsObj(idsObj, fromId);
+          items = onlyValid(await getData('item', ids, {}, { db, logger }));
           break;
         }
 
         case 'all': {
-          const use_index = 'index-item-collection';
-          const query = {
-            selector: {
-              $and: [
-                { type: 'item' },
-                // { ['data.updatedAt']: { $exists: true } },
-              ],
-            },
-            // sort: [
-            //   { type: 'desc' as const },
-            //   { ['data.updatedAt']: 'desc' },
-            // ],
-            use_index,
-          };
-          try {
-            const { docs } = await db.find(query as any);
-            items = getDataFromDocs('item', docs);
-          } catch (e: any) {
-            e.message = `Error finding documents using index ${use_index}: ${
-              e.message
-            } Query: ${JSON.stringify(query, null, 2)}.`;
-            throw e;
-          }
-
+          items = onlyValid(
+            await getData(
+              'item',
+              {},
+              { sort: [{ __created_at: 'desc' }] },
+              { db, logger },
+            ),
+          );
           break;
         }
 
@@ -131,29 +141,18 @@ function ExportItemsToCsvScreen({
           throw new Error(`Unknown export source: ${exportFrom}`);
       }
 
-      const availableItemPropertyNames = getItemPropertyNameMap();
-      const data = items.map(item =>
-        Object.fromEntries([
-          ['ID', item.id],
-          ...Object.entries(availableItemPropertyNames).flatMap(
-            ([humanName, name]) => {
-              if (name === 'purchasePrice') {
-                if (typeof item.purchasePriceX1000 === 'number')
-                  return [[humanName, item.purchasePriceX1000 / 1000]];
-              }
-              if (name === 'itemReferenceNumber') {
-                if (item.itemReferenceNumber)
-                  // Force CSV editing software to treat it as string
-                  return [[humanName, '[' + item.itemReferenceNumber + ']']];
-              }
-
-              return [[humanName, item[name] || '']];
-            },
-          ),
-        ]),
+      const loadedCollectionsMap = new Map();
+      const data = await Promise.all(
+        items.map(item => itemToCsvRow(item, { db, loadedCollectionsMap })),
       );
-      const csv = jsonToCSV(data);
-      const csvFilePath = `${RNFS.TemporaryDirectoryPath}/${exportFrom}_${fromId}.csv`;
+      const csv = jsonToCSV(data, { quotes: true });
+      const csvFileName = (() => {
+        if (exportFrom === 'all') {
+          return 'exported_items.csv';
+        }
+        return `exported_items_${exportFrom}_${fromId}.csv`;
+      })();
+      const csvFilePath = `${RNFS.TemporaryDirectoryPath}/${csvFileName}`;
       await RNFS.writeFile(csvFilePath, csv, 'utf8');
 
       Share.open({
@@ -167,7 +166,7 @@ function ExportItemsToCsvScreen({
         setLoading(false);
       }, 100);
     }
-  }, [db, exportFrom, fromId]);
+  }, [db, exportFrom, fromId, logger]);
   const handleExportRef = useRef(handleExport);
   handleExportRef.current = handleExport;
 
@@ -180,32 +179,33 @@ function ExportItemsToCsvScreen({
 
   return (
     <ModalContent navigation={navigation} title="CSV Export">
-      <ScrollView
-        ref={scrollViewRef}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-      >
+      <ModalContent.ScrollView ref={scrollViewRef}>
         <View style={commonStyles.mt32} />
 
-        <InsetGroup footerLabel="Exports all items in the selected collection.">
-          <InsetGroup.Item
+        <UIGroup
+          footer="Exports all items in the selected collection."
+          loading={loading}
+        >
+          <UIGroup.ListItem
             button
             label="Export Items from Collection"
             onPress={handleOpenSelectCollection}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup footerLabel="Exports all dedicated items in the selected container.">
-          <InsetGroup.Item
+        <UIGroup
+          footer="Exports all dedicated items in the selected container."
+          loading={loading}
+        >
+          <UIGroup.ListItem
             button
             label="Export Items from Container"
             onPress={handleOpenSelectContainer}
           />
-        </InsetGroup>
+        </UIGroup>
 
-        <InsetGroup footerLabel="Exports all items in database.">
-          <InsetGroup.Item
+        <UIGroup footer="Exports all items in database." loading={loading}>
+          <UIGroup.ListItem
             button
             label="Export All Items"
             onPress={() => {
@@ -213,9 +213,8 @@ function ExportItemsToCsvScreen({
               setExportFrom('all');
             }}
           />
-        </InsetGroup>
-        <LoadingOverlay show={loading} />
-      </ScrollView>
+        </UIGroup>
+      </ModalContent.ScrollView>
     </ModalContent>
   );
 }

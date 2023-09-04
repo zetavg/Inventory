@@ -105,6 +105,9 @@ export function logger(
     consoleArgs.push(error);
   }
 
+  // Do not print logs in Jest environment
+  if (typeof jest !== 'undefined') return;
+
   switch (level) {
     case 'debug':
       console.debug(...consoleArgs);

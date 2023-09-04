@@ -34,7 +34,10 @@ export const schema = {
       icon_name: z.string(),
       icon_color: z.string(),
       collection_id: z.string(),
-      item_reference_number: z.string().optional(),
+      item_reference_number: z
+        .string()
+        .regex(new RegExp('^[0-9]*$'))
+        .optional(),
       serial: z.number().int().gte(0).optional(),
       _individual_asset_reference: z.string().optional(),
       epc_tag_uri: z.string().optional(),

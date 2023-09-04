@@ -1,3 +1,4 @@
+import { beforeSave } from '../callbacks';
 import { DataTypeName } from '../schema';
 import {
   DataTypeWithAdditionalInfo,
@@ -6,11 +7,16 @@ import {
 
 export const mockData: any = {};
 
-export default function setMockData<T extends DataTypeName>(
+export default async function setMockData<T extends DataTypeName>(
   type: T,
   d: Array<
     DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
   >,
 ) {
-  mockData[type] = d;
+  mockData[type] = await Promise.all(
+    d.map(async dt => {
+      await beforeSave(dt, { db: {} as any });
+      return dt;
+    }),
+  );
 }

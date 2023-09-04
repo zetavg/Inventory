@@ -3,9 +3,9 @@ import setMockData from '@app/data/functions/setMockData';
 import getChildrenItemIds from './getChildrenItemIds';
 
 describe('getChildrenItemIds', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     // Collection
-    setMockData('collection', [
+    await setMockData('collection', [
       {
         __type: 'collection',
         __id: '1',
@@ -21,7 +21,7 @@ describe('getChildrenItemIds', () => {
     ]);
 
     // Items
-    setMockData('item', [
+    await setMockData('item', [
       {
         __type: 'item',
         __id: 'a',

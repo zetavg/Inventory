@@ -28,6 +28,7 @@ import { LogLevel } from '@app/logger/types';
 
 import { IconName } from '@app/consts/icons';
 
+import { selectors, useAppSelector } from '@app/redux';
 // import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
 import DBSyncNewOrEditServerModalScreen from '@app/features/db-sync/screens/DBSyncNewOrEditServerModalScreen';
 import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
@@ -76,7 +77,6 @@ import useTheme from '@app/hooks/useTheme';
 import MainStack from './MainStack';
 import RootBottomSheetsContext from './RootBottomSheetsContext';
 import RootNavigationContext from './RootNavigationContext';
-import { selectors, useAppSelector } from '@app/redux';
 
 const NAVIGATION_CONTAINER_THEME = {
   ...DefaultTheme,

@@ -65,7 +65,7 @@ export default async function getData<T extends DataTypeName>(
   if (Array.isArray(conditions)) {
     selector = {
       _id: {
-        $in: conditions,
+        $in: conditions.map(id => getPouchDbId(type, id)),
       },
     } as any;
   } else if (Object.keys(conditions).length > 0) {
@@ -144,5 +144,20 @@ export default async function getData<T extends DataTypeName>(
 
   const response = await db.find(query);
 
-  return response.docs.map(d => getDatumFromDoc(type, d, logger)) as any;
+  const data = response.docs.map(d => getDatumFromDoc(type, d, logger)) as any;
+
+  if (Array.isArray(conditions) && !sortData) {
+    const dataMap = new Map<
+      string,
+      DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
+    >();
+    for (const d of data) {
+      dataMap.set(d.__id, d);
+    }
+    return conditions
+      .map(id => dataMap.get(id))
+      .filter((d): d is NonNullable<typeof d> => !!d);
+  }
+
+  return data;
 }

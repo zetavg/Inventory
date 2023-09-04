@@ -197,10 +197,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="database-import"
             iosImage="ios-menu.import.png"
-            // onPress={() => rootNavigation?.push('ImportItemsFromCsv')}
-            onPress={() =>
-              navigation.push('NotImplemented', { title: 'Import from CSV' })
-            }
+            onPress={() => rootNavigation?.push('ImportItemsFromCsv')}
           >
             Import from CSV
           </TableView.Item>
@@ -208,10 +205,7 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             arrow
             icon="database-export"
             iosImage="ios-menu.export.png"
-            // onPress={() => rootNavigation?.push('ExportItemsToCsv')}
-            onPress={() =>
-              navigation.push('NotImplemented', { title: 'Export to CSV' })
-            }
+            onPress={() => rootNavigation?.push('ExportItemsToCsv')}
           >
             Export to CSV
           </TableView.Item>
