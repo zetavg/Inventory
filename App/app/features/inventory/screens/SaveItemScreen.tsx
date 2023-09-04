@@ -320,6 +320,98 @@ function SaveItemScreen({
     );
   }, [doDelete, initialData.name]);
 
+  const selectContainerUI = (
+    <UIGroup.ListTextInputItem
+      label={(() => {
+        switch (selectedContainer?.item_type) {
+          case 'container':
+            return 'Content of';
+          case 'item_with_parts':
+            return 'Part of';
+          default:
+            return 'Container';
+        }
+      })()}
+      // eslint-disable-next-line react/no-unstable-nested-components
+      inputElement={({ textProps, iconProps }) => (
+        <TouchableOpacity
+          style={commonStyles.flex1}
+          onPress={handleOpenSelectContainer}
+        >
+          <View
+            style={[
+              commonStyles.flex1,
+              commonStyles.row,
+              commonStyles.alignItemsCenter,
+              { gap: 8, marginVertical: 4 },
+            ]}
+          >
+            {/* eslint-disable-next-line react/no-unstable-nested-components */}
+            {(() => {
+              if (!data.container_id) {
+                return (
+                  <Text
+                    {...textProps}
+                    style={[textProps.style, commonStyles.opacity02]}
+                  >
+                    None
+                  </Text>
+                );
+              } else if (data.container_id === selectedContainer?.__id) {
+                return (
+                  <>
+                    <Icon
+                      {...iconProps}
+                      name={verifyIconNameWithDefault(
+                        selectedContainer.icon_name,
+                      )}
+                      color={verifyIconColorWithDefault(
+                        selectedContainer.icon_color,
+                      )}
+                    />
+                    <Text {...textProps}>
+                      {typeof selectedContainer.name === 'string'
+                        ? selectedContainer.name
+                        : selectedContainer.__id}
+                    </Text>
+                  </>
+                );
+              } else {
+                return (
+                  <Text
+                    {...textProps}
+                    style={[textProps.style, commonStyles.opacity05]}
+                  >
+                    Loading ({data.container_id})...
+                  </Text>
+                );
+              }
+            })()}
+          </View>
+        </TouchableOpacity>
+      )}
+      controlElement={
+        data.container_id ? (
+          <UIGroup.ListTextInputItem.Button
+            onPress={() =>
+              setData(d => ({
+                ...d,
+                container_id: undefined,
+              }))
+            }
+          >
+            Clear
+          </UIGroup.ListTextInputItem.Button>
+        ) : (
+          <UIGroup.ListTextInputItem.Button onPress={handleOpenSelectContainer}>
+            Select
+          </UIGroup.ListTextInputItem.Button>
+        )
+      }
+      {...kiaTextInputProps}
+    />
+  );
+
   return (
     <ModalContent
       navigation={navigation}
@@ -433,6 +525,12 @@ function SaveItemScreen({
             }
             {...kiaTextInputProps}
           />
+          {!!data.container_id && (
+            <>
+              <UIGroup.ListItemSeparator />
+              {selectContainerUI}
+            </>
+          )}
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
             label="Item Type"
@@ -565,97 +663,7 @@ function SaveItemScreen({
               : undefined
           }
         >
-          <UIGroup.ListTextInputItem
-            label={(() => {
-              switch (selectedContainer?.item_type) {
-                case 'container':
-                  return 'Content of';
-                case 'item_with_parts':
-                  return 'Part of';
-                default:
-                  return 'Container';
-              }
-            })()}
-            // eslint-disable-next-line react/no-unstable-nested-components
-            inputElement={({ textProps, iconProps }) => (
-              <TouchableOpacity
-                style={commonStyles.flex1}
-                onPress={handleOpenSelectContainer}
-              >
-                <View
-                  style={[
-                    commonStyles.flex1,
-                    commonStyles.row,
-                    commonStyles.alignItemsCenter,
-                    { gap: 8, marginVertical: 4 },
-                  ]}
-                >
-                  {/* eslint-disable-next-line react/no-unstable-nested-components */}
-                  {(() => {
-                    if (!data.container_id) {
-                      return (
-                        <Text
-                          {...textProps}
-                          style={[textProps.style, commonStyles.opacity02]}
-                        >
-                          None
-                        </Text>
-                      );
-                    } else if (data.container_id === selectedContainer?.__id) {
-                      return (
-                        <>
-                          <Icon
-                            {...iconProps}
-                            name={verifyIconNameWithDefault(
-                              selectedContainer.icon_name,
-                            )}
-                            color={verifyIconColorWithDefault(
-                              selectedContainer.icon_color,
-                            )}
-                          />
-                          <Text {...textProps}>
-                            {typeof selectedContainer.name === 'string'
-                              ? selectedContainer.name
-                              : selectedContainer.__id}
-                          </Text>
-                        </>
-                      );
-                    } else {
-                      return (
-                        <Text
-                          {...textProps}
-                          style={[textProps.style, commonStyles.opacity05]}
-                        >
-                          Loading ({data.container_id})...
-                        </Text>
-                      );
-                    }
-                  })()}
-                </View>
-              </TouchableOpacity>
-            )}
-            controlElement={
-              data.container_id ? (
-                <UIGroup.ListTextInputItem.Button
-                  onPress={() =>
-                    setData(d => ({
-                      ...d,
-                      container_id: undefined,
-                    }))
-                  }
-                >
-                  Clear
-                </UIGroup.ListTextInputItem.Button>
-              ) : (
-                <UIGroup.ListTextInputItem.Button
-                  onPress={handleOpenSelectContainer}
-                >
-                  Select
-                </UIGroup.ListTextInputItem.Button>
-              )
-            }
-            {...kiaTextInputProps}
-          />
+          {selectContainerUI}
           {wouldBeHiddenInCollection && (
             <>
               <UIGroup.ListItemSeparator />
