@@ -119,6 +119,8 @@ function OnboardingScreen({
   const isSetupNotDoneRef = useRef(isSetupNotDone);
   isSetupNotDoneRef.current = isSetupNotDone;
 
+  const [showSkipBtnCounter, setShowSkipBtnCounter] = useState(0);
+
   useEffect(
     () =>
       // Prevent the user from closing the onboarding screen if setup is not done
@@ -203,8 +205,29 @@ function OnboardingScreen({
                   mode="text"
                   title="Switch to Another Profile"
                   style={commonStyles.alignSelfStretch}
-                  onPress={() => navigation.push('SwitchProfile')}
+                  onPress={() => {
+                    navigation.push('SwitchProfile');
+
+                    // Show the "skip" button if the user press this button for and come back for over n times (for developer).
+                    setShowSkipBtnCounter(x => x + 1);
+                  }}
                 />
+              </>
+            )}
+            {showSkipBtnCounter > 8 && (
+              // Skip button to force close this screen, only for developers.
+              <>
+                <View style={styles.inGroupSpacing} />
+                <View style={styles.inGroupSpacing} />
+                <Link
+                  onPress={() => {
+                    isSetupNotDoneRef.current = false;
+                    navigation.goBack();
+                  }}
+                  style={commonStyles.tac}
+                >
+                  Skip
+                </Link>
               </>
             )}
           </UIGroup>
@@ -217,6 +240,7 @@ function OnboardingScreen({
       hasOtherProfiles,
       navigation,
       scrollViewContentContainerPaddingTop,
+      showSkipBtnCounter,
     ],
   );
 
