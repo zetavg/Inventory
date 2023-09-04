@@ -69,7 +69,6 @@ import Text from '@app/components/Text';
 
 import ItemItem from '../inventory/components/ItemItem';
 import ItemListItem from '../inventory/components/ItemListItem';
-import getChildrenDedicatedItemIds from '../inventory/utils/getChildrenDedicatedItemIds';
 
 import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
 import { getTagAccessPassword } from './utils';

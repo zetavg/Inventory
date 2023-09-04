@@ -63,7 +63,11 @@ export default async function getData<T extends DataTypeName>(
 
   let ddocName;
   if (Array.isArray(conditions)) {
-    // TODO: implement
+    selector = {
+      _id: {
+        $in: conditions,
+      },
+    } as any;
   } else if (Object.keys(conditions).length > 0) {
     const conditionData = Object.fromEntries(
       Object.entries(conditions).map(([k, v]) => [

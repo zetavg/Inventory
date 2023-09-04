@@ -12,7 +12,7 @@ import useActionSheet from '@app/hooks/useActionSheet';
 import useDB from '@app/hooks/useDB';
 
 import CheckItems from '../components/CheckItems';
-import getChildrenDedicatedItemIds from '../utils/getChildrenDedicatedItemIds';
+import getChildrenItemIds from '../utils/getChildrenItemIds';
 
 export default function useCheckItems({
   scanName,
@@ -65,12 +65,16 @@ export default function useCheckItems({
       await loadChildrenDedicatedItemIdsPromiseRef.current;
     }
     const epcs = [
-      ...(items || []),
-      ...Array.from(checkContentsLoadedItemsMapRef.current?.values() || []),
-    ]
-      .map(it => it.actual_rfid_tag_epc_memory_bank_contents)
-      .filter((epc): epc is string => !!epc);
-    console.log('epcs', epcs);
+      ...new Set(
+        [
+          ...(items || []),
+          ...Array.from(checkContentsLoadedItemsMapRef.current?.values() || []),
+        ]
+          .map(it => it.actual_rfid_tag_epc_memory_bank_contents)
+          .filter((epcHex): epcHex is string => !!epcHex),
+      ),
+    ];
+    console.log('epcs', epcs.length, epcs);
     const filterData = sharedStart(epcs);
     const filterOption = filterData
       ? {
@@ -175,12 +179,11 @@ export default function useCheckItems({
       },
     )
       .then(() =>
-        getChildrenDedicatedItemIds(
-          db,
+        getChildrenItemIds(
           (items || [])
             .filter(it => it._can_contain_items)
             .map(it => it.__id || ''),
-          checkContentsLoadedItemsMapRef,
+          { db, loadedItemsMapRef: checkContentsLoadedItemsMapRef },
         ),
       )
       .then(obj => (dedicatedIdsMapRef.current = obj));
