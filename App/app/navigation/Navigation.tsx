@@ -258,12 +258,18 @@ function Navigation({
   const logger = useLogger('navigation');
   const isDarkMode = useIsDarkMode();
 
+  const { backgroundColor } = useColors();
+
   const navigationTheme = useMemo(
     () => ({
       ...NAVIGATION_CONTAINER_THEME,
+      colors: {
+        ...NAVIGATION_CONTAINER_THEME.colors,
+        background: backgroundColor,
+      },
       dark: isDarkMode,
     }),
-    [isDarkMode],
+    [backgroundColor, isDarkMode],
   );
 
   const rfidSheetRef = useRef<BottomSheetModal>(null);
