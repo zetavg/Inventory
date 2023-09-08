@@ -14,6 +14,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import Svg, { Path, Rect } from 'react-native-svg';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
@@ -232,6 +234,14 @@ function ItemScreen({
   });
 
   const handleMoreActionsPress = useCallback(() => {
+    showActionSheet([
+      {
+        name: 'Copy Item ID',
+        onSelect: () => {
+          Clipboard.setString(id);
+        },
+      },
+    ]);
     // const options = [
     //   item?.isContainer && 'new-dedicated-item',
     //   item && 'duplicate',
@@ -292,7 +302,7 @@ function ItemScreen({
     //     }
     //   },
     // );
-  }, []);
+  }, [id, showActionSheet]);
 
   const dispatch = useAppDispatch();
   useEffect(() => {

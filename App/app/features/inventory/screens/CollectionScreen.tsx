@@ -9,6 +9,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import {
   DEFAULT_LAYOUT_ANIMATION_CONFIG,
   DEFAULT_LAYOUT_ANIMATION_CONFIG_SLOWER,
@@ -32,6 +34,7 @@ import { useDB } from '@app/db';
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
+import useActionSheet from '@app/hooks/useActionSheet';
 import useLogger from '@app/hooks/useLogger';
 import useOrdered from '@app/hooks/useOrdered';
 
@@ -248,6 +251,18 @@ function CollectionScreen({
   const collectionName =
     typeof data?.name === 'string' ? data.name : preloadedTitle || 'Collection';
 
+  const { showActionSheet } = useActionSheet();
+  const handleMoreActionsPress = useCallback(() => {
+    showActionSheet([
+      {
+        name: 'Copy Collection ID',
+        onSelect: () => {
+          Clipboard.setString(id);
+        },
+      },
+    ]);
+  }, [id, showActionSheet]);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -278,6 +293,10 @@ function CollectionScreen({
       // action2SFSymbolName={(data && 'trash') || undefined}
       // action2MaterialIconName={(data && 'delete') || undefined}
       // onAction2Press={handleDelete}
+      action2Label={(data && 'Actions') || undefined}
+      action2SFSymbolName={(data && 'ellipsis.circle') || undefined}
+      action2MaterialIconName={(data && 'dots-horizontal') || undefined}
+      onAction2Press={handleMoreActionsPress}
     >
       <ScreenContent.ScrollView
         refreshControl={

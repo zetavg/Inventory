@@ -1,5 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { Alert, Linking, Platform, StyleSheet, View } from 'react-native';
 import {
   BottomTabBar,
   createBottomTabNavigator as createTabNavigator,
@@ -8,6 +14,7 @@ import {
   DefaultTheme,
   NavigationContainer,
   useFocusEffect,
+  useNavigationContainerRef,
 } from '@react-navigation/native';
 import {
   createStackNavigator,
@@ -51,12 +58,23 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import { DataType, DataTypeName, DataTypeWithAdditionalInfo } from '@app/data';
+import {
+  DataType,
+  DataTypeName,
+  DataTypeWithAdditionalInfo,
+  useConfig,
+} from '@app/data';
+import { getConfig } from '@app/data/functions/config';
+import getData from '@app/data/functions/getData';
+import getDatum from '@app/data/functions/getDatum';
 
+import { useDB } from '@app/db';
 import { DataTypeWithID } from '@app/db/old_relationalUtils';
 import { TypeName } from '@app/db/old_schema';
 
 import commonStyles from '@app/utils/commonStyles';
+
+import EPCUtils from '@app/modules/EPCUtils';
 
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
 import DatePickerModalScreen from '@app/screens/DatePickerModalScreen';
@@ -72,6 +90,7 @@ import SelectIconScreen from '@app/screens/SelectIconScreen';
 
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useLogger from '@app/hooks/useLogger';
 import useTheme from '@app/hooks/useTheme';
 
 import MainStack from './MainStack';
@@ -236,6 +255,7 @@ function Navigation({
   // onboarding?: boolean;
   // profileSwitcher?: boolean;
 }) {
+  const logger = useLogger('navigation');
   const isDarkMode = useIsDarkMode();
 
   const navigationTheme = useMemo(
@@ -284,8 +304,133 @@ function Navigation({
   //   blankScreenSwitchTo = 'SwitchProfile';
   // }
 
+  const navigationRef = useNavigationContainerRef();
+  const { db } = useDB();
+  const handleLink = useCallback(
+    async (url: string) => {
+      logger.debug(`Handling link: "${url}".`);
+
+      const openItemWithIAR = async (iar: string) => {
+        if (!db) {
+          logger.warn(`Can't handle link: "${url}", db is not ready.`);
+          return;
+        }
+        if (!iar.includes('.')) {
+          const config = await getConfig({ db });
+          const collectionReferenceDigits =
+            EPCUtils.getCollectionReferenceDigits({
+              companyPrefix: config.rfid_tag_company_prefix,
+              iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+            });
+          iar = [
+            iar.slice(0, collectionReferenceDigits),
+            iar.slice(collectionReferenceDigits, iar.length - 4),
+            iar.slice(iar.length - 4),
+          ].join('.');
+        }
+        const items = await getData(
+          'item',
+          { _individual_asset_reference: iar },
+          { limit: 1 },
+          { db, logger },
+        );
+        const item = items[0];
+        if (!item) {
+          Alert.alert(
+            'Item Not Found',
+            `Can't find item with individual asset reference: "${iar}".`,
+          );
+        } else {
+          (navigationRef.current?.navigate as any)('Item', {
+            id: item.__id,
+            preloadedTitle:
+              typeof item.name === 'string' ? item.name : undefined,
+          });
+        }
+      };
+
+      const openItem = async (id: string) => {
+        if (!db) {
+          logger.warn(`Can't handle link: "${url}", db is not ready.`);
+          return;
+        }
+        const item = await getDatum('item', id, { db, logger });
+        if (!item) {
+          Alert.alert('Item Not Found', `Can't find item with ID: "${id}".`);
+        } else {
+          (navigationRef.current?.navigate as any)('Item', {
+            id: item.__id,
+            preloadedTitle:
+              typeof item.name === 'string' ? item.name : undefined,
+          });
+        }
+      };
+
+      const openCollection = async (id: string) => {
+        if (!db) {
+          logger.warn(`Can't handle link: "${url}", db is not ready.`);
+          return;
+        }
+        const collection = await getDatum('collection', id, { db, logger });
+        if (!collection) {
+          Alert.alert(
+            'Collection Not Found',
+            `Can't find collection with ID: "${id}".`,
+          );
+        } else {
+          (navigationRef.current?.navigate as any)('Collection', {
+            id: collection.__id,
+            preloadedTitle:
+              typeof collection.name === 'string' ? collection.name : undefined,
+          });
+        }
+      };
+
+      const [, , ...path] = url.split('/');
+      switch (path[0]) {
+        case 'iar': {
+          openItemWithIAR(path[1]);
+          break;
+        }
+        case 'items':
+        case 'item': {
+          openItem(path[1]);
+          break;
+        }
+
+        case 'collections':
+        case 'collection': {
+          openCollection(path[1]);
+          break;
+        }
+      }
+    },
+    [db, logger, navigationRef],
+  );
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({ url }) =>
+      handleLink(url),
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, [handleLink]);
+  useEffect(() => {
+    if (!db) return;
+
+    const timer = setTimeout(async () => {
+      const url = await Linking.getInitialURL();
+      if (url) handleLink(url);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [db, handleLink]);
+
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <NavigationContainer theme={navigationTheme} ref={navigationRef}>
       <RootBottomSheetsContext.Provider
         value={rootBottomSheetsContextProviderValue}
       >
@@ -296,7 +441,7 @@ function Navigation({
             initialRouteName="Main"
           >
             <Stack.Screen name="Main">
-              {({ navigation }) => {
+              {({ navigation, route }) => {
                 // if (blankScreenSwitchTo) {
                 //   const routeName = blankScreenSwitchTo;
                 //   setTimeout(() => {
@@ -314,7 +459,10 @@ function Navigation({
                 ) : (
                   <RootNavigationContext.Provider value={navigation}>
                     <TabNavigator />
-                    <OnboardingScreenOpener navigation={navigation} />
+                    <OnboardingScreenOpener
+                      navigation={navigation}
+                      route={route}
+                    />
                   </RootNavigationContext.Provider>
                 );
               }}
