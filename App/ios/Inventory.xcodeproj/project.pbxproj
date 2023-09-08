@@ -12,6 +12,8 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		1925244E2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */; };
+		1925244F2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */; };
 		1925A26928E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */; };
 		1925A26A28E0ABE500FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */; };
 		197AF16E28C7919900F7066A /* BLEModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16828C7919800F7066A /* BLEModel.m */; };
@@ -63,6 +65,8 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Inventory/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Inventory/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Inventory/main.m; sourceTree = "<group>"; };
+		1925244C2AAB855300F85C2F /* RCTNativeEventEmitterModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTNativeEventEmitterModule.h; sourceTree = "<group>"; };
+		1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNativeEventEmitterModule.m; sourceTree = "<group>"; };
 		1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTNSLinguisticTaggerModule.h; sourceTree = "<group>"; };
 		1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNSLinguisticTaggerModule.m; sourceTree = "<group>"; };
 		1962F0C12A35DF72003E3ADE /* config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = config.xcconfig; sourceTree = "<group>"; };
@@ -142,6 +146,8 @@
 				13B07FB71A68108700A75B9A /* main.m */,
 				197D8A3628C340FA0048042D /* RCTRFIDWithUHFBLEModule.h */,
 				197D8A3728C341630048042D /* RCTRFIDWithUHFBLEModule.m */,
+				1925244C2AAB855300F85C2F /* RCTNativeEventEmitterModule.h */,
+				1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */,
 				1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */,
 				1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */,
 			);
@@ -498,6 +504,7 @@
 			files = (
 				197D8A3928C341630048042D /* RCTRFIDWithUHFBLEModule.m in Sources */,
 				1925A26A28E0ABE500FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */,
+				1925244F2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m in Sources */,
 				00E356F31AD99517003FC87E /* InventoryTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -509,6 +516,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				197AF16F28C7919900F7066A /* BluetoothUtil.m in Sources */,
 				197AF16E28C7919900F7066A /* BLEModel.m in Sources */,
+				1925244E2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				197D8A3828C341630048042D /* RCTRFIDWithUHFBLEModule.m in Sources */,
 				1925A26928E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */,

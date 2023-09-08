@@ -1,5 +1,11 @@
-import React, { useContext } from 'react';
-import { Button, Dimensions, SafeAreaView, View } from 'react-native';
+import React, { useContext, useEffect } from 'react';
+import {
+  Button,
+  DeviceEventEmitter,
+  Dimensions,
+  SafeAreaView,
+  View,
+} from 'react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 
 // import { usePersistedState } from '@app/hooks/usePersistedState';
@@ -9,6 +15,7 @@ import StorybookUIRoot from '../.storybook/Storybook';
 
 import ErrorBoundary from './components/ErrorBoundary';
 import useIsDarkMode from './hooks/useIsDarkMode';
+import onAppLoaded from './onAppLoaded';
 
 type Props = {
   darkMode?: boolean;
@@ -30,6 +37,10 @@ function WrappedStorybookUIRoot({
   const screenHeight = Dimensions.get('screen').height;
   const windowHeight = Dimensions.get('window').height;
   const navbarHeight = screenHeight - windowHeight;
+
+  useEffect(() => {
+    onAppLoaded();
+  }, []);
 
   return (
     <PaperProvider theme={theme}>

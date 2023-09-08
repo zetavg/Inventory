@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StatusBar, StyleSheet } from 'react-native';
+import { DeviceEventEmitter, StatusBar, StyleSheet } from 'react-native';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -34,6 +34,7 @@ import StorybookUIRoot, {
   SetStorybookModeFunctionContext,
 } from '@app/StorybookUIRoot';
 
+import onAppLoaded from './onAppLoaded';
 import SplashScreen from './SplashScreen';
 
 function App() {
@@ -131,7 +132,16 @@ function AppReadyGate({ children }: { children: JSX.Element }) {
         actions.profiles.switchProfile(Object.keys(profileUuidAndNames)[0]),
       );
     }
+
+    onAppLoaded();
   }, [stateRehydrated, profileUuidAndNames, dispatch, currentProfileName]);
+
+  // We need to have a timeout and call onAppLoaded to prevent the launch screen from being displayed indefinitely.
+  useEffect(() => {
+    setTimeout(() => {
+      onAppLoaded();
+    }, 5000);
+  }, []);
 
   const dbs = useDB();
   // To prevent race conditions with the DB initialization, we wait for the DB to be ready before rendering the app.

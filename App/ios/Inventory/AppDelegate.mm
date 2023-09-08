@@ -4,7 +4,10 @@
 #import <React/RCTLinkingManager.h>
 
 
-@implementation AppDelegate
+@implementation AppDelegate {
+  UIView *launchScreenView; // The launch screen view
+  BOOL launchScreenViewShouldBeRemoved;
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -13,7 +16,39 @@
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
 
-  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  // Mimic the launch screen for more smooth transition
+  UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"LaunchScreen" bundle:nil];
+  UIViewController *launchScreenVC = [storyboard instantiateInitialViewController];
+  launchScreenView = launchScreenVC.view;
+  launchScreenViewShouldBeRemoved = NO;
+
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(handleAppLoaded)
+                                               name:@"appLoaded"
+                                             object:nil];
+
+  BOOL success = [super application:application didFinishLaunchingWithOptions:launchOptions];
+
+  if (success && !launchScreenViewShouldBeRemoved) {
+    // Add the mimic launch screen view to the main window
+    UIWindow *mainWindow = [UIApplication sharedApplication].delegate.window;
+    [mainWindow addSubview:launchScreenView];
+    [mainWindow bringSubviewToFront:launchScreenView];
+  }
+
+  return success;
+}
+
+- (void)handleAppLoaded
+{
+  launchScreenViewShouldBeRemoved = YES;
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [UIView animateWithDuration:0.3 animations:^{
+      self->launchScreenView.alpha = 0;
+    } completion:^(BOOL finished) {
+      [self->launchScreenView removeFromSuperview];
+    }];
+  });
 }
 
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge
