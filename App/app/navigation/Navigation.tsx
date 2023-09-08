@@ -361,7 +361,7 @@ function Navigation({
           return;
         }
         const item = await getDatum('item', id, { db, logger });
-        if (!item) {
+        if (!item.__id) {
           Alert.alert('Item Not Found', `Can't find item with ID: "${id}".`);
         } else {
           (navigationRef.current?.navigate as any)('Item', {
@@ -378,7 +378,7 @@ function Navigation({
           return;
         }
         const collection = await getDatum('collection', id, { db, logger });
-        if (!collection) {
+        if (!collection.__id) {
           Alert.alert(
             'Collection Not Found',
             `Can't find collection with ID: "${id}".`,
