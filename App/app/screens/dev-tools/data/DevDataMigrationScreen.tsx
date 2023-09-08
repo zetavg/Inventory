@@ -387,8 +387,8 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
             expiry_date: undefined,
             contents_order: itemContentOrders[id],
           },
-          created_at: doc?.data?.createdAt,
-          updated_at: doc?.data?.updatedAt,
+          created_at: doc?.data?.createdAt * 1000,
+          updated_at: doc?.data?.updatedAt * 1000,
         }));
       }
 
