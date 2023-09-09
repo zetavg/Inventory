@@ -1,4 +1,4 @@
-import appLogger from '@app/logger';
+import appLogger, { getLevelsToLog } from '@app/logger';
 
 import { getDatumFromDoc, getPouchDbId } from '../pouchdb-utils';
 import { DataTypeName } from '../schema';
@@ -20,6 +20,10 @@ export default async function getDatum<T extends DataTypeName>(
 ): Promise<
   DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
 > {
+  if (getLevelsToLog().includes('debug')) {
+    logger.debug(`getDatum: ${type} ${id}`);
+  }
+
   const doc =
     (await db.get(getPouchDbId(type, id)).catch(e => {
       if (e instanceof Error && e.name === 'not_found') {

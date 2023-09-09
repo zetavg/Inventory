@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { StackScreenProps } from '@react-navigation/stack';
 
 import { RenderScannedItemsFn } from '@app/features/rfid/RFIDSheet';
@@ -34,9 +35,13 @@ export default function useCheckItems({
     DataTypeWithAdditionalInfo<'item'>
   >>(null);
   const dedicatedIdsMapRef = useRef<null | Record<string, Array<string>>>(null);
-  const loadChildrenDedicatedItemIdsPromiseRef = useRef<null | Promise<any>>(
-    null,
+  useFocusEffect(
+    useCallback(() => {
+      checkContentsLoadedItemsMapRef.current = null;
+      dedicatedIdsMapRef.current = null;
+    }, []),
   );
+
   const checkContentsResultSeenIdsRef = useRef<Set<string> | null>(null);
   const checkContentsResultManuallyCheckedIdsRef = useRef<Set<string> | null>(
     null,
@@ -60,10 +65,22 @@ export default function useCheckItems({
   }, []);
   const ignoreNextCheckContentsRfidSheetClose = useRef(false);
   const checkItems = useCallback(async () => {
-    // Data will be loaded via useEffect but we need to wait until it's ready
-    if (loadChildrenDedicatedItemIdsPromiseRef.current) {
-      await loadChildrenDedicatedItemIdsPromiseRef.current;
+    if (!db) return;
+
+    if (!checkContentsLoadedItemsMapRef.current) {
+      checkContentsLoadedItemsMapRef.current = new Map();
+      await Promise.resolve()
+        .then(() =>
+          getChildrenItemIds(
+            (items || [])
+              .filter(it => it._can_contain_items)
+              .map(it => it.__id || ''),
+            { db, loadedItemsMapRef: checkContentsLoadedItemsMapRef },
+          ),
+        )
+        .then(obj => (dedicatedIdsMapRef.current = obj));
     }
+
     const epcs = [
       ...new Set(
         [
@@ -74,7 +91,7 @@ export default function useCheckItems({
           .filter((epcHex): epcHex is string => !!epcHex),
       ),
     ];
-    console.log('epcs', epcs.length, epcs);
+    // console.log('epcs', epcs.length, epcs);
     const filterData = sharedStart(epcs);
     const filterOption = filterData
       ? {
@@ -84,7 +101,7 @@ export default function useCheckItems({
           data: filterData || '',
         }
       : undefined;
-    console.log('filterOption', filterOption);
+    // console.log('filterOption', filterOption);
     openRfidSheet({
       functionality: 'scan' as const,
       scanName,
@@ -125,13 +142,7 @@ export default function useCheckItems({
       },
     });
     checkContentsResultSaved.current = false;
-  }, [
-    items,
-    handleCheckContentsDone,
-    scanName,
-    openRfidSheet,
-    // showActionSheetWithOptions,
-  ]);
+  }, [db, items, openRfidSheet, scanName, handleCheckContentsDone]);
   const handleCheckItemsOnViewItemPress = useCallback(
     (itemId: string) => {
       ignoreNextCheckContentsRfidSheetClose.current = true;
@@ -164,30 +175,6 @@ export default function useCheckItems({
       },
       [handleCheckItemsOnViewItemPress, items],
     );
-  useEffect(() => {
-    if (items.length <= 0) return;
-
-    if (!db) throw new Error('DB is not ready!');
-
-    if (!checkContentsLoadedItemsMapRef.current)
-      checkContentsLoadedItemsMapRef.current = new Map();
-    loadChildrenDedicatedItemIdsPromiseRef.current = new Promise<void>(
-      resolve => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
-      },
-    )
-      .then(() =>
-        getChildrenItemIds(
-          (items || [])
-            .filter(it => it._can_contain_items)
-            .map(it => it.__id || ''),
-          { db, loadedItemsMapRef: checkContentsLoadedItemsMapRef },
-        ),
-      )
-      .then(obj => (dedicatedIdsMapRef.current = obj));
-  }, [db, items]);
 
   return [checkItems];
 }

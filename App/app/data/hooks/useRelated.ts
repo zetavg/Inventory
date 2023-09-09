@@ -86,9 +86,17 @@ export default function useRelated<
   dataRef.current = data;
 
   const hasLoaded = useRef(false);
+  const lastLoadedAt = useRef(0);
   const loadData = useCallback(async () => {
     if (!cachedD) return;
     if (!db) return;
+
+    const now = Date.now();
+    if (!!lastLoadedAt.current && now - lastLoadedAt.current < 100) {
+      return;
+    }
+
+    lastLoadedAt.current = now;
 
     setLoading(true);
     try {

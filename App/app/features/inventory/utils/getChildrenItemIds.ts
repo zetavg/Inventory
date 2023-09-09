@@ -72,15 +72,19 @@ export default async function getChildrenItemIds(
       );
       ids = [...explicitlyOrderedIds, ...notExplicitlyOrderedIds];
 
-      const childrenIds = await getChildrenItemIds(
-        data.filter(d => d._can_contain_items).map(d => d.__id || ''),
-        {
-          db,
-          loadedItemsMapRef,
-          maxDepth,
-          currentDepth: currentDepth + 1,
-        },
-      );
+      const nextLevelParents = data
+        .filter(d => d._can_contain_items)
+        .map(d => d.__id || '');
+
+      const childrenIds =
+        nextLevelParents.length > 0
+          ? await getChildrenItemIds(nextLevelParents, {
+              db,
+              loadedItemsMapRef,
+              maxDepth,
+              currentDepth: currentDepth + 1,
+            })
+          : {};
 
       return {
         [parentItem.__id || '']: ids,
