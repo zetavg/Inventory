@@ -453,7 +453,6 @@ function ItemScreen({
                       <>
                         <RNText>
                           The EPC number written on the RFID tag is outdated.
-                          After updating,
                         </RNText>
                         <RNText> </RNText>
                         <RNText
@@ -477,7 +476,7 @@ function ItemScreen({
                           }
                           style={{ color: iosTintColor }}
                         >
-                          set this as done
+                          Set as updated
                         </RNText>
                         <RNText>.</RNText>
                       </>
@@ -853,7 +852,7 @@ function ItemScreen({
             </>
           )}
 
-        {typeof data?.notes === 'string' && (
+        {typeof data?.notes === 'string' && !!data?.notes && (
           <UIGroup header="Notes" largeTitle>
             <UIGroup.ListItem>
               <Text>{data.notes}</Text>
@@ -864,7 +863,7 @@ function ItemScreen({
         {(() => {
           const detailElements = [];
 
-          if (typeof data?.model_name === 'string') {
+          if (typeof data?.model_name === 'string' && !!data?.model_name) {
             detailElements.push(
               <UIGroup.ListItem
                 key="modelName"
@@ -911,7 +910,10 @@ function ItemScreen({
             );
           }
 
-          if (typeof data?.purchased_from === 'string') {
+          if (
+            typeof data?.purchased_from === 'string' &&
+            !!data?.purchased_from
+          ) {
             detailElements.push(
               <UIGroup.ListItem
                 key="purchasedFrom"

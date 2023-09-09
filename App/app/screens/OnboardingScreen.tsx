@@ -611,8 +611,9 @@ function OnboardingScreen({
   //     setupIarPrefixUIScrollViewRef,
   //   );
 
-  const [iarPrefixShowSampleWith9, setIarPrefixShowSampleWith9] =
-    useState(false);
+  const [iarPrefixShowSampleType, setIarPrefixShowSampleType] = useState<
+    '123' | '000' | '999'
+  >('123');
 
   const setupIarPrefixUI = useCallback(
     (props: StackScreenProps<any>) => {
@@ -665,13 +666,28 @@ function OnboardingScreen({
           : R_GS1_COMPANY_PREFIX,
       });
 
-      const sampleCollectionReference = iarPrefixShowSampleWith9
-        ? '9'.repeat(collectionReferenceDigits)
-        : '12345678'.slice(0, collectionReferenceDigits);
+      const sampleCollectionReference = (() => {
+        switch (iarPrefixShowSampleType) {
+          case '123':
+            return '12345678'.slice(0, collectionReferenceDigits);
+          case '000':
+            return '0'.repeat(collectionReferenceDigits);
+          case '999':
+            return '9'.repeat(collectionReferenceDigits);
+        }
+      })();
 
-      const sampleItemReference = iarPrefixShowSampleWith9
-        ? '9'.repeat(itemReferenceDigits)
-        : '12345678'.slice(0, itemReferenceDigits);
+      const sampleItemReference = (() => {
+        switch (iarPrefixShowSampleType) {
+          case '123':
+            return '12345678'.slice(0, itemReferenceDigits);
+          case '000':
+            return '0'.repeat(itemReferenceDigits);
+          case '999':
+            return '9'.repeat(itemReferenceDigits);
+        }
+      })();
+
       let sampleIndividualAssetReference = '';
       try {
         sampleIndividualAssetReference =
@@ -679,7 +695,7 @@ function OnboardingScreen({
             iarPrefix,
             collectionReference: sampleCollectionReference,
             itemReference: sampleItemReference,
-            serial: iarPrefixShowSampleWith9 ? 9999 : 0,
+            serial: iarPrefixShowSampleType === '999' ? 9999 : 0,
             companyPrefix: haveGs1CompanyPrefix
               ? gs1CompanyPrefix
               : R_GS1_COMPANY_PREFIX,
@@ -825,10 +841,16 @@ function OnboardingScreen({
                   {haveGs1CompanyPrefix ? (
                     <Text style={styles.text}>
                       By using the prefix "{iarPrefix}" with your company prefix
-                      "{gs1CompanyPrefix}", you can have collection reference
-                      numbers with {collectionReferenceDigits} digits and item
-                      reference number with {itemReferenceDigits} digits. This
-                      means you can have up to{' '}
+                      "{gs1CompanyPrefix}", you can have{' '}
+                      <Text style={commonStyles.fwBold}>
+                        collection reference numbers with{' '}
+                        {collectionReferenceDigits} digits
+                      </Text>{' '}
+                      and{' '}
+                      <Text style={commonStyles.fwBold}>
+                        item reference number with {itemReferenceDigits} digits
+                      </Text>
+                      . This means you can have up to{' '}
                       {(
                         parseInt('9'.repeat(collectionReferenceDigits), 10) + 1
                       ).toLocaleString()}{' '}
@@ -840,11 +862,17 @@ function OnboardingScreen({
                     </Text>
                   ) : (
                     <Text style={styles.text}>
-                      By using the prefix "{iarPrefix}" the company prefix "
-                      {R_GS1_COMPANY_PREFIX}", you can have collection reference
-                      numbers with {collectionReferenceDigits} digits and item
-                      reference number with {itemReferenceDigits} digits. This
-                      means you can have up to{' '}
+                      By using the prefix "{iarPrefix}" with company prefix "
+                      {R_GS1_COMPANY_PREFIX}", you can have{' '}
+                      <Text style={commonStyles.fwBold}>
+                        collection reference numbers with{' '}
+                        {collectionReferenceDigits} digits
+                      </Text>{' '}
+                      and{' '}
+                      <Text style={commonStyles.fwBold}>
+                        item reference number with {itemReferenceDigits} digits
+                      </Text>
+                      . This means you can have up to{' '}
                       {(
                         parseInt('9'.repeat(collectionReferenceDigits), 10) + 1
                       ).toLocaleString()}{' '}
@@ -871,7 +899,16 @@ function OnboardingScreen({
                 >
                   <TouchableWithoutFeedback
                     onPress={() => {
-                      setIarPrefixShowSampleWith9(v => !v);
+                      setIarPrefixShowSampleType(v => {
+                        switch (v) {
+                          case '123':
+                            return '999';
+                          case '999':
+                            return '000';
+                          case '000':
+                            return '123';
+                        }
+                      });
                     }}
                   >
                     <UIGroup.ListItem
@@ -937,7 +974,7 @@ function OnboardingScreen({
       gs1CompanyPrefix,
       haveGs1CompanyPrefix,
       iarPrefix,
-      iarPrefixShowSampleWith9,
+      iarPrefixShowSampleType,
       scrollViewContentContainerPaddingTop,
     ],
   );

@@ -1244,7 +1244,7 @@ function RFIDSheet(
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
-                  automaticallyAdjustKeyboardInsets
+                  // automaticallyAdjustKeyboardInsets
                   ref={scrollViewRef}
                   // contentInset={{ bottom: contentBottomInset }}
                 >
@@ -1429,7 +1429,7 @@ function RFIDSheet(
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
-                  automaticallyAdjustKeyboardInsets
+                  // automaticallyAdjustKeyboardInsets
                   // contentInset={{ bottom: contentBottomInset }}
                 >
                   <View
@@ -1443,7 +1443,7 @@ function RFIDSheet(
                     <InsetGroup
                       // label="Write Data"
                       footerLabel={
-                        'Hold the RFID tag near the reader and press "Write" to write and lock it. To reset and unlock a written tag, press "Wipe".'
+                        'Hold the RFID tag in front of the reader and press "Write" to write and lock it. To reset and unlock a written tag, press "Wipe".'
                       }
                       style={{
                         backgroundColor: insetGroupBackgroundColor,
@@ -1558,7 +1558,7 @@ function RFIDSheet(
               return (
                 <BottomSheetScrollView
                   style={animatedScrollViewStyles}
-                  automaticallyAdjustKeyboardInsets
+                  // automaticallyAdjustKeyboardInsets
                   // contentInset={{ bottom: contentBottomInset }}
                 >
                   <View
