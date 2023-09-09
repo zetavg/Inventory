@@ -234,75 +234,35 @@ function ItemScreen({
   });
 
   const handleMoreActionsPress = useCallback(() => {
-    showActionSheet([
-      {
-        name: 'Copy Item ID',
-        onSelect: () => {
-          Clipboard.setString(id);
+    showActionSheet(
+      [
+        data?.__valid
+          ? {
+              name: 'Duplicate',
+              onSelect: () => {
+                if (!data?.__valid) return;
+                rootNavigation?.navigate('SaveItem', {
+                  initialData: {
+                    ...Object.fromEntries(
+                      Object.entries(data).filter(([k]) => !k.startsWith('_')),
+                    ),
+                  },
+                  afterSave: it => {
+                    it.__id && navigation.push('Item', { id: it.__id });
+                  },
+                });
+              },
+            }
+          : null,
+        {
+          name: 'Copy Item ID',
+          onSelect: () => {
+            Clipboard.setString(id);
+          },
         },
-      },
-    ]);
-    // const options = [
-    //   item?.isContainer && 'new-dedicated-item',
-    //   item && 'duplicate',
-    // ].filter((s): s is string => !!s);
-    // const optionNames: Record<string, string> = {
-    //   'new-dedicated-item': `New ${(() => {
-    //     switch (item?.isContainerType) {
-    //       case 'generic-container':
-    //       case 'item-with-parts':
-    //         return 'Part';
-    //       default:
-    //         return 'Dedicated Item';
-    //     }
-    //   })()}...`,
-    //   duplicate: 'Duplicate',
-    // };
-    // const shownOptions = options.map(v => optionNames[v]);
-    // showActionSheetWithOptions(
-    //   {
-    //     options: [...shownOptions, 'Cancel'],
-    //     cancelButtonIndex: shownOptions.length,
-    //   },
-    //   buttonIndex => {
-    //     if (buttonIndex === shownOptions.length) {
-    //       // cancel action
-    //       return;
-    //     }
-    //     const selectedOption =
-    //       typeof buttonIndex === 'number' ? options[buttonIndex] : null;
-    //     switch (selectedOption) {
-    //       case 'new-dedicated-item':
-    //         return handleNewContent();
-    //       case 'duplicate':
-    //         if (!item) return;
-    //         rootNavigation?.navigate('SaveItem', {
-    //           initialData: {
-    //             ...Object.fromEntries(
-    //               Object.entries(item).filter(
-    //                 ([k]) =>
-    //                   !k.startsWith('computed') &&
-    //                   k !== 'actualRfidTagEpcMemoryBankContents' &&
-    //                   k !== 'rfidTagAccessPassword' &&
-    //                   k !== 'createdAt' &&
-    //                   k !== 'updatedAt',
-    //               ),
-    //             ),
-    //             id: undefined,
-    //             rev: undefined,
-    //           },
-    //           afterSave: it => {
-    //             it.id && navigation.push('Item', { id: it.id });
-    //           },
-    //         });
-    //         return;
-    //       default:
-    //         Alert.alert('TODO', `${selectedOption} is not implemented yet.`);
-    //         return;
-    //     }
-    //   },
-    // );
-  }, [id, showActionSheet]);
+      ].filter((s): s is NonNullable<typeof s> => !!s),
+    );
+  }, [data, id, navigation, rootNavigation, showActionSheet]);
 
   const dispatch = useAppDispatch();
   useEffect(() => {
