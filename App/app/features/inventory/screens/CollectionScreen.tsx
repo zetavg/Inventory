@@ -195,10 +195,10 @@ function CollectionScreen({
       rootNavigation?.push('SaveItem', {
         initialData: {
           collection_id: id,
-          icon_name:
-            typeof data?.item_default_icon_name === 'string'
-              ? data.item_default_icon_name
-              : undefined,
+          ...(typeof data?.item_default_icon_name === 'string' &&
+          data?.item_default_icon_name
+            ? { icon_name: data.item_default_icon_name }
+            : {}),
         },
         afterSave: item => {
           if (

@@ -110,6 +110,17 @@ function SaveCollectionScreen({
     [data.icon_name, navigation],
   );
 
+  const handleOpenSelectItemDefaultIcon = useCallback(
+    () =>
+      navigation.navigate('SelectIcon', {
+        defaultValue: verifyIconName(data.item_default_icon_name),
+        callback: item_default_icon_name => {
+          setData(d => ({ ...d, item_default_icon_name }));
+        },
+      }),
+    [data.item_default_icon_name, navigation],
+  );
+
   // const handleOpenSelectDefaultItemIcon = useCallback(
   //   () =>
   //     navigation.navigate('SelectIcon', {
@@ -265,6 +276,26 @@ function SaveCollectionScreen({
             }));
           }}
         />
+
+        <UIGroup>
+          <UIGroup.ListTextInputItem
+            label="Default Icon for Items"
+            inputElement={
+              <IconSelectInput
+                iconName={verifyIconName(data.item_default_icon_name)}
+                iconColor="grey"
+                onPress={handleOpenSelectItemDefaultIcon}
+              />
+            }
+            controlElement={
+              <UIGroup.ListTextInputItem.Button
+                onPress={handleOpenSelectItemDefaultIcon}
+              >
+                Select
+              </UIGroup.ListTextInputItem.Button>
+            }
+          />
+        </UIGroup>
 
         {/*
         <UIGroup>
