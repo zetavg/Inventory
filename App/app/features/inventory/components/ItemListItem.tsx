@@ -12,17 +12,16 @@ import {
 
 import {
   DataTypeWithAdditionalInfo,
-  onlyValid,
   useDataCount,
   useRelated,
 } from '@app/data';
-
-import commonStyles from '@app/utils/commonStyles';
 
 import useColors from '@app/hooks/useColors';
 
 import Icon from '@app/components/Icon';
 import UIGroup from '@app/components/UIGroup';
+
+import StockStatusIcon from './StockStatusIcon';
 
 export default function ItemListItem({
   item,
@@ -136,22 +135,10 @@ export default function ItemListItem({
           : item.item_type === 'consumable'
           ? // eslint-disable-next-line react/no-unstable-nested-components
             ({ iconProps }) => {
-              const stockStatus:
-                | React.ComponentProps<typeof StockStatusIcon>['status']
-                | null = (() => {
-                if (stockQuantity <= 0) {
-                  if (item.consumable_will_not_restock) {
-                    return 'empty-will-not-restock';
-                  }
-
-                  return 'empty';
-                }
-                return null;
-              })();
               return (
                 <View>
                   <Icon {...iconProps} name={iconName} />
-                  {!!stockStatus && <StockStatusIcon status={stockStatus} />}
+                  <StockStatusIcon item={item} />
                 </View>
               );
             }
@@ -427,66 +414,6 @@ function CheckStatusIcon({
   }
 }
 
-function StockStatusIcon({
-  status,
-}: {
-  status: 'empty' | 'empty-will-not-restock';
-}) {
-  const { gray, orange } = useColors();
-
-  if (Platform.OS === 'ios') {
-    switch (status) {
-      case 'empty':
-        return (
-          <View style={styles.stockStatusIconContainer}>
-            <SFSymbol
-              name="circle.slash"
-              color={orange}
-              size={14}
-              weight="bold"
-            />
-          </View>
-        );
-
-      case 'empty-will-not-restock':
-        return (
-          <View style={styles.stockStatusIconContainer}>
-            <SFSymbol
-              name="circle.slash"
-              color={gray}
-              size={14}
-              weight="bold"
-            />
-          </View>
-        );
-    }
-  }
-
-  switch (status) {
-    case 'empty':
-      return (
-        <View style={styles.stockStatusIconContainer}>
-          <MaterialCommunityIcon
-            name="slash-forward-box"
-            color={orange}
-            size={16}
-          />
-        </View>
-      );
-
-    case 'empty-will-not-restock':
-      return (
-        <View style={styles.stockStatusIconContainer}>
-          <MaterialCommunityIcon
-            name="slash-forward-box"
-            color={gray}
-            size={16}
-          />
-        </View>
-      );
-  }
-}
-
 const styles = StyleSheet.create({
   itemItemIcon: { marginRight: -2 },
   itemItemIconUnchecked: {
@@ -515,18 +442,6 @@ const styles = StyleSheet.create({
           position: 'absolute',
           right: -4,
           bottom: -3,
-        },
-  stockStatusIconContainer:
-    Platform.OS === 'ios'
-      ? {
-          position: 'absolute',
-          right: 2,
-          bottom: 5,
-        }
-      : {
-          position: 'absolute',
-          right: -6,
-          bottom: -4,
         },
   checkStatusIconIosLayer1: {
     position: 'absolute',

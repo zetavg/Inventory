@@ -48,6 +48,7 @@ import UIGroup from '@app/components/UIGroup';
 
 import ItemListItem from '../components/ItemListItem';
 import PlusAndMinusButtons from '../components/PlusAndMinusButtons';
+import StockStatusIcon from '../components/StockStatusIcon';
 import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
@@ -510,13 +511,33 @@ function ItemScreen({
                     label="Item Name"
                     detail={item.name}
                     // eslint-disable-next-line react/no-unstable-nested-components
-                    rightElement={({ iconProps }) => (
-                      <Icon
-                        name={verifyIconNameWithDefault(item.icon_name)}
-                        color={item.icon_color}
-                        {...iconProps}
-                      />
-                    )}
+                    rightElement={({ iconProps }) => {
+                      switch (item.item_type) {
+                        case 'consumable':
+                          return (
+                            <View>
+                              <Icon
+                                name={verifyIconNameWithDefault(item.icon_name)}
+                                color={item.icon_color}
+                                {...iconProps}
+                              />
+                              <StockStatusIcon
+                                item={item}
+                                moreMargin
+                                sizeMultiplier={1.1}
+                              />
+                            </View>
+                          );
+                        default:
+                          return (
+                            <Icon
+                              name={verifyIconNameWithDefault(item.icon_name)}
+                              color={item.icon_color}
+                              {...iconProps}
+                            />
+                          );
+                      }
+                    }}
                   />
                 </TouchableWithoutFeedback>
                 {devModeCounter > 10 && (
