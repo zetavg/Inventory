@@ -24,7 +24,7 @@ import { ExposeSafeAreaInsets } from '@app/utils/exposedSafeAreaInsets';
 
 import Navigation from '@app/navigation';
 
-import useColors from '@app/hooks/useColors';
+import { useBackgroundColor } from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import { usePersistedState } from '@app/hooks/usePersistedState';
 
@@ -44,7 +44,7 @@ function App() {
     changeBarColors(isDarkMode);
   }, [isDarkMode]);
 
-  const { backgroundColor } = useColors();
+  const backgroundColor = useBackgroundColor();
 
   /** A toggle to render the entire app as Storybook for development */
   const [storybookMode, setStorybookMode] = usePersistedState(

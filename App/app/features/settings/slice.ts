@@ -5,6 +5,7 @@ import { PersistableReducer } from '@app/redux/types';
 export interface SettingsState {
   devTestValue: number;
   devTestSensitiveValue: number;
+  uiColorTheme: string;
   /** Show detailed instructions on the UI or not. */
   uiShowDetailedInstructions: boolean;
 }
@@ -12,6 +13,7 @@ export interface SettingsState {
 export const initialState: SettingsState = {
   devTestValue: 0,
   devTestSensitiveValue: 0,
+  uiColorTheme: 'blue',
   uiShowDetailedInstructions: true,
 };
 
@@ -29,6 +31,9 @@ export const settingsSlice = createSlice({
     },
     devTestSensitiveIncrement: state => {
       state.devTestSensitiveValue += 1;
+    },
+    setUiColorTheme: (state, action: PayloadAction<string>) => {
+      state.uiColorTheme = action.payload;
     },
     setUiShowDetailedInstructions: (state, action: PayloadAction<boolean>) => {
       state.uiShowDetailedInstructions = action.payload;
@@ -51,6 +56,7 @@ export const selectors = {
     devTestValue: (state: SettingsState) => state.devTestValue,
     devTestSensitiveValue: (state: SettingsState) =>
       state.devTestSensitiveValue,
+    uiColorTheme: (state: SettingsState) => state.uiColorTheme,
     uiShowDetailedInstructions: (state: SettingsState) =>
       state.uiShowDetailedInstructions,
   },
@@ -58,6 +64,7 @@ export const selectors = {
 
 reducer.dehydrate = (state: SettingsState) => ({
   devTestValue: state?.devTestValue,
+  uiColorTheme: state?.uiColorTheme,
   uiShowDetailedInstructions: state?.uiShowDetailedInstructions,
 });
 reducer.rehydrate = dehydratedState => dehydratedState;

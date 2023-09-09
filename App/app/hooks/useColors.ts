@@ -1,8 +1,16 @@
+import { selectors, useAppSelector } from '@app/redux';
+
 import useIsDarkMode from './useIsDarkMode';
+
+export function useBackgroundColor() {
+  const isDarkMode = useIsDarkMode();
+  const backgroundColor = isDarkMode ? '#000000' : '#F2F2F6';
+  return backgroundColor;
+}
 
 function useColors() {
   const isDarkMode = useIsDarkMode();
-  const backgroundColor = isDarkMode ? '#000000' : '#F2F2F6';
+  const backgroundColor = useBackgroundColor();
   const groupTitleColor = isDarkMode ? '#8D8D93' : '#85858B';
   const contentBackgroundColor = isDarkMode ? '#1C1C1E' : '#FFFFFF';
   const sheetBackgroundColor = isDarkMode ? '#1C1C1E' : '#F2F2F6';
@@ -10,8 +18,7 @@ function useColors() {
   const textOnDarkBackgroundColor = '#fff';
   const contentSecondaryTextColor = isDarkMode ? '#98989F' : '#8A8A8E';
   const contentDisabledTextColor = isDarkMode ? '#8F8F8F' : '#8F8F8F';
-  const iosHeaderTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
-  const iosTintColor = isDarkMode ? '#3A82F7' : '#3478F6';
+
   const iosDestructiveColor = isDarkMode ? '#EB5545' : '#EB4D3D';
   const insetGroupSeparatorColor = isDarkMode ? '#3E3E40' : '#C7C7C9';
 
@@ -63,6 +70,60 @@ function useColors() {
   const blueTagBorder = isDarkMode ? '#148EFF' : '#0171F5';
   const purpleTagBorder = isDarkMode ? '#CB66FF' : '#9F4CC9';
   const greyTagBorder = isDarkMode ? '#A2A2A7' : '#848489';
+
+  const uiColorTheme = useAppSelector(selectors.settings.uiColorTheme);
+  const iosHeaderTintColor = (() => {
+    switch (uiColorTheme) {
+      case 'blue':
+        return iconBlue;
+      case 'brown':
+        return iconBrown;
+      case 'gray':
+        return iconGray;
+      case 'green':
+        return iconGreen;
+      case 'indigo':
+        return iconIndigo;
+      case 'yellow':
+        return iconYellow;
+      case 'red':
+        return iconRed;
+      case 'purple':
+        return iconPurple;
+      case 'orange':
+        return iconOrange;
+      case 'teal':
+        return iconTeal;
+      default:
+        return iconBlue;
+    }
+  })();
+  const iosTintColor = (() => {
+    switch (uiColorTheme) {
+      case 'blue':
+        return iconBlue;
+      case 'brown':
+        return iconBrown;
+      case 'gray':
+        return iconGray;
+      case 'green':
+        return iconGreen;
+      case 'indigo':
+        return iconIndigo;
+      case 'yellow':
+        return iconYellow;
+      case 'red':
+        return iconRed;
+      case 'purple':
+        return iconPurple;
+      case 'orange':
+        return iconOrange;
+      case 'teal':
+        return iconTeal;
+      default:
+        return iconBlue;
+    }
+  })();
 
   return {
     backgroundColor,
