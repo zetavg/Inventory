@@ -204,13 +204,15 @@ export function UIGroupListTextInputItemButton(
         <View style={styles.iosRenderedListTextInputItemButtonContainer}>
           {children({
             textProps: {
-              style: { color: iosTintColor },
+              style: {
+                color: disabled ? contentDisabledTextColor : iosTintColor,
+              },
             },
             iconProps: {
-              color: iosTintColor,
+              color: disabled ? contentDisabledTextColor : iosTintColor,
               size: 16,
               sfSymbolWeight: 'regular',
-              style: undefined,
+              style: disabled ? { opacity: 0.5 } : undefined,
             },
           })}
         </View>

@@ -47,6 +47,7 @@ import Text from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
 import ItemListItem from '../components/ItemListItem';
+import PlusAndMinusButtons from '../components/PlusAndMinusButtons';
 import useCheckItems from '../hooks/useCheckItems';
 
 function ItemScreen({
@@ -64,7 +65,7 @@ function ItemScreen({
   const { showActionSheet } = useActionSheet();
 
   const { config, loading: configLoading } = useConfig();
-  const { save } = useSave();
+  const { save, saving } = useSave();
 
   const [reloadCounter, setReloadCounter] = useState(0);
   const {
@@ -277,6 +278,36 @@ function ItemScreen({
         return 'Contents';
     }
   })();
+
+  const updateStockQuantity = useCallback(
+    async (quantity: number) => {
+      if (!data?.__valid) return;
+      try {
+        await save({
+          ...data,
+          consumable_stock_quantity: quantity,
+        });
+        reloadData();
+        return true;
+      } catch (e) {}
+    },
+    [data, reloadData, save],
+  );
+
+  const updateWillNotRestock = useCallback(
+    async (v: boolean) => {
+      if (!data?.__valid) return;
+      try {
+        await save({
+          ...data,
+          consumable_will_not_restock: v,
+        });
+        reloadData();
+        return true;
+      } catch (e) {}
+    },
+    [data, reloadData, save],
+  );
 
   return (
     <ScreenContent
@@ -735,6 +766,53 @@ function ItemScreen({
             );
           })()}
         </UIGroup>
+
+        {data?.item_type === 'consumable' && (
+          <UIGroup loading={saving}>
+            <UIGroup.ListTextInputItem
+              label="Stock Quantity"
+              horizontalLabel
+              value={(typeof data.consumable_stock_quantity === 'number'
+                ? data.consumable_stock_quantity
+                : 1
+              ).toString()}
+              onChangeText={t => {
+                const n = parseInt(t, 10);
+                if (isNaN(n)) return;
+                updateStockQuantity(n);
+              }}
+              controlElement={
+                <View style={commonStyles.ml8}>
+                  <PlusAndMinusButtons
+                    value={
+                      typeof data.consumable_stock_quantity === 'number'
+                        ? data.consumable_stock_quantity
+                        : 1
+                    }
+                    onChangeValue={v => updateStockQuantity(v)}
+                  />
+                </View>
+              }
+            />
+            {data.consumable_stock_quantity === 0 && (
+              <>
+                <UIGroup.ListItemSeparator />
+                <UIGroup.ListTextInputItem
+                  label="Will Not Be Restocked"
+                  horizontalLabel
+                  inputElement={
+                    <UIGroup.ListItem.Switch
+                      value={!!data.consumable_will_not_restock}
+                      onValueChange={v => {
+                        updateWillNotRestock(v);
+                      }}
+                    />
+                  }
+                />
+              </>
+            )}
+          </UIGroup>
+        )}
 
         {typeof data?.item_type === 'string' &&
           ['container', 'generic_container', 'item_with_parts'].includes(

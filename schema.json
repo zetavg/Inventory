@@ -63,7 +63,14 @@
         "actual_rfid_tag_epc_memory_bank_contents": { "type": "string", "pattern": "^[A-F0-9]+$" },
         "rfid_tag_access_password": { "type": "string", "pattern": "^[a-f0-9]{8}$" },
         "use_mixed_rfid_tag_access_password": { "type": "boolean" },
-        "item_type": { "enum": ["container", "generic_container", "item_with_parts"] },
+        "item_type": {
+          "enum": [
+            "container",
+            "generic_container",
+            "item_with_parts",
+            "consumable"
+          ]
+        },
         "_can_contain_items": { "type": "boolean" },
         "container_id": { "type": "string" },
         "always_show_in_collection": { "type": "boolean" },
@@ -75,6 +82,8 @@
         "purchased_from": { "type": "string" },
         "purchase_date": { "type": "number" },
         "expiry_date": { "type": "number" },
+        "consumable_stock_quantity": { "type": "number" },
+        "consumable_will_not_restock": { "type": "boolean" },
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }

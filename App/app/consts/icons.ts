@@ -1135,6 +1135,22 @@ export const ICONS = {
     sfSymbolName: 'dot.radiowaves.forward',
     materialIconName: 'cellphone-wireless',
   },
+  'app-plus': {
+    sfSymbolName: 'plus.circle.fill',
+    materialIconName: 'plus-circle',
+  },
+  'app-minus': {
+    sfSymbolName: 'minus.circle.fill',
+    materialIconName: 'minus-circle',
+  },
+  'app-plus-without-frame': {
+    sfSymbolName: 'plus',
+    materialIconName: 'plus',
+  },
+  'app-minus-without-frame': {
+    sfSymbolName: 'minus',
+    materialIconName: 'minus',
+  },
   add: {
     sfSymbolName: 'plus',
     materialIconName: 'plus',

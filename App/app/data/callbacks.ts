@@ -69,6 +69,16 @@ export async function beforeSave(
         datum._can_contain_items = true;
       }
 
+      if (datum.item_type === 'consumable') {
+        if (typeof datum.consumable_stock_quantity !== 'number') {
+          datum.consumable_stock_quantity = 1;
+          datum.consumable_will_not_restock = false;
+        }
+      } else {
+        datum.consumable_stock_quantity = undefined;
+        datum.consumable_will_not_restock = undefined;
+      }
+
       // We pad this while generating EPC
       // if (
       //   datum.item_reference_number &&

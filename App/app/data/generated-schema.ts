@@ -57,7 +57,12 @@ export const schema = {
         .optional(),
       use_mixed_rfid_tag_access_password: z.boolean().optional(),
       item_type: z
-        .enum(['container', 'generic_container', 'item_with_parts'])
+        .enum([
+          'container',
+          'generic_container',
+          'item_with_parts',
+          'consumable',
+        ])
         .optional(),
       _can_contain_items: z.boolean().optional(),
       container_id: z.string().optional(),
@@ -70,6 +75,8 @@ export const schema = {
       purchased_from: z.string().optional(),
       purchase_date: z.number().optional(),
       expiry_date: z.number().optional(),
+      consumable_stock_quantity: z.number().optional(),
+      consumable_will_not_restock: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),

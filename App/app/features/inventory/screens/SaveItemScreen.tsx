@@ -43,6 +43,7 @@ import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
 
 import IconInputUIGroup from '../components/IconInputUIGroup';
+import PlusAndMinusButtons from '../components/PlusAndMinusButtons';
 
 function SaveItemScreen({
   route,
@@ -568,7 +569,7 @@ function SaveItemScreen({
                       commonStyles.flex0,
                     ]}
                   >
-                    {(() => {
+                    {((): string => {
                       switch (data.item_type) {
                         case 'container':
                           return 'Container';
@@ -576,7 +577,9 @@ function SaveItemScreen({
                           return 'Generic Container';
                         case 'item_with_parts':
                           return 'Item with Parts';
-                        default:
+                        case 'consumable':
+                          return 'Consumable';
+                        case undefined:
                           return 'Item';
                       }
                     })()}
@@ -594,6 +597,65 @@ function SaveItemScreen({
             {...kiaTextInputProps}
           />
         </UIGroup>
+
+        {data.item_type === 'consumable' && (
+          <UIGroup>
+            <UIGroup.ListTextInputItem
+              label="Stock Quantity"
+              horizontalLabel
+              keyboardType="number-pad"
+              placeholder="1"
+              returnKeyType="done"
+              clearButtonMode="while-editing"
+              selectTextOnFocus
+              value={data.consumable_stock_quantity?.toString()}
+              onChangeText={t => {
+                const n = parseInt(t, 10);
+                if (isNaN(n)) return;
+                setData(d => ({
+                  ...d,
+                  consumable_stock_quantity: n,
+                }));
+              }}
+              controlElement={
+                <View style={commonStyles.ml8}>
+                  <PlusAndMinusButtons
+                    value={
+                      typeof data.consumable_stock_quantity === 'number'
+                        ? data.consumable_stock_quantity
+                        : 1
+                    }
+                    onChangeValue={v =>
+                      setData(d => ({
+                        ...d,
+                        consumable_stock_quantity: v,
+                      }))
+                    }
+                  />
+                </View>
+              }
+              {...kiaTextInputProps}
+            />
+            {data.consumable_stock_quantity === 0 && (
+              <>
+                <UIGroup.ListItemSeparator />
+                <UIGroup.ListTextInputItem
+                  label="Will Not Be Restocked"
+                  horizontalLabel
+                  inputElement={
+                    <UIGroup.ListItem.Switch
+                      value={data.consumable_will_not_restock}
+                      onValueChange={v =>
+                        setData(d => ({ ...d, consumable_will_not_restock: v }))
+                      }
+                    />
+                  }
+                  {...kiaTextInputProps}
+                />
+              </>
+            )}
+          </UIGroup>
+        )}
 
         <UIGroup>
           <UIGroup.ListTextInputItem

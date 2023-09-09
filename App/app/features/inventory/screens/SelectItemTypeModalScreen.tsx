@@ -17,6 +17,8 @@ function getFooterText(value: DataType<'item'>['item_type']): string {
       return ''; // TODO: explain
     case 'item_with_parts':
       return 'An item that can have nested items.';
+    case 'consumable':
+      return 'Consumable items, which you can track the stock.';
     case undefined:
       return 'A normal item.';
   }
@@ -84,6 +86,12 @@ function SelectItemTypeModalScreen({
             label="Item with Parts"
             onPress={() => setValue('item_with_parts')}
             selected={value === 'item_with_parts'}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            label="Consumable"
+            onPress={() => setValue('consumable')}
+            selected={value === 'consumable'}
           />
         </UIGroup>
       </ModalContent.ScrollView>
