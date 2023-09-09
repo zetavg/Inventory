@@ -35,6 +35,7 @@ export default function PlusAndMinusButtons({ value, onChangeValue }: Props) {
           value <= 0 && styles.buttonDisabled,
           { backgroundColor: buttonColor },
         ]}
+        disabled={value <= 0}
         onPress={handleMinus}
       >
         <Icon

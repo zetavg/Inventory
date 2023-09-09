@@ -288,7 +288,7 @@ function ItemScreen({
           consumable_stock_quantity: quantity,
         });
         reloadData();
-        return true;
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
       } catch (e) {}
     },
     [data, reloadData, save],
@@ -303,7 +303,6 @@ function ItemScreen({
           consumable_will_not_restock: v,
         });
         reloadData();
-        return true;
       } catch (e) {}
     },
     [data, reloadData, save],
@@ -781,6 +780,7 @@ function ItemScreen({
                 if (isNaN(n)) return;
                 updateStockQuantity(n);
               }}
+              selectTextOnFocus
               controlElement={
                 <View style={commonStyles.ml8}>
                   <PlusAndMinusButtons
