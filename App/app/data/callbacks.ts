@@ -54,6 +54,11 @@ export async function beforeSave(
       if (typeof datum.name === 'string') {
         datum.name = datum.name.trim();
       }
+      ['notes', 'model_name', 'purchased_from'].forEach(key => {
+        if (typeof datum[key] === 'string') {
+          datum[key] = (datum[key] as string).trim();
+        }
+      });
 
       if (
         typeof datum.item_type === 'string' &&
