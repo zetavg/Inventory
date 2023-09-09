@@ -35,6 +35,14 @@ npx react-native run-android --appIdSuffix dev
 2. In Xcode, select a scheme and choose "Any iOS Device" as the target, then select "Product" → "Archive" from the app menu.
 3. After the build is complete, the Organizer window will open (or select "Window" → "Organizer" from the app menu to open it). Select your archive and click "Distribute App" (or right-click on it and select "Show in Finder").
 
+#### Using Fastlane
+
+To use Fastlane, you'll need to install Fastlane by running `bundle install` in the `ios` directory. Also, App Store Connect API keys have to be setup in `config.xcconfig`.
+
+The following Fastlane lanes are available, which can be run in the `ios` directory:
+
+* Build a Nightly build and upload it to TestFlight: `bundle exec fastlane nightly`.
+
 ### Android
 
 First, setup Gradle variables. Edit `~/.gradle/gradle.properties`, and add the following:

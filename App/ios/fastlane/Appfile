@@ -1,0 +1,8 @@
+configuration_file_path = File.join(__dir__, '..', 'config.xcconfig')
+configuration = Xcodeproj::Config.new(configuration_file_path)
+
+for_platform :ios do
+  for_lane :nightly do
+    app_identifier configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY']
+  end
+end

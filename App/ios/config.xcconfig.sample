@@ -29,3 +29,10 @@ URL_SCHEME_RELEASE = zx-inv
 // App version numbers.
 MARKETING_VERSION = 0.1.2
 CURRENT_PROJECT_VERSION = 10
+
+// App Store Connect API keys.
+// Get it at: https://appstoreconnect.apple.com/access/api
+// See: https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api
+APP_STORE_CONNECT_API_KEY_ID = D83848D23
+APP_STORE_CONNECT_API_KEY_ISSUER_ID = 227b0bbf-ada8-458c-9d62-3d8022b7d07f
+APP_STORE_CONNECT_API_KEY_FILE_PATH = /.../AuthKey_D83848D23.p8
