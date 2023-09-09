@@ -42,6 +42,7 @@ To use Fastlane, you'll need to install Fastlane by running `bundle install` in 
 The following Fastlane lanes are available, which can be run in the `ios` directory:
 
 * Build a Nightly build and upload it to TestFlight: `bundle exec fastlane nightly`.
+* Build and upload to App Store Connect: `bundle exec fastlane release`.
 
 ### Android
 

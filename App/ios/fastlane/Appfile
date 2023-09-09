@@ -5,4 +5,7 @@ for_platform :ios do
   for_lane :nightly do
     app_identifier configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY']
   end
+  for_lane :release do
+    app_identifier configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_RELEASE']
+  end
 end
