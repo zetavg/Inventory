@@ -22,7 +22,9 @@ import {
   TransitionPresets,
 } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SFSymbol } from 'react-native-sfsymbols';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
   BottomSheetModal,
@@ -627,20 +629,19 @@ function TabNavigator() {
           children={() => <MainStack initialRouteName="More" />}
           options={{
             title: 'Dashboard',
-            tabBarIcon: ({ focused, ...props }) => (
-              <Ionicons
-                name={
-                  Platform.OS === 'ios'
-                    ? focused
-                      ? 'ios-grid'
-                      : 'ios-grid-outline'
-                    : focused
-                    ? 'md-grid'
-                    : 'md-grid-outline'
-                }
-                {...props}
-              />
-            ),
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ focused, ...props }) =>
+              Platform.OS === 'ios' ? (
+                <SFSymbol
+                  name={focused ? 'square.grid.2x2.fill' : 'square.grid.2x2'}
+                  {...props}
+                />
+              ) : (
+                <MaterialCommunityIcon
+                  name={focused ? 'view-dashboard' : 'view-dashboard-outline'}
+                  {...props}
+                />
+              ),
           }}
         />
         <Tab.Screen
@@ -648,41 +649,39 @@ function TabNavigator() {
           children={() => <MainStack initialRouteName="Collections" />}
           options={{
             title: 'Inventory',
-            tabBarIcon: ({ focused, ...props }) => (
-              <Ionicons
-                name={
-                  Platform.OS === 'ios'
-                    ? focused
-                      ? 'ios-folder-open'
-                      : 'ios-folder-open-outline'
-                    : focused
-                    ? 'md-folder-open'
-                    : 'md-folder-open-outline'
-                }
-                {...props}
-              />
-            ),
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ focused, ...props }) =>
+              Platform.OS === 'ios' ? (
+                <SFSymbol
+                  name={focused ? 'square.grid.3x3.fill' : 'square.grid.3x3'}
+                  {...props}
+                />
+              ) : (
+                <MaterialCommunityIcon
+                  name={focused ? 'view-grid' : 'view-grid-outline'}
+                  {...props}
+                />
+              ),
           }}
         />
         <Tab.Screen
-          name="CheckTab"
+          name="ScanTab"
           children={() => <MainStack initialRouteName="More" />}
           options={{
-            title: 'Check',
-            tabBarIcon: ({ focused, ...props }) => (
-              <Ionicons
-                name={
-                  Platform.OS === 'ios'
-                    ? focused
-                      ? 'ios-scan'
-                      : 'ios-scan-outline'
-                    : focused
-                    ? 'md-scan'
-                    : 'md-scan-outline'
-                }
-                {...props}
-              />
-            ),
+            title: 'Scan',
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ focused, ...props }) =>
+              Platform.OS === 'ios' ? (
+                <SFSymbol
+                  name={focused ? 'viewfinder' : 'viewfinder'}
+                  {...props}
+                />
+              ) : (
+                <MaterialCommunityIcon
+                  name={focused ? 'line-scan' : 'line-scan'}
+                  {...props}
+                />
+              ),
           }}
         />
         <Tab.Screen
@@ -690,20 +689,19 @@ function TabNavigator() {
           children={() => <MainStack initialRouteName="Search" />}
           options={{
             title: 'Search',
-            tabBarIcon: ({ focused, ...props }) => (
-              <Ionicons
-                name={
-                  Platform.OS === 'ios'
-                    ? focused
-                      ? 'ios-search'
-                      : 'ios-search-outline'
-                    : focused
-                    ? 'md-search'
-                    : 'md-search-outline'
-                }
-                {...props}
-              />
-            ),
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ focused, ...props }) =>
+              Platform.OS === 'ios' ? (
+                <SFSymbol
+                  name={focused ? 'magnifyingglass' : 'magnifyingglass'}
+                  {...props}
+                />
+              ) : (
+                <MaterialCommunityIcon
+                  name={focused ? 'magnify' : 'magnify'}
+                  {...props}
+                />
+              ),
           }}
         />
         <Tab.Screen
@@ -711,20 +709,23 @@ function TabNavigator() {
           children={() => <MainStack initialRouteName="More" />}
           options={{
             title: 'More',
-            tabBarIcon: ({ focused, ...props }) => (
-              <Ionicons
-                name={
-                  Platform.OS === 'ios'
-                    ? focused
-                      ? 'ios-ellipsis-horizontal-circle-sharp'
-                      : 'ios-ellipsis-horizontal-circle-outline'
-                    : focused
-                    ? 'md-ellipsis-horizontal-circle-sharp'
-                    : 'md-ellipsis-horizontal-circle-outline'
-                }
-                {...props}
-              />
-            ),
+            // eslint-disable-next-line react/no-unstable-nested-components
+            tabBarIcon: ({ focused, ...props }) =>
+              Platform.OS === 'ios' ? (
+                <SFSymbol
+                  name={focused ? 'ellipsis.circle.fill' : 'ellipsis.circle'}
+                  {...props}
+                />
+              ) : (
+                <MaterialCommunityIcon
+                  name={
+                    focused
+                      ? 'dots-horizontal-circle'
+                      : 'dots-horizontal-circle-outline'
+                  }
+                  {...props}
+                />
+              ),
           }}
         />
       </Tab.Navigator>
