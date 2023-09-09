@@ -30,6 +30,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>z-inv</string>
+        <string>$(URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
