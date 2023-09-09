@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import Svg, { Path, Rect } from 'react-native-svg';
 
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -289,6 +290,9 @@ function ItemScreen({
           consumable_stock_quantity: quantity,
         });
         reloadData();
+        ReactNativeHapticFeedback.trigger('impactLight', {
+          enableVibrateFallback: false,
+        });
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
       } catch (e) {}
     },
@@ -792,6 +796,9 @@ function ItemScreen({
             <UIGroup.ListTextInputItem
               label="Stock Quantity"
               horizontalLabel
+              keyboardType="number-pad"
+              selectTextOnFocus
+              returnKeyType="done"
               value={(typeof data.consumable_stock_quantity === 'number'
                 ? data.consumable_stock_quantity
                 : 1
@@ -801,7 +808,6 @@ function ItemScreen({
                 if (isNaN(n)) return;
                 updateStockQuantity(n);
               }}
-              selectTextOnFocus
               controlElement={
                 <View style={commonStyles.ml8}>
                   <PlusAndMinusButtons

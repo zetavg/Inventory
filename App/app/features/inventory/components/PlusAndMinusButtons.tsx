@@ -29,34 +29,39 @@ export default function PlusAndMinusButtons({ value, onChangeValue }: Props) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        style={[
-          styles.button,
-          styles.buttonLeft,
-          value <= 0 && styles.buttonDisabled,
-          { backgroundColor: buttonColor },
-        ]}
         disabled={value <= 0}
         onPress={handleMinus}
+        style={styles.buttonContainer}
       >
-        <Icon
-          name="app-minus-without-frame"
-          color={contentSecondaryTextColor}
-          size={16}
-        />
+        <View
+          style={[
+            styles.button,
+            styles.buttonLeft,
+            value <= 0 && styles.buttonDisabled,
+            { backgroundColor: buttonColor },
+          ]}
+        >
+          <Icon
+            name="app-minus-without-frame"
+            color={contentSecondaryTextColor}
+            size={16}
+          />
+        </View>
       </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.button,
-          styles.buttonRight,
-          { backgroundColor: buttonColor },
-        ]}
-        onPress={handlePlus}
-      >
-        <Icon
-          name="app-plus-without-frame"
-          color={contentSecondaryTextColor}
-          size={16}
-        />
+      <TouchableOpacity onPress={handlePlus} style={styles.buttonContainer}>
+        <View
+          style={[
+            styles.button,
+            styles.buttonRight,
+            { backgroundColor: buttonColor },
+          ]}
+        >
+          <Icon
+            name="app-plus-without-frame"
+            color={contentSecondaryTextColor}
+            size={16}
+          />
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -68,10 +73,14 @@ const styles = StyleSheet.create({
     gap: StyleSheet.hairlineWidth,
     marginVertical: -8,
   },
+  buttonContainer: {
+    marginVertical: -8,
+  },
   button: {
+    marginVertical: 8,
     backgroundColor: 'red',
     height: 24,
-    width: 32,
+    width: 42,
     justifyContent: 'center',
     alignItems: 'center',
   },
