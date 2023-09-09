@@ -247,7 +247,12 @@ function ItemScreen({
                 rootNavigation?.navigate('SaveItem', {
                   initialData: {
                     ...Object.fromEntries(
-                      Object.entries(data).filter(([k]) => !k.startsWith('_')),
+                      Object.entries(data).filter(
+                        ([k]) =>
+                          !k.startsWith('_') &&
+                          k !== 'actual_rfid_tag_epc_memory_bank_contents' &&
+                          k !== 'rfid_tag_access_password',
+                      ),
                     ),
                   },
                   afterSave: it => {
