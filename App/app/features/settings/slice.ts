@@ -56,7 +56,7 @@ export const selectors = {
     devTestValue: (state: SettingsState) => state.devTestValue,
     devTestSensitiveValue: (state: SettingsState) =>
       state.devTestSensitiveValue,
-    uiColorTheme: (state: SettingsState) => state.uiColorTheme,
+    uiColorTheme: (state: SettingsState | undefined) => state?.uiColorTheme,
     uiShowDetailedInstructions: (state: SettingsState) =>
       state.uiShowDetailedInstructions,
   },
