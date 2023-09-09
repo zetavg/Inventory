@@ -360,6 +360,7 @@ function OnboardingScreen({
             ]}
             automaticallyAdjustKeyboardInsets
             keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
           >
             <UIGroup.FirstGroupSpacing />
             <UIGroup style={[cs.centerChildren, cs.mb4]}>
@@ -763,6 +764,7 @@ function OnboardingScreen({
             ]}
             automaticallyAdjustKeyboardInsets
             keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
           >
             <UIGroup.FirstGroupSpacing />
             <UIGroup style={[cs.centerChildren, cs.mb16]}>
@@ -1074,6 +1076,7 @@ function OnboardingScreen({
             ]}
             automaticallyAdjustKeyboardInsets
             keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
           >
             <UIGroup.FirstGroupSpacing />
             <UIGroup style={[cs.centerChildren, cs.mb4]}>
@@ -1503,6 +1506,7 @@ function OnboardingScreen({
             ]}
             automaticallyAdjustKeyboardInsets
             keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
           >
             <UIGroup.FirstGroupSpacing />
             <UIGroup style={[cs.centerChildren, cs.mb16]}>
