@@ -425,6 +425,11 @@ function ScreenContent({
               contentInset: {
                 bottom: tabBarInsets.scrollViewBottom,
               },
+              contentInsets: {
+                // For TableView
+                bottom:
+                  tabBarInsets.scrollViewBottom * 2 - safeAreaInsets.bottom,
+              },
               style: [
                 ...(Array.isArray(children.props.style)
                   ? children.props.style
