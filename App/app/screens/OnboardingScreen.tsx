@@ -24,6 +24,8 @@ import { Appbar } from 'react-native-paper';
 import { BlurView as RNBlurView } from '@react-native-community/blur';
 import { v4 as uuidv4 } from 'uuid';
 
+import { ProgressView } from '@react-native-community/progress-view';
+
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 import { GITHUB_PROJECT_URL, USER_DOCUMENTS_URL } from '@app/consts/info';
 
@@ -1458,6 +1460,13 @@ function OnboardingScreen({
     initialPullLastSeq >= 0
       ? (syncServerStatus.remoteDBUpdateSeq || 0) - initialPullLastSeq
       : syncServerStatus.remoteDBUpdateSeq || 0;
+  const prevInitialSyncDoneProgress = useRef(0);
+  useEffect(() => {
+    if (initialSyncDoneProgress !== prevInitialSyncDoneProgress.current) {
+      LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+      prevInitialSyncDoneProgress.current = initialSyncDoneProgress;
+    }
+  }, [initialSyncDoneProgress]);
 
   const restoreFromCouchDBScrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps: restoreFromCouchDBKiaTextInputProps } =
@@ -1594,10 +1603,41 @@ function OnboardingScreen({
                 // TODO: Show progress bar
                 return (
                   <>
-                    <Text style={styles.text}>
-                      Progress: {initialSyncDoneProgress}/
-                      {initialSyncRemainingProgress}
+                    <ProgressView
+                      progress={
+                        initialSyncRemainingProgress > 0
+                          ? initialSyncDoneProgress /
+                            initialSyncRemainingProgress
+                          : 0
+                      }
+                      style={[
+                        commonStyles.alignSelfStretch,
+                        commonStyles.mt8,
+                        commonStyles.mb4,
+                      ]}
+                    />
+                    <Text
+                      style={[
+                        styles.text,
+                        styles.smallerText,
+                        commonStyles.mt2,
+                      ]}
+                    >
+                      {initialSyncDoneProgress}/{initialSyncRemainingProgress}{' '}
+                      documents synced
                     </Text>
+                    {initialSyncDoneProgress > 100 && (
+                      <View style={commonStyles.mt8}>
+                        <Text style={styles.smallerText}>
+                          While it's recommended to wait until the initial sync
+                          to be completed, you can still{' '}
+                          <Link onPress={() => navigation.goBack()}>
+                            skip waiting and start using the app now
+                          </Link>
+                          .
+                        </Text>
+                      </View>
+                    )}
                   </>
                 );
               }
@@ -1630,24 +1670,6 @@ function OnboardingScreen({
                       props.navigation.navigate('RestoreFromCouchDB')
                     }
                   />
-                </UIGroup>
-              );
-            }
-
-            if (
-              dbSyncHasBeenSetupStatus === 'WORKING' &&
-              initialSyncDoneProgress > 100
-            ) {
-              return (
-                <UIGroup>
-                  <Text style={styles.smallerText}>
-                    While it's recommended to wait until the initial sync to be
-                    completed, you can still{' '}
-                    <Link onPress={() => navigation.goBack()}>
-                      skip waiting and start using the app now
-                    </Link>
-                    .
-                  </Text>
                 </UIGroup>
               );
             }

@@ -347,6 +347,8 @@ PODS:
     - React-Core
   - react-native-netinfo (9.4.0):
     - React-Core
+  - react-native-progress-view (1.4.2):
+    - React-Core
   - react-native-quick-base64 (2.0.5):
     - React-Core
   - react-native-quick-sqlite (8.0.2):
@@ -565,6 +567,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-image-resizer (from `../node_modules/react-native-image-resizer`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
@@ -677,6 +680,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-image-resizer"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-progress-view:
+    :path: "../node_modules/@react-native-community/progress-view"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
   react-native-quick-sqlite:
@@ -789,6 +794,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 709d04e7df67bd3a90f376c3eedb2e8b8334dd04
   react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
   react-native-netinfo: 74fac7eb65fd85ac18c3571dab28974a2cdf6e2e
+  react-native-progress-view: fda23a769e325dd94f08439f6cfca5867fca32c0
   react-native-quick-base64: e657e9197e61b60a9dec49807843052b830da254
   react-native-quick-sqlite: 2b225dadc63b670f027111e58f6f169773f6d755
   react-native-safe-area-context: b8979f5eda6ed5903d4dbc885be3846ea3daa753

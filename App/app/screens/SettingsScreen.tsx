@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
@@ -23,19 +24,21 @@ function SettingsScreen({
     <ScreenContent navigation={navigation} title="Settings">
       <ScreenContent.ScrollView>
         <UIGroup.FirstGroupSpacing />
-        <UIGroup>
-          <UIGroup.ListTextInputItem
-            label="UI Color Theme"
-            inputElement={
-              <ColorSelect
-                value={uiColorTheme as ColorSelectColor}
-                onChange={c => {
-                  dispatch(actions.settings.setUiColorTheme(c));
-                }}
-              />
-            }
-          />
-        </UIGroup>
+        {Platform.OS === 'ios' && (
+          <UIGroup>
+            <UIGroup.ListTextInputItem
+              label="UI Color Theme"
+              inputElement={
+                <ColorSelect
+                  value={uiColorTheme as ColorSelectColor}
+                  onChange={c => {
+                    dispatch(actions.settings.setUiColorTheme(c));
+                  }}
+                />
+              }
+            />
+          </UIGroup>
+        )}
         <UIGroup
           footer={
             uiShowDetailedInstructions

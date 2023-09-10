@@ -2860,6 +2860,11 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/netinfo/-/netinfo-9.4.0.tgz#8a538763ec5be5167c3a5e6070a1f389f9ae4404"
   integrity sha512-8SpJaVOuhCfxVNZR27Po1l3Wpq8grRNH2U8OiNXyOb388oyHqnhQ3JlkJVjkuSRbg9uF0sULUsVnU4/QeLEfFg==
 
+"@react-native-community/progress-view@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@react-native-community/progress-view/-/progress-view-1.4.2.tgz#16ef7cff8ac5b034d2ad3281a647a8ed6fe1a8f0"
+  integrity sha512-eFn8hssvFjr0w78mdlN0rt2KY5ptR5DAj2sjn7CWlmEkdFuOKAYt6HnHP1cKdXFrmeH31MVbqib43+iA6wEbWQ==
+
 "@react-native-community/slider@^4.2.4":
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.2.4.tgz#8d88adceeb32f7997a122feba48d7186fca80346"
