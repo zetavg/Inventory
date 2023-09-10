@@ -18,26 +18,50 @@ default_platform(:ios)
 configuration_file_path = File.join(__dir__, '..', 'config.xcconfig')
 configuration = Xcodeproj::Config.new(configuration_file_path)
 
+changelog_file_path = File.join(__dir__, '..', '..', 'changelog.txt')
+changelog = File.exist?(changelog_file_path) ? File.read(changelog_file_path) : nil
+
+def print_changelog(changelog)
+  if changelog
+    puts "\n\n-- Changelog ---------------------------\n#{changelog}\n----------------------------------------\n"
+  else
+    puts "\n\n-- Changelog ---------------------------\nNO CHANGELOG FILE FOUND\n----------------------------------------\n"
+  end
+
+  sleep 4
+end
+
 platform :ios do
   desc "Push a new beta build to TestFlight"
   lane :nightly do
+    print_changelog(changelog)
+
     build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory (Nightly)")
-    changelog_from_git_commits
+
     app_store_connect_api_key(
       key_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ID'],
       issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
-    upload_to_testflight(skip_waiting_for_build_processing: true)
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      changelog: changelog,
+    )
   end
 
   lane :release do
+    print_changelog(changelog)
+
     build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory")
+
     app_store_connect_api_key(
       key_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ID'],
       issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
-    upload_to_testflight(skip_waiting_for_build_processing: true)
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      changelog: changelog,
+    )
   end
 end

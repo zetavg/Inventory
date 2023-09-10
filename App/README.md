@@ -44,6 +44,8 @@ The following Fastlane lanes are available, which can be run in the `ios` direct
 * Build a Nightly build and upload it to TestFlight: `bundle exec fastlane nightly`.
 * Build and upload to App Store Connect: `bundle exec fastlane release`.
 
+To automatically set the changelog on App Store Connect for the uploaded build, write the changelog in `./changelog.txt` before running the lane.
+
 ### Android
 
 First, setup Gradle variables. Edit `~/.gradle/gradle.properties`, and add the following:
