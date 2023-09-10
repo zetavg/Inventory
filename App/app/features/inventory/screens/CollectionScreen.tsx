@@ -264,127 +264,6 @@ function CollectionScreen({
     ]);
   }, [id, showActionSheet]);
 
-  const renderHeader = useCallback(
-    () => (
-      <>
-        <UIGroup.FirstGroupSpacing iosLargeTitle />
-        {!(searchFocused || searchText) && (
-          <UIGroup loading={dataLoading}>
-            {(() => {
-              const collection = data && onlyValid(data);
-              if (!collection) return null;
-
-              return (
-                <>
-                  <TouchableWithoutFeedback
-                    onPress={() => {
-                      setDevModeCounter(v => v + 1);
-                    }}
-                  >
-                    <UIGroup.ListItem
-                      verticalArrangedLargeTextIOS
-                      label="Collection Name"
-                      detail={collection.name}
-                      // eslint-disable-next-line react/no-unstable-nested-components
-                      rightElement={({ iconProps }) => (
-                        <Icon
-                          name={verifyIconNameWithDefault(collection.icon_name)}
-                          color={verifyIconColorWithDefault(
-                            collection.icon_color,
-                          )}
-                          {...iconProps}
-                        />
-                      )}
-                    />
-                  </TouchableWithoutFeedback>
-                  {devModeCounter > 10 && (
-                    <>
-                      <UIGroup.ListItemSeparator />
-                      <UIGroup.ListItem
-                        verticalArrangedLargeTextIOS
-                        label="ID"
-                        monospaceDetail
-                        detail={collection.__id}
-                      />
-                    </>
-                  )}
-                  <UIGroup.ListItemSeparator />
-                  <UIGroup.ListItem
-                    verticalArrangedLargeTextIOS
-                    label="Reference Number"
-                    monospaceDetail
-                    detail={collection.collection_reference_number}
-                  />
-                </>
-              );
-            })()}
-          </UIGroup>
-        )}
-        {searchText ? (
-          <UIGroup asSectionHeader header="Items" largeTitle />
-        ) : (
-          <UIGroup
-            asSectionHeader
-            header="Items"
-            largeTitle
-            headerRight={
-              <>
-                {!!orderedItems && (
-                  <UIGroup.TitleButton
-                    onPress={() =>
-                      rootNavigation?.push('OrderItems', {
-                        orderedItems,
-                        onSaveFunctionRef: handleUpdateItemsOrderFnRef,
-                      })
-                    }
-                  >
-                    {({ iconProps }) => (
-                      <Icon {...iconProps} name="app-reorder" />
-                    )}
-                  </UIGroup.TitleButton>
-                )}
-                <UIGroup.TitleButton primary onPress={handleAddNewItem}>
-                  {({ iconProps, textProps }) => (
-                    <>
-                      <Icon {...iconProps} name="add" />
-                      <Text {...textProps}>New Item</Text>
-                    </>
-                  )}
-                </UIGroup.TitleButton>
-              </>
-            }
-          />
-        )}
-      </>
-    ),
-    [
-      data,
-      dataLoading,
-      devModeCounter,
-      handleAddNewItem,
-      orderedItems,
-      rootNavigation,
-      searchFocused,
-      searchText,
-    ],
-  );
-
-  const renderEmptyList = useCallback(
-    () =>
-      searchText ? (
-        <UIGroup
-          loading={searchLoading}
-          placeholder={searchLoading ? undefined : 'No Matched Items'}
-        />
-      ) : (
-        <UIGroup
-          loading={itemsLoading}
-          placeholder={itemsLoading ? undefined : 'No Items'}
-        />
-      ),
-    [itemsLoading, searchLoading, searchText],
-  );
-
   const renderListItem = useCallback(
     ({
       item,
@@ -396,7 +275,8 @@ function CollectionScreen({
       <UIGroup.ListItem.RenderItemContainer
         isFirst={index === 0}
         isLast={
-          index === (searchText ? searchResults : orderedItems || []).length - 1
+          index ===
+          ((searchText ? searchResults?.length : orderedItems?.length) || 0) - 1
         }
       >
         <ItemListItem
@@ -412,7 +292,13 @@ function CollectionScreen({
         />
       </UIGroup.ListItem.RenderItemContainer>
     ),
-    [navigation, orderedItems, reloadCounter, searchResults, searchText],
+    [
+      navigation,
+      orderedItems?.length,
+      reloadCounter,
+      searchResults?.length,
+      searchText,
+    ],
   );
 
   return (
@@ -453,7 +339,101 @@ function CollectionScreen({
       <FlatList
         onRefresh={refresh}
         refreshing={refreshing}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <>
+            <UIGroup.FirstGroupSpacing iosLargeTitle />
+            {!(searchFocused || searchText) && (
+              <UIGroup loading={dataLoading}>
+                {/* eslint-disable-next-line react/no-unstable-nested-components */}
+                {(() => {
+                  const collection = data && onlyValid(data);
+                  if (!collection) return null;
+
+                  return (
+                    <>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          setDevModeCounter(v => v + 1);
+                        }}
+                      >
+                        <UIGroup.ListItem
+                          verticalArrangedLargeTextIOS
+                          label="Collection Name"
+                          detail={collection.name}
+                          // eslint-disable-next-line react/no-unstable-nested-components
+                          rightElement={({ iconProps }) => (
+                            <Icon
+                              name={verifyIconNameWithDefault(
+                                collection.icon_name,
+                              )}
+                              color={verifyIconColorWithDefault(
+                                collection.icon_color,
+                              )}
+                              {...iconProps}
+                            />
+                          )}
+                        />
+                      </TouchableWithoutFeedback>
+                      {devModeCounter > 10 && (
+                        <>
+                          <UIGroup.ListItemSeparator />
+                          <UIGroup.ListItem
+                            verticalArrangedLargeTextIOS
+                            label="ID"
+                            monospaceDetail
+                            detail={collection.__id}
+                          />
+                        </>
+                      )}
+                      <UIGroup.ListItemSeparator />
+                      <UIGroup.ListItem
+                        verticalArrangedLargeTextIOS
+                        label="Reference Number"
+                        monospaceDetail
+                        detail={collection.collection_reference_number}
+                      />
+                    </>
+                  );
+                })()}
+              </UIGroup>
+            )}
+            {searchText ? (
+              <UIGroup asSectionHeader header="Items" largeTitle />
+            ) : (
+              <UIGroup
+                asSectionHeader
+                header="Items"
+                largeTitle
+                headerRight={
+                  <>
+                    {!!orderedItems && (
+                      <UIGroup.TitleButton
+                        onPress={() =>
+                          rootNavigation?.push('OrderItems', {
+                            orderedItems,
+                            onSaveFunctionRef: handleUpdateItemsOrderFnRef,
+                          })
+                        }
+                      >
+                        {({ iconProps }) => (
+                          <Icon {...iconProps} name="app-reorder" />
+                        )}
+                      </UIGroup.TitleButton>
+                    )}
+                    <UIGroup.TitleButton primary onPress={handleAddNewItem}>
+                      {({ iconProps, textProps }) => (
+                        <>
+                          <Icon {...iconProps} name="add" />
+                          <Text {...textProps}>New Item</Text>
+                        </>
+                      )}
+                    </UIGroup.TitleButton>
+                  </>
+                }
+              />
+            )}
+          </>
+        }
         data={searchText ? searchResults : orderedItems}
         initialNumToRender={32}
         keyExtractor={(item, index) => item.__id || `i-${index}`}
@@ -462,7 +442,19 @@ function CollectionScreen({
           UIGroup.ListItem.ItemSeparatorComponent.ForItemWithIcon
         }
         ListFooterComponent={UIGroup.SectionSeparatorComponent}
-        ListEmptyComponent={renderEmptyList}
+        ListEmptyComponent={
+          searchText ? (
+            <UIGroup
+              loading={searchLoading}
+              placeholder={searchLoading ? undefined : 'No Matched Items'}
+            />
+          ) : (
+            <UIGroup
+              loading={itemsLoading}
+              placeholder={itemsLoading ? undefined : 'No Items'}
+            />
+          )
+        }
         // removeClippedSubviews={true}
       />
 
