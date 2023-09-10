@@ -12,13 +12,13 @@ import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFi
 
 import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
-import ScreenContentScrollView from '@app/components/ScreenContentScrollView';
 
 function CountersScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'Counters'>) {
   const scrollViewRef = useRef<ScrollView>(null);
-  useScrollViewContentInsetFix(scrollViewRef);
+  const { kiaTextInputProps } =
+    ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
   const currentCounter = useAppSelector(selectors.counters.currentCounter);
   const counterNames = useAppSelector(selectors.counters.counterNames);
@@ -30,7 +30,7 @@ function CountersScreen({
 
   return (
     <ScreenContent navigation={navigation} title="Counters">
-      <ScreenContentScrollView ref={scrollViewRef}>
+      <ScreenContent.ScrollView ref={scrollViewRef}>
         <InsetGroup
           onLayout={event =>
             setCounterNamesGroupHeight(event.nativeEvent.layout.height)
@@ -63,10 +63,7 @@ function CountersScreen({
                 value={inputCounterName}
                 onChangeText={setInputCounterName}
                 placeholder="Enter name..."
-                onFocus={ScreenContentScrollView.stf(
-                  scrollViewRef,
-                  counterNamesGroupHeight,
-                )}
+                {...kiaTextInputProps}
               />
             }
           />
@@ -102,7 +99,7 @@ function CountersScreen({
             }}
           />
         </InsetGroup>
-      </ScreenContentScrollView>
+      </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }

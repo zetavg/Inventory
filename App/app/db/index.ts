@@ -1,2 +1,2 @@
-export { useDB, useRelationalData } from './hooks';
+export { useDB } from './hooks';
 export { PouchDB } from './pouchdb';

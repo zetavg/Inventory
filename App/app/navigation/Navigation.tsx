@@ -23,7 +23,6 @@ import {
 } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SFSymbol } from 'react-native-sfsymbols';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
@@ -48,10 +47,8 @@ import SaveCollectionScreen from '@app/features/inventory/screens/SaveCollection
 import SaveItemScreen from '@app/features/inventory/screens/SaveItemScreen';
 import SearchOptionsScreen from '@app/features/inventory/screens/SearchOptionsScreen';
 import SelectCollectionModalScreen from '@app/features/inventory/screens/SelectCollectionModalScreen';
-import SelectContainerScreen from '@app/features/inventory/screens/SelectContainerScreen';
 import SelectCurrencyModalScreen from '@app/features/inventory/screens/SelectCurrencyModalScreen';
 import SelectItemModalScreen from '@app/features/inventory/screens/SelectItemModalScreen';
-import SelectItemsScreen from '@app/features/inventory/screens/SelectItemsScreen';
 import SelectItemTypeModalScreen from '@app/features/inventory/screens/SelectItemTypeModalScreen';
 import CreateOrUpdateProfileScreen from '@app/features/profiles/screens/CreateOrUpdateProfileScreen';
 import DeleteProfileScreen from '@app/features/profiles/screens/DeleteProfileScreen';
@@ -60,19 +57,12 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import {
-  DataType,
-  DataTypeName,
-  DataTypeWithAdditionalInfo,
-  useConfig,
-} from '@app/data';
+import { DataType, DataTypeName, DataTypeWithAdditionalInfo } from '@app/data';
 import { getConfig } from '@app/data/functions/config';
 import getData from '@app/data/functions/getData';
 import getDatum from '@app/data/functions/getDatum';
 
 import { useDB } from '@app/db';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import { TypeName } from '@app/db/old_schema';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -85,8 +75,6 @@ import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen
 import PouchDBPutDataModalScreen from '@app/screens/dev-tools/pouchdb/PouchDBPutDataModalScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
 import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
-import RelationalPouchDBSaveScreen from '@app/screens/RelationalPouchDBSaveScreen';
-import RelationalPouchDBTypeDataSelectScreen from '@app/screens/RelationalPouchDBTypeDataSelectScreen';
 import SampleModalScreen from '@app/screens/SampleModalScreen';
 import SelectIconScreen from '@app/screens/SelectIconScreen';
 
@@ -135,15 +123,6 @@ export type RootStackParamList = {
     callback: (value: string) => void;
     defaultValue?: string;
   };
-  SelectContainer: {
-    // Old
-    callback: (value: string) => void;
-    defaultValue?: string;
-  };
-  SelectItems: {
-    callback: (value: ReadonlyArray<string>) => void;
-    defaultValue?: ReadonlyArray<string>;
-  };
   SaveCollection: {
     initialData?: Partial<DataTypeWithAdditionalInfo<'collection'>>;
   };
@@ -157,7 +136,7 @@ export type RootStackParamList = {
     defaultValue?: DataType<'item'>['item_type'];
   };
   SaveChecklist: {
-    initialData?: Partial<DataTypeWithID<'checklist'>>;
+    initialData?: Partial<any /* TODO */>;
     afterDelete?: () => void;
   };
   OrderItems: {
@@ -207,7 +186,7 @@ export type RootStackParamList = {
   ReduxSelectAction: {
     callback: (data: string) => void;
   };
-  PouchDBPutData: {
+  PouchDBPutDataModal: {
     id?: string;
     jsonData?: string;
   };
@@ -215,18 +194,10 @@ export type RootStackParamList = {
     type: DataTypeName;
     id?: string;
     initialData?: Partial<DataType<DataTypeName>>;
-    afterSave?: (payload: { type: DataTypeName; id: string }) => void;
+    afterSave?: (payload: { __type: DataTypeName; __id?: string }) => void;
   };
   DBSyncNewOrEditServerModal: {
     id?: string;
-  };
-  RelationalPouchDBSave: {
-    type: TypeName;
-    initialData?: Record<string, any>;
-  };
-  RelationalPouchDBTypeDataSelect: {
-    type: TypeName;
-    callback: (id: string) => void;
   };
   SampleModal: { showAppbar?: boolean };
   DemoModal: undefined;
@@ -521,21 +492,13 @@ function Navigation({
             <Stack.Screen name="SampleModal" component={SampleModalScreen} />
             <Stack.Screen name="DemoModal" component={DemoModalScreen} />
             <Stack.Screen
-              name="PouchDBPutData"
+              name="PouchDBPutDataModal"
               component={PouchDBPutDataModalScreen}
             />
             <Stack.Screen name="SaveData" component={SaveDataModalScreen} />
             <Stack.Screen
               name="DBSyncNewOrEditServerModal"
               component={DBSyncNewOrEditServerModalScreen}
-            />
-            <Stack.Screen
-              name="RelationalPouchDBSave"
-              component={RelationalPouchDBSaveScreen}
-            />
-            <Stack.Screen
-              name="RelationalPouchDBTypeDataSelect"
-              component={RelationalPouchDBTypeDataSelectScreen}
             />
             <Stack.Screen name="DatePicker" component={DatePickerModalScreen} />
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
@@ -552,11 +515,6 @@ function Navigation({
               name="SelectCurrency"
               component={SelectCurrencyModalScreen}
             />
-            <Stack.Screen
-              name="SelectContainer"
-              component={SelectContainerScreen}
-            />
-            <Stack.Screen name="SelectItems" component={SelectItemsScreen} />
             <Stack.Screen
               name="SaveCollection"
               component={SaveCollectionScreen}

@@ -37,12 +37,6 @@ import Color from 'color';
 
 import { useConfig, useData } from '@app/data';
 
-import { getConfigInDB } from '@app/db/configUtils';
-import { getDataFromDocs } from '@app/db/hooks';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import { DataType } from '@app/db/old_schema';
-import { ConfigStoredInDB } from '@app/db/types';
-
 import commonStyles from '@app/utils/commonStyles';
 
 import EPCUtils from '@app/modules/EPCUtils';
@@ -67,11 +61,9 @@ import AppIcon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
 import Text from '@app/components/Text';
 
-import ItemItem from '../inventory/components/ItemItem';
 import ItemListItem from '../inventory/components/ItemListItem';
 
 import useBottomSheetDynamicSnapPoints from './hooks/useBottomSheetDynamicSnapPoints';
-import { getTagAccessPassword } from './utils';
 
 export type OnScannedItemPressFn = (
   data: ScanData,
@@ -87,7 +79,7 @@ export type RenderScannedItemsFn = (
 export type CallbackPayload = {
   scannedTags?: Record<
     string,
-    ScanData & { itemData?: DataType<'item'> & { id: string } }
+    ScanData & { itemData?: any /* TODO */ & { id: string } }
   >;
 };
 
@@ -488,10 +480,7 @@ function RFIDSheet(
   const [scannedData, setScannedData] = useState<
     Record<
       string,
-      Record<
-        string,
-        ScanData & { itemData?: DataType<'item'> & { id: string } }
-      >
+      Record<string, ScanData & { itemData?: any /* TODO */ & { id: string } }>
     >
   >({});
   const [clearScannedDataCounter, setClearScannedDataCounter] = useState<
@@ -1467,7 +1456,7 @@ function RFIDSheet(
                                 >
                                   {(() => {
                                     try {
-                                      const [epc] = EPCUtils.decodeHexEPC(
+                                      const [epc] = EPCUtils.getGiaiUriFromEpcHex(
                                         options.epc,
                                       );
                                       return epc;
@@ -1588,7 +1577,7 @@ function RFIDSheet(
                             >
                               {(() => {
                                 try {
-                                  const [epc] = EPCUtils.decodeHexEPC(
+                                  const epc = EPCUtils.getGiaiUriFromEpcHex(
                                     options.epc,
                                   );
                                   return epc;
@@ -1988,7 +1977,7 @@ function ScannedTag({
   removeScannedItem,
 }: {
   tag: ScanData;
-  onItemLoad?: (item: DataType<'item'> & { id: string }) => void;
+  onItemLoad?: (item: any /* TODO */ & { id: string }) => void;
   onPressRef?: React.MutableRefObject<OnScannedItemPressFn | null>;
   removeScannedItem?: (epc: string) => void;
 }) {

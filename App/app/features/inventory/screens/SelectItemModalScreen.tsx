@@ -72,7 +72,9 @@ function SelectItemModalScreen({
       if (!db) return;
       if (!search) return;
 
-      let searchOptions = SEARCH_ITEMS_OPTIONS;
+      let searchOptions:
+        | typeof SEARCH_ITEMS_OPTIONS
+        | typeof SEARCH_ITEM_AS_CONTAINER_OPTIONS = SEARCH_ITEMS_OPTIONS;
 
       if (as === 'container') {
         searchOptions = SEARCH_ITEM_AS_CONTAINER_OPTIONS;

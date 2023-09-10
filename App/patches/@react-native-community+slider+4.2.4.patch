@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native-community/slider/typings/index.d.ts b/node_modules/@react-native-community/slider/typings/index.d.ts
+index b213e36..88a4ef4 100644
+--- a/node_modules/@react-native-community/slider/typings/index.d.ts
++++ b/node_modules/@react-native-community/slider/typings/index.d.ts
+@@ -161,6 +161,7 @@ export interface SliderProps extends SliderPropsIOS, SliderPropsAndroid, SliderP
+ * A component used to select a single value from a range of values.
+ */
+ declare class SliderComponent extends React.Component<SliderProps> {}
+-declare const SliderBase: ReactNative.Constructor<ReactNative.NativeMethodsMixin> & typeof SliderComponent;
++declare const SliderBase: typeof SliderComponent;
++// declare const SliderBase: ReactNative.Constructor<ReactNative.NativeMethodsMixin> & typeof SliderComponent; // Will make typeof SliderBase become 'any', causing type error: "JSX element class does not support attributes because it does not have a 'props' property."
+ export default class Slider extends SliderBase {}
+ export type SliderIOS = Slider;

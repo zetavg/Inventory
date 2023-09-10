@@ -106,7 +106,7 @@ function PouchDBItemScreen({
       action1SFSymbolName={(data && 'square.and.pencil') || undefined}
       action1MaterialIconName={(data && 'pencil') || undefined}
       onAction1Press={() =>
-        rootNavigation?.navigate('PouchDBPutData', {
+        rootNavigation?.navigate('PouchDBPutDataModal', {
           id,
           jsonData: jsonDataWithoutId,
         })

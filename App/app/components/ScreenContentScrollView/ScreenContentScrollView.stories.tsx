@@ -46,6 +46,8 @@ function WithRefComponent(
   args: React.ComponentProps<typeof ScreenContentScrollView>,
 ) {
   const scrollViewRef = React.useRef<ScrollView>(null);
+  const { kiaTextInputProps } =
+    ScreenContentScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
   return (
     <ScreenContentScrollView {...args} ref={scrollViewRef}>
@@ -53,9 +55,7 @@ function WithRefComponent(
         <View key={i} style={{ padding: 8, gap: 8 }}>
           <TextInput
             placeholder={`Sample Text Input ${i}`}
-            onFocus={
-              i === 0 ? ScreenContentScrollView.stf(scrollViewRef) : undefined
-            }
+            {...kiaTextInputProps}
           />
           <Button
             title="Sample Button"
@@ -84,102 +84,4 @@ export const WithRef = ({
   ...args
 }: React.ComponentProps<typeof ScreenContentScrollView>) => {
   return <WithRefComponent {...args} />;
-};
-
-function WithRefStComponent(
-  args: React.ComponentProps<typeof ScreenContentScrollView>,
-) {
-  const scrollViewRef = React.useRef<ScrollView>(null);
-
-  const textInputRef1 = React.useRef<TextInput>(null);
-
-  return (
-    <ScreenContentScrollView {...args} ref={scrollViewRef}>
-      <View style={{ padding: 8, gap: 8 }}>
-        <TextInput
-          placeholder="Text Input with ScreenContentScrollView.stf"
-          onFocus={ScreenContentScrollView.stf(scrollViewRef)}
-        />
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-      <View style={{ padding: 8, gap: 8 }}>
-        <TextInput
-          placeholder="Text Input with ScreenContentScrollView.stf 100"
-          onFocus={ScreenContentScrollView.stf(scrollViewRef, 100)}
-        />
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-      <View style={{ padding: 8, gap: 8 }}>
-        <TextInput
-          placeholder="Text Input with ScreenContentScrollView.strf"
-          ref={textInputRef1}
-          onFocus={ScreenContentScrollView.strf(scrollViewRef, textInputRef1)}
-        />
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-      <View style={{ padding: 8, gap: 8 }}>
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-      <View style={{ padding: 8, gap: 8 }}>
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-      <View style={{ padding: 8, gap: 8 }}>
-        <Text>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
-        </Text>
-      </View>
-    </ScreenContentScrollView>
-  );
-}
-
-export const WithRefSt = ({
-  ...args
-}: React.ComponentProps<typeof ScreenContentScrollView>) => {
-  return <WithRefStComponent {...args} />;
 };

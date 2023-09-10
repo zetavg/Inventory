@@ -193,7 +193,7 @@ function PouchDBScreen({
       action1Label="Put Data"
       action1SFSymbolName="plus.square.fill"
       action1MaterialIconName="square-edit-outline"
-      onAction1Press={() => rootNavigation?.navigate('PouchDBPutData', {})}
+      onAction1Press={() => rootNavigation?.navigate('PouchDBPutDataModal', {})}
       action2Label="Index"
       action2SFSymbolName="list.bullet.rectangle.fill"
       action2MaterialIconName="view-list"

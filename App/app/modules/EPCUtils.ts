@@ -210,7 +210,7 @@ const encodeEpcHexFromGiai = (giaiUri: string) => {
   throw new Error(`${giaiUri} is not a known EPC tag URI scheme`);
 };
 
-const getGiaiUriFromEpcHex = (epcHex: string) => {
+const getGiaiUriFromEpcHex = (epcHex: string): string => {
   // Giai96.fromTagURI have integer overflow issue, so we have to do this manually and use BigInt instead of parseInt at some places
   const epc = new Giai96(epcHex);
 

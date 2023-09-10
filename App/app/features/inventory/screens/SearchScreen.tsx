@@ -1,64 +1,34 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActionSheetIOS,
   Alert,
   LayoutAnimation,
-  Platform,
   RefreshControl,
   ScrollView,
-  StyleSheet,
-  View,
 } from 'react-native';
-// import {
-//   useScanBarcodes,
-//   BarcodeFormat,
-//   scanBarcodes,
-//   Barcode,
-// } from 'vision-camera-code-scanner';
-import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { runOnJS } from 'react-native-reanimated';
-import {
-  Camera,
-  useCameraDevices,
-  useFrameProcessor,
-} from 'react-native-vision-camera';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
-import ChecklistItem from '@app/features/inventory/components/ChecklistItem';
-import CollectionItem from '@app/features/inventory/components/CollectionItem';
-import ItemItem from '@app/features/inventory/components/ItemItem';
 
 import { DataTypeWithAdditionalInfo, onlyValid, useData } from '@app/data';
 import { getDatumFromDoc } from '@app/data/pouchdb-utils';
-
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
-import { TypeName } from '@app/db/old_schema';
 
 import commonStyles from '@app/utils/commonStyles';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
-import useActionSheet from '@app/hooks/useActionSheet';
-import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
 import useLogger from '@app/hooks/useLogger';
-import { usePersistedState } from '@app/hooks/usePersistedState';
-import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
-import InsetGroup from '@app/components/InsetGroup';
 import ScreenContent from '@app/components/ScreenContent';
 import Text from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
 import CollectionListItem from '../components/CollectionListItem';
 import ItemListItem from '../components/ItemListItem';
-import SEARCH_OPTIONS, {
-  DEFAULT_SEARCH_LANGUAGES,
-} from '../consts/SEARCH_OPTIONS';
+import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
 
 type SearchResultItem = {
   highlight: React.ComponentProps<typeof UIGroup.ListItem>['detail'] | null;

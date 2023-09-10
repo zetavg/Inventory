@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   createStackNavigator,
   TransitionPresets,
 } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/Ionicons';
 
 import { Log } from '@app/logger';
 
@@ -49,7 +48,6 @@ import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
 import HowToSwitchBetweenProfilesScreen from '@app/screens/HowToSwitchBetweenProfilesScreen';
-import InventoryTabScreen from '@app/screens/InventoryTabScreen';
 import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
 import LoggerLogScreen from '@app/screens/LoggerLogScreen';
 import MoreScreen from '@app/screens/MoreScreen';
@@ -59,10 +57,6 @@ import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
 import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
-import RelationalPouchDBFixDataConsistencyScreen from '@app/screens/RelationalPouchDBFixDataConsistencyScreen';
-import RelationalPouchDBScreen from '@app/screens/RelationalPouchDBScreen';
-import RelationalPouchDBTypeDataDetailScreen from '@app/screens/RelationalPouchDBTypeDataDetailScreen';
-import RelationalPouchDBTypeScreen from '@app/screens/RelationalPouchDBTypeScreen';
 import RFIDUHFModuleScreen from '@app/screens/RFIDUHFModuleScreen';
 import RNFSScreen from '@app/screens/RNFSScreen';
 import SampleScreen from '@app/screens/SampleScreen';
@@ -81,7 +75,6 @@ export type StackParamList = {
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
-  TmpInventoryTab: undefined;
   Settings: undefined;
   Configurations: undefined;
   HowToSwitchBetweenProfiles: undefined;
@@ -142,16 +135,6 @@ export type StackParamList = {
   DevDataMigration: undefined;
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
-  RelationalPouchDB: undefined;
-  RelationalPouchDBType: {
-    type: DataTypeName;
-  };
-  RelationalPouchDBTypeDataDetail: {
-    type: DataTypeName;
-    id: string | number;
-    initialTitle?: string;
-  };
-  RelationalPouchDBFixDataConsistency: undefined;
   PouchDBAttachments: undefined;
   PouchDBAttachment: { id: string };
   RNFS: undefined;
@@ -228,7 +211,6 @@ function MainStack({ initialRouteName }: Props) {
     >
       <Stack.Screen name="More" component={MoreScreen} />
 
-      <Stack.Screen name="TmpInventoryTab" component={InventoryTabScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Configurations" component={ConfigurationsScreen} />
       <Stack.Screen
@@ -280,22 +262,6 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="DBSyncServerDetail"
         component={DBSyncServerDetailScreen}
-      />
-      <Stack.Screen
-        name="RelationalPouchDB"
-        component={RelationalPouchDBScreen}
-      />
-      <Stack.Screen
-        name="RelationalPouchDBType"
-        component={RelationalPouchDBTypeScreen}
-      />
-      <Stack.Screen
-        name="RelationalPouchDBTypeDataDetail"
-        component={RelationalPouchDBTypeDataDetailScreen}
-      />
-      <Stack.Screen
-        name="RelationalPouchDBFixDataConsistency"
-        component={RelationalPouchDBFixDataConsistencyScreen}
       />
       <Stack.Screen
         name="PouchDBAttachments"

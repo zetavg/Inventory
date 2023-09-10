@@ -1,20 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
-import InsetGroup from '@app/components/InsetGroup';
-import Icon, { IconName } from '@app/components/Icon';
-
 import useDB from '@app/hooks/useDB';
-import { DataTypeWithID } from '@app/db/old_relationalUtils';
 
-export default function ChecklistItem({
+import Icon, { IconName } from '@app/components/Icon';
+import InsetGroup from '@app/components/InsetGroup';
+
+export default function ChecklistItem_old({
   checklist,
   onPress,
   hideDetails,
   reloadCounter,
   ...props
 }: {
-  checklist: DataTypeWithID<'checklist'>;
+  checklist: any;
   onPress: () => void;
   hideDetails?: boolean;
   reloadCounter: number;
@@ -22,16 +21,16 @@ export default function ChecklistItem({
   const { db } = useDB();
   const [itemsCount, setItemsCount] = useState<number | null>(null);
   const loadItemsCount = useCallback(async () => {
-    const results = await db.query(
-      'relational_data_index/checklistItem_by_checklist',
-      {
-        startkey: checklist.id,
-        endkey: checklist.id,
-        include_docs: false,
-      },
-    );
-    setItemsCount(results.rows.length);
-  }, [checklist.id, db]);
+    // const results = await db.query(
+    //   'relational_data_index/checklistItem_by_checklist',
+    //   {
+    //     startkey: checklist.id,
+    //     endkey: checklist.id,
+    //     include_docs: false,
+    //   },
+    // );
+    // setItemsCount(results.rows.length);
+  }, []);
 
   useEffect(() => {
     reloadCounter;

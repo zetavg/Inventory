@@ -57,8 +57,8 @@ function DataListScreen({
       onAction1Press={() =>
         rootNavigation?.navigate('SaveData', {
           type,
-          afterSave: ({ type: t, id: i }) =>
-            navigation.navigate('Datum', { type: t, id: i }),
+          afterSave: ({ __type: t, __id: i }) =>
+            i && navigation.navigate('Datum', { type: t, id: i }),
         })
       }
     >
