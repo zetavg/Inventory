@@ -96,6 +96,7 @@ function AboutScreen({
             Bundle ID
           </TableView.Item>
         </TableView.Section>
+
         <TableView.Section label="Device">
           <TableView.Item
             onPress={undefined}
@@ -114,6 +115,12 @@ function AboutScreen({
             detail={`${DeviceInfo.getSystemName()} ${DeviceInfo.getSystemVersion()}`}
           >
             OS
+          </TableView.Item>
+        </TableView.Section>
+
+        <TableView.Section>
+          <TableView.Item arrow onPress={() => navigation.push('Statistics')}>
+            Statistics
           </TableView.Item>
         </TableView.Section>
       </TableView>

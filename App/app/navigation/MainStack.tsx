@@ -22,6 +22,7 @@ import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
 import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
+import StatisticsScreen from '@app/features/inventory/screens/StatisticsScreen';
 
 import { DataTypeName } from '@app/data';
 
@@ -76,6 +77,7 @@ export type StackParamList = {
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
+  Statistics: undefined;
   Settings: undefined;
   Configurations: undefined;
   HowToSwitchBetweenProfiles: undefined;
@@ -302,6 +304,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Checklists" component={ChecklistsScreen} />
       <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
+      <Stack.Screen name="Statistics" component={StatisticsScreen} />
 
       <Stack.Screen name="DevChangeIcon" component={DevChangeIconScreen} />
 
