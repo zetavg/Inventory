@@ -21,6 +21,7 @@ import {
   DataTypeWithAdditionalInfo,
   InvalidDataTypeWithAdditionalInfo,
 } from '../types';
+import LPJQ from '@app/LPJQ';
 
 type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
 
@@ -35,17 +36,19 @@ export default function useRelated<
   relationName: N,
   {
     disable = false,
+    lowPriority = false,
     sort,
     onInitialLoad,
   }: {
     disable?: boolean;
+    lowPriority?: boolean;
     sort?: Sort;
     onInitialLoad?: () => void;
   } = {},
 ): {
   loading: boolean;
   data: null | DataRelationType<T, N>;
-  refresh: () => void;
+  refresh: () => Promise<void>;
   refreshing: boolean;
   relatedTypeName: DataTypeName | null;
   foreignKey: string | null;
@@ -88,6 +91,7 @@ export default function useRelated<
   const hasLoaded = useRef(false);
   const lastLoadedAt = useRef(0);
   const loadData = useCallback(async () => {
+    if (disable) return;
     if (!cachedD) return;
     if (!db) return;
 
@@ -118,29 +122,39 @@ export default function useRelated<
       setLoading(false);
       hasLoaded.current = true;
     }
-  }, [cachedD, cachedSort, db, logger, onInitialLoad, relationName]);
+  }, [cachedD, cachedSort, db, disable, logger, onInitialLoad, relationName]);
 
   useFocusEffect(
     useCallback(() => {
       if (disable) return;
 
+      if (lowPriority) {
+        return LPJQ.push(loadData);
+      }
+
       if (!dataRef.current) {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           loadData();
         }, 0);
+        return () => {
+          clearTimeout(timer);
+        };
       } else {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           loadData();
         }, 2);
+        return () => {
+          clearTimeout(timer);
+        };
       }
-    }, [disable, loadData]),
+    }, [disable, loadData, lowPriority]),
   );
 
   const [refreshing, setRefreshing] = useState(false);
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      loadData();
+      await loadData();
     } catch (e) {
       logger.error(e);
     } finally {

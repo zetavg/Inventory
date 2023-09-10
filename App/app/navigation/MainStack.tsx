@@ -30,6 +30,7 @@ import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import ConfigurationsScreen from '@app/screens/ConfigurationsScreen';
+import BenchmarkScreen from '@app/screens/dev-tools/BenchmarkScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
@@ -143,6 +144,7 @@ export type StackParamList = {
   EPCTDS: undefined;
   RFIDUHFModule: undefined;
   DevChangeIcon: undefined;
+  Benchmark: undefined;
   Counter: undefined;
   Counters: undefined;
   Sample: {
@@ -302,6 +304,8 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Search" component={SearchScreen} />
 
       <Stack.Screen name="DevChangeIcon" component={DevChangeIconScreen} />
+
+      <Stack.Screen name="Benchmark" component={BenchmarkScreen} />
 
       <Stack.Screen name="Counter" component={CounterScreen} />
       <Stack.Screen name="Counters" component={CountersScreen} />

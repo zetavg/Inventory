@@ -49,8 +49,8 @@ export default function useData<
   // Deprecated
   // ids: ReadonlyArray<string> | null;
   // rawData: unknown;
-  reload: () => void;
-  refresh: () => void;
+  reload: () => Promise<void>;
+  refresh: () => Promise<void>;
   refreshing: boolean;
 } {
   const logger = useLogger('useData', type);
@@ -175,7 +175,7 @@ export default function useData<
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      loadData();
+      await loadData();
     } catch (e) {
       logger.error(e);
     } finally {

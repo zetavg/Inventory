@@ -35,6 +35,7 @@ type Props = {
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
   loading?: boolean;
   backgroundTransparent?: boolean;
+  hideContent?: boolean;
 } & React.ComponentProps<typeof View>;
 
 type AddRefToPropsHack = { ref?: React.ForwardedRef<View> };
@@ -50,6 +51,7 @@ function InsetGroup(
     labelContainerStyle,
     loading,
     backgroundTransparent,
+    hideContent,
     ...props
   }: Props & AddRefToPropsHack,
   ref?: React.ForwardedRef<View>,
@@ -100,20 +102,24 @@ function InsetGroup(
           {labelRight}
         </View>
       )}
-      <View
-        ref={label ? undefined : ref}
-        {...props}
-        style={[
-          styles.container,
-          loading && styles.containerLoading,
-          !backgroundTransparent && { backgroundColor: contentBackgroundColor },
-          footerLabel ? styles.containerMarginBottom0 : {},
-          ...(Array.isArray(style) ? style : [style]),
-        ]}
-      >
-        {children}
-        {loading && <LoadingOverlay show />}
-      </View>
+      {!hideContent && (
+        <View
+          ref={label ? undefined : ref}
+          {...props}
+          style={[
+            styles.container,
+            loading && styles.containerLoading,
+            !backgroundTransparent && {
+              backgroundColor: contentBackgroundColor,
+            },
+            footerLabel ? styles.containerMarginBottom0 : {},
+            ...(Array.isArray(style) ? style : [style]),
+          ]}
+        >
+          {children}
+          {loading && <LoadingOverlay show />}
+        </View>
+      )}
       {footerLabel && (
         <Text
           style={[

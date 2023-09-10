@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  FlatList,
   LayoutAnimation,
   RefreshControl,
   Text,
@@ -263,6 +264,157 @@ function CollectionScreen({
     ]);
   }, [id, showActionSheet]);
 
+  const renderHeader = useCallback(
+    () => (
+      <>
+        <UIGroup.FirstGroupSpacing iosLargeTitle />
+        {!(searchFocused || searchText) && (
+          <UIGroup loading={dataLoading}>
+            {(() => {
+              const collection = data && onlyValid(data);
+              if (!collection) return null;
+
+              return (
+                <>
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      setDevModeCounter(v => v + 1);
+                    }}
+                  >
+                    <UIGroup.ListItem
+                      verticalArrangedLargeTextIOS
+                      label="Collection Name"
+                      detail={collection.name}
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      rightElement={({ iconProps }) => (
+                        <Icon
+                          name={verifyIconNameWithDefault(collection.icon_name)}
+                          color={verifyIconColorWithDefault(
+                            collection.icon_color,
+                          )}
+                          {...iconProps}
+                        />
+                      )}
+                    />
+                  </TouchableWithoutFeedback>
+                  {devModeCounter > 10 && (
+                    <>
+                      <UIGroup.ListItemSeparator />
+                      <UIGroup.ListItem
+                        verticalArrangedLargeTextIOS
+                        label="ID"
+                        monospaceDetail
+                        detail={collection.__id}
+                      />
+                    </>
+                  )}
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListItem
+                    verticalArrangedLargeTextIOS
+                    label="Reference Number"
+                    monospaceDetail
+                    detail={collection.collection_reference_number}
+                  />
+                </>
+              );
+            })()}
+          </UIGroup>
+        )}
+        {searchText ? (
+          <UIGroup asSectionHeader header="Items" largeTitle />
+        ) : (
+          <UIGroup
+            asSectionHeader
+            header="Items"
+            largeTitle
+            headerRight={
+              <>
+                {!!orderedItems && (
+                  <UIGroup.TitleButton
+                    onPress={() =>
+                      rootNavigation?.push('OrderItems', {
+                        orderedItems,
+                        onSaveFunctionRef: handleUpdateItemsOrderFnRef,
+                      })
+                    }
+                  >
+                    {({ iconProps }) => (
+                      <Icon {...iconProps} name="app-reorder" />
+                    )}
+                  </UIGroup.TitleButton>
+                )}
+                <UIGroup.TitleButton primary onPress={handleAddNewItem}>
+                  {({ iconProps, textProps }) => (
+                    <>
+                      <Icon {...iconProps} name="add" />
+                      <Text {...textProps}>New Item</Text>
+                    </>
+                  )}
+                </UIGroup.TitleButton>
+              </>
+            }
+          />
+        )}
+      </>
+    ),
+    [
+      data,
+      dataLoading,
+      devModeCounter,
+      handleAddNewItem,
+      orderedItems,
+      rootNavigation,
+      searchFocused,
+      searchText,
+    ],
+  );
+
+  const renderEmptyList = useCallback(
+    () =>
+      searchText ? (
+        <UIGroup
+          loading={searchLoading}
+          placeholder={searchLoading ? undefined : 'No Matched Items'}
+        />
+      ) : (
+        <UIGroup
+          loading={itemsLoading}
+          placeholder={itemsLoading ? undefined : 'No Items'}
+        />
+      ),
+    [itemsLoading, searchLoading, searchText],
+  );
+
+  const renderListItem = useCallback(
+    ({
+      item,
+      index,
+    }: {
+      item: DataTypeWithAdditionalInfo<'item'>;
+      index: number;
+    }) => (
+      <UIGroup.ListItem.RenderItemContainer
+        isFirst={index === 0}
+        isLast={
+          index === (searchText ? searchResults : orderedItems || []).length - 1
+        }
+      >
+        <ItemListItem
+          key={item.__id}
+          item={item}
+          reloadCounter={reloadCounter}
+          onPress={() =>
+            navigation.push('Item', {
+              id: item.__id || '',
+            })
+          }
+          hideCollectionDetails
+        />
+      </UIGroup.ListItem.RenderItemContainer>
+    ),
+    [navigation, orderedItems, reloadCounter, searchResults, searchText],
+  );
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -298,6 +450,23 @@ function CollectionScreen({
       action2MaterialIconName={(data && 'dots-horizontal') || undefined}
       onAction2Press={handleMoreActionsPress}
     >
+      <FlatList
+        onRefresh={refresh}
+        refreshing={refreshing}
+        ListHeaderComponent={renderHeader}
+        data={searchText ? searchResults : orderedItems}
+        initialNumToRender={32}
+        keyExtractor={(item, index) => item.__id || `i-${index}`}
+        renderItem={renderListItem}
+        ItemSeparatorComponent={
+          UIGroup.ListItem.ItemSeparatorComponent.ForItemWithIcon
+        }
+        ListFooterComponent={UIGroup.SectionSeparatorComponent}
+        ListEmptyComponent={renderEmptyList}
+        // removeClippedSubviews={true}
+      />
+
+      {/*
       <ScreenContent.ScrollView
         refreshControl={
           <RefreshControl onRefresh={refresh} refreshing={refreshing} />
@@ -438,6 +607,7 @@ function CollectionScreen({
           </UIGroup>
         )}
       </ScreenContent.ScrollView>
+      */}
     </ScreenContent>
   );
 }

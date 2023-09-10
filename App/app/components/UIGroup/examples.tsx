@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Button,
   ScrollView,
-  Switch,
+  SectionList,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -12,8 +11,7 @@ import {
 
 import UIText from '@app/components/Text';
 
-import DatePicker from '../DatePicker';
-import Icon from '../Icon';
+import Icon, { IconName } from '../Icon';
 
 import UIGroup from './UIGroup';
 
@@ -674,5 +672,123 @@ export function WithListItems() {
         <UIGroup.ListItem label="Hi" />
       </UIGroup>
     </ScrollView>
+  );
+}
+
+const SECTION_VIEW_DATA = [
+  {
+    title: 'Main dishes',
+    data: ['Pizza', 'Burger', 'Risotto'],
+  },
+  {
+    title: 'Sides',
+    data: ['French Fries', 'Onion Rings', 'Fried Shrimps'],
+  },
+  {
+    title: 'Drinks',
+    data: ['Water', 'Coke', 'Beer'],
+  },
+  {
+    title: 'Desserts',
+    data: ['Cheese Cake', 'Ice Cream'],
+  },
+];
+
+export function WithListItemsInListView() {
+  return (
+    <SectionList
+      stickySectionHeadersEnabled={false}
+      initialNumToRender={32}
+      // eslint-disable-next-line react/no-unstable-nested-components
+      ListHeaderComponent={() => <UIGroup.FirstGroupSpacing />}
+      sections={SECTION_VIEW_DATA}
+      keyExtractor={(item, index) => item + index}
+      renderSectionHeader={({ section: { title } }) => (
+        <UIGroup asSectionHeader header={title} />
+      )}
+      renderItem={({ item, index, section }) => (
+        <UIGroup.ListItem.RenderItemContainer
+          isFirst={index === 0}
+          isLast={index === section.data.length - 1}
+        >
+          <UIGroup.ListItem label={item} />
+        </UIGroup.ListItem.RenderItemContainer>
+      )}
+      SectionSeparatorComponent={UIGroup.SectionSeparatorComponent}
+      ItemSeparatorComponent={UIGroup.ListItem.ItemSeparatorComponent}
+    />
+  );
+}
+
+const SECTION_VIEW_WITH_ICON_DATA: ReadonlyArray<{
+  title: string;
+  data: ReadonlyArray<{ label: string; icon: IconName }>;
+}> = [
+  {
+    title: 'Food',
+    data: [
+      { label: 'Carrot', icon: 'carrot' },
+      { label: 'Bread', icon: 'bread' },
+      { label: 'Cookie', icon: 'cookie' },
+      { label: 'Cupcake', icon: 'cupcake' },
+      { label: 'Apple', icon: 'apple' },
+    ],
+  },
+  {
+    title: 'Drink',
+    data: [
+      { label: 'Coffee', icon: 'coffee' },
+      { label: 'Beer', icon: 'beer' },
+      { label: 'Wine', icon: 'wineglass' },
+      { label: 'Martini', icon: 'martini-glass' },
+    ],
+  },
+  {
+    title: 'Furniture',
+    data: [
+      { label: 'Table', icon: 'table' },
+      { label: 'Chair', icon: 'chair' },
+      { label: 'Lounge', icon: 'lounge' },
+      { label: 'Bed', icon: 'bed' },
+    ],
+  },
+  {
+    title: 'Devices',
+    data: [
+      { label: 'Cellphone', icon: 'cellphone' },
+      { label: 'Tablet', icon: 'tablet' },
+      { label: 'Laptop Computer', icon: 'laptop-computer' },
+      { label: 'Desktop Computer', icon: 'desktop-computer' },
+      { label: 'Monitor', icon: 'monitor' },
+      { label: 'Headphones', icon: 'headphones' },
+    ],
+  },
+];
+
+export function WithListItemsWithIconInListView() {
+  return (
+    <SectionList
+      stickySectionHeadersEnabled={false}
+      initialNumToRender={32}
+      // eslint-disable-next-line react/no-unstable-nested-components
+      ListHeaderComponent={() => <UIGroup.FirstGroupSpacing />}
+      sections={SECTION_VIEW_WITH_ICON_DATA}
+      keyExtractor={(item, index) => item.label + index}
+      renderSectionHeader={({ section: { title } }) => (
+        <UIGroup asSectionHeader header={title} />
+      )}
+      renderItem={({ item, index, section }) => (
+        <UIGroup.ListItem.RenderItemContainer
+          isFirst={index === 0}
+          isLast={index === section.data.length - 1}
+        >
+          <UIGroup.ListItem label={item.label} icon={item.icon} />
+        </UIGroup.ListItem.RenderItemContainer>
+      )}
+      SectionSeparatorComponent={UIGroup.SectionSeparatorComponent}
+      ItemSeparatorComponent={
+        UIGroup.ListItem.ItemSeparatorComponent.ForItemWithIcon
+      }
+    />
   );
 }

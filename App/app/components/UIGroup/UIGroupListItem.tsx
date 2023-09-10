@@ -12,7 +12,8 @@ import Icon from '@app/components/Icon';
 import InsetGroup from '@app/components/InsetGroup';
 import Switch from '@app/components/Switch';
 
-import { ListItemProps } from './types';
+import { ListItemProps, ListItemRenderItemContainerProps } from './types';
+import UIGroupListItemSeparator from './UIGroupListItemSeparator';
 
 export default function UIGroupListItem(props: ListItemProps): JSX.Element {
   const {
@@ -171,6 +172,47 @@ UIGroupListItem.styles = StyleSheet.create({
   // },
 });
 
+export function UIGroupListItemRenderItemContainer({
+  children,
+  isFirst,
+  isLast,
+}: ListItemRenderItemContainerProps) {
+  const { contentBackgroundColor, contentTextColor, groupTitleColor } =
+    useColors();
+  return (
+    <View
+      style={[
+        styles.renderItemContainer,
+        { backgroundColor: contentBackgroundColor },
+        isFirst && styles.renderItemContainer_first,
+        isLast && styles.renderItemContainer_last,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+
+UIGroupListItem.RenderItemContainer = UIGroupListItemRenderItemContainer;
+
+function UIGroupListItemItemSeparatorComponent() {
+  return (
+    <UIGroupListItemRenderItemContainer>
+      <UIGroupListItemSeparator />
+    </UIGroupListItemRenderItemContainer>
+  );
+}
+function UIGroupListItemItemSeparatorComponentForItemWithIcon() {
+  return (
+    <UIGroupListItemRenderItemContainer>
+      <UIGroupListItemSeparator forItemWithIcon />
+    </UIGroupListItemRenderItemContainer>
+  );
+}
+UIGroupListItemItemSeparatorComponent.ForItemWithIcon =
+  UIGroupListItemItemSeparatorComponentForItemWithIcon;
+UIGroupListItem.ItemSeparatorComponent = UIGroupListItemItemSeparatorComponent;
+
 const styles = StyleSheet.create({
   iosSwitch: {
     marginVertical: -4,
@@ -195,5 +237,16 @@ const styles = StyleSheet.create({
   rightElementContainer: {
     marginRight: InsetGroup.MARGIN_HORIZONTAL,
     flexDirection: 'row',
+  },
+  renderItemContainer: {
+    marginHorizontal: InsetGroup.MARGIN_HORIZONTAL,
+  },
+  renderItemContainer_first: {
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  renderItemContainer_last: {
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
 });

@@ -26,6 +26,7 @@ export type UIGroupProps = {
   transparentBackground?: boolean;
   loading?: boolean;
   placeholder?: string;
+  asSectionHeader?: boolean;
 } & React.ComponentProps<typeof View>;
 
 export type UIGroupTitleButtonProps = {
@@ -75,6 +76,12 @@ export type ListItemSeparatorProps = {
   leftInsetIOS?: number;
   color?: string;
   forItemWithIcon?: boolean;
+};
+
+export type ListItemRenderItemContainerProps = {
+  children: React.ReactNode;
+  isFirst?: boolean;
+  isLast?: boolean;
 };
 
 export type ListTextInputItemProps = {

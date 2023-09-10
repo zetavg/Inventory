@@ -27,6 +27,7 @@ export function UIGroup(
     children,
     placeholder,
     style,
+    asSectionHeader,
     ...restProps
   } = props;
   return (
@@ -42,6 +43,7 @@ export function UIGroup(
       }
       backgroundTransparent={transparentBackground}
       loading={loading}
+      hideContent={asSectionHeader}
       {...restProps}
       style={[loading && !!children && styles.iosNonEmptyLoading, style]}
     >
@@ -106,6 +108,11 @@ export function UIGroupTitleButton(props: UIGroupTitleButtonProps) {
 
 UIGroup.TitleButton = UIGroupTitleButton;
 
+function UIGroupSectionSeparatorComponent({ trailingItem }: any) {
+  if (trailingItem) return null;
+  return <View style={styles.sectionSeparatorComponent} />;
+}
+
 const styles = StyleSheet.create({
   iosNonEmptyLoading: {
     minHeight: 'auto',
@@ -127,6 +134,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  sectionSeparatorComponent: {
+    height: 35,
+  },
 });
 
 UIGroup.useStyles = useStyles;
@@ -135,5 +145,6 @@ UIGroup.ListItem = UIGroupListItem;
 UIGroup.ListItemSeparator = UIGroupListItemSeparator;
 UIGroup.ListTextInputItem = UIGroupListTextInputItem;
 UIGroup.ListTextInputItemButton = UIGroupListTextInputItem.Button;
+UIGroup.SectionSeparatorComponent = UIGroupSectionSeparatorComponent;
 
 export default UIGroup;

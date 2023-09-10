@@ -13,6 +13,7 @@ import useLogger from '@app/hooks/useLogger';
 import { getDataTypeSelector, getTypeIdStartAndEndKey } from '../pouchdb-utils';
 import { DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
+import LPJQ from '@app/LPJQ';
 
 let ddocUpdating = false;
 let ddocUpdatingPromiseResolvers: Array<() => void> = [];
@@ -40,8 +41,8 @@ export default function useDataCount<T extends DataTypeName>(
 ): {
   loading: boolean;
   count: number | null;
-  reload: () => void;
-  refresh: () => void;
+  reload: () => Promise<void>;
+  refresh: () => Promise<void>;
   refreshing: boolean;
 } {
   const logger = useLogger('useDataCount', type);
@@ -61,7 +62,14 @@ export default function useDataCount<T extends DataTypeName>(
   }, [cond, cachedCond]);
 
   const loadData = useCallback(async () => {
+    if (disable) return;
+
     setLoading(true);
+
+    logger.debug(`Loading data count for ${type}`, {
+      details: JSON.stringify({ conditions: cachedCond }, null, 2),
+    });
+
     try {
       // const { rows: r } = await QuickSQLite.executeAsync(
       //   dbName,
@@ -188,21 +196,23 @@ export default function useDataCount<T extends DataTypeName>(
     } finally {
       setLoading(false);
     }
-  }, [cachedCond, db, logger, type]);
+  }, [cachedCond, db, disable, logger, type]);
 
   useFocusEffect(
     useCallback(() => {
       if (disable) return;
 
-      if (countRef.current === null) {
-        setTimeout(() => {
-          loadData();
-        }, 1);
-      } else {
-        setTimeout(() => {
-          loadData();
-        }, 5);
-      }
+      return LPJQ.push(loadData);
+
+      // if (countRef.current === null) {
+      //   setTimeout(() => {
+      //     loadData();
+      //   }, 1);
+      // } else {
+      //   setTimeout(() => {
+      //     loadData();
+      //   }, 100);
+      // }
     }, [disable, loadData]),
   );
 

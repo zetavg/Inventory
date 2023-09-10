@@ -211,6 +211,13 @@ function DeveloperToolsScreen({
         </UIGroup>
         <UIGroup>
           <UIGroup.ListItem
+            label="Benchmark"
+            navigable
+            onPress={() => navigation.push('Benchmark')}
+          />
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             label="Logs"
             navigable
             onPress={() => navigation.push('AppLogs')}

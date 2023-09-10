@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,9 +21,11 @@ import useColors from '@app/hooks/useColors';
 import Icon from '@app/components/Icon';
 import UIGroup from '@app/components/UIGroup';
 
+import LPJQ from '@app/LPJQ';
+
 import StockStatusIcon from './StockStatusIcon';
 
-export default function ItemListItem({
+function ItemListItem({
   item,
   onPress,
   onLongPress,
@@ -55,31 +57,23 @@ export default function ItemListItem({
     | 'no-rfid-tag';
   grayOut?: boolean;
 } & React.ComponentProps<typeof UIGroup.ListItem>) {
-  const [disableAdditionalDataLoading, setDisableAdditionalDataLoading] =
-    useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDisableAdditionalDataLoading(false);
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
-
+  // TODO: Use counter cache?
   const { count: itemsCount, reload: reloadItemsCount } = useDataCount(
     'item',
     {
       container_id: item.__id,
     },
-    { disable: hideContentDetails || disableAdditionalDataLoading },
+    {
+      disable: !item._can_contain_items || hideContentDetails,
+    },
   );
 
   const { data: collection, refresh: refreshCollection } = useRelated(
     item,
     'collection',
     {
-      disable: hideCollectionDetails || disableAdditionalDataLoading,
+      lowPriority: true,
+      disable: hideCollectionDetails,
     },
   );
   const validatedCollection = collection?.__valid ? collection : null;
@@ -88,7 +82,8 @@ export default function ItemListItem({
     item,
     'container',
     {
-      disable: hideContainerDetails || disableAdditionalDataLoading,
+      lowPriority: true,
+      disable: hideContainerDetails,
     },
   );
   const validatedContainer = container?.__valid ? container : null;
@@ -98,9 +93,11 @@ export default function ItemListItem({
     if (hideDetails) return;
     if (!reloadCounter) return;
 
-    reloadItemsCount();
-    refreshCollection();
-    refreshContainer();
+    return LPJQ.push(async () => {
+      await reloadItemsCount();
+      await refreshCollection();
+      await refreshContainer();
+    });
   }, [
     hideDetails,
     reloadItemsCount,
@@ -450,3 +447,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
 });
+
+export default memo(ItemListItem);

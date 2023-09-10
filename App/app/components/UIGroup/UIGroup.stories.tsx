@@ -7,6 +7,8 @@ import Text from '@app/components/Text';
 import {
   Basic as BasicComponent,
   WithListItems as WithListItemsComponent,
+  WithListItemsInListView as WithListItemsInListViewComponent,
+  WithListItemsWithIconInListView as WithListItemsWithIconInListViewComponent,
 } from './examples';
 
 export default {
@@ -16,3 +18,9 @@ export default {
 
 export const Basic = () => <BasicComponent />;
 export const WithListItems = () => <WithListItemsComponent />;
+export const WithListItemsInListView = () => (
+  <WithListItemsInListViewComponent />
+);
+export const WithListItemsWithIconInListView = () => (
+  <WithListItemsWithIconInListViewComponent />
+);

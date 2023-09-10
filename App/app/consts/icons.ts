@@ -104,6 +104,11 @@ export const ICONS = {
     materialIconName: 'bed-double',
     keywords: 'bed sleep',
   },
+  table: {
+    // sfSymbolName: 'pencil.and.ruler.fill',
+    materialIconName: 'table-furniture',
+    keywords: 'table-furniture',
+  },
   'art-frame': {
     sfSymbolName: 'photo.artframe',
     fa5IconName: 'image',
