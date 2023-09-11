@@ -36,13 +36,15 @@
         "items_order": {
           "type": "array",
           "items": { "type": "string" }
-        }
+        },
+        "config_uuid": { "type": "string" }
       },
       "required": [
         "name",
         "icon_name",
         "icon_color",
-        "collection_reference_number"
+        "collection_reference_number",
+        "config_uuid"
       ],
       "additionalProperties": true
     },
@@ -87,14 +89,30 @@
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }
-        }
+        },
+        "config_uuid": { "type": "string" }
       },
       "required": [
         "name",
         "icon_name",
         "icon_color",
-        "collection_id"
+        "collection_id",
+        "config_uuid"
       ],
+      "additionalProperties": true
+    },
+    "db_sharing": {
+      "type": "object",
+      "properties": {
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["read", "write"]
+          }
+        }
+      },
+      "required": [],
       "additionalProperties": true
     }
   }

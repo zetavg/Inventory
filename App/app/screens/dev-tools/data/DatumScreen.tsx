@@ -144,7 +144,10 @@ function DatumScreen({
           {!!data &&
             UIGroup.ListItemSeparator.insertBetween(
               getPropertyNames(type).map((propertyName: any) => {
-                const [propertyType] = getPropertyType(type, propertyName);
+                const [propertyType] = (getPropertyType as any)(
+                  type,
+                  propertyName,
+                );
                 const humanPropertyName = toTitleCase(
                   propertyName.replace(/_/g, ' '),
                 );

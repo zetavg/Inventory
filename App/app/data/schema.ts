@@ -19,6 +19,7 @@ export type ConfigType = z.infer<typeof configSchema>;
 export const plurals: Record<keyof typeof schema, string> = {
   collection: 'collections',
   item: 'items',
+  db_sharing: 'db_sharing',
 };
 
 export type DataTypeName = keyof typeof schema;

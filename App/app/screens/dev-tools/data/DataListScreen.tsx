@@ -93,13 +93,14 @@ function DataListScreen({
                     verticalArrangedIOS
                     navigable
                     key={d.__id || `no_id-${i}`}
-                    label={d.name}
+                    label={typeof d.name === 'string' ? d.name : d.__id}
                     detail={`ID: ${d.__id}`}
                     onPress={() => {
                       navigation.navigate('Datum', {
                         type: d.__type,
                         id: d.__id || '',
-                        preloadedTitle: d.name,
+                        preloadedTitle:
+                          typeof d.name === 'string' ? d.name : d.__id,
                       });
                     }}
                   />

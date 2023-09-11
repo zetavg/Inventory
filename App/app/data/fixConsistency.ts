@@ -50,17 +50,18 @@ export default async function fixConsistency({
           id = getDataIdFromPouchDbId(doc._id).id;
           const data = getDatumFromDoc(typeName, doc, logger);
           if (!data) throw new Error('getDatumFromDoc returns null');
-          if (!data.__valid)
-            throw new Error(
-              `Data is not valid: ${JSON.stringify(
-                data.__error_details,
-                null,
-                2,
-              )}`,
-            );
-          await saveDatum(data, { db, logger, noTouch: true });
+          // Data might be invalid, we expect it to be fixed by beforeSave
+          // if (!data.__valid)
+          //   throw new Error(
+          //     `Data is not valid: ${JSON.stringify(
+          //       data.__error_details,
+          //       null,
+          //       2,
+          //     )}`,
+          //   );
+          await saveDatum(data as any, { db, logger, noTouch: true });
 
-          await successCallback(data);
+          await successCallback(data as any);
         } catch (e) {
           await errorCallback({
             type: typeName,

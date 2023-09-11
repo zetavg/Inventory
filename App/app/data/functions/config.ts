@@ -31,20 +31,29 @@ export async function hasConfig({
   }
 }
 
-export async function getConfig({
-  db,
-}: {
-  db: PouchDB.Database;
-}): Promise<ConfigType> {
+export async function getConfig(
+  {
+    db,
+  }: {
+    db: PouchDB.Database;
+  },
+  { ensureSaved }: { ensureSaved?: boolean } = {},
+): Promise<ConfigType> {
   try {
     const configDoc = await db.get(CONFIG_ID);
     const config = configSchema.parse(configDoc);
     return config;
   } catch (e) {
-    if (typeof e === 'object' && (e as any).name === 'not_found') {
+    if (
+      typeof e === 'object' &&
+      (e as any).name === 'not_found' &&
+      !ensureSaved
+    ) {
       return INITIAL_CONFIG;
     } else {
-      throw e;
+      throw new Error(
+        `getConfig error: ${e instanceof Error ? e.message : 'unknown error'}`,
+      );
     }
   }
 }

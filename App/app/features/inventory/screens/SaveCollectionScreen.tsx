@@ -78,6 +78,9 @@ function SaveCollectionScreen({
   const [data, setData] =
     useState<Partial<DataTypeWithAdditionalInfo<'collection'>>>(initialData);
   const hasChanges = !useDeepCompare(initialData, data);
+  const isFromSharedDb = !config
+    ? null
+    : typeof data.config_uuid === 'string' && data.config_uuid !== config.uuid;
 
   const [
     referenceNumberIsRandomlyGenerated,
@@ -226,6 +229,7 @@ function SaveCollectionScreen({
           <UIGroup.ListTextInputItem
             ref={refNumberInputRef}
             label="Reference Number"
+            disabled={isFromSharedDb === null || isFromSharedDb}
             horizontalLabel
             keyboardType="number-pad"
             monospaced

@@ -321,6 +321,15 @@ function SaveItemScreen({
     );
   }, [doDelete, initialData.name]);
 
+  const isFromSharedDb = !config
+    ? null
+    : !selectedCollection
+    ? null
+    : (typeof data.config_uuid === 'string' &&
+        data.config_uuid !== config.uuid) ||
+      (typeof selectedCollection.config_uuid === 'string' &&
+        selectedCollection.config_uuid !== config.uuid);
+
   const selectContainerUI = (
     <UIGroup.ListTextInputItem
       label={(() => {
@@ -657,10 +666,17 @@ function SaveItemScreen({
           </UIGroup>
         )}
 
-        <UIGroup>
+        <UIGroup
+          footer={
+            isFromSharedDb
+              ? 'You can not edit the reference number of a shared item.'
+              : undefined
+          }
+        >
           <UIGroup.ListTextInputItem
             ref={refNumberInputRef}
             label="Reference No."
+            disabled={isFromSharedDb === null || isFromSharedDb}
             horizontalLabel
             keyboardType="number-pad"
             monospaced
@@ -696,6 +712,7 @@ function SaveItemScreen({
           <UIGroup.ListTextInputItem
             ref={serialInputRef}
             label="Serial"
+            disabled={isFromSharedDb === null || isFromSharedDb}
             horizontalLabel
             keyboardType="number-pad"
             monospaced

@@ -26,14 +26,39 @@ export async function validate(
   { db }: { db: PouchDB.Database },
 ): Promise<ValidationResults> {
   const issues: Array<ZodIssue> = [];
+  const config = await getConfig({ db }, { ensureSaved: true });
+  const isFromSharedDb =
+    typeof datum.config_uuid === 'string' && datum.config_uuid !== config.uuid;
+
+  if (isFromSharedDb) {
+    const dbSharingInfo = await getDatum(
+      'db_sharing',
+      `${datum.config_uuid}--${config.uuid}`,
+      {
+        db,
+        logger,
+      },
+    );
+    const permissions = Array.isArray(dbSharingInfo?.permissions)
+      ? dbSharingInfo?.permissions
+      : [];
+    if (!permissions.includes('write')) {
+      issues.push({
+        code: 'custom',
+        path: [],
+        message: 'You are not allowed to change this shared object.',
+      });
+      return issues;
+    }
+  }
 
   switch (datum.__type) {
     case 'collection': {
       if (
+        !isFromSharedDb &&
         datum.collection_reference_number &&
         typeof datum.collection_reference_number === 'string'
       ) {
-        const config = await getConfig({ db });
         const collectionReferenceDigits = EPCUtils.getCollectionReferenceDigits(
           {
             companyPrefix: config.rfid_tag_company_prefix,
@@ -55,6 +80,7 @@ export async function validate(
         const dataWithSameCrn = await getData(
           'collection',
           {
+            config_uuid: config.uuid,
             collection_reference_number: datum.collection_reference_number,
           },
           {},
@@ -94,6 +120,14 @@ export async function validate(
             path: ['collection_id'],
             message: `Can't find collection with ID "${datum.collection_id}"`,
           });
+        } else if (typeof collection.config_uuid === 'string') {
+          if (datum.config_uuid !== collection.config_uuid) {
+            issues.push({
+              code: 'custom',
+              path: ['collection_id'],
+              message: `Collection "${collection.config_uuid}" has a different config_uuid ("${collection.config_uuid}") with your item ("${datum.config_uuid}"), you might be attempting to move a shared item to your own collection, which is not supported`,
+            });
+          }
         }
       }
 
@@ -143,13 +177,16 @@ export async function validate(
       }
 
       let hasIARError = false;
+      // IAR should be unique
       if (
+        !isFromSharedDb &&
         datum._individual_asset_reference &&
         typeof datum._individual_asset_reference === 'string'
       ) {
         const itemsWithSameIAR = await getData(
           'item',
           {
+            config_uuid: config.uuid,
             _individual_asset_reference: datum._individual_asset_reference,
           },
           {},
@@ -175,14 +212,15 @@ export async function validate(
         }
       }
 
+      // IAR should be able to encode into EPC IAR
       if (
+        !isFromSharedDb &&
         datum.item_reference_number &&
         typeof datum.item_reference_number === 'string' &&
         (typeof datum.serial === 'number' ||
           typeof datum.serial === 'undefined') &&
         typeof collection?.collection_reference_number === 'string'
       ) {
-        const config = await getConfig({ db });
         if (collection) {
           try {
             EPCUtils.encodeIndividualAssetReference({
@@ -202,7 +240,12 @@ export async function validate(
         }
       }
 
-      if (datum.epc_tag_uri && typeof datum.epc_tag_uri === 'string') {
+      // EPC tag URI should be valid, we validate it by trying to encode it into hex
+      if (
+        !isFromSharedDb &&
+        datum.epc_tag_uri &&
+        typeof datum.epc_tag_uri === 'string'
+      ) {
         try {
           EPCUtils.encodeEpcHexFromGiai(datum.epc_tag_uri);
         } catch (e) {
@@ -214,7 +257,9 @@ export async function validate(
         }
       }
 
+      // EPC hex should be valid and globally unique
       if (
+        !isFromSharedDb &&
         datum.rfid_tag_epc_memory_bank_contents &&
         typeof datum.rfid_tag_epc_memory_bank_contents === 'string' &&
         !hasIARError
@@ -294,7 +339,38 @@ export async function validateDelete(
   d: { __type: DataTypeName; __id: string | undefined; __deleted: boolean },
   { db }: { db: PouchDB.Database },
 ): Promise<Array<ZodIssue>> {
+  const config = await getConfig({ db }, { ensureSaved: true });
+
   const issues: Array<ZodIssue> = [];
+
+  const originalDatum = await getDatum(d.__type, d.__id || '', {
+    db,
+    logger,
+  });
+  const isFromSharedDb =
+    typeof originalDatum.config_uuid === 'string' &&
+    originalDatum.config_uuid !== config.uuid;
+  if (isFromSharedDb) {
+    const dbSharingInfo = await getDatum(
+      'db_sharing',
+      `${originalDatum.config_uuid}--${config.uuid}`,
+      {
+        db,
+        logger,
+      },
+    );
+    const permissions = Array.isArray(dbSharingInfo?.permissions)
+      ? dbSharingInfo?.permissions
+      : [];
+    if (!permissions.includes('write')) {
+      issues.push({
+        code: 'custom',
+        path: [],
+        message: 'You are not allowed to delete this shared object.',
+      });
+      return issues;
+    }
+  }
 
   switch (d.__type) {
     case 'collection': {

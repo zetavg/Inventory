@@ -89,6 +89,12 @@ function ItemScreen({
     refresh: refreshContainer,
     refreshing: containerRefreshing,
   } = useRelated(data, 'container');
+  const isFromSharedDb =
+    !config || !data
+      ? null
+      : typeof data.config_uuid === 'string' &&
+        data.config_uuid !== config.uuid;
+
   const [dContentsLoading, setDContentsLoading] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -318,6 +324,9 @@ function ItemScreen({
     [data, reloadData, save],
   );
 
+  // Cannot write RFID tag for shared item because we don't know the password
+  const canWriteRfidTag = isFromSharedDb !== null && !isFromSharedDb;
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -354,7 +363,7 @@ function ItemScreen({
           footer={(() => {
             if (!data?.__valid) return undefined;
 
-            if (data?.rfid_tag_epc_memory_bank_contents) {
+            if (data?.rfid_tag_epc_memory_bank_contents && canWriteRfidTag) {
               if (!data?.actual_rfid_tag_epc_memory_bank_contents) {
                 return (
                   <>
@@ -656,41 +665,44 @@ function ItemScreen({
                       {(() => {
                         const rightElement = (
                           <>
-                            <TouchableOpacity
-                              style={[
-                                styles.buttonWithAnnotationText,
-                                commonStyles.mr12,
-                              ]}
-                              onPress={
-                                config
-                                  ? () =>
-                                      openRfidSheet({
-                                        functionality: 'write',
-                                        epc: item.rfid_tag_epc_memory_bank_contents,
-                                        tagAccessPassword: getTagAccessPassword(
-                                          config.rfid_tag_access_password,
-                                          item.rfid_tag_access_password,
-                                          item.use_mixed_rfid_tag_access_password ||
-                                            false,
-                                          config.rfid_tag_access_password_encoding,
-                                        ),
-                                        afterWriteSuccessRef:
-                                          afterRFIDTagWriteSuccessRef,
-                                      })
-                                  : undefined
-                              }
-                              disabled={!config}
-                            >
-                              <RFIDWriteIcon />
-                              <Text
+                            {canWriteRfidTag && (
+                              <TouchableOpacity
                                 style={[
-                                  styles.buttonAnnotationText,
-                                  { color: iosTintColor },
+                                  styles.buttonWithAnnotationText,
+                                  commonStyles.mr12,
                                 ]}
+                                onPress={
+                                  config
+                                    ? () =>
+                                        openRfidSheet({
+                                          functionality: 'write',
+                                          epc: item.rfid_tag_epc_memory_bank_contents,
+                                          tagAccessPassword:
+                                            getTagAccessPassword(
+                                              config.rfid_tag_access_password,
+                                              item.rfid_tag_access_password,
+                                              item.use_mixed_rfid_tag_access_password ||
+                                                false,
+                                              config.rfid_tag_access_password_encoding,
+                                            ),
+                                          afterWriteSuccessRef:
+                                            afterRFIDTagWriteSuccessRef,
+                                        })
+                                    : undefined
+                                }
+                                disabled={!config}
                               >
-                                Write Tag
-                              </Text>
-                            </TouchableOpacity>
+                                <RFIDWriteIcon />
+                                <Text
+                                  style={[
+                                    styles.buttonAnnotationText,
+                                    { color: iosTintColor },
+                                  ]}
+                                >
+                                  Write Tag
+                                </Text>
+                              </TouchableOpacity>
+                            )}
                             <TouchableOpacity
                               style={[
                                 styles.buttonWithAnnotationText,

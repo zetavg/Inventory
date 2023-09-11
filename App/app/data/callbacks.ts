@@ -20,15 +20,20 @@ export async function beforeSave(
     | InvalidDataTypeWithAdditionalInfo<DataTypeName>,
   { db }: { db: PouchDB.Database },
 ) {
+  const config = await getConfig({ db }, { ensureSaved: true });
+  const isFromSharedDb =
+    typeof datum.config_uuid === 'string' && datum.config_uuid !== config.uuid;
+
   switch (datum.__type) {
     case 'collection': {
-      const config = await getConfig({ db });
+      if (!datum.config_uuid) datum.config_uuid = config.uuid;
 
       if (typeof datum.name === 'string') {
         datum.name = datum.name.trim();
       }
 
       if (
+        !isFromSharedDb &&
         typeof datum.collection_reference_number === 'string' &&
         datum.collection_reference_number
       ) {
@@ -49,7 +54,22 @@ export async function beforeSave(
       break;
     }
     case 'item': {
-      const config = await getConfig({ db });
+      const collection = await getRelated(
+        datum as DataTypeWithAdditionalInfo<'item'>,
+        'collection',
+        {},
+        {
+          db,
+          logger,
+        },
+      );
+
+      if (collection?.config_uuid) {
+        // Might be creating an item for a shared collection.
+        datum.config_uuid = collection.config_uuid;
+      } else {
+        if (!datum.config_uuid) datum.config_uuid = config.uuid;
+      }
 
       if (typeof datum.name === 'string') {
         datum.name = datum.name.trim();
@@ -81,10 +101,11 @@ export async function beforeSave(
 
       // We pad this while generating EPC
       // if (
+      //   !isFromSharedDb &&
       //   datum.item_reference_number &&
       //   typeof datum.item_reference_number === 'string'
       // ) {
-      //   const config = await getConfig({ db });
+      //   const config = await getConfig({ db }, { ensureSaved: true });
       //   const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
       //     companyPrefixDigits: config.rfid_tag_company_prefix.length,
       //     tagPrefixDigits: config.rfid_tag_individual_asset_reference_prefix.length,
@@ -95,20 +116,12 @@ export async function beforeSave(
       //   );
       // }
       if (
+        !isFromSharedDb &&
         datum.item_reference_number &&
         typeof datum.item_reference_number === 'string' &&
         (typeof datum.serial === 'number' ||
           typeof datum.serial === 'undefined')
       ) {
-        const collection = await getRelated(
-          datum as DataTypeWithAdditionalInfo<'item'>,
-          'collection',
-          {},
-          {
-            db,
-            logger,
-          },
-        );
         if (collection && collection.__valid) {
           try {
             datum._individual_asset_reference =
@@ -127,11 +140,11 @@ export async function beforeSave(
         } else {
           datum._individual_asset_reference = undefined;
         }
-      } else {
+      } else if (!isFromSharedDb) {
         datum._individual_asset_reference = undefined;
       }
 
-      if (!datum.epc_manually_set) {
+      if (!isFromSharedDb && !datum.epc_manually_set) {
         if (
           datum._individual_asset_reference &&
           typeof datum._individual_asset_reference === 'string'
@@ -146,7 +159,10 @@ export async function beforeSave(
         }
       }
 
-      if (!datum.rfid_tag_epc_memory_bank_contents_manually_set) {
+      if (
+        !isFromSharedDb &&
+        !datum.rfid_tag_epc_memory_bank_contents_manually_set
+      ) {
         if (datum.epc_tag_uri && typeof datum.epc_tag_uri === 'string') {
           try {
             const epcHex = EPCUtils.encodeEpcHexFromGiai(datum.epc_tag_uri);
@@ -157,12 +173,16 @@ export async function beforeSave(
         }
       }
 
-      if (typeof datum.use_mixed_rfid_tag_access_password !== 'boolean') {
+      if (
+        !isFromSharedDb &&
+        typeof datum.use_mixed_rfid_tag_access_password !== 'boolean'
+      ) {
         datum.use_mixed_rfid_tag_access_password =
           config.default_use_mixed_rfid_tag_access_password;
       }
 
       if (
+        !isFromSharedDb &&
         datum.use_mixed_rfid_tag_access_password &&
         !datum.rfid_tag_access_password
       ) {

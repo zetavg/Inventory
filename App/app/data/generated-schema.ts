@@ -26,6 +26,7 @@ export const schema = {
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
       item_default_icon_name: z.string().optional(),
       items_order: z.array(z.string()).optional(),
+      config_uuid: z.string(),
     })
     .catchall(z.unknown()),
   item: z
@@ -78,7 +79,11 @@ export const schema = {
       consumable_stock_quantity: z.number().optional(),
       consumable_will_not_restock: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
+      config_uuid: z.string(),
     })
+    .catchall(z.unknown()),
+  db_sharing: z
+    .object({ permissions: z.array(z.enum(['read', 'write'])).optional() })
     .catchall(z.unknown()),
 };
 
