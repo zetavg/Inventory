@@ -67,6 +67,8 @@ export default function DBSyncManager() {
             password: server.password,
           },
         });
+        // Need this to reset the session, in case the same hostname has been login with different credentials
+        await remoteDB.logIn(server.username, server.password);
         // await remoteDB.logIn(server.username, server.password); // Will get error "You are not allowed to access this db", so we use 'auth' on new PouchDB instead.
 
         // Test if we can access the database
