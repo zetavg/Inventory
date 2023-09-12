@@ -53,7 +53,7 @@ function DBSyncScreen({
         />
         <UIGroup>
           <UIGroup.ListItem
-            label="Add Server..."
+            label="Add CouchDB Server..."
             button
             onPress={() =>
               rootNavigation?.push('DBSyncNewOrEditServerModal', {})

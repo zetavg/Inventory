@@ -4,6 +4,10 @@ import NetInfo from '@react-native-community/netinfo';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
+import { schema } from '@app/data';
+import { hasConfig } from '@app/data/functions/config';
+import { configSchema } from '@app/data/schema';
+
 import { PouchDB, useDB } from '@app/db';
 
 import removePasswordFromJSON from '@app/utils/removePasswordFromJSON';
@@ -86,6 +90,28 @@ export default function DBSyncManager() {
             2,
           ),
         });
+        if (!db) throw new Error('DB is not ready');
+
+        const hasLocalConfig = await hasConfig({ db });
+        if (!hasLocalConfig) {
+          // We can only sync with a database that has a valid config when there's no local config.
+          const remoteConfig = await remoteDB
+            .get('0000-config')
+            .catch(() => null);
+          const isRemoteConfigValid =
+            configSchema.safeParse(remoteConfig).success;
+          if (!isRemoteConfigValid) {
+            fLogger.error('Database config invalid.');
+            dispatch(actions.dbSync.updateServerStatus([server.id, 'Error']));
+            dispatch(
+              actions.dbSync.setServerLastErrorMessage([
+                server.id,
+                'The database does not have a valid config. Please make sure that this is an Inventory database.',
+              ]),
+            );
+            return null;
+          }
+        }
         return remoteDB;
       } catch (e) {
         fLogger.error(
@@ -117,7 +143,7 @@ export default function DBSyncManager() {
         return null;
       }
     },
-    [dispatch, logger],
+    [db, dispatch, logger],
   );
 
   const _startSync = useCallback(

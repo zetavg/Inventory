@@ -1,12 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 
 import { ZodError } from 'zod';
+
+import { CONTACT_GET_HELP_URL } from '@app/consts/info';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
+import { GetConfigError } from '../functions/config';
 import saveDatum from '../functions/saveDatum';
 import { DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
@@ -49,6 +52,24 @@ function useSave(): { save: SaveFn; saving: boolean } {
             showAlert: options?.showErrorAlert,
             details: JSON.stringify({ data: d }, null, 2),
           });
+          if (e instanceof GetConfigError) {
+            Alert.alert(
+              'Database Error',
+              'The config document could not be retrieved. Your database may be corrupted.',
+              [
+                {
+                  text: 'Ok',
+                  style: 'cancel',
+                },
+                {
+                  text: 'Get Help',
+                  onPress: () => {
+                    Linking.openURL(CONTACT_GET_HELP_URL);
+                  },
+                },
+              ],
+            );
+          }
         }
 
         throw e;

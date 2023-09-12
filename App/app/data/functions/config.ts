@@ -31,6 +31,8 @@ export async function hasConfig({
   }
 }
 
+export class GetConfigError extends Error {}
+
 export async function getConfig(
   {
     db,
@@ -51,7 +53,7 @@ export async function getConfig(
     ) {
       return INITIAL_CONFIG;
     } else {
-      throw new Error(
+      throw new GetConfigError(
         `getConfig error: ${e instanceof Error ? e.message : 'unknown error'}`,
       );
     }
