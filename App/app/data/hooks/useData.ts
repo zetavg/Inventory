@@ -9,7 +9,6 @@ import useLogger from '@app/hooks/useLogger';
 
 import getData from '../functions/getData';
 import getDatum from '../functions/getDatum';
-import { getDataTypeSelector, getDatumFromDoc } from '../pouchdb-utils';
 import { DataType, DataTypeName } from '../schema';
 import {
   DataTypeWithAdditionalInfo,

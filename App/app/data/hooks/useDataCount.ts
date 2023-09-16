@@ -1,19 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { QuickSQLite } from 'react-native-quick-sqlite';
 
 import { diff } from 'deep-object-diff';
-
-import { selectors, useAppSelector } from '@app/redux';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { getDataTypeSelector, getTypeIdStartAndEndKey } from '../pouchdb-utils';
+import LPJQ from '@app/LPJQ';
+
+import { getTypeIdStartAndEndKey } from '../pouchdb-utils';
 import { DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
-import LPJQ from '@app/LPJQ';
 
 let ddocUpdating = false;
 let ddocUpdatingPromiseResolvers: Array<() => void> = [];

@@ -9,8 +9,6 @@ import { Alert, RefreshControl, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { getDataTypeSelector } from '@app/data/pouchdb-utils';
-
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
@@ -26,7 +24,7 @@ const DEFAULT_INDEX = {
 
 const DEFAULT_QUERY = {
   selector: {
-    ...getDataTypeSelector('collection'),
+    type: 'collection',
     created_at: { $exists: true },
   },
   fields: ['_id', 'data.name', 'created_at'],

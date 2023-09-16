@@ -5,7 +5,10 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { getConfig, updateConfig as updateConfigFn } from '../functions/config';
+import {
+  getGetConfig,
+  updateConfig as updateConfigFn,
+} from '../functions/config';
 import { ConfigType } from '../schema';
 
 export default function useConfig(): {
@@ -27,7 +30,7 @@ export default function useConfig(): {
     try {
       if (!db) throw new Error('DB is not ready.');
 
-      const cfg = await getConfig({ db });
+      const cfg = await getGetConfig({ db })();
       setConfig(cfg);
     } catch (e) {
       logger.error(e);

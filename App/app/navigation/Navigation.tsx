@@ -58,7 +58,7 @@ import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScr
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
 import { DataType, DataTypeName, DataTypeWithAdditionalInfo } from '@app/data';
-import { getConfig } from '@app/data/functions/config';
+import { getGetConfig } from '@app/data/functions/config';
 import getData from '@app/data/functions/getData';
 import getDatum from '@app/data/functions/getDatum';
 
@@ -296,7 +296,7 @@ function Navigation({
         }
         let iarWithDotsAdded: string | null = null;
         if (!iar.includes('.')) {
-          const config = await getConfig({ db });
+          const config = await getGetConfig({ db })();
           const collectionReferenceDigits =
             EPCUtils.getCollectionReferenceDigits({
               companyPrefix: config.rfid_tag_company_prefix,
@@ -344,7 +344,7 @@ function Navigation({
           return;
         }
         const item = await getDatum('item', id, { db, logger });
-        if (!item.__id) {
+        if (!item?.__id) {
           Alert.alert('Item Not Found', `Can't find item with ID: "${id}".`);
         } else {
           (navigationRef.current?.navigate as any)('Item', {
@@ -361,7 +361,7 @@ function Navigation({
           return;
         }
         const collection = await getDatum('collection', id, { db, logger });
-        if (!collection.__id) {
+        if (!collection?.__id) {
           Alert.alert(
             'Collection Not Found',
             `Can't find collection with ID: "${id}".`,

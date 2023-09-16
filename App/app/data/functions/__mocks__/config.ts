@@ -18,15 +18,12 @@ export async function hasConfig({
   return true;
 }
 
-export async function getConfig(
-  {
-    db,
-  }: {
-    db: PouchDB.Database;
-  },
-  { ensureSaved }: { ensureSaved?: boolean } = {},
-): Promise<ConfigType> {
-  return CONFIG;
+export function getGetConfig({ db }: { db: PouchDB.Database }) {
+  return async function getConfig({
+    ensureSaved,
+  }: { ensureSaved?: boolean } = {}): Promise<ConfigType> {
+    return CONFIG;
+  };
 }
 
 export async function updateConfig(

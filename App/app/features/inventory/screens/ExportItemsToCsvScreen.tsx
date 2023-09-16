@@ -85,7 +85,7 @@ function ExportItemsToCsvScreen({
           > = Object.fromEntries(data.map(d => [d.__id, d]));
 
           const order = Array.isArray(collection?.items_order)
-            ? collection.items_order
+            ? collection?.items_order || []
             : [];
           const explicitlyOrderedData = order
             .map((id: string) => {

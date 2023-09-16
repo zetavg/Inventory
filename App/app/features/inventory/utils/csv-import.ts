@@ -1,9 +1,15 @@
-import { beforeSave } from '@app/data/callbacks';
+import appLogger from '@app/logger';
+
+import getCallbacks from '@app/data/callbacks';
+import { getGetConfig } from '@app/data/functions/config';
+import { getGetData } from '@app/data/functions/getData';
+import { getGetDatum } from '@app/data/functions/getDatum';
+import { getGetRelated } from '@app/data/functions/getRelated';
 import {
   DataTypeWithAdditionalInfo,
   InvalidDataTypeWithAdditionalInfo,
 } from '@app/data/types';
-import { validate, ValidationResults } from '@app/data/validation';
+import getValidation, { ValidationResults } from '@app/data/validation';
 
 import csvRowToItem from './csvRowToItem';
 
@@ -31,16 +37,40 @@ export async function processItems(
   > | null,
   { db }: { db: PouchDB.Database },
 ) {
+  const logger = appLogger.for({
+    module: 'csv-import',
+    function: 'processItems',
+  });
+
+  const getConfig = getGetConfig({ db });
+  const getDatum = getGetDatum({ db, logger });
+  const getData = getGetData({ db, logger });
+  const getRelated = getGetRelated({ db, logger });
+
+  const { beforeSave } = getCallbacks({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+  });
+
+  const { validate } = getValidation({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+  });
+
   const processedItems = await Promise.all(
     (items || []).map(async it => {
-      await beforeSave(it, { db });
+      await beforeSave(it);
       return it;
     }),
   );
   const issuesMap = new WeakMap();
   await Promise.all(
     processedItems.map(async it => {
-      const issues = await validate(it, { db });
+      const issues = await validate(it);
       if (issues && issues.length > 0) {
         issuesMap.set(it, issues);
       }

@@ -3,11 +3,16 @@ import { ZodError } from 'zod';
 
 import appLogger from '@app/logger';
 
-import { beforeSave } from '../callbacks';
-import { getDataIdFromPouchDbId, getDatumFromDoc } from '../pouchdb-utils';
+import getCallbacks from '../callbacks';
+import { getDatumFromDoc } from '../pouchdb-utils';
 import schema, { DataTypeName } from '../schema';
 import { DataTypeWithAdditionalInfo } from '../types';
-import { validate, validateDelete } from '../validation';
+import getValidation from '../validation';
+
+import { getGetConfig } from './config';
+import { getGetData } from './getData';
+import { getGetDatum } from './getDatum';
+import { getGetRelated } from './getRelated';
 
 export default async function saveDatum<T extends DataTypeName>(
   d: Partial<DataTypeWithAdditionalInfo<T>>,
@@ -21,6 +26,25 @@ export default async function saveDatum<T extends DataTypeName>(
     noTouch?: boolean;
   },
 ): Promise<DataTypeWithAdditionalInfo<T>> {
+  const getConfig = getGetConfig({ db });
+  const getDatum = getGetDatum({ db, logger });
+  const getData = getGetData({ db, logger });
+  const getRelated = getGetRelated({ db, logger });
+
+  const { beforeSave } = getCallbacks({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+  });
+
+  const { validate, validateDelete } = getValidation({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+  });
+
   let {
     __type,
     __id,
@@ -86,7 +110,7 @@ export default async function saveDatum<T extends DataTypeName>(
     logger.off(), // No need to log validation errors
   );
 
-  await beforeSave(updateDocProxy, { db });
+  await beforeSave(updateDocProxy);
 
   // Validation
   if (!__deleted) {
@@ -101,7 +125,7 @@ export default async function saveDatum<T extends DataTypeName>(
       }
     }
 
-    const issues = await validate(updateDocProxy, { db });
+    const issues = await validate(updateDocProxy);
     if (issues.length > 0) {
       if (!zodError) {
         zodError = new ZodError(issues);
@@ -114,7 +138,7 @@ export default async function saveDatum<T extends DataTypeName>(
       throw zodError;
     }
   } else {
-    const issues = await validateDelete({ __type, __id, __deleted }, { db });
+    const issues = await validateDelete({ __type, __id, __deleted });
     if (issues.length > 0) {
       throw new ZodError(issues);
     }

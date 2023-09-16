@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 import { configSchema, ConfigType } from '../schema';
+import { GetConfig } from '../types';
 
 const CONFIG_ID = '0000-config' as const;
 
@@ -33,31 +34,32 @@ export async function hasConfig({
 
 export class GetConfigError extends Error {}
 
-export async function getConfig(
-  {
-    db,
-  }: {
-    db: PouchDB.Database;
-  },
-  { ensureSaved }: { ensureSaved?: boolean } = {},
-): Promise<ConfigType> {
-  try {
-    const configDoc = await db.get(CONFIG_ID);
-    const config = configSchema.parse(configDoc);
-    return config;
-  } catch (e) {
-    if (
-      typeof e === 'object' &&
-      (e as any).name === 'not_found' &&
-      !ensureSaved
-    ) {
-      return INITIAL_CONFIG;
-    } else {
-      throw new GetConfigError(
-        `getConfig error: ${e instanceof Error ? e.message : 'unknown error'}`,
-      );
+export function getGetConfig({ db }: { db: PouchDB.Database }) {
+  const getConfigFn: GetConfig = async function getConfig({
+    ensureSaved,
+  } = {}) {
+    try {
+      const configDoc = await db.get(CONFIG_ID);
+      const config = configSchema.parse(configDoc);
+      return config;
+    } catch (e) {
+      if (
+        typeof e === 'object' &&
+        (e as any).name === 'not_found' &&
+        !ensureSaved
+      ) {
+        return INITIAL_CONFIG;
+      } else {
+        throw new GetConfigError(
+          `getConfig error: ${
+            e instanceof Error ? e.message : 'unknown error'
+          }`,
+        );
+      }
     }
-  }
+  };
+
+  return getConfigFn;
 }
 
 export async function updateConfig(
@@ -68,7 +70,7 @@ export async function updateConfig(
     db: PouchDB.Database;
   },
 ): Promise<ConfigType> {
-  const oldConfig = await getConfig({ db });
+  const oldConfig = await getGetConfig({ db })();
   const newConfig = configSchema.parse({
     _id: CONFIG_ID,
     ...INITIAL_CONFIG,
@@ -76,5 +78,5 @@ export async function updateConfig(
     ...config,
   });
   await db.put(newConfig);
-  return await getConfig({ db });
+  return await getGetConfig({ db })();
 }

@@ -1,9 +1,8 @@
 import appLogger from '@app/logger';
 
 import saveDatum from './functions/saveDatum';
-import { beforeSave } from './callbacks';
 import { getDatumFromDoc } from './pouchdb-utils';
-import { getDataIdFromPouchDbId, getDataTypeSelector } from './pouchdb-utils';
+import { getDataIdFromPouchDbId } from './pouchdb-utils';
 import schema, { DATA_TYPE_NAMES, DataTypeName } from './schema';
 import { DataTypeWithAdditionalInfo } from './types';
 
@@ -35,7 +34,7 @@ export default async function fixConsistency({
     let batch = 0;
     while (!ended) {
       const response = await db.find({
-        selector: getDataTypeSelector(typeName),
+        selector: { type: typeName },
         limit: batchSize,
         skip: batchSize * batch,
       });

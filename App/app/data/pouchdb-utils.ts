@@ -33,7 +33,7 @@ export function getTypeIdStartAndEndKey(type: DataTypeName): [string, string] {
   return [idStartKey, idEndKey];
 }
 
-export function getDataTypeSelector(
+export function getDataTypeSelector_deprecated(
   type: DataTypeName,
 ): PouchDB.Find.FindRequest<{}>['selector'] {
   const [idStartKey, idEndKey] = getTypeIdStartAndEndKey(type);
