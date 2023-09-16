@@ -36,13 +36,22 @@ platform :ios do
   lane :nightly do
     print_changelog(changelog)
 
-    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory (Nightly)")
-
     app_store_connect_api_key(
       key_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ID'],
       issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
+    # Not sure if get_certificates and get_provisioning_profile is needed here
+    # get_certificates(
+    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
+    # )
+    # get_provisioning_profile(
+    #   app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
+    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
+    # )
+
+    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory (Nightly)")
+
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       changelog: changelog,
@@ -52,13 +61,22 @@ platform :ios do
   lane :release do
     print_changelog(changelog)
 
-    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory")
-
     app_store_connect_api_key(
       key_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ID'],
       issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
+    # Not sure if get_certificates and get_provisioning_profile is needed here
+    # get_certificates(
+    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
+    # )
+    # get_provisioning_profile(
+    #   app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_RELEASE'],
+    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
+    # )
+
+    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory")
+
     upload_to_testflight(
       skip_waiting_for_build_processing: true,
       changelog: changelog,

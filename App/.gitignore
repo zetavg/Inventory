@@ -66,3 +66,7 @@ yarn-error.log
 
 # Fastlane
 /changelog.txt
+/ios/*.p12
+/ios/*.certSigningRequest
+/ios/*.cer
+/ios/*.mobileprovision
