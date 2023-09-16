@@ -244,9 +244,11 @@ const styles = StyleSheet.create({
   renderItemContainer_first: {
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
+    overflow: 'hidden',
   },
   renderItemContainer_last: {
     borderBottomLeftRadius: 8,
     borderBottomRightRadius: 8,
+    overflow: 'hidden',
   },
 });
