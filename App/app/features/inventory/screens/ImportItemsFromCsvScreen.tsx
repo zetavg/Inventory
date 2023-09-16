@@ -68,6 +68,7 @@ function ImportItemsFromCsvScreen({
       collection_id: '',
       icon_name: '',
       icon_color: '',
+      config_uuid: '',
     }));
     items[0].name = 'IDs are auto-generated for new items.';
     items[1].name = 'Items with no name will be ignored.';

@@ -18,6 +18,8 @@ a,0001,123456,1,Item 1
 b,0001,,0,Item 2
 `.trim();
 
+const CONFIG_UUID = 'mock-config-uuid';
+
 describe('csvRowToItem', () => {
   beforeAll(async () => {
     // Collection
@@ -29,6 +31,7 @@ describe('csvRowToItem', () => {
         collection_reference_number: '0001',
         icon_name: 'box',
         icon_color: 'blue',
+        config_uuid: CONFIG_UUID,
         __created_at: 0,
         __updated_at: 0,
         __valid: true,
@@ -47,6 +50,7 @@ describe('csvRowToItem', () => {
         collection_id: '1',
         item_reference_number: '0001',
         notes: 'Item A notes.',
+        config_uuid: CONFIG_UUID,
         __created_at: 0,
         __updated_at: 0,
         __valid: true,
@@ -61,6 +65,7 @@ describe('csvRowToItem', () => {
         collection_id: '1',
         item_reference_number: '0002',
         notes: 'Item B notes.',
+        config_uuid: CONFIG_UUID,
         __created_at: 0,
         __updated_at: 0,
         __valid: true,

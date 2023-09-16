@@ -1,9 +1,7 @@
-import { v4 as uuid } from 'uuid';
-
 import { ConfigType } from '../../schema';
 
 export const CONFIG: ConfigType = {
-  uuid: uuid(),
+  uuid: 'mock-config-uuid',
   rfid_tag_company_prefix: '0000000',
   rfid_tag_individual_asset_reference_prefix: '100',
   rfid_tag_access_password: '12345678',
@@ -20,11 +18,14 @@ export async function hasConfig({
   return true;
 }
 
-export async function getConfig({
-  db,
-}: {
-  db: PouchDB.Database;
-}): Promise<ConfigType> {
+export async function getConfig(
+  {
+    db,
+  }: {
+    db: PouchDB.Database;
+  },
+  { ensureSaved }: { ensureSaved?: boolean } = {},
+): Promise<ConfigType> {
   return CONFIG;
 }
 

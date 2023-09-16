@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import appLogger from '@app/logger';
 
+import { getConfig } from '@app/data/functions/config';
 import getData from '@app/data/functions/getData';
 import getDatum from '@app/data/functions/getDatum';
 import { schema } from '@app/data/schema';
@@ -160,6 +161,7 @@ export default async function csvRowToItem(
       }
     : {
         __id: itemId || uuidv4(),
+        config_uuid: (await getConfig({ db }, { ensureSaved: true })).uuid,
       };
 
   for (const key in updateData) {
