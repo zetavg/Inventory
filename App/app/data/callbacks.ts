@@ -99,66 +99,60 @@ export async function beforeSave(
         datum.consumable_will_not_restock = undefined;
       }
 
-      // We pad this while generating EPC
-      // if (
-      //   !isFromSharedDb &&
-      //   datum.item_reference_number &&
-      //   typeof datum.item_reference_number === 'string'
-      // ) {
-      //   const config = await getConfig({ db }, { ensureSaved: true });
-      //   const itemReferenceDigits = EPCUtils.getItemReferenceDigits({
-      //     companyPrefixDigits: config.rfid_tag_company_prefix.length,
-      //     tagPrefixDigits: config.rfid_tag_individual_asset_reference_prefix.length,
-      //   });
-      //   datum.item_reference_number = datum.item_reference_number.padStart(
-      //     itemReferenceDigits,
-      //     '0',
-      //   );
-      // }
-      if (
-        !isFromSharedDb &&
-        datum.item_reference_number &&
-        typeof datum.item_reference_number === 'string' &&
-        (typeof datum.serial === 'number' ||
-          typeof datum.serial === 'undefined')
-      ) {
-        if (collection && collection.__valid) {
-          try {
-            datum._individual_asset_reference =
-              EPCUtils.encodeIndividualAssetReference({
-                companyPrefix: config.rfid_tag_company_prefix,
-                iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
-                collectionReference: collection.collection_reference_number,
-                itemReference: datum.item_reference_number,
-                serial: datum.serial || 0,
-              });
-          } catch (error) {
-            // We will check if it's valid on validation, so here the error will be simply logged and ignored.
-            logger.warn(error);
-            datum._individual_asset_reference = undefined;
+      // Generate individual_asset_reference
+      if (!isFromSharedDb && !datum.individual_asset_reference_manually_set) {
+        if (
+          datum.item_reference_number &&
+          typeof datum.item_reference_number === 'string' &&
+          (typeof datum.serial === 'number' ||
+            typeof datum.serial === 'undefined')
+        ) {
+          if (collection && collection.__valid) {
+            try {
+              datum.individual_asset_reference =
+                EPCUtils.encodeIndividualAssetReference({
+                  companyPrefix: config.rfid_tag_company_prefix,
+                  iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+                  collectionReference: collection.collection_reference_number,
+                  itemReference: datum.item_reference_number,
+                  serial: datum.serial || 0,
+                });
+            } catch (error) {
+              // We will check if it's valid on validation, so here the error will be simply logged and ignored.
+              logger.warn(error);
+              datum.individual_asset_reference = undefined;
+            }
+          } else {
+            datum.individual_asset_reference = undefined;
           }
         } else {
-          datum._individual_asset_reference = undefined;
+          datum.individual_asset_reference = undefined;
         }
-      } else if (!isFromSharedDb) {
-        datum._individual_asset_reference = undefined;
       }
 
+      // Generate epc_tag_uri
       if (!isFromSharedDb && !datum.epc_manually_set) {
         if (
-          datum._individual_asset_reference &&
-          typeof datum._individual_asset_reference === 'string'
+          datum.individual_asset_reference &&
+          typeof datum.individual_asset_reference === 'string'
         ) {
-          datum.epc_tag_uri = EPCUtils.encodeGiaiFromIndividualAssetReference({
-            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
-            companyPrefix: config.rfid_tag_company_prefix,
-            individualAssetReference: datum._individual_asset_reference,
-          });
+          if (datum.ignore_iar_prefix) {
+            datum.epc_tag_uri = `urn:epc:tag:giai-96:0.${config.rfid_tag_company_prefix}.${datum.individual_asset_reference}`;
+          } else {
+            datum.epc_tag_uri = EPCUtils.encodeGiaiFromIndividualAssetReference(
+              {
+                iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+                companyPrefix: config.rfid_tag_company_prefix,
+                individualAssetReference: datum.individual_asset_reference,
+              },
+            );
+          }
         } else {
           datum.epc_tag_uri = undefined;
         }
       }
 
+      // Generate rfid_tag_epc_memory_bank_contents
       if (
         !isFromSharedDb &&
         !datum.rfid_tag_epc_memory_bank_contents_manually_set

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  LayoutAnimation,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +13,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import RNPickerSelect from 'react-native-picker-select';
 
 import { ZodError } from 'zod';
+
+import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import {
   DataTypeWithAdditionalInfo,
@@ -40,6 +43,7 @@ import Icon, {
   verifyIconNameWithDefault,
 } from '@app/components/Icon';
 import ModalContent from '@app/components/ModalContent';
+import { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
 import IconInputUIGroup from '../components/IconInputUIGroup';
@@ -224,7 +228,7 @@ function SaveItemScreen({
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
     try {
-      const d = await save(data);
+      const d = await save(data, { showErrorAlert: true });
       isDone.current = true;
       if (route.params.afterSave) {
         route.params.afterSave(d);
@@ -420,6 +424,14 @@ function SaveItemScreen({
       }
       {...kiaTextInputProps}
     />
+  );
+
+  const [showAdvanced, setShowAdvanced] = useState(
+    data.individual_asset_reference_manually_set ||
+      data.ignore_iar_prefix ||
+      data.epc_tag_uri_manually_set ||
+      data.rfid_tag_epc_memory_bank_contents_manually_set ||
+      false,
   );
 
   return (
@@ -997,6 +1009,165 @@ function SaveItemScreen({
             {...kiaTextInputProps}
           />
         </UIGroup>
+
+        <UIGroup transparentBackground>
+          <Text style={commonStyles.tac}>
+            <Link
+              onPress={() => {
+                LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+                setShowAdvanced(v => !v);
+              }}
+            >
+              {showAdvanced
+                ? 'Hide Advanced Settings'
+                : 'Show Advanced Settings'}
+            </Link>
+          </Text>
+        </UIGroup>
+
+        {showAdvanced && (
+          <>
+            <UIGroup>
+              <UIGroup.ListTextInputItem
+                label="Manually Set IAR"
+                disabled={isFromSharedDb === null || isFromSharedDb}
+                horizontalLabel
+                inputElement={
+                  <UIGroup.ListItem.Switch
+                    value={data.individual_asset_reference_manually_set}
+                    onValueChange={v => {
+                      setData(d => ({
+                        ...d,
+                        individual_asset_reference_manually_set: v,
+                      }));
+                    }}
+                  />
+                }
+              />
+              {!!data.individual_asset_reference_manually_set && (
+                <>
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListTextInputItem
+                    ref={refNumberInputRef}
+                    label="Individual Asset Ref."
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    horizontalLabel
+                    keyboardType="number-pad"
+                    monospaced
+                    returnKeyType="done"
+                    value={data.individual_asset_reference}
+                    onChangeText={t => {
+                      setData(d => ({
+                        ...d,
+                        individual_asset_reference: t,
+                      }));
+                    }}
+                    {...kiaTextInputProps}
+                  />
+                </>
+              )}
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Ignore IAR Prefix"
+                horizontalLabel
+                inputElement={
+                  <UIGroup.ListItem.Switch
+                    value={data.ignore_iar_prefix}
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    onValueChange={v => {
+                      setData(d => ({
+                        ...d,
+                        ignore_iar_prefix: v,
+                      }));
+                    }}
+                  />
+                }
+              />
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Manually Set EPC Tag URI"
+                horizontalLabel
+                inputElement={
+                  <UIGroup.ListItem.Switch
+                    value={data.epc_tag_uri_manually_set}
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    onValueChange={v => {
+                      setData(d => ({
+                        ...d,
+                        epc_tag_uri_manually_set: v,
+                      }));
+                    }}
+                  />
+                }
+              />
+              {!!data.epc_tag_uri_manually_set && (
+                <>
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListTextInputItem
+                    ref={refNumberInputRef}
+                    label="EPC Tag URI"
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    keyboardType="ascii-capable"
+                    monospaced
+                    multiline
+                    returnKeyType="done"
+                    value={data.epc_tag_uri}
+                    onChangeText={t => {
+                      setData(d => ({
+                        ...d,
+                        epc_tag_uri: t.replace(/[^0-9a-zA-Z.:_-]/gm, ''),
+                      }));
+                    }}
+                    {...kiaTextInputProps}
+                  />
+                </>
+              )}
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Manually Set RFID Tag EPC Contents"
+                horizontalLabel
+                inputElement={
+                  <UIGroup.ListItem.Switch
+                    value={data.rfid_tag_epc_memory_bank_contents_manually_set}
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    onValueChange={v => {
+                      setData(d => ({
+                        ...d,
+                        rfid_tag_epc_memory_bank_contents_manually_set: v,
+                      }));
+                    }}
+                  />
+                }
+              />
+              {!!data.rfid_tag_epc_memory_bank_contents_manually_set && (
+                <>
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListTextInputItem
+                    ref={refNumberInputRef}
+                    label="RFID Tag EPC Contents"
+                    disabled={isFromSharedDb === null || isFromSharedDb}
+                    keyboardType="ascii-capable"
+                    autoCapitalize="characters"
+                    monospaced
+                    multiline
+                    returnKeyType="done"
+                    value={data.rfid_tag_epc_memory_bank_contents}
+                    onChangeText={t => {
+                      setData(d => ({
+                        ...d,
+                        rfid_tag_epc_memory_bank_contents: t.replace(
+                          /[^0-9A-F]/gm,
+                          '',
+                        ),
+                      }));
+                    }}
+                    {...kiaTextInputProps}
+                  />
+                </>
+              )}
+            </UIGroup>
+          </>
+        )}
 
         {!!initialData.__id && (
           <UIGroup>

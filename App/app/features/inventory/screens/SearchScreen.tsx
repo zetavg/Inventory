@@ -84,7 +84,7 @@ function SearchScreen({
                 Object.entries(r.highlighting || {}).filter(([k, v]) => {
                   return ![
                     'data.name',
-                    'data._individual_asset_reference',
+                    'data.individual_asset_reference',
                     'data.item_reference_number',
                     'data.serial',
                     'data.epc_tag_uri',

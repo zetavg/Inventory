@@ -294,6 +294,7 @@ function Navigation({
           logger.warn(`Can't handle link: "${url}", db is not ready.`);
           return;
         }
+        let iarWithDotsAdded: string | null = null;
         if (!iar.includes('.')) {
           const config = await getConfig({ db });
           const collectionReferenceDigits =
@@ -301,7 +302,7 @@ function Navigation({
               companyPrefix: config.rfid_tag_company_prefix,
               iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
             });
-          iar = [
+          iarWithDotsAdded = [
             iar.slice(0, collectionReferenceDigits),
             iar.slice(collectionReferenceDigits, iar.length - 4),
             iar.slice(iar.length - 4),
@@ -309,11 +310,20 @@ function Navigation({
         }
         const items = await getData(
           'item',
-          { _individual_asset_reference: iar },
+          { individual_asset_reference: iar },
           { limit: 1 },
           { db, logger },
         );
-        const item = items[0];
+        let item = items[0];
+        if (!item && iarWithDotsAdded) {
+          const items2 = await getData(
+            'item',
+            { individual_asset_reference: iarWithDotsAdded },
+            { limit: 1 },
+            { db, logger },
+          );
+          item = items2[0];
+        }
         if (!item) {
           Alert.alert(
             'Item Not Found',

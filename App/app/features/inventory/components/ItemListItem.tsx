@@ -218,7 +218,7 @@ function ItemListItem({
                     {validatedContainer.name}
                   </React.Fragment>
                 ),
-                item._individual_asset_reference && (
+                item.individual_asset_reference && (
                   <React.Fragment key="itemReference">
                     {item.rfid_tag_epc_memory_bank_contents &&
                       item.rfid_tag_epc_memory_bank_contents !==
@@ -241,7 +241,7 @@ function ItemListItem({
                           )}{' '}
                         </>
                       )}
-                    {item._individual_asset_reference}
+                    {item.individual_asset_reference}
                   </React.Fragment>
                 ),
               ].filter(n => n);

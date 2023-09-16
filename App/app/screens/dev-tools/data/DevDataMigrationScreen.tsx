@@ -351,7 +351,7 @@ const MIGRATION_DEFINITIONS: { [name: string]: MigrationFn } = {
             collection_id: doc?.data?.collection,
             item_reference_number: doc?.data?.itemReferenceNumber,
             serial: doc?.data?.serial,
-            _individual_asset_reference: undefined,
+            individual_asset_reference: undefined,
             epc_tag_uri: undefined,
             epc_tag_uri_manually_set: undefined,
             rfid_tag_epc_memory_bank_contents: undefined,

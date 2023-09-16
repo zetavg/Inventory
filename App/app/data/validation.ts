@@ -180,14 +180,14 @@ export async function validate(
       // IAR should be unique
       if (
         !isFromSharedDb &&
-        datum._individual_asset_reference &&
-        typeof datum._individual_asset_reference === 'string'
+        datum.individual_asset_reference &&
+        typeof datum.individual_asset_reference === 'string'
       ) {
         const itemsWithSameIAR = await getData(
           'item',
           {
             config_uuid: config.uuid,
-            _individual_asset_reference: datum._individual_asset_reference,
+            individual_asset_reference: datum.individual_asset_reference,
           },
           {},
           { db, logger },
@@ -202,7 +202,7 @@ export async function validate(
             code: 'custom',
             path: ['item_reference_number'],
             message: `Individual Asset Reference should be unique, but "${
-              datum._individual_asset_reference
+              datum.individual_asset_reference
             }" is already used by item ${
               typeof i.name === 'string'
                 ? `"${i.name}" (ID: ${i.__id})`
@@ -265,7 +265,16 @@ export async function validate(
         !hasIARError
       ) {
         try {
-          // TODO: verify that rfid_tag_epc_memory_bank_contents is a valid hex
+          if (!datum.rfid_tag_epc_memory_bank_contents.match(/^[A-F0-9]+$/)) {
+            throw new Error(
+              `EPC hex has invalid characters: "${datum.rfid_tag_epc_memory_bank_contents}"`,
+            );
+          }
+          if (datum.rfid_tag_epc_memory_bank_contents.length !== 24) {
+            throw new Error(
+              `EPC hex must have 24 characters: "${datum.rfid_tag_epc_memory_bank_contents}" (${datum.rfid_tag_epc_memory_bank_contents.length})`,
+            );
+          }
         } catch (e) {
           issues.push({
             code: 'custom',

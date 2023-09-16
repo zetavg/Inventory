@@ -190,13 +190,13 @@ const encodeEpcHexFromGiai = (giaiUri: string) => {
         checkUri = getGiaiUriFromEpcHex(hexString);
       } catch (e) {
         throw new GiaiOutOfRangeError(
-          `getGiaiUriFromEpcHex(generatedHex) throws error ${e}, possible value out of range.`,
+          `getGiaiUriFromEpcHex(generatedHex) throws error ${e}, possible value out of range or leading zero in value.`,
         );
       }
 
       if (checkUri !== giaiUri) {
         throw new GiaiOutOfRangeError(
-          `Individual Asset Reference mismatch, possible value out of range: ${checkUri}, ${giaiUri}`,
+          `Individual Asset Reference mismatch, possible value out of range or leading zero in value: ${checkUri}, ${giaiUri}`,
         );
       }
 

@@ -160,10 +160,10 @@ describe('csv-import', () => {
     expect(itemsToCreate[0].__id).toBe('new-1');
     expect(typeof itemsToCreate[1].__id).toBe('string');
     expect(itemsToCreate[1].__id?.length).toBe(36); // Generated UUID
-    expect(itemsToCreate[0]._individual_asset_reference).toBe(
+    expect(itemsToCreate[0].individual_asset_reference).toBe(
       '0001.123456.0001',
     );
-    expect(itemsToCreate[1]._individual_asset_reference).toBe(
+    expect(itemsToCreate[1].individual_asset_reference).toBe(
       '0002.123456.0002',
     );
     expect(itemsToCreate[0].rfid_tag_epc_memory_bank_contents).toBe(
@@ -203,10 +203,10 @@ describe('csv-import', () => {
     // Updates data
     expect(itemsToUpdate[0].name).toBe('Update Item 1');
     expect(itemsToUpdate[1].name).toBe('Update Item 2');
-    expect(itemsToUpdate[0]._individual_asset_reference).toBe(
+    expect(itemsToUpdate[0].individual_asset_reference).toBe(
       '0001.123456.0001',
     );
-    expect(itemsToUpdate[1]._individual_asset_reference).toBe(
+    expect(itemsToUpdate[1].individual_asset_reference).toBe(
       '0002.123456.0002',
     );
     expect(itemsToUpdate[0].rfid_tag_epc_memory_bank_contents).toBe(

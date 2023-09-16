@@ -1,7 +1,7 @@
 export const SEARCH_OPTIONS = {
   fields: {
     'data.name': 10,
-    'data._individual_asset_reference': 8,
+    'data.individual_asset_reference': 8,
     'data.collection_reference_number': 8,
     'data.item_reference_number': 8,
     'data.serial': 7,

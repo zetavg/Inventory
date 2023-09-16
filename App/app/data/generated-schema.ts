@@ -40,7 +40,9 @@ export const schema = {
         .regex(new RegExp('^[0-9]*$'))
         .optional(),
       serial: z.number().int().gte(0).optional(),
-      _individual_asset_reference: z.string().optional(),
+      individual_asset_reference: z.string().optional(),
+      individual_asset_reference_manually_set: z.boolean().optional(),
+      ignore_iar_prefix: z.boolean().optional(),
       epc_tag_uri: z.string().optional(),
       epc_tag_uri_manually_set: z.boolean().optional(),
       rfid_tag_epc_memory_bank_contents: z

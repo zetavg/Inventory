@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -655,7 +655,7 @@ function ItemScreen({
                     onPress={handleCollectionPress}
                   />
                 )}
-                {item._individual_asset_reference && (
+                {item.individual_asset_reference && (
                   <>
                     <UIGroup.ListItemSeparator />
                     <TouchableWithoutFeedback
@@ -766,7 +766,7 @@ function ItemScreen({
                             );
                           }
                           default:
-                            const iar = item._individual_asset_reference;
+                            const iar = item.individual_asset_reference;
                             // if (
                             //   config?.rfid_tag_individual_asset_reference_prefix
                             // ) {
