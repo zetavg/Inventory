@@ -29,8 +29,8 @@
 			<string>z-inv</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>z-inv</string>
         <string>$(URL_SCHEME)</string>
+				<string>$(URL_SCHEME_2)</string>
 			</array>
 		</dict>
 	</array>

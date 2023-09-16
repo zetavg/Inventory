@@ -23,8 +23,11 @@ APP_NAME_NIGHTLY = Inventory (Nightly)
 APP_NAME_RELEASE = Inventory
 
 URL_SCHEME_DEBUG = zd-inv
+URL_SCHEME_DEBUG_2 = zd2-inv
 URL_SCHEME_NIGHTLY = zn-inv
-URL_SCHEME_RELEASE = zx-inv
+URL_SCHEME_NIGHTLY_2 = zn2-inv
+URL_SCHEME_RELEASE = z-inv
+URL_SCHEME_RELEASE_2 = zx-inv
 
 // App version numbers.
 MARKETING_VERSION = 0.1.2

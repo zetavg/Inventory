@@ -632,6 +632,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				URL_SCHEME = "$(URL_SCHEME_DEBUG)";
+        URL_SCHEME_2 = "$(URL_SCHEME_DEBUG_2)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -671,6 +672,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				URL_SCHEME = "$(URL_SCHEME_RELEASE)";
+        URL_SCHEME_2 = "$(URL_SCHEME_RELEASE_2)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
@@ -776,6 +778,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
 				URL_SCHEME = "$(URL_SCHEME_NIGHTLY)";
+        URL_SCHEME_2 = "$(URL_SCHEME_NIGHTLY_2)";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Nightly;
