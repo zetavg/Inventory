@@ -28,7 +28,7 @@ def print_changelog(changelog)
     puts "\n\n-- Changelog ---------------------------\nNO CHANGELOG FILE FOUND\n----------------------------------------\n"
   end
 
-  sleep 4
+  sleep 4 if !ENV['CI']
 end
 
 platform :ios do
@@ -41,21 +41,81 @@ platform :ios do
       issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
-    # Not sure if get_certificates and get_provisioning_profile is needed here
-    # get_certificates(
-    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
-    # )
-    # get_provisioning_profile(
-    #   app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
-    #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
-    # )
 
-    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory (Nightly)")
+    if ENV['CI']
+      setup_ci
 
-    upload_to_testflight(
-      skip_waiting_for_build_processing: true,
-      changelog: changelog,
+      increment_build_number(
+        xcodeproj: "Inventory.xcodeproj",
+        build_number: app_store_build_number(
+          live: false,
+          app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
+          version: configuration.attributes['MARKETING_VERSION'],
+        ) + 1,
+      )
+    end
+
+    if ENV['SYNC_CODE_SIGNING_GIT_URL']
+      # Use Manual Code Signing
+      update_code_signing_settings(
+        use_automatic_signing: false,
+        path: "Inventory.xcodeproj",
+      )
+
+      # Sync Certificates and Provisioning Profiles for Building
+      sync_code_signing(
+        type: "development",
+        git_url: ENV['SYNC_CODE_SIGNING_GIT_URL'],
+        app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
+        readonly: !!ENV['CI'],
+      )
+      development_profile_path = ENV["sigh_#{configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY']}_development_profile-path"]
+      update_project_provisioning(
+        xcodeproj: "Inventory.xcodeproj",
+        build_configuration: "Nightly",
+        profile: development_profile_path
+      )
+
+      # Sync Certificates and Provisioning Profiles for Exporting
+      sync_code_signing(
+        type: "appstore",
+        git_url: ENV['SYNC_CODE_SIGNING_GIT_URL'],
+        app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
+        readonly: !!ENV['CI'],
+      )
+      appstore_certificate_name = ENV["sigh_#{configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY']}_appstore_certificate-name"]
+
+      build_app(
+        workspace: "Inventory.xcworkspace",
+        scheme: "Inventory (Nightly)",
+        export_method: "app-store",
+        export_options: {
+          provisioningProfiles: lane_context['MATCH_PROVISIONING_PROFILE_MAPPING'],
+          signingCertificate: appstore_certificate_name,
+        }
+      )
+    else
+      # Use Automatic Code Signing
+      build_app(
+        workspace: "Inventory.xcworkspace",
+        scheme: "Inventory (Nightly)",
+        xcargs: "-allowProvisioningUpdates",
+      )
+    end
+
+    backup_xcarchive(
+      destination: File.join(__dir__, '..'),
+      zip_filename: "Inventory",
+      versioned: false,
+      zip: false,
     )
+
+    if !ENV['SKIP_UPLOAD_TO_TESTFLIGHT']
+      upload_to_testflight(
+        skip_waiting_for_build_processing: true,
+        changelog: changelog,
+      )
+    end
   end
 
   lane :release do
@@ -75,7 +135,24 @@ platform :ios do
     #   team_id: configuration.attributes['DEVELOPMENT_TEAM'],
     # )
 
-    build_app(workspace: "Inventory.xcworkspace", scheme: "Inventory")
+    build_app(
+      workspace: "Inventory.xcworkspace",
+      scheme: "Inventory",
+      xcargs: "-allowProvisioningUpdates",
+    )
+
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      changelog: changelog,
+    )
+  end
+
+  lane :lane_upload_to_testflight do
+    app_store_connect_api_key(
+      key_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ID'],
+      issuer_id: configuration.attributes['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+      key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
+    )
 
     upload_to_testflight(
       skip_waiting_for_build_processing: true,

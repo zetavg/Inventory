@@ -21,7 +21,11 @@ function AboutScreen({
   const rootNavigation = useRootNavigation();
 
   let gitInfoStr = gitInfo.commit.shortHash;
-  if (gitInfo.branch !== 'master' && gitInfo.branch !== 'main') {
+  if (
+    gitInfo.branch &&
+    gitInfo.branch !== 'master' &&
+    gitInfo.branch !== 'main'
+  ) {
     gitInfoStr += ` (${gitInfo.branch})`;
   }
 

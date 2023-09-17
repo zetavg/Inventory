@@ -23,6 +23,8 @@ DerivedData
 ios/.xcode.env.local
 ios/config.xcconfig
 ios/*.app.dSYM.zip
+*.xcarchive
+*.xcarchive.zip
 
 # Android/IntelliJ
 #

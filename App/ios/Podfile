@@ -64,5 +64,18 @@ target 'Inventory' do
         end
       end
     end
+
+    if ENV['USE_BUILDCACHE']
+      # https://github.com/mikehardy/buildcache-action/issues/42
+      installer.pods_project.targets.each do |target|
+        target.build_configurations.each do |config|
+          # Using the un-qualified names means you can swap in different implementations, for example ccache
+          config.build_settings["CC"] = "clang"
+          config.build_settings["LD"] = "clang"
+          config.build_settings["CXX"] = "clang++"
+          config.build_settings["LDPLUSPLUS"] = "clang++"
+        end
+      end
+    end
   end
 end

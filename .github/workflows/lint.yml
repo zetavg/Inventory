@@ -1,0 +1,90 @@
+name: Lint
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  lint-data:
+    name: "Lint: Data"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: data-node_modules
+      with:
+        path: Data/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Data/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd Data
+        yarn install
+    - name: Lint
+      run: |
+        cd Data
+        yarn run lint
+
+  lint-app:
+    name: "Lint: App"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: app-node_modules
+      with:
+        path: App/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd App
+        yarn install
+    - name: Lint
+      run: |
+        cd App
+        yarn run lint
+
+  lint-epc-utils:
+    name: "Lint: epc-utils"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: epc-utils-node_modules
+      with:
+        path: packages/epc-utils/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/epc-utils/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/epc-utils
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/epc-utils
+        yarn run lint
