@@ -3,7 +3,8 @@
     ["module-resolver", {
       "root": ["./"],
       "alias": {
-        "@app": "./app"
+        "@app": "./app",
+        "@deps": "./deps"
       }
     }]
   ]

@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { configSchema } from '@app/data/schema';
+import EPCUtils from '@deps/epc-utils';
 
-import EPCUtils from '@app/modules/EPCUtils';
+import { configSchema } from '@app/data/schema';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 

@@ -14,6 +14,8 @@ import RNPickerSelect from 'react-native-picker-select';
 
 import { ZodError } from 'zod';
 
+import EPCUtils from '@deps/epc-utils';
+
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import {
@@ -25,8 +27,6 @@ import {
 
 import commonStyles from '@app/utils/commonStyles';
 import randomInt from '@app/utils/randomInt';
-
-import EPCUtils from '@app/modules/EPCUtils';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 

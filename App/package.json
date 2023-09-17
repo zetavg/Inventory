@@ -9,13 +9,13 @@
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "prestart": "yarn run generate-schema && sb-rn-get-stories",
-    "generate-schema": "ts-node scripts/generate-schema.ts",
+    "prestart": "sb-rn-get-stories",
+    "copy-dependencies": "ts-node scripts/copy-dependencies.ts",
     "test": "jest",
     "lint": "eslint .",
     "typecheck": "tsc",
     "storybook-watcher": "sb-rn-watcher",
-    "postinstall": "patch-package && ./patches/patch-immediate-330.sh"
+    "postinstall": "yarn run copy-dependencies && patch-package && ./patches/patch-immediate-330.sh"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^3.13.0",
@@ -45,7 +45,7 @@
     "color": "^4.2.3",
     "crypto-browserify": "^3.12.0",
     "deep-object-diff": "^1.1.7",
-    "epc-tds": "^1.3.0",
+    "epc-tds": "1.3.1",
     "javascript-time-ago": "^2.5.7",
     "lunr-languages": "^1.12.0",
     "patch-package": "^6.4.7",

@@ -22,9 +22,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Appbar } from 'react-native-paper';
 
 import { BlurView as RNBlurView } from '@react-native-community/blur';
+import { ProgressView } from '@react-native-community/progress-view';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ProgressView } from '@react-native-community/progress-view';
+import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 import { GITHUB_PROJECT_URL, USER_DOCUMENTS_URL } from '@app/consts/info';
@@ -39,8 +40,6 @@ import { INITIAL_CONFIG } from '@app/data/functions/config';
 
 import cs from '@app/utils/commonStyles';
 import commonStyles from '@app/utils/commonStyles';
-
-import EPCUtils from '@app/modules/EPCUtils';
 
 import { RootStackParamList } from '@app/navigation';
 

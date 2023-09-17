@@ -32,6 +32,8 @@ import {
 import { BlurView } from '@react-native-community/blur';
 import color from 'color';
 
+import EPCUtils from '@deps/epc-utils';
+
 import { LogLevel } from '@app/logger/types';
 
 import { IconName } from '@app/consts/icons';
@@ -65,8 +67,6 @@ import getDatum from '@app/data/functions/getDatum';
 import { useDB } from '@app/db';
 
 import commonStyles from '@app/utils/commonStyles';
-
-import EPCUtils from '@app/modules/EPCUtils';
 
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
 import DatePickerModalScreen from '@app/screens/DatePickerModalScreen';

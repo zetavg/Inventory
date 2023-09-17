@@ -6,13 +6,16 @@
     "node": "18.15.0"
   },
   "scripts": {
+    "copy-dependencies": "ts-node scripts/copy-dependencies.ts",
     "generate-schema": "ts-node scripts/generate-schema.ts",
+    "postinstall": "yarn run copy-dependencies",
     "lint": "eslint .",
     "typecheck": "tsc",
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "epc-tds": "^1.3.0",
+    "postinstall-postinstall": "^2.1.0",
     "react-native": "0.71.10",
     "uuid": "^8.3.2",
     "zod": "^3.21.4"

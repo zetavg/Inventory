@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import EPCUtils from '@deps/epc-utils';
+
 import {
   verifyIconColor,
   verifyIconColorWithDefault,
@@ -23,8 +25,6 @@ import {
   applyWhitespaceFix,
   removeWhitespaceFix,
 } from '@app/utils/text-input-whitespace-fix';
-
-import EPCUtils from '@app/modules/EPCUtils';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 

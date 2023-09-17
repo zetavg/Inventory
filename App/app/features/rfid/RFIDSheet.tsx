@@ -35,11 +35,12 @@ import {
 import Slider from '@react-native-community/slider';
 import Color from 'color';
 
+import EPCUtils from '@deps/epc-utils';
+
 import { useConfig, useData } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 
-import EPCUtils from '@app/modules/EPCUtils';
 import { ScanData } from '@app/modules/RFIDWithUHFBaseModule';
 import RFIDWithUHFBLEModule, {
   DeviceConnectStatusPayload,
@@ -1456,9 +1457,10 @@ function RFIDSheet(
                                 >
                                   {(() => {
                                     try {
-                                      const [epc] = EPCUtils.getGiaiUriFromEpcHex(
-                                        options.epc,
-                                      );
+                                      const [epc] =
+                                        EPCUtils.getGiaiUriFromEpcHex(
+                                          options.epc,
+                                        );
                                       return epc;
                                     } catch (e) {
                                       return options.epc;

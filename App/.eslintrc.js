@@ -35,6 +35,7 @@ module.exports = {
           // Installed packages.
           Object.keys(require('./package.json').dependencies).map(d => `^${d}`),
           // Internal packages.
+          ['^@deps/.*'],
           ['^@[^a][^p][^p]\\w'],
           // @app
           ['^@app/logger.*'],
