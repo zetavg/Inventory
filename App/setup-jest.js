@@ -1,3 +1,5 @@
+/* global jest */
+
 jest.mock('app/logger/logsDB.ts');
 
 jest.mock('app/data/functions/config.ts');

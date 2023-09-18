@@ -1,7 +1,8 @@
-import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import React from 'react';
 import { View, ViewStyle } from 'react-native';
 import { NeomorphBox as RNNeomorphBox } from 'react-native-neomorph-shadows';
+
+import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 type Props = {
   children?: React.ComponentProps<typeof View>['children'];
@@ -55,12 +56,8 @@ export function NeomorphBox({
         lightShadowColor={invert ? 'white' : 'black'}
         style={{
           shadowOpacity: invert ? shadowOpacity * 1.6 : innerShadowOpacity,
-          shadowOpacityLight: invert
-            ? shadowOpacity * 1.6
-            : innerShadowOpacity,
-          shadowOpacityDark: invert
-            ? shadowOpacity * 1.2
-            : innerShadowOpacity,
+          shadowOpacityLight: invert ? shadowOpacity * 1.6 : innerShadowOpacity,
+          shadowOpacityDark: invert ? shadowOpacity * 1.2 : innerShadowOpacity,
           shadowRadius: invert ? shadowRadius : innerShadowRadius,
           ...style,
           ...contentStyle,

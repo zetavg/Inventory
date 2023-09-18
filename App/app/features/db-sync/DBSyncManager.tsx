@@ -72,12 +72,12 @@ export default function DBSyncManager() {
           },
         });
         // Need this to reset the session, in case the same hostname has been login with different credentials
-        await remoteDB.logIn(server.username, server.password);
+        await (remoteDB as any).logIn(server.username, server.password);
         // await remoteDB.logIn(server.username, server.password); // Will get error "You are not allowed to access this db", so we use 'auth' on new PouchDB instead.
 
         // Test if we can access the database
         const dbInfo = await remoteDB.info();
-        const session = await remoteDB.getSession();
+        const session = await (remoteDB as any).getSession();
         // const user = await remoteDB.getUser(server.username); // Will get error 'missing'.
         fLogger.success(`Connect to server "${server.name}" success.`, {
           details: JSON.stringify(
