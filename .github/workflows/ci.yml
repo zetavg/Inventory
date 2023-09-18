@@ -302,6 +302,7 @@ jobs:
         cd App/ios
         bundle exec fastlane lane_upload_to_testflight
     - name: Fastlane Release
+      if: ${{ github.event_name == 'release' }}
       env:
         CI: true
         SYNC_CODE_SIGNING_GIT_URL: ${{ secrets.SYNC_CODE_SIGNING_GIT_URL }}
@@ -313,10 +314,11 @@ jobs:
         cd App/ios
         bundle exec fastlane release
     - name: Show Error Log
-      if: ${{ failure() }}
+      if: ${{ failure() && github.event_name == 'release' }}
       run: |
         cat '/Users/runner/Library/Logs/gym/Inventory-Inventory.log' || :
     - name: Upload App to TestFlight
+      if: ${{ github.event_name == 'release' }}
       continue-on-error: true
       timeout-minutes: 10
       env:
