@@ -293,23 +293,7 @@ jobs:
       if: ${{ failure() }}
       run: |
         cat '/Users/runner/Library/Logs/gym/Inventory-Inventory (Nightly).log' || :
-    - name: Upload Archive
-      uses: actions/upload-artifact@v3
-      with:
-        name: ios-archive
-        path: |
-          App/ios/*.xcarchive
-          App/ios/*.xcarchive.zip
-          App/*.xcarchive
-          App/*.xcarchive.zip
-    - name: Upload Built IPA
-      uses: actions/upload-artifact@v3
-      with:
-        name: ios-app-ipa
-        path: |
-          App/ios/Inventory.ipa
-          App/ios/Inventory.app.dSYM.zip
-    - name: Upload to TestFlight
+    - name: Upload Nightly App to TestFlight
       continue-on-error: true
       timeout-minutes: 10
       env:
@@ -317,3 +301,42 @@ jobs:
       run: |
         cd App/ios
         bundle exec fastlane lane_upload_to_testflight
+    - name: Fastlane Release
+      env:
+        CI: true
+        SYNC_CODE_SIGNING_GIT_URL: ${{ secrets.SYNC_CODE_SIGNING_GIT_URL }}
+        # The passphrase to decrypt the profiles stored in Git repo.
+        # See: https://docs.fastlane.tools/actions/sync_code_signing/#passphrase
+        MATCH_PASSWORD: ${{ secrets.SYNC_CODE_SIGNING_GIT_PASSPHRASE }}
+        SKIP_UPLOAD_TO_TESTFLIGHT: true
+      run: |
+        cd App/ios
+        bundle exec fastlane release
+    - name: Show Error Log
+      if: ${{ failure() }}
+      run: |
+        cat '/Users/runner/Library/Logs/gym/Inventory-Inventory.log' || :
+    - name: Upload App to TestFlight
+      continue-on-error: true
+      timeout-minutes: 10
+      env:
+        CI: true
+      run: |
+        cd App/ios
+        bundle exec fastlane lane_upload_to_testflight
+    - name: Upload Archives
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-archives
+        path: |
+          App/ios/*.xcarchive
+          App/ios/*.xcarchive.zip
+          App/*.xcarchive
+          App/*.xcarchive.zip
+    # - name: Upload Built IPA
+    #   uses: actions/upload-artifact@v3
+    #   with:
+    #     name: ios-app-ipa
+    #     path: |
+    #       App/ios/Inventory.ipa
+    #       App/ios/Inventory.app.dSYM.zip
