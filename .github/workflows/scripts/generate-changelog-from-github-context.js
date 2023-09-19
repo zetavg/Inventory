@@ -42,8 +42,12 @@ const changelog = (() => {
 
       lines.push(gh.event.release.name);
       lines.push('');
-      lines.push(markdownToText(gh.event.release.body));
-      lines.push('');
+
+      if (gh.event.release.body) {
+        lines.push(markdownToText(gh.event.release.body));
+        lines.push('');
+      }
+
       lines.push(`See the full release note at ${gh.event.release.html_url}`);
 
       return lines.join('\n');
@@ -55,7 +59,8 @@ const changelog = (() => {
         `Build for PR #${gh.event.pull_request.number} ${gh.event.pull_request.title} (by ${gh.event.pull_request.user.login}) [${gh.event.pull_request.base.ref} ← ${gh.event.pull_request.head.ref}]`,
       );
       lines.push('');
-      const prSummary = getSummary(gh.event.pull_request.body);
+      const prSummary =
+        gh.event.pull_request.body && getSummary(gh.event.pull_request.body);
       lines.push(prSummary ? prSummary : '(No description provided)');
 
       lines.push('');
