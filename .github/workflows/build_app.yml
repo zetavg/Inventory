@@ -1,0 +1,582 @@
+name: Build App
+run-name: Build ${{ github.event.inputs.branch }}
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch, tag or PR number ("pr/<number>") to build'
+        type: string
+        default: 'main'
+        required: true
+      notes:
+        description: 'Notes'
+        type: string
+        required: false
+      build-release:
+        description: 'Build a release version'
+        type: boolean
+        required: false
+  workflow_call:
+    inputs:
+      build-release:
+        type: boolean
+        required: false
+
+# Will possibly create a deadlock.
+# "Canceling since a deadlock for concurrency group '...' was detected between 'top level workflow' and 'build'".
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+#   cancel-in-progress: true
+
+jobs:
+  generate-changelog:
+    name: "Generate Changelog"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: ${{ !startsWith(github.event.inputs.branch, 'pr/') }}
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+        fetch-depth: 0
+    - name: Checkout code (for manual PR builds)
+      uses: actions/checkout@v4
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+    - name: Merge code (for manual PR builds)
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+      env:
+        INPUT: ${{ github.event.inputs.branch }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_API_URL: ${{ github.api_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        PR_NUMBER="$(echo $INPUT | sed -n 's/^pr\///p')"
+        PR_DETAILS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+        if [[ $(echo "$PR_DETAILS" | jq -r '.message // empty') == "Not Found" ]]; then
+          echo "::error ::Pull request #$PR_NUMBER not found."
+          exit 1
+        fi
+
+        BASE_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.base.repo.clone_url')
+        BASE_REF=$(echo "$PR_DETAILS" | jq -r '.base.ref')
+        HEAD_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.head.repo.clone_url')
+        HEAD_REF=$(echo "$PR_DETAILS" | jq -r '.head.ref')
+
+        git remote add base_repo $BASE_REPO_CLONE_URL
+        git fetch --depth=10000 base_repo $BASE_REF
+        git remote add head_repo $HEAD_REPO_CLONE_URL
+        git fetch --depth=10000 head_repo $HEAD_REF
+
+        git checkout "base_repo/$BASE_REF"
+        git config --global user.email "ci@example.com"
+        git config --global user.name "CI"
+        git merge "head_repo/$HEAD_REF" --no-edit
+
+        echo "Last commits:"
+        git log --oneline -n 16
+    - name: Generate Changelog
+      env:
+        # See: https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: |
+        node .github/workflows/scripts/generate-changelog-from-github-context.js "$GITHUB_CONTEXT" > changelog.txt
+    - name: Show changelog.txt
+      run: |
+        cat changelog.txt
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: changelog
+        path: changelog.txt
+
+  build-android:
+    name: "Build Android"
+    runs-on: ubuntu-latest
+    needs:
+    - generate-changelog
+    steps:
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: ${{ !startsWith(github.event.inputs.branch, 'pr/') }}
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+    - name: Checkout code (for manual PR builds)
+      uses: actions/checkout@v4
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+    - name: Merge code (for manual PR builds)
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+      env:
+        INPUT: ${{ github.event.inputs.branch }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_API_URL: ${{ github.api_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        PR_NUMBER="$(echo $INPUT | sed -n 's/^pr\///p')"
+        PR_DETAILS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+        if [[ $(echo "$PR_DETAILS" | jq -r '.message // empty') == "Not Found" ]]; then
+          echo "::error ::Pull request #$PR_NUMBER not found."
+          exit 1
+        fi
+
+        BASE_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.base.repo.clone_url')
+        BASE_REF=$(echo "$PR_DETAILS" | jq -r '.base.ref')
+        HEAD_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.head.repo.clone_url')
+        HEAD_REF=$(echo "$PR_DETAILS" | jq -r '.head.ref')
+
+        git remote add base_repo $BASE_REPO_CLONE_URL
+        git fetch --depth=10000 base_repo $BASE_REF
+        git remote add head_repo $HEAD_REPO_CLONE_URL
+        git fetch --depth=10000 head_repo $HEAD_REF
+
+        git checkout "base_repo/$BASE_REF"
+        git config --global user.email "ci@example.com"
+        git config --global user.name "CI"
+        git merge "head_repo/$HEAD_REF" --no-edit
+
+        echo "Last commits:"
+        git log --oneline -n 16
+    - name: Create branch
+      env:
+        REF_NAME: ${{ github.event.inputs.branch || github.ref_name }}
+      run: |
+        [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
+        git status
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      env:
+        cache-name: app-node_modules
+      with:
+        path: App/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn install
+      run: |
+        cd App
+        yarn install
+    - name: Get Changelog
+      uses: actions/download-artifact@v3
+      with:
+        name: changelog
+        path: App
+    - name: Prepare Keystore
+      run: |
+        mkdir -p ~/.gradle
+        echo "${{ secrets.GRADLE_PROPERTIES }}" > ~/.gradle/gradle.properties
+        mkdir -p App/android/app
+        echo "${{ secrets.DEV_KEYSTORE_BASE64 }}" > App/android/app/dev.keystore.base64
+        base64 --decode App/android/app/dev.keystore.base64 > App/android/app/dev.keystore
+    - name: Build Android
+      run: |
+        cd App
+        cd android
+        ./gradlew assembleRelease
+    - name: Upload Built APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-app-apk
+        path: App/android/app/build/outputs/apk/release/app-release.apk
+    - name: Write Android build info
+      run: |
+        cd App/android
+        echo '{}' > android_build_info.json
+    - name: Upload Android build info
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-build-info
+        path: |
+          App/android/android_build_info.json
+
+  build-ios-nightly:
+    name: "Build iOS Nightly"
+    runs-on: macos-12
+    timeout-minutes: 60
+    needs:
+    - generate-changelog
+    concurrency:
+      # For iOS build number auto increment (by Fastlane, since Xcode build number auto manage seems not to be working) to work, we must only have one build at a time.
+      group: build-ios-nightly
+      cancel-in-progress: false
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: ${{ !startsWith(github.event.inputs.branch, 'pr/') }}
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+    - name: Checkout code (for manual PR builds)
+      uses: actions/checkout@v4
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+    - name: Merge code (for manual PR builds)
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+      env:
+        INPUT: ${{ github.event.inputs.branch }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_API_URL: ${{ github.api_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        PR_NUMBER="$(echo $INPUT | sed -n 's/^pr\///p')"
+        PR_DETAILS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+        if [[ $(echo "$PR_DETAILS" | jq -r '.message // empty') == "Not Found" ]]; then
+          echo "::error ::Pull request #$PR_NUMBER not found."
+          exit 1
+        fi
+
+        BASE_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.base.repo.clone_url')
+        BASE_REF=$(echo "$PR_DETAILS" | jq -r '.base.ref')
+        HEAD_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.head.repo.clone_url')
+        HEAD_REF=$(echo "$PR_DETAILS" | jq -r '.head.ref')
+
+        git remote add base_repo $BASE_REPO_CLONE_URL
+        git fetch --depth=10000 base_repo $BASE_REF
+        git remote add head_repo $HEAD_REPO_CLONE_URL
+        git fetch --depth=10000 head_repo $HEAD_REF
+
+        git checkout "base_repo/$BASE_REF"
+        git config --global user.email "ci@example.com"
+        git config --global user.name "CI"
+        git merge "head_repo/$HEAD_REF" --no-edit
+
+        echo "Last commits:"
+        git log --oneline -n 16
+    - name: Create branch
+      env:
+        REF_NAME: ${{ github.event.inputs.branch || github.ref_name }}
+      run: |
+        [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
+        git status
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      env:
+        cache-name: app-node_modules
+      with:
+        path: App/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn install
+      run: |
+        cd App
+        yarn install
+    - name: Get Changelog
+      uses: actions/download-artifact@v3
+      with:
+        name: changelog
+        path: App
+    - name: Prepare config.xcconfig
+      run: |
+        echo "${{ secrets.CONFIG_XCCONFIG }}" > App/ios/config.xcconfig
+        echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
+        echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
+        echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
+        base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
+    - name: Cache Pods
+      uses: actions/cache@v3
+      env:
+        cache-name: app-pods
+      with:
+        path: App/ios/Pods
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Pod install
+      env:
+        USE_BUILDCACHE: true
+      run: |
+        cd App
+        bash scripts/pod-install.sh
+    - name: Install Fastlane
+      run: |
+        cd App/ios
+        bundle install
+        # Patch cert_checker.rb to not print out sensitive information.
+        # See: https://github.com/fastlane/fastlane/issues/21351
+        FASTLANE_PATH="$(bundle show fastlane)"
+        FASTLANE_PATH_CERT_CHECKER_PATH="$FASTLANE_PATH/fastlane_core/lib/fastlane_core/cert_checker.rb"
+        if [[ -f "$FASTLANE_PATH_CERT_CHECKER_PATH" ]]; then
+          patch --force "$FASTLANE_PATH_CERT_CHECKER_PATH" < fastlane/cert_checker.patch
+        else
+          exit 1
+        fi
+    - name: Set Sync Code Signing Git SSH key
+      env:
+        SYNC_CODE_SIGNING_GIT_SSH_KEY: ${{ secrets.SYNC_CODE_SIGNING_GIT_SSH_KEY }}
+      run: |
+        ssh-agent sh -c 'echo "$SYNC_CODE_SIGNING_GIT_SSH_KEY"' | ssh-add -
+    - uses: mikehardy/buildcache-action@v2
+      with:
+        cache_key: nightly
+    - name: Fastlane Nightly
+      env:
+        CI: true
+        SYNC_CODE_SIGNING_GIT_URL: ${{ secrets.SYNC_CODE_SIGNING_GIT_URL }}
+        # The passphrase to decrypt the profiles stored in Git repo.
+        # See: https://docs.fastlane.tools/actions/sync_code_signing/#passphrase
+        MATCH_PASSWORD: ${{ secrets.SYNC_CODE_SIGNING_GIT_PASSPHRASE }}
+        SKIP_UPLOAD_TO_TESTFLIGHT: true
+      run: |
+        cd App/ios
+        bundle exec fastlane nightly
+    - name: Show error log
+      if: ${{ failure() }}
+      run: |
+        cat '/Users/runner/Library/Logs/gym/Inventory-Inventory (Nightly).log' || :
+    - name: Upload Nightly app to TestFlight
+      continue-on-error: true
+      timeout-minutes: 10
+      env:
+        CI: true
+      run: |
+        cd App/ios
+        bundle exec fastlane lane_upload_to_testflight
+        cp ci_output_data.json ios_appstore_upload_info_nightly.json
+    - name: Upload App Store Upload Info
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-appstore-upload-info-nightly
+        path: |
+          App/ios/ios_appstore_upload_info_nightly.json
+    - name: Upload Archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-archive-nightly
+        path: |
+          App/ios/*.xcarchive
+          App/ios/*.xcarchive.zip
+          App/*.xcarchive
+          App/*.xcarchive.zip
+
+  build-ios-release:
+    name: "Build iOS Release"
+    if: ${{ github.events.inputs.build-release || inputs.build-release }}
+    runs-on: macos-12
+    timeout-minutes: 60
+    needs:
+    - generate-changelog
+    concurrency:
+      # For iOS build number auto increment (by Fastlane, since Xcode build number auto manage seems not to be working) to work, we must only have one build at a time.
+      group: build-ios-release
+      cancel-in-progress: false
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Checkout code
+      uses: actions/checkout@v4
+      if: ${{ !startsWith(github.event.inputs.branch, 'pr/') }}
+      with:
+        ref: ${{ github.event.inputs.branch || github.ref }}
+    - name: Checkout code (for manual PR builds)
+      uses: actions/checkout@v4
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+    - name: Merge code (for manual PR builds)
+      if: ${{ startsWith(github.event.inputs.branch, 'pr/') }}
+      env:
+        INPUT: ${{ github.event.inputs.branch }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_API_URL: ${{ github.api_url }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        PR_NUMBER="$(echo $INPUT | sed -n 's/^pr\///p')"
+        PR_DETAILS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+        if [[ $(echo "$PR_DETAILS" | jq -r '.message // empty') == "Not Found" ]]; then
+          echo "::error ::Pull request #$PR_NUMBER not found."
+          exit 1
+        fi
+
+        BASE_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.base.repo.clone_url')
+        BASE_REF=$(echo "$PR_DETAILS" | jq -r '.base.ref')
+        HEAD_REPO_CLONE_URL=$(echo "$PR_DETAILS" | jq -r '.head.repo.clone_url')
+        HEAD_REF=$(echo "$PR_DETAILS" | jq -r '.head.ref')
+
+        git remote add base_repo $BASE_REPO_CLONE_URL
+        git fetch --depth=10000 base_repo $BASE_REF
+        git remote add head_repo $HEAD_REPO_CLONE_URL
+        git fetch --depth=10000 head_repo $HEAD_REF
+
+        git checkout "base_repo/$BASE_REF"
+        git config --global user.email "ci@example.com"
+        git config --global user.name "CI"
+        git merge "head_repo/$HEAD_REF" --no-edit
+
+        echo "Last commits:"
+        git log --oneline -n 16
+    - name: Create branch
+      env:
+        REF_NAME: ${{ github.event.inputs.branch || github.ref_name }}
+      run: |
+        [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
+        git status
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      env:
+        cache-name: app-node_modules
+      with:
+        path: App/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn install
+      run: |
+        cd App
+        yarn install
+    - name: Get Changelog
+      uses: actions/download-artifact@v3
+      with:
+        name: changelog
+        path: App
+    - name: Prepare config.xcconfig
+      run: |
+        echo "${{ secrets.CONFIG_XCCONFIG }}" > App/ios/config.xcconfig
+        echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
+        echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
+        echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
+        base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
+    - name: Cache Pods
+      uses: actions/cache@v3
+      env:
+        cache-name: app-pods
+      with:
+        path: App/ios/Pods
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Pod install
+      env:
+        USE_BUILDCACHE: true
+      run: |
+        cd App
+        bash scripts/pod-install.sh
+    - name: Install Fastlane
+      run: |
+        cd App/ios
+        bundle install
+        # Patch cert_checker.rb to not print out sensitive information.
+        # See: https://github.com/fastlane/fastlane/issues/21351
+        FASTLANE_PATH="$(bundle show fastlane)"
+        FASTLANE_PATH_CERT_CHECKER_PATH="$FASTLANE_PATH/fastlane_core/lib/fastlane_core/cert_checker.rb"
+        if [[ -f "$FASTLANE_PATH_CERT_CHECKER_PATH" ]]; then
+          patch --force "$FASTLANE_PATH_CERT_CHECKER_PATH" < fastlane/cert_checker.patch
+        else
+          exit 1
+        fi
+    - name: Set Sync Code Signing Git SSH key
+      env:
+        SYNC_CODE_SIGNING_GIT_SSH_KEY: ${{ secrets.SYNC_CODE_SIGNING_GIT_SSH_KEY }}
+      run: |
+        ssh-agent sh -c 'echo "$SYNC_CODE_SIGNING_GIT_SSH_KEY"' | ssh-add -
+    - uses: mikehardy/buildcache-action@v2
+      with:
+        cache_key: release
+    - name: Fastlane Release
+      env:
+        CI: true
+        SYNC_CODE_SIGNING_GIT_URL: ${{ secrets.SYNC_CODE_SIGNING_GIT_URL }}
+        # The passphrase to decrypt the profiles stored in Git repo.
+        # See: https://docs.fastlane.tools/actions/sync_code_signing/#passphrase
+        MATCH_PASSWORD: ${{ secrets.SYNC_CODE_SIGNING_GIT_PASSPHRASE }}
+        SKIP_UPLOAD_TO_TESTFLIGHT: true
+      run: |
+        cd App/ios
+        bundle exec fastlane release
+    - name: Show error log
+      if: ${{ failure() && github.event_name == 'release' }}
+      run: |
+        cat '/Users/runner/Library/Logs/gym/Inventory-Inventory.log' || :
+    - name: Upload App to TestFlight
+      continue-on-error: true
+      timeout-minutes: 10
+      env:
+        CI: true
+      run: |
+        cd App/ios
+        bundle exec fastlane lane_upload_to_testflight
+        cp ci_output_data.json ios_appstore_upload_info_release.json
+    - name: Upload App Store Upload Info
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-appstore-upload-info-nightly
+        path: |
+          App/ios/ios_appstore_upload_info_nightly.json
+    - name: Upload Archive
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-archive-release
+        path: |
+          App/ios/*.xcarchive
+          App/ios/*.xcarchive.zip
+          App/*.xcarchive
+          App/*.xcarchive.zip
+
+  publish:
+    runs-on: ubuntu-latest
+    name: Publish
+    needs:
+    - build-ios-nightly
+    - build-ios-release
+    - build-android
+    if: ${{ always() }}
+    permissions:
+      pull-requests: write
+    steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Download Android Build Info
+      uses: actions/download-artifact@v3
+      continue-on-error: true
+      with:
+        name: android-build-info
+    - name: Download iOS App Store Nightly Upload Info
+      uses: actions/download-artifact@v3
+      continue-on-error: true
+      with:
+        name: ios-appstore-upload-info-nightly
+    - name: Download iOS App Store Release Upload Info
+      if: ${{ github.events.inputs.build-release || inputs.build-release }}
+      uses: actions/download-artifact@v3
+      continue-on-error: true
+      with:
+        name: ios-appstore-upload-info-release
+    - name: Generate PR comment
+      if: ${{ github.event_name == 'pull_request' || github.event_name == 'pull_request_target' || startsWith(github.event.inputs.branch, 'pr/') }}
+      id: generate_pr_comment
+      env:
+        INPUT_BRANCH: ${{ github.event.inputs.branch }}
+        # See: https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
+        GITHUB_CONTEXT: ${{ toJSON(github) }}
+      run: |
+        OUTPUT="$(node .github/workflows/scripts/generate-app-build-pr-comment.js "$GITHUB_CONTEXT" "$INPUT_BRANCH")"
+        if [[ -n "$OUTPUT" ]]; then
+          echo "$OUTPUT" >> $GITHUB_OUTPUT
+        fi
+    - name: Comment on PR
+      if: ${{ steps.generate_pr_comment.outputs.pr-comment && steps.generate_pr_comment.outputs.pr-number }}
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        pr_number: ${{ steps.generate_pr_comment.outputs.pr-number }}
+        message: ${{ steps.generate_pr_comment.outputs.pr-comment }}
+        comment_tag: ${{ github.workflow }}-${{ github.run_number }}
+        reactions: rocket

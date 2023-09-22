@@ -13,6 +13,8 @@
 # Uncomment the line if you want fastlane to automatically update itself
 # update_fastlane
 
+require 'json'
+
 default_platform(:ios)
 
 configuration_file_path = File.join(__dir__, '..', 'config.xcconfig')
@@ -28,6 +30,7 @@ def print_changelog(changelog)
     puts "\n\n-- Changelog ---------------------------\nNO CHANGELOG FILE FOUND\n----------------------------------------\n"
   end
 
+  # Give the user some time to check the changelog
   sleep 4 if !ENV['CI']
 end
 
@@ -42,16 +45,23 @@ platform :ios do
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
 
+    ci_output_data = { version: configuration.attributes['MARKETING_VERSION'] }
+
     if ENV['CI']
       setup_ci
 
+      build_number = app_store_build_number(
+        live: false,
+        app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
+        version: configuration.attributes['MARKETING_VERSION'],
+        initial_build_number: 2,
+      ) + 2
+
+      ci_output_data[:build_number] = build_number
+
       increment_build_number(
         xcodeproj: "Inventory.xcodeproj",
-        build_number: app_store_build_number(
-          live: false,
-          app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_NIGHTLY'],
-          version: configuration.attributes['MARKETING_VERSION'],
-        ) + 1,
+        build_number: build_number,
       )
     end
 
@@ -103,12 +113,18 @@ platform :ios do
       )
     end
 
-    backup_xcarchive(
-      destination: File.join(__dir__, '..'),
-      zip_filename: "Inventory (Nightly)",
-      versioned: false,
-      zip: false,
-    )
+    if ENV['CI']
+      File.open(File.join(__dir__, '..', 'ci_output_data.json'), 'w') do |f|
+        f.write(ci_output_data.to_json)
+      end
+
+      backup_xcarchive(
+        destination: File.join(__dir__, '..'),
+        zip_filename: "Inventory (Nightly)",
+        versioned: false,
+        zip: false,
+      )
+    end
 
     if !ENV['SKIP_UPLOAD_TO_TESTFLIGHT']
       upload_to_testflight(
@@ -127,16 +143,23 @@ platform :ios do
       key_filepath: configuration.attributes['APP_STORE_CONNECT_API_KEY_FILE_PATH'],
     )
 
+    ci_output_data = { version: configuration.attributes['MARKETING_VERSION'] }
+
     if ENV['CI']
       setup_ci
 
+      build_number = app_store_build_number(
+        live: false,
+        app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_RELEASE'],
+        version: configuration.attributes['MARKETING_VERSION'],
+        initial_build_number: 2,
+      ) + 2
+
+      ci_output_data[:build_number] = build_number
+
       increment_build_number(
         xcodeproj: "Inventory.xcodeproj",
-        build_number: app_store_build_number(
-          live: false,
-          app_identifier: configuration.attributes['PRODUCT_BUNDLE_IDENTIFIER_RELEASE'],
-          version: configuration.attributes['MARKETING_VERSION'],
-        ) + 1,
+        build_number: build_number,
       )
     end
 
@@ -188,12 +211,18 @@ platform :ios do
       )
     end
 
-    backup_xcarchive(
-      destination: File.join(__dir__, '..'),
-      zip_filename: "Inventory",
-      versioned: false,
-      zip: false,
-    )
+    if ENV['CI']
+      File.open(File.join(__dir__, 'ci_output_data.json'), 'w') do |f|
+        f.write(ci_output_data.to_json)
+      end
+
+      backup_xcarchive(
+        destination: File.join(__dir__, '..'),
+        zip_filename: "Inventory",
+        versioned: false,
+        zip: false,
+      )
+    end
 
     if !ENV['SKIP_UPLOAD_TO_TESTFLIGHT']
       upload_to_testflight(

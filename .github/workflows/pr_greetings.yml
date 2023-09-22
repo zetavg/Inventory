@@ -1,0 +1,23 @@
+name: PR Greetings
+run-name: "Auto comment on new PR #${{ github.event.pull_request.number }}"
+on:
+  pull_request_target:
+    branches:
+    - main
+    types: [opened]
+
+jobs:
+  greetings:
+    runs-on: ubuntu-latest
+    name: Greetings
+    steps:
+    - name: Comment on PR from a fork
+      if: ${{ github.event.pull_request.head.repo.clone_url != github.event.pull_request.base.repo.clone_url }}
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        message: |
+          Thanks for the PR! Note that this is a PR from a fork, so the app will not be built with the CI workflow. You'll need help from a maintainer to trigger a build manually.
+
+          If you are a maintainer, once you've confirmed that the changes are safe[^1], you can run the [Build App workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/build_app.yml) with `pr/${{ github.event.pull_request.number }}` to start a build for this PR.
+
+          [^1]: Check for code that may expose or abuse build secrets, and code that might abuse or damage the user's data or device.

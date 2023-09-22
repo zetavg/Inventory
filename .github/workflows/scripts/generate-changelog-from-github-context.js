@@ -6,13 +6,14 @@
  */
 
 const { execSync } = require('child_process');
+const https = require('https');
 
 // Get the third argument, which should be the JSON string
 const githubContextJson = process.argv[2];
 
 const gh = JSON.parse(githubContextJson);
 
-const changelog = (() => {
+(async () => {
   switch (gh.event_name) {
     case 'push': {
       const lines = [];
@@ -56,7 +57,7 @@ const changelog = (() => {
     case 'pull_request': {
       const lines = [];
       lines.push(
-        `Build for PR #${gh.event.pull_request.number} ${gh.event.pull_request.title} (by ${gh.event.pull_request.user.login}) [${gh.event.pull_request.base.ref} ← ${gh.event.pull_request.head.ref}]`,
+        `Build for PR #${gh.event.pull_request.number}: ${gh.event.pull_request.title} (by ${gh.event.pull_request.user.login}) [${gh.event.pull_request.base.ref} ← ${gh.event.pull_request.head.ref}]`,
       );
       lines.push('');
       const prSummary =
@@ -74,6 +75,65 @@ const changelog = (() => {
 
       lines.push('');
       lines.push(`View pull request: ${gh.event.pull_request.html_url}`);
+      return lines.join('\n');
+    }
+
+    case 'workflow_dispatch': {
+      const lines = [];
+      const branchName = gh.event.inputs.branch;
+      const notes = gh.event.inputs.notes;
+      const triggeredBy = gh.event.sender.login;
+
+      if (branchName.startsWith('pr/')) {
+        const prNumber = branchName.slice(3);
+        const prDetails = await fetchPRDetails(prNumber);
+        lines.push(
+          `Build for PR #${prNumber}: ${prDetails.title} (PR by ${prDetails.user.login}, build triggered by ${triggeredBy}) [${prDetails.base.ref} ← ${prDetails.head.ref}]`,
+        );
+        if (notes) {
+          lines.push(`Notes: ${notes}`);
+        }
+
+        lines.push('');
+        const prSummary = prDetails.body && getSummary(prDetails.body);
+        lines.push(prSummary ? prSummary : '(No description provided)');
+
+        lines.push('');
+        const commits = getCommitsBetween(
+          prDetails.base.sha,
+          prDetails.head.sha,
+        );
+        commits.forEach(commit => {
+          lines.push(` • [${commit.hash.slice(0, 8)}] ${commit.message}`);
+        });
+
+        lines.push('');
+        lines.push(`View pull request: ${prDetails.html_url}`);
+        return lines.join('\n');
+      }
+
+      lines.push(
+        `GitHub manual build on "${branchName}", triggered by ${triggeredBy}`,
+      );
+      if (notes) {
+        lines.push(`Notes: ${notes}`);
+      }
+
+      const commitHash = executeCommand('git rev-parse HEAD');
+      const commitMessage = executeCommand('git log -1 --pretty=%B');
+      const commitAuthor = executeCommand('git log -1 --pretty=%an');
+      const commitCommitter = executeCommand('git log -1 --pretty=%an');
+      lines.push(
+        `Last commit: [${commitHash.slice(0, 8)}] ${commitMessage} (${[
+          commitAuthor,
+          commitCommitter,
+        ]
+          .filter((value, index, arr) => {
+            return arr.indexOf(value) === index;
+          })
+          .join(', ')})`,
+      );
+
       return lines.join('\n');
     }
 
@@ -107,17 +167,17 @@ const changelog = (() => {
       return lines.join('\n');
     }
   }
-})();
-
-const footer = `
+})().then(changelog => {
+  const footer = `
 ---
 
 Inventory
 
  • GitHub: ${gh.event.repository.html_url}
-`;
+  `;
 
-console.log(changelog.trim() + '\n' + footer);
+  console.log(changelog.trim() + '\n' + footer);
+});
 
 function executeCommand(command) {
   const output = execSync(command, { encoding: 'utf-8', cwd: __dirname });
@@ -188,4 +248,36 @@ function markdownToText(markdownString) {
     });
 
   return lines.join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+function fetchPRDetails(prNumber) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: new URL(gh.api_url).hostname,
+      path: `/repos/${gh.repository}/pulls/${prNumber}`,
+      method: 'GET',
+      headers: {
+        Authorization: `token ${gh.token}`,
+        'User-Agent': 'node/https',
+      },
+    };
+
+    const req = https.request(options, res => {
+      let data = '';
+
+      res.on('data', chunk => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        resolve(JSON.parse(data));
+      });
+    });
+
+    req.on('error', error => {
+      reject(error);
+    });
+
+    req.end();
+  });
 }
