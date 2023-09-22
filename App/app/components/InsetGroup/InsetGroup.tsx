@@ -285,7 +285,7 @@ function InsetGroupItem({
   const { fontScale } = useWindowDimensions();
 
   const element = (
-    <View style={[commonStyles.row, !onPress && containerStyle]}>
+    <View style={[styles.insetGroupItem, !onPress && containerStyle]}>
       {leftElement && (
         <View style={styles.insetGroupLeftElementContainer}>{leftElement}</View>
       )}
@@ -697,6 +697,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     paddingLeft: INSET_GROUP_ITEM_PADDING_HORIZONTAL,
     paddingBottom: 1,
+  },
+  insetGroupItem: {
+    flexDirection: 'row',
+    minHeight: 50,
+    alignItems: 'center',
   },
   insetGroupItemContainer: {
     flexDirection: 'row',
