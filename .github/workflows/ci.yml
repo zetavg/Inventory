@@ -120,8 +120,8 @@ jobs:
         cd packages/epc-utils
         yarn test
 
-  test-snipe-it-integration:
-    name: "Test: snipe-it-integration"
+  test-integration-snipe-it:
+    name: "Test: integration-snipe-it"
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -133,23 +133,23 @@ jobs:
     - name: Cache node_modules
       uses: actions/cache@v3
       env:
-        cache-name: snipe-it-integration-node_modules
+        cache-name: integration-snipe-it-node_modules
       with:
-        path: packages/snipe-it-integration/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/snipe-it-integration/yarn.lock') }}
+        path: packages/integration-snipe-it/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-snipe-it/yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn Install
       run: |
-        cd packages/snipe-it-integration
+        cd packages/integration-snipe-it
         yarn install
     - name: Typecheck
       run: |
-        cd packages/snipe-it-integration
+        cd packages/integration-snipe-it
         yarn run typecheck
     - name: Test
       run: |
-        cd packages/snipe-it-integration
+        cd packages/integration-snipe-it
         yarn test
 
   build:

@@ -1,4 +1,4 @@
-# snipe-it-integration
+# integration-snipe-it
 
 Integration for Snipe-IT - free open source IT asset management software.
 
