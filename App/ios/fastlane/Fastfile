@@ -212,7 +212,7 @@ platform :ios do
     end
 
     if ENV['CI']
-      File.open(File.join(__dir__, 'ci_output_data.json'), 'w') do |f|
+      File.open(File.join(__dir__, '..', 'ci_output_data.json'), 'w') do |f|
         f.write(ci_output_data.to_json)
       end
 
