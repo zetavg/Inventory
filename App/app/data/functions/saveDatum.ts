@@ -78,7 +78,10 @@ export default async function saveDatum<T extends DataTypeName>(
 
   const updateDoc: Record<string, unknown> = {
     ...existingDoc,
-    data: pureData,
+    data: {
+      ...(existingDoc as any)?.data,
+      ...pureData,
+    },
   };
 
   if (__id) {
