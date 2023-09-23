@@ -184,12 +184,26 @@ jobs:
         cd packages/integration-snipe-it
         yarn test
 
+  paths-filter:
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          app:
+            - 'App/**'
+
   build:
     name: "Build App"
-    # Build if the event is not a pull request, or if the pull request is not a draft and the pull request is not from a fork (runs of fork PRs will not have access to secrets that are required for building the app).
-    if: ${{ !vars.CI_DISABLE_BUILD && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     needs:
     - test-app
+    - paths-filter
+    # Build if the app has changes, and event is not a pull request, or if the pull request is not a draft and the pull request is not from a fork (runs of fork PRs will not have access to secrets that are required for building the app).
+    if: ${{ !vars.CI_DISABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     uses: ./.github/workflows/build_app.yml
     with:
       build-release: ${{ github.event_name == 'release' }}
