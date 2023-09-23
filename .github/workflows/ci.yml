@@ -120,6 +120,38 @@ jobs:
         cd packages/epc-utils
         yarn test
 
+  test-data-storage-couchdb:
+    name: "Test: data-storage-couchdb"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v3
+      env:
+        cache-name: data-storage-couchdb-node_modules
+      with:
+        path: packages/data-storage-couchdb/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/data-storage-couchdb
+        yarn install
+    - name: Typecheck
+      run: |
+        cd packages/data-storage-couchdb
+        yarn run typecheck
+    - name: Test
+      run: |
+        cd packages/data-storage-couchdb
+        yarn test
+
   test-integration-snipe-it:
     name: "Test: integration-snipe-it"
     runs-on: ubuntu-latest
