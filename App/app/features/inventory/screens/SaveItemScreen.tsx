@@ -1018,9 +1018,7 @@ function SaveItemScreen({
                 setShowAdvanced(v => !v);
               }}
             >
-              {showAdvanced
-                ? 'Hide Advanced Settings'
-                : 'Show Advanced Settings'}
+              {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
             </Link>
           </Text>
         </UIGroup>

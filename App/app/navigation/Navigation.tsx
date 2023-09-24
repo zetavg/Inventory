@@ -125,6 +125,7 @@ export type RootStackParamList = {
   };
   SaveCollection: {
     initialData?: Partial<DataTypeWithAdditionalInfo<'collection'>>;
+    afterDelete?: () => void;
   };
   SaveItem: {
     initialData?: Partial<DataTypeWithAdditionalInfo<'item'>>;

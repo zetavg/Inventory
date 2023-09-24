@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import { ZodError } from 'zod';
+
 import EPCUtils from '@deps/epc-utils';
 
 import {
@@ -17,7 +19,13 @@ import {
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
 
-import { DataTypeWithAdditionalInfo, useConfig, useSave } from '@app/data';
+import {
+  DataTypeWithAdditionalInfo,
+  useConfig,
+  useData,
+  useRelated,
+  useSave,
+} from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 import randomInt from '@app/utils/randomInt';
@@ -32,6 +40,7 @@ import useAutoFocus from '@app/hooks/useAutoFocus';
 import useColors from '@app/hooks/useColors';
 import useDB from '@app/hooks/useDB';
 import useDeepCompare from '@app/hooks/useDeepCompare';
+import useLogger from '@app/hooks/useLogger';
 import useScrollViewContentInsetFix from '@app/hooks/useScrollViewContentInsetFix';
 
 import ColorSelect, { ColorSelectColor } from '@app/components/ColorSelect';
@@ -48,7 +57,9 @@ function SaveCollectionScreen({
   route,
   navigation,
 }: StackScreenProps<RootStackParamList, 'SaveCollection'>) {
-  const { initialData: initialDataFromParams } = route.params;
+  const { initialData: initialDataFromParams, afterDelete } = route.params;
+
+  const logger = useLogger('SaveCollectionScreen');
 
   const { save, saving } = useSave();
   const { config } = useConfig();
@@ -81,6 +92,12 @@ function SaveCollectionScreen({
   const isFromSharedDb = !config
     ? null
     : typeof data.config_uuid === 'string' && data.config_uuid !== config.uuid;
+  const { data: someItems } = useData(
+    'item',
+    { collection_id: initialData.__id },
+    { limit: 1, disable: !initialData.__id },
+  );
+  const hasItems = (someItems?.length || 0) > 0;
 
   const [
     referenceNumberIsRandomlyGenerated,
@@ -168,6 +185,50 @@ function SaveCollectionScreen({
     },
     [saving],
   );
+
+  const doDelete = useCallback(async () => {
+    try {
+      await save(
+        {
+          ...initialData,
+          __type: initialData.__type,
+          __id: initialData.__id,
+          __deleted: true,
+        },
+        { showErrorAlert: false },
+      );
+      navigation.goBack();
+      if (typeof afterDelete === 'function') {
+        afterDelete();
+      }
+    } catch (e) {
+      if (e instanceof ZodError) {
+        Alert.alert(
+          'Cannot delete item',
+          e.issues.map(i => i.message).join('\n'),
+        );
+      } else {
+        logger.error(e, { showAlert: true });
+      }
+    }
+  }, [initialData, logger, navigation, save]);
+  const handleDeleteButtonPressed = useCallback(() => {
+    Alert.alert(
+      'Confirmation',
+      `Are you sure you want to delete the collection "${initialData.name}"?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: doDelete,
+        },
+      ],
+    );
+  }, [doDelete, initialData.name]);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps } =
@@ -301,38 +362,23 @@ function SaveCollectionScreen({
           />
         </UIGroup>
 
-        {/*
-        <UIGroup>
-          <UIGroup.ListItem
-            compactLabel
-            label="Default Icon for Items"
-            detail={
-              <UIGroup.ListItemDetailButton
-                label="Select"
-                onPress={handleOpenSelectDefaultItemIcon}
-              />
+        {!!initialData.__id && (
+          <UIGroup
+            footer={
+              hasItems
+                ? 'Cannot delete a collection that contains items.'
+                : undefined
             }
           >
-            <TouchableOpacity
-              style={commonStyles.flex1}
-              onPress={handleOpenSelectDefaultItemIcon}
-            >
-              {data.itemDefaultIconName && (
-                <View style={[commonStyles.row, commonStyles.alignItemsCenter]}>
-                  <Icon
-                    name={data.itemDefaultIconName as IconName}
-                    showBackground
-                    size={40}
-                  />
-                  <Text style={[commonStyles.ml12, commonStyles.opacity05]}>
-                    {data.itemDefaultIconName}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </UIGroup.ListItem>
-        </UIGroup>
-        */}
+            <UIGroup.ListItem
+              button
+              destructive
+              disabled={hasItems}
+              label={`Delete "${initialData?.name}"`}
+              onPress={handleDeleteButtonPressed}
+            />
+          </UIGroup>
+        )}
       </ModalContent.ScrollView>
     </ModalContent>
   );

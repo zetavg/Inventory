@@ -324,6 +324,9 @@ function CollectionScreen({
           ? () =>
               rootNavigation?.navigate('SaveCollection', {
                 initialData: data,
+                afterDelete: () => {
+                  navigation.goBack();
+                },
               })
           : undefined
       }
