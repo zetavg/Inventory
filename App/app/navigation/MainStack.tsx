@@ -23,6 +23,7 @@ import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import StatisticsScreen from '@app/features/inventory/screens/StatisticsScreen';
+import UIAndAppearanceSettingsScreen from '@app/features/settings/screens/UIAndAppearanceSettingsScreen';
 
 import { DataTypeName } from '@app/data';
 
@@ -30,7 +31,7 @@ import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
-import ConfigurationsScreen from '@app/screens/ConfigurationsScreen';
+import ConfigurationScreen from '@app/screens/ConfigurationScreen';
 import BenchmarkScreen from '@app/screens/dev-tools/BenchmarkScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
@@ -79,7 +80,8 @@ export type StackParamList = {
   Search: { query?: string } | undefined;
   Statistics: undefined;
   Settings: undefined;
-  Configurations: undefined;
+  UIAndAppearanceSettings: undefined;
+  Configuration: undefined;
   HowToSwitchBetweenProfiles: undefined;
   GenericTextDetails: {
     title?: string;
@@ -216,7 +218,11 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="More" component={MoreScreen} />
 
       <Stack.Screen name="Settings" component={SettingsScreen} />
-      <Stack.Screen name="Configurations" component={ConfigurationsScreen} />
+      <Stack.Screen
+        name="UIAndAppearanceSettings"
+        component={UIAndAppearanceSettingsScreen}
+      />
+      <Stack.Screen name="Configuration" component={ConfigurationScreen} />
       <Stack.Screen
         name="HowToSwitchBetweenProfiles"
         component={HowToSwitchBetweenProfilesScreen}

@@ -48,7 +48,7 @@ import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useScrollViewAutomaticallyAdjustKeyboardInsetsFix from '@app/hooks/useScrollViewAutomaticallyAdjustKeyboardInsetsFix';
 
 import Button from '@app/components/Button';
-import Configurations from '@app/components/Configurations';
+import Configuration from '@app/components/Configuration';
 import FullWidthImage from '@app/components/FullWidthImage';
 import Icon from '@app/components/Icon';
 import Text, { Link } from '@app/components/Text';
@@ -1349,7 +1349,7 @@ function OnboardingScreen({
               </Text>
             </UIGroup>
 
-            <Configurations
+            <Configuration
               uiGroupStyle={{ backgroundColor: contentBackgroundColor }}
               listItemSeparatorColor={listItemSeparatorColor}
             />

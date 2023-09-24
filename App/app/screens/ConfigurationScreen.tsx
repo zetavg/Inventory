@@ -10,23 +10,23 @@ import type { StackParamList } from '@app/navigation/MainStack';
 
 import useColors from '@app/hooks/useColors';
 
-import Configurations from '@app/components/Configurations';
+import Configuration from '@app/components/Configuration';
 import ScreenContent from '@app/components/ScreenContent';
 import Text, { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-function ConfigurationsScreen({
+function ConfigurationScreen({
   navigation,
-}: StackScreenProps<StackParamList, 'Configurations'>) {
+}: StackScreenProps<StackParamList, 'Configuration'>) {
   const { contentSecondaryTextColor } = useColors();
   const { config } = useConfig();
 
   return (
-    <ScreenContent navigation={navigation} title="Configurations">
+    <ScreenContent navigation={navigation} title="Configuration">
       <ScreenContent.ScrollView>
         <UIGroup.FirstGroupSpacing />
-        <Configurations />
+        <Configuration />
         {config && (
           <UIGroup>
             <UIGroup.ListItem
@@ -46,7 +46,7 @@ function ConfigurationsScreen({
         )}
         <UIGroup transparentBackground style={commonStyles.ph8}>
           <Text style={[styles.text, { color: contentSecondaryTextColor }]}>
-            The above configurations are not changeable as changing them will
+            The above configuration are not changeable as changing them will
             make all your RFID tags invalid.
           </Text>
           <Text> </Text>
@@ -62,7 +62,7 @@ function ConfigurationsScreen({
     </ScreenContent>
   );
 }
-export default ConfigurationsScreen;
+export default ConfigurationScreen;
 
 const styles = StyleSheet.create({
   text: {

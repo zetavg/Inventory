@@ -4,7 +4,7 @@ import { useConfig } from '@app/data';
 
 import UIGroup from '@app/components/UIGroup';
 
-export default function Configurations(props: {
+export default function Configuration(props: {
   uiGroupStyle?: React.ComponentProps<typeof UIGroup>['style'];
   listItemSeparatorColor?: string;
 }) {
