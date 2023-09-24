@@ -211,7 +211,7 @@ function SaveCollectionScreen({
         logger.error(e, { showAlert: true });
       }
     }
-  }, [initialData, logger, navigation, save]);
+  }, [afterDelete, initialData, logger, navigation, save]);
   const handleDeleteButtonPressed = useCallback(() => {
     Alert.alert(
       'Confirmation',
