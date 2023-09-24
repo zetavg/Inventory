@@ -18,6 +18,8 @@ import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
+import { selectors, useAppSelector } from '@app/redux';
+
 import {
   DataTypeWithAdditionalInfo,
   useConfig,
@@ -56,8 +58,22 @@ function SaveItemScreen({
   const logger = useLogger('SaveItemScreen');
   const { initialData: initialDataFromParams, afterDelete } = route.params;
 
+  const uiShowDetailedInstructions = useAppSelector(
+    selectors.settings.uiShowDetailedInstructions,
+  );
+
   const { save, saving } = useSave();
   const { config } = useConfig();
+  const collectionReferenceDigits = useMemo(
+    () =>
+      config
+        ? EPCUtils.getCollectionReferenceDigits({
+            companyPrefix: config.rfid_tag_company_prefix,
+            iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+          })
+        : 3,
+    [config],
+  );
   const itemReferenceDigits = useMemo(
     () =>
       config
@@ -426,6 +442,53 @@ function SaveItemScreen({
     />
   );
 
+  const iarPreview = useMemo(() => {
+    if (!config) return null;
+    if (typeof selectedCollection?.collection_reference_number !== 'string')
+      return null;
+    if (typeof data.item_reference_number !== 'string') return null;
+
+    try {
+      return EPCUtils.encodeIndividualAssetReference({
+        companyPrefix: config.rfid_tag_company_prefix,
+        iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+        collectionReference: selectedCollection.collection_reference_number,
+        itemReference: data.item_reference_number,
+        serial: data.serial || 0,
+      });
+    } catch (e) {
+      return null;
+    }
+  }, [
+    config,
+    data.item_reference_number,
+    data.serial,
+    selectedCollection?.collection_reference_number,
+  ]);
+  const epcTagUriPreview = useMemo(() => {
+    if (!config) return null;
+    if (!iarPreview) return null;
+
+    try {
+      return EPCUtils.encodeGiaiFromIndividualAssetReference({
+        companyPrefix: config.rfid_tag_company_prefix,
+        iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+        individualAssetReference: iarPreview,
+      });
+    } catch (e) {
+      return null;
+    }
+  }, [config, iarPreview]);
+  const epcHexPreview = useMemo(() => {
+    if (!epcTagUriPreview) return null;
+
+    try {
+      return EPCUtils.encodeEpcHexFromGiai(epcTagUriPreview);
+    } catch (e) {
+      return null;
+    }
+  }, [epcTagUriPreview]);
+
   const [showAdvanced, setShowAdvanced] = useState(
     data.individual_asset_reference_manually_set ||
       data.ignore_iar_prefix ||
@@ -679,11 +742,36 @@ function SaveItemScreen({
         )}
 
         <UIGroup
-          footer={
-            isFromSharedDb
-              ? 'You can not edit the reference number of a shared item.'
-              : undefined
-          }
+          footer={(() => {
+            if (isFromSharedDb) {
+              return 'You can not edit the reference number of a shared item.';
+            }
+
+            if (data.individual_asset_reference_manually_set) {
+              return "Note: This item has its Individual Asset Reference manually set. It won't be updated by the values here.";
+            }
+
+            if (data.epc_tag_uri_manually_set) {
+              return "Note: This item has its EPC Tag URI manually set. It won't be updated by the values here.";
+            }
+
+            if (data.rfid_tag_epc_memory_bank_contents_manually_set) {
+              return "Note: This item has its RFID Tag EPC manually set. It won't be updated by the values here.";
+            }
+
+            if (uiShowDetailedInstructions) {
+              let message =
+                'A reference number is needed for this item to have an RFID tag.';
+
+              if (iarPreview) {
+                message += ` The contents in the RFID tag will be "${iarPreview}".`;
+              }
+
+              return message;
+            }
+
+            return undefined;
+          })()}
         >
           <UIGroup.ListTextInputItem
             ref={refNumberInputRef}
@@ -746,13 +834,17 @@ function SaveItemScreen({
         </UIGroup>
 
         <UIGroup
-          footer={
-            wouldBeHiddenInCollection
+          footer={(() => {
+            if (uiShowDetailedInstructions && !data.container_id) {
+              return 'Select a container to let this item be a part of another item, or to be stored fixedly in a certain container, such as a toolbox.';
+            }
+
+            return wouldBeHiddenInCollection
               ? data.always_show_in_collection
                 ? undefined
                 : 'This item will be hidden in the collection since its container belongs to the same collection.'
-              : undefined
-          }
+              : undefined;
+          })()}
         >
           {selectContainerUI}
           {wouldBeHiddenInCollection && (
@@ -1025,7 +1117,15 @@ function SaveItemScreen({
 
         {showAdvanced && (
           <>
-            <UIGroup>
+            <UIGroup
+              footer={
+                uiShowDetailedInstructions
+                  ? `By default, the Individual Asset Reference will be generated by connecting the collection reference number, the item reference number, and the item's serial${
+                      iarPreview ? ` (in this case, it's "${iarPreview}")` : ''
+                    }. But you can also manually set the Individual Asset Reference for this item.`
+                  : undefined
+              }
+            >
               <UIGroup.ListTextInputItem
                 label="Manually Set IAR"
                 disabled={isFromSharedDb === null || isFromSharedDb}
@@ -1048,9 +1148,17 @@ function SaveItemScreen({
                   <UIGroup.ListTextInputItem
                     ref={refNumberInputRef}
                     label="Individual Asset Ref."
+                    placeholder={
+                      '0'.repeat(collectionReferenceDigits) +
+                      '0'.repeat(itemReferenceDigits) +
+                      '0000'
+                    }
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     horizontalLabel
                     keyboardType="number-pad"
+                    maxLength={
+                      collectionReferenceDigits + itemReferenceDigits + 4
+                    }
                     monospaced
                     returnKeyType="done"
                     value={data.individual_asset_reference}
@@ -1081,7 +1189,18 @@ function SaveItemScreen({
                   />
                 }
               />
-              <UIGroup.ListItemSeparator />
+            </UIGroup>
+            <UIGroup
+              footer={
+                uiShowDetailedInstructions
+                  ? `By default, the RFID EPC Tag URI will be generated with the IAR, prefixed with your IAR prefix and Company Prefix${
+                      epcTagUriPreview
+                        ? ` (in this case, it's "${epcTagUriPreview}")`
+                        : ''
+                    }. But you can also manually set the EPC Tag URI for this item.\n\nThis may be useful if you want to track an item that has already be managed by another system that uses EPC Tag URIs.`
+                  : undefined
+              }
+            >
               <UIGroup.ListTextInputItem
                 label="Manually Set EPC Tag URI"
                 horizontalLabel
@@ -1104,6 +1223,7 @@ function SaveItemScreen({
                   <UIGroup.ListTextInputItem
                     ref={refNumberInputRef}
                     label="EPC Tag URI"
+                    placeholder="urn:epc:tag:giai-96:..."
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     keyboardType="ascii-capable"
                     monospaced
@@ -1120,7 +1240,18 @@ function SaveItemScreen({
                   />
                 </>
               )}
-              <UIGroup.ListItemSeparator />
+            </UIGroup>
+            <UIGroup
+              footer={
+                uiShowDetailedInstructions
+                  ? `The EPC Hex is the actual value that will be written into the EPC bank of the RFID tag. By default, it's the hex-encoded EPC Tag URI${
+                      epcTagUriPreview
+                        ? ` (in this case, it's "${epcHexPreview}")`
+                        : ''
+                    }. But it can also be manually set to an arbitrary value.\n\nThis will be useful if you want to re-use an RFID tag with an EPC value written into it that cannot be changed.`
+                  : undefined
+              }
+            >
               <UIGroup.ListTextInputItem
                 label="Manually Set RFID Tag EPC Contents"
                 horizontalLabel
@@ -1143,6 +1274,7 @@ function SaveItemScreen({
                   <UIGroup.ListTextInputItem
                     ref={refNumberInputRef}
                     label="RFID Tag EPC Contents"
+                    placeholder="Enter EPC Hex here"
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     keyboardType="ascii-capable"
                     autoCapitalize="characters"
@@ -1153,10 +1285,9 @@ function SaveItemScreen({
                     onChangeText={t => {
                       setData(d => ({
                         ...d,
-                        rfid_tag_epc_memory_bank_contents: t.replace(
-                          /[^0-9A-F]/gm,
-                          '',
-                        ),
+                        rfid_tag_epc_memory_bank_contents: t
+                          .toUpperCase()
+                          .replace(/[^0-9A-F]/gm, ''),
                       }));
                     }}
                     {...kiaTextInputProps}
