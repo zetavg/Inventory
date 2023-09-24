@@ -37,7 +37,11 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "config_uuid": { "type": "string" }
+        "config_uuid": { "type": "string" },
+        "integrations" : {
+          "type" : "object",
+          "additionalProperties": true
+        }
       },
       "required": [
         "name",
@@ -92,7 +96,11 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "config_uuid": { "type": "string" }
+        "config_uuid": { "type": "string" },
+        "integrations" : {
+          "type" : "object",
+          "additionalProperties": true
+        }
       },
       "required": [
         "name",

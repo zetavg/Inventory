@@ -6,7 +6,7 @@ import {
 
 import type nano from 'nano';
 
-import { getCouchDbId, getDatumFromDoc } from './couchdb-utils';
+import { flattenSelector, getCouchDbId, getDatumFromDoc } from './couchdb-utils';
 
 export default function getGetData({
   db,
@@ -49,17 +49,19 @@ export default function getGetData({
         },
       } as any;
     } else if (Object.keys(conditions).length > 0) {
-      const conditionData = Object.fromEntries(
-        Object.entries(conditions).map(([k, v]) => [
-          (() => {
-            switch (k) {
-              default:
-                return `data.${k}`;
-            }
-          })(),
-          v,
-        ]),
-      ) as any;
+      const conditionData = flattenSelector(
+        Object.fromEntries(
+          Object.entries(conditions).map(([k, v]) => [
+            (() => {
+              switch (k) {
+                default:
+                  return `data.${k}`;
+              }
+            })(),
+            v,
+          ]),
+        ) as any,
+      );
       const indexFields = [
         ...(sortData ? sortData.flatMap(s => Object.keys(s)) : []),
         ...Object.keys(conditionData),

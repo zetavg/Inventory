@@ -18,6 +18,14 @@ it('returns all categories', async () => {
           id: 1,
           name: 'Company',
           category_type: 'Asset',
+          created_at: {
+            datetime: '2023-01-01 00:00:00',
+            formatted: '2023-01-01 00:00 AM',
+          },
+          updated_at: {
+            datetime: '2023-01-01 00:00:00',
+            formatted: '2023-01-01 00:00 AM',
+          },
           _additionalField: '...',
         })),
       };
@@ -55,7 +63,21 @@ it('throws error if response data is invalid', async () => {
     json() {
       return {
         total: 1,
-        rows: [{ id: 1, name: 'Company', type: 'NoSuchType' }],
+        rows: [
+          {
+            id: 1,
+            name: 'Company',
+            type: 'NoSuchType',
+            created_at: {
+              datetime: '2023-01-01 00:00:00',
+              formatted: '2023-01-01 00:00 AM',
+            },
+            updated_at: {
+              datetime: '2023-01-01 00:00:00',
+              formatted: '2023-01-01 00:00 AM',
+            },
+          },
+        ],
       };
     },
   });

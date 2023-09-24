@@ -19,7 +19,7 @@
     },
     "typeRoots": [
       "node_modules/@types",
-      "types"
+      "deps/types"
     ],
     "types": ["node", "jest"]
   },

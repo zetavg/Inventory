@@ -2,6 +2,14 @@
 
 Integration for Snipe-IT - free open source IT asset management software.
 
+## Do a one-time, one-way sync from Snipe-IT to Inventory
+
+Run the following command to see instructions:
+
+```bash
+yarn run one-way-sync --help
+```
+
 ## snipe-it-client
 
 A minimal client for Snipe-IT.
@@ -9,7 +17,7 @@ A minimal client for Snipe-IT.
 ### Try it in `ts-node`
 
 ```bash
-ts-node
+ts-node -r tsconfig-paths/register
 ```
 
 ```js

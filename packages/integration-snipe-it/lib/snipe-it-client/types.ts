@@ -16,6 +16,14 @@ export const Category = z.object({
   id: z.number(),
   name: z.string(),
   category_type: z.enum(['Asset']),
+  created_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
+  }),
+  updated_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
+  }),
 });
 
 export const Model = z.object({
@@ -24,6 +32,14 @@ export const Model = z.object({
   category: z.object({
     id: z.number(),
     name: z.string(),
+  }),
+  created_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
+  }),
+  updated_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
   }),
 });
 
@@ -39,5 +55,13 @@ export const Asset = z.object({
   category: z.object({
     id: z.number(),
     name: z.string(),
+  }),
+  created_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
+  }),
+  updated_at: z.object({
+    datetime: z.string(),
+    formatted: z.string(),
   }),
 });

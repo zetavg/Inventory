@@ -1,15 +1,12 @@
-import getModelById from '../getModelById';
+import getCategoryById from '../getCategoryById';
 
-it('returns a model', async () => {
+it('returns a category', async () => {
   const mockedFetch: any = async () => ({
     json() {
       return {
         id: 1,
-        name: 'Test Model',
-        category: {
-          id: 2,
-          name: 'Test Category',
-        },
+        name: 'Test Category',
+        category_type: 'Asset',
         created_at: {
           datetime: '2023-01-01 00:00:00',
           formatted: '2023-01-01 00:00 AM',
@@ -22,7 +19,7 @@ it('returns a model', async () => {
     },
   });
 
-  const model = await getModelById(
+  const category = await getCategoryById(
     {
       fetch: mockedFetch,
       baseUrl: '',
@@ -30,22 +27,21 @@ it('returns a model', async () => {
     },
     1,
   );
-  expect(model?.name).toBe('Test Model');
-  expect(model?.category.name).toBe('Test Category');
+  expect(category?.name).toBe('Test Category');
 });
 
-it('returns null if a model cannot be found', async () => {
+it('returns null if a category cannot be found', async () => {
   const mockedFetch: any = async () => ({
     json() {
       return {
         status: 'error',
-        messages: 'AssetModel not found',
+        messages: 'Category not found',
         payload: null,
       };
     },
   });
 
-  const model = await getModelById(
+  const category = await getCategoryById(
     {
       fetch: mockedFetch,
       baseUrl: '',
@@ -53,7 +49,7 @@ it('returns null if a model cannot be found', async () => {
     },
     1,
   );
-  expect(model).toBe(null);
+  expect(category).toBe(null);
 });
 
 it('throws error if response data is invalid', async () => {
@@ -61,8 +57,8 @@ it('throws error if response data is invalid', async () => {
     json() {
       return {
         id: 1,
-        name: 'Test Model',
-        category: null,
+        name: 'Test Category',
+        category_type: 'NoSuchType',
         created_at: {
           datetime: '2023-01-01 00:00:00',
           formatted: '2023-01-01 00:00 AM',
@@ -76,7 +72,7 @@ it('throws error if response data is invalid', async () => {
   });
 
   await expect(async () => {
-    await getModelById(
+    await getCategoryById(
       {
         fetch: mockedFetch,
         baseUrl: '',

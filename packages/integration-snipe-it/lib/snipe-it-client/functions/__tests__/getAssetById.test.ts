@@ -16,6 +16,14 @@ it('returns a asset', async () => {
           id: 3,
           name: 'Test Model',
         },
+        created_at: {
+          datetime: '2023-01-01 00:00:00',
+          formatted: '2023-01-01 00:00 AM',
+        },
+        updated_at: {
+          datetime: '2023-01-01 00:00:00',
+          formatted: '2023-01-01 00:00 AM',
+        },
       };
     },
   });

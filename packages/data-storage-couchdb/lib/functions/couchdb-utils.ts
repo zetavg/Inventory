@@ -114,33 +114,42 @@ export function getDatumFromDoc<T extends DataTypeName>(
       },
       set: function (target, prop, value) {
         if (prop === '__id') {
-          return (d._id = value);
+          d._id = value;
+          return true;
         }
 
         if (prop === '__rev') {
-          return (d._rev = value);
+          d._rev = value;
+          return true;
         }
 
         if (prop === '__deleted') {
-          return (d._deleted = value);
+          d._deleted = value;
+          return true;
         }
 
         if (prop === '__created_at') {
-          return (d.created_at = value);
+          d.created_at = value;
+          return true;
         }
 
         if (prop === '__updated_at') {
-          return (d.updated_at = value);
+          d.updated_at = value;
+          return true;
         }
 
         if (prop === '__deleted') {
-          return (d._deleted = value);
+          d._deleted = value;
+          return true;
         }
 
         // Only allow assigning known properties
         if (Object.keys(schema[type].shape).includes(prop as string)) {
-          return (target[prop] = value);
+          target[prop] = value;
+          return true;
         }
+
+        return false;
       },
       ownKeys: function () {
         return [
@@ -166,4 +175,71 @@ export function getDatumFromDoc<T extends DataTypeName>(
     null,
     parseResults.success ? null : parseResults,
   );
+}
+
+export function getDocFromDatum<T extends DataTypeName>(
+  d: DataTypeWithID<T> | InvalidDataTypeWithID<T>,
+): nano.DocumentGetResponse {
+  let {
+    __type,
+    __id,
+    __rev,
+    __deleted,
+    __created_at,
+    __updated_at,
+    ...unfilteredPureData
+  } = d;
+
+  const pureData: typeof unfilteredPureData = Object.fromEntries(
+    Object.entries(unfilteredPureData).filter(([k]) => !k.startsWith('__')),
+  ) as any;
+
+  const doc: Record<string, unknown> = {
+    type: __type,
+    data: {
+      ...pureData,
+    },
+  };
+
+  if (__id) {
+    doc._id = getCouchDbId(__type, __id);
+  }
+
+  if (__rev) {
+    doc._rev = __rev;
+  }
+
+  if (__deleted) {
+    doc._deleted = __deleted;
+  }
+
+  if (__created_at) {
+    doc.created_at = __created_at;
+  }
+
+  if (__updated_at) {
+    doc.updated_at = __updated_at;
+  }
+
+  return doc as any;
+}
+
+export function flattenSelector(obj: any, parent = '', result = {} as any) {
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      if (key.startsWith('$') && parent) {
+        result[parent] = obj;
+        return result;
+      }
+      const newKey = parent ? `${parent}.${key}` : key;
+
+      const value = obj[key];
+      if (value && typeof value === 'object') {
+        flattenSelector(obj[key], newKey, result);
+      } else {
+        result[newKey] = obj[key];
+      }
+    }
+  }
+  return result;
 }

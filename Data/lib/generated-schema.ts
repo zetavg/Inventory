@@ -27,6 +27,7 @@ export const schema = {
       item_default_icon_name: z.string().optional(),
       items_order: z.array(z.string()).optional(),
       config_uuid: z.string(),
+      integrations: z.record(z.any()).optional(),
     })
     .catchall(z.unknown()),
   item: z
@@ -82,6 +83,7 @@ export const schema = {
       consumable_will_not_restock: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
       config_uuid: z.string(),
+      integrations: z.record(z.any()).optional(),
     })
     .catchall(z.unknown()),
   db_sharing: z

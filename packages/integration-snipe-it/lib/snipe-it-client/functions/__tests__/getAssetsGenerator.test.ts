@@ -24,6 +24,14 @@ it('yields all assets with total and current counters', async () => {
             id: 1,
             name: 'Test Category',
           },
+          created_at: {
+            datetime: '2023-01-01 00:00:00',
+            formatted: '2023-01-01 00:00 AM',
+          },
+          updated_at: {
+            datetime: '2023-01-01 00:00:00',
+            formatted: '2023-01-01 00:00 AM',
+          },
         })),
       };
     },

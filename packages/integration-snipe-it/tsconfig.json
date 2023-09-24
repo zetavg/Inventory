@@ -15,11 +15,11 @@
     "target": "esnext",
     "baseUrl": ".",
     "paths": {
-      "@app/*": ["./vendor/app/*"]
+      "@deps/*": ["./deps/*"]
     },
     "typeRoots": [
       "node_modules/@types",
-      "types"
+      "deps/types"
     ],
     "types": ["node", "jest"]
   },
