@@ -514,9 +514,9 @@ jobs:
     - name: Upload App Store Upload Info
       uses: actions/upload-artifact@v3
       with:
-        name: ios-appstore-upload-info-nightly
+        name: ios-appstore-upload-info-release
         path: |
-          App/ios/ios_appstore_upload_info_nightly.json
+          App/ios/ios_appstore_upload_info_release.json
     - name: Upload Archive
       uses: actions/upload-artifact@v3
       with:
