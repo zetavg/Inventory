@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Platform, StyleSheet, TouchableHighlight, View } from 'react-native';
 
 import Color from 'color';
@@ -65,6 +65,21 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
 
     return undefined;
   })();
+
+  // Preventing double tapping triggering onPress multiple times
+  const isHandlingPress = useRef(false);
+  const handlePress = useCallback(() => {
+    if (!onPress) return;
+    if (isHandlingPress.current) return;
+
+    isHandlingPress.current = true;
+    onPress();
+
+    setTimeout(() => {
+      isHandlingPress.current = false;
+    }, 10);
+  }, [onPress]);
+
   const element = (
     <InsetGroup.Item
       label={label}
@@ -87,7 +102,7 @@ export default function UIGroupListItem(props: ListItemProps): JSX.Element {
       onPress={
         rightElement
           ? undefined /* will use a TouchableHighlight to wrap the whole thing later */
-          : onPress
+          : onPress && handlePress
       }
       onLongPress={
         rightElement
