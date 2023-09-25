@@ -19,7 +19,7 @@ index c728382..1182a48 100644
          }
          
 -        _cellHeight = 44;
-+        _cellHeight = 50.4;
++        _cellHeight = 50;
          _cells = [NSMutableArray array];
          _autoFocus = YES;
          _autoFocusAnimate = YES;
