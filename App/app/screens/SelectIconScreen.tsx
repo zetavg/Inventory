@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   LayoutAnimation,
   ScrollView,
@@ -7,10 +13,11 @@ import {
   View,
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import SearchBar from 'react-native-platform-searchbar';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
-import { ICONS } from '@app/consts/icons';
+import { IconName, ICONS } from '@app/consts/icons';
 
 import cs from '@app/utils/commonStyles';
 import objectEntries from '@app/utils/objectEntries';
@@ -31,6 +38,15 @@ function SelectIconScreen({
   route,
 }: StackScreenProps<RootStackParamList, 'SelectIcon'>) {
   const { callback, defaultValue } = route.params;
+
+  const [shownIconsLimit, setShownIconsLimit] = useState<number | null>(100);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShownIconsLimit(null);
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
+
   const [value, setValue] = useState(defaultValue);
   const [search, setSearch] = useState('');
 
@@ -79,6 +95,11 @@ function SelectIconScreen({
     navigation.goBack();
   }, [navigation]);
 
+  const handleIconPress = useCallback((iconName: IconName) => {
+    ReactNativeHapticFeedback.trigger('clockTick');
+    setValue(iconName);
+  }, []);
+
   return (
     <ModalContent
       navigation={navigation}
@@ -101,26 +122,41 @@ function SelectIconScreen({
             value={search}
             onChangeText={setSearch}
             placeholder="Search"
+            cancelTextStyle={{
+              color: iosTintColor,
+            }}
             onFocus={() => scrollViewRef?.current?.scrollTo({ y: -9999 })}
           />
         </View>
         <UIGroup style={[cs.centerChildren]} placeholder="No matched icons">
           {iconNames.length > 0 && (
             <View style={styles.iconsContainer}>
-              {iconNames.map(iconName => (
-                <TouchableWithoutFeedback
+              {(shownIconsLimit
+                ? iconNames.slice(0, shownIconsLimit)
+                : iconNames
+              ).map(iconName => (
+                <IconItemMemo
                   key={iconName}
-                  onPress={() => setValue(iconName)}
-                >
-                  <View
-                    style={[
-                      styles.iconItemContainer,
-                      iconName === value && { borderColor: iosTintColor },
-                    ]}
-                  >
-                    <Icon name={iconName} size={20} />
-                  </View>
-                </TouchableWithoutFeedback>
+                  iconName={iconName}
+                  selected={iconName === value}
+                  onPress={handleIconPress}
+                />
+                // <TouchableWithoutFeedback
+                //   key={iconName}
+                //   onPress={() => {
+                //     ReactNativeHapticFeedback.trigger('clockTick');
+                //     setValue(iconName);
+                //   }}
+                // >
+                //   <View
+                //     style={[
+                //       styles.iconItemContainer,
+                //       iconName === value && { borderColor: iosTintColor },
+                //     ]}
+                //   >
+                //     <Icon name={iconName} size={20} />
+                //   </View>
+                // </TouchableWithoutFeedback>
               ))}
             </View>
           )}
@@ -129,6 +165,42 @@ function SelectIconScreen({
     </ModalContent>
   );
 }
+
+function IconItem({
+  iconName,
+  selected,
+  onPress,
+}: {
+  iconName: IconName;
+  onPress: (iconName: IconName) => void;
+  selected: boolean;
+}) {
+  const { iosTintColor } = useColors();
+
+  return (
+    <TouchableWithoutFeedback
+      key={iconName}
+      onPress={
+        selected
+          ? undefined
+          : () => {
+              onPress(iconName);
+            }
+      }
+    >
+      <View
+        style={[
+          styles.iconItemContainer,
+          selected && { borderColor: iosTintColor },
+        ]}
+      >
+        <Icon name={iconName} size={20} />
+      </View>
+    </TouchableWithoutFeedback>
+  );
+}
+
+const IconItemMemo = React.memo(IconItem);
 
 const styles = StyleSheet.create({
   searchBarContainer: {
