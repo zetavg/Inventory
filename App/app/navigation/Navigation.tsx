@@ -208,6 +208,8 @@ const DEFAULT_ROOT_STACK_SCREEN_OPTIONS = {
   headerShown: false,
   gestureEnabled: Platform.OS === 'android' ? false : true, // Will mess up the ScrollView in modals on Android
   ...TransitionPresets.ModalPresentationIOS,
+  // ModalContentScrollView will determine if it should capture the scroll event, or let the navigation handle it to use gesture to close the modal.
+  gestureResponseDistance: 4000, // Default is 50
 };
 
 /**

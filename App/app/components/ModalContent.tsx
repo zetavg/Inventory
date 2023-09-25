@@ -151,6 +151,7 @@ function ModalContent({
       {Platform.OS === 'ios' && showAppBar && (
         <AppBarIOS
           title={title}
+          // eslint-disable-next-line react/no-unstable-nested-components
           left={(() => {
             if (action2Label) {
               return onAction2Press ? (
