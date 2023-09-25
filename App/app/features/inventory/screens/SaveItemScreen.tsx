@@ -517,13 +517,15 @@ function SaveItemScreen({
             ref={nameInputRef}
             label="Name"
             placeholder="Enter Name (Required)"
+            multiline
+            blurOnSubmit
             autoCapitalize="words"
             returnKeyType="done"
             value={data.name}
             onChangeText={text => {
               setData(d => ({
                 ...d,
-                name: text,
+                name: text.replace(/[\r\n]+/g, ' '),
               }));
             }}
             // eslint-disable-next-line react/no-unstable-nested-components
@@ -908,10 +910,12 @@ function SaveItemScreen({
             autoCapitalize="words"
             returnKeyType="done"
             value={data.model_name}
+            multiline
+            blurOnSubmit
             onChangeText={text => {
               setData(d => ({
                 ...d,
-                model_name: text,
+                model_name: text.replace(/[\r\n]+/g, ' '),
               }));
             }}
             {...kiaTextInputProps}
@@ -1134,6 +1138,9 @@ function SaveItemScreen({
                   <UIGroup.ListItem.Switch
                     value={data.individual_asset_reference_manually_set}
                     onValueChange={v => {
+                      LayoutAnimation.configureNext(
+                        DEFAULT_LAYOUT_ANIMATION_CONFIG,
+                      );
                       setData(d => ({
                         ...d,
                         individual_asset_reference_manually_set: v,
@@ -1181,6 +1188,9 @@ function SaveItemScreen({
                     value={data.ignore_iar_prefix}
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     onValueChange={v => {
+                      LayoutAnimation.configureNext(
+                        DEFAULT_LAYOUT_ANIMATION_CONFIG,
+                      );
                       setData(d => ({
                         ...d,
                         ignore_iar_prefix: v,
@@ -1209,6 +1219,9 @@ function SaveItemScreen({
                     value={data.epc_tag_uri_manually_set}
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     onValueChange={v => {
+                      LayoutAnimation.configureNext(
+                        DEFAULT_LAYOUT_ANIMATION_CONFIG,
+                      );
                       setData(d => ({
                         ...d,
                         epc_tag_uri_manually_set: v,
@@ -1260,6 +1273,9 @@ function SaveItemScreen({
                     value={data.rfid_tag_epc_memory_bank_contents_manually_set}
                     disabled={isFromSharedDb === null || isFromSharedDb}
                     onValueChange={v => {
+                      LayoutAnimation.configureNext(
+                        DEFAULT_LAYOUT_ANIMATION_CONFIG,
+                      );
                       setData(d => ({
                         ...d,
                         rfid_tag_epc_memory_bank_contents_manually_set: v,

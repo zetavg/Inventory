@@ -225,7 +225,11 @@ export default function useNewOrEditServerUI({
           ref={nameInputRef}
           placeholder="My Remote Server"
           value={state.name}
-          onChangeText={text => setState({ ...state, name: text })}
+          multiline
+          blurOnSubmit
+          onChangeText={text =>
+            setState({ ...state, name: text.replace(/[\r\n]+/g, ' ') })
+          }
           autoCapitalize="words"
           returnKeyType="done"
           {...inputProps}
