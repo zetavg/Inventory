@@ -850,6 +850,7 @@ function ItemScreen({
                       onValueChange={v => {
                         updateWillNotRestock(v);
                       }}
+                      trackColor={{ true: iosTintColor }}
                     />
                   }
                 />
