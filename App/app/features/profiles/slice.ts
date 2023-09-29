@@ -34,6 +34,14 @@ import {
   selectors as inventorySelectors,
 } from '@app/features/inventory/slice';
 import {
+  actions as labelPrintersSliceActions,
+  initialState as labelPrintersInitialState,
+  LabelPrintersState,
+  name as labelPrintersSliceName,
+  reducer as labelPrintersReducer,
+  selectors as labelPrintersSelectors,
+} from '@app/features/label-printers/slice';
+import {
   actions as settingsSliceActions,
   initialState as settingsInitialState,
   name as settingsSliceName,
@@ -69,6 +77,7 @@ interface ProfileState {
   dbSync: DBSyncState;
   settings: SettingsState;
   inventory: InventoryState;
+  labelPrinters: LabelPrintersState;
   [cacheSliceName]: CacheState;
 }
 
@@ -85,6 +94,7 @@ const profileInitialState: ProfileState = {
   dbSync: dbSyncInitialState,
   settings: settingsInitialState,
   inventory: inventoryInitialState,
+  labelPrinters: labelPrintersInitialState,
   [cacheSliceName]: cacheInitialState,
 };
 
@@ -191,6 +201,21 @@ export const profilesSlice = createSlice({
       inventorySliceName,
     ),
     mapActionReducers(
+      labelPrintersSliceActions.labelPrinters,
+      actionCreator => (state: ProfilesState, action: any) => {
+        if (!state.currentProfile || !state.profiles[state.currentProfile]) {
+          return;
+        }
+
+        state.profiles[state.currentProfile].labelPrinters =
+          labelPrintersReducer(
+            state.profiles[state.currentProfile].labelPrinters,
+            actionCreator(action.payload),
+          );
+      },
+      labelPrintersSliceName,
+    ),
+    mapActionReducers(
       cacheSliceActions.cache,
       actionCreator => (state: ProfilesState, action: any) => {
         if (!state.currentProfile || !state.profiles[state.currentProfile]) {
@@ -224,11 +249,10 @@ export const actions = {
     profilesSlice.actions,
     settingsSliceName,
   ),
-  // TODO: Should auto expose nested actions instead of manually doing this
   labelPrinters: overrideActions(
-    settingsSliceActions.labelPrinters,
+    labelPrintersSliceActions.labelPrinters,
     profilesSlice.actions,
-    settingsSliceName,
+    labelPrintersSliceName,
   ),
   inventory: overrideActions(
     inventorySliceActions.inventory,
@@ -279,11 +303,10 @@ export const selectors = {
     selector => (state: ProfilesState) =>
       selector(state.profiles[state.currentProfile || '']?.settings),
   ),
-  // TODO: Should auto expose nested selectors instead of manually doing this
   labelPrinters: mapSelectors(
-    settingsSelectors.labelPrinters,
+    labelPrintersSelectors.labelPrinters,
     selector => (state: ProfilesState) =>
-      selector(state.profiles[state.currentProfile || '']?.settings),
+      selector(state.profiles[state.currentProfile || '']?.labelPrinters),
   ),
   inventory: mapSelectors(
     inventorySelectors.inventory,
@@ -317,6 +340,9 @@ reducer.dehydrate = (state: ProfilesState) => {
         : {}),
       ...(inventoryReducer.dehydrate
         ? { inventory: inventoryReducer.dehydrate(s.inventory) }
+        : {}),
+      ...(labelPrintersReducer.dehydrate
+        ? { labelPrinters: labelPrintersReducer.dehydrate(s.labelPrinters) }
         : {}),
     })),
   };
