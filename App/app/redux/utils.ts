@@ -257,10 +257,13 @@ export function mapActionReducers<
     ActionCreatorWithoutPayload | ActionCreatorWithPayload<any>
   >,
 >(
+  /** An array of action creators of the child reducer. */
   actionCreators: T,
+  /** The map function of the action creators. For each action creator, it should return a reducer function that handles that action. Normally, the returned function will take a slice of the parent state, pass it through the child reducer, and assign the result back to the parent state. */
   fn: <U extends keyof T>(
     actionCreator: T[U],
   ) => (state: S, action: PayloadAction<any> & Action) => any,
+  /** Adds a prefix for child actions so it will not conflict with other actions. */
   prefix: string,
 ): {
   [K in keyof T]: T[K] extends ActionCreatorWithPayload<infer P>

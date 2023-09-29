@@ -23,6 +23,7 @@ import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import StatisticsScreen from '@app/features/inventory/screens/StatisticsScreen';
+import LabelPrintersScreen from '@app/features/label-printers/screens/LabelPrintersScreen';
 import UIAndAppearanceSettingsScreen from '@app/features/settings/screens/UIAndAppearanceSettingsScreen';
 
 import { DataTypeName } from '@app/data';
@@ -80,6 +81,7 @@ export type StackParamList = {
   Search: { query?: string } | undefined;
   Statistics: undefined;
   Settings: undefined;
+  LabelPrinters: undefined;
   UIAndAppearanceSettings: undefined;
   Configuration: undefined;
   HowToSwitchBetweenProfiles: undefined;
@@ -218,6 +220,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="More" component={MoreScreen} />
 
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="LabelPrinters" component={LabelPrintersScreen} />
       <Stack.Screen
         name="UIAndAppearanceSettings"
         component={UIAndAppearanceSettingsScreen}

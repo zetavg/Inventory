@@ -21,6 +21,17 @@ export default function FullWidthImage(
       // handle case where the source is an asset in which case onLoad won't get triggered
       const { width, height } = Image.resolveAssetSource(props.source);
       return { width, height };
+    } else if (
+      !!props.source &&
+      typeof props.source === 'object' &&
+      !Array.isArray(props.source) &&
+      typeof props.source.width === 'number' &&
+      typeof props.source.height === 'number'
+    ) {
+      return {
+        width: props.source.width,
+        height: props.source.height,
+      };
     } else {
       return {
         width: undefined,

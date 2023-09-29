@@ -2,6 +2,8 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import { useConfig } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -14,7 +16,6 @@ import Configuration from '@app/components/Configuration';
 import ScreenContent from '@app/components/ScreenContent';
 import Text, { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
-import Clipboard from '@react-native-clipboard/clipboard';
 
 function ConfigurationScreen({
   navigation,

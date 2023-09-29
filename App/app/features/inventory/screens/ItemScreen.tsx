@@ -269,6 +269,12 @@ function ItemScreen({
             }
           : null,
         {
+          name: 'Print Label',
+          onSelect: () => {
+            rootNavigation?.push('PrintLabelModal', { itemIds: [id] });
+          },
+        },
+        {
           name: 'Copy Item ID',
           onSelect: () => {
             Clipboard.setString(id);

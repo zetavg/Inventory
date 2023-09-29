@@ -326,6 +326,12 @@ const commonStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  fs20: {
+    fontSize: 20,
+  },
+  fs18: {
+    fontSize: 18,
+  },
   fs16: {
     fontSize: 16,
   },

@@ -33,6 +33,20 @@ function SettingsScreen({
 
         <UIGroup>
           <UIGroup.ListItem
+            label="RFID Readers"
+            navigable
+            onPress={() => navigation.push('NotImplemented', {})}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            label="Label Printers"
+            navigable
+            onPress={() => navigation.push('LabelPrinters')}
+          />
+        </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListItem
             label="Configuration"
             navigable
             onPress={() => navigation.push('Configuration')}

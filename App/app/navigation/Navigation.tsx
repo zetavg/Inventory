@@ -52,6 +52,9 @@ import SelectCollectionModalScreen from '@app/features/inventory/screens/SelectC
 import SelectCurrencyModalScreen from '@app/features/inventory/screens/SelectCurrencyModalScreen';
 import SelectItemModalScreen from '@app/features/inventory/screens/SelectItemModalScreen';
 import SelectItemTypeModalScreen from '@app/features/inventory/screens/SelectItemTypeModalScreen';
+import NewOrEditLabelPrinterModalScreen from '@app/features/label-printers/screens/NewOrEditLabelPrinterModalScreen';
+import PrintLabelModalScreen from '@app/features/label-printers/screens/PrintLabelModalScreen';
+import TestPrinterConfigModalScreen from '@app/features/label-printers/screens/TestPrinterConfigModalScreen';
 import CreateOrUpdateProfileScreen from '@app/features/profiles/screens/CreateOrUpdateProfileScreen';
 import DeleteProfileScreen from '@app/features/profiles/screens/DeleteProfileScreen';
 import NewProfileScreen from '@app/features/profiles/screens/NewProfileScreen';
@@ -110,6 +113,9 @@ export type RootStackParamList = {
   DBSyncConfigUpdate: {
     name?: string;
   };
+  NewOrEditLabelPrinterModal: { id?: string };
+  TestPrinterConfigModal: { printerConfig: string };
+  PrintLabelModal: { itemIds: ReadonlyArray<string> };
   SelectCollection: {
     callback: (value: string) => void;
     defaultValue?: string;
@@ -512,6 +518,18 @@ function Navigation({
             <Stack.Screen
               name="DBSyncNewOrEditServerModal"
               component={DBSyncNewOrEditServerModalScreen}
+            />
+            <Stack.Screen
+              name="NewOrEditLabelPrinterModal"
+              component={NewOrEditLabelPrinterModalScreen}
+            />
+            <Stack.Screen
+              name="TestPrinterConfigModal"
+              component={TestPrinterConfigModalScreen}
+            />
+            <Stack.Screen
+              name="PrintLabelModal"
+              component={PrintLabelModalScreen}
             />
             <Stack.Screen name="DatePicker" component={DatePickerModalScreen} />
             <Stack.Screen name="SelectIcon" component={SelectIconScreen} />
