@@ -21,17 +21,11 @@ import {
   reducer as profilesReducer,
   selectors as profilesSliceSelectors,
 } from '@app/features/profiles/slice';
-import {
-  actions as settingsSliceActions,
-  reducer as settingsReducer,
-  selectors as settingsSliceSelectors,
-} from '@app/features/settings/slice';
 
 import logger from './middlewares/logger';
 import { combineAndPersistReducers, mapGroupedSelectors } from './utils';
 
 export const reducers = {
-  settings: settingsReducer,
   profiles: profilesReducer,
   devTools: devToolsReducer,
   // For development demonstration
@@ -51,7 +45,6 @@ export const reducer = combineAndPersistReducers(reducers);
 export const actions = {
   ...counterSliceActions,
   ...countersSliceActions,
-  ...settingsSliceActions,
   ...profilesSliceActions,
   ...devToolsSliceActions,
 };
@@ -66,10 +59,6 @@ export const selectors = {
   ...mapGroupedSelectors(
     countersSliceSelectors,
     selector => (state: RootState) => selector((state as any).counters),
-  ),
-  ...mapGroupedSelectors(
-    settingsSliceSelectors,
-    selector => (state: RootState) => selector(state.settings),
   ),
   ...mapGroupedSelectors(
     profilesSliceSelectors,

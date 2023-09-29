@@ -224,6 +224,12 @@ export const actions = {
     profilesSlice.actions,
     settingsSliceName,
   ),
+  // TODO: Should auto expose nested actions instead of manually doing this
+  labelPrinters: overrideActions(
+    settingsSliceActions.labelPrinters,
+    profilesSlice.actions,
+    settingsSliceName,
+  ),
   inventory: overrideActions(
     inventorySliceActions.inventory,
     profilesSlice.actions,
@@ -270,6 +276,12 @@ export const selectors = {
   ),
   settings: mapSelectors(
     settingsSelectors.settings,
+    selector => (state: ProfilesState) =>
+      selector(state.profiles[state.currentProfile || '']?.settings),
+  ),
+  // TODO: Should auto expose nested selectors instead of manually doing this
+  labelPrinters: mapSelectors(
+    settingsSelectors.labelPrinters,
     selector => (state: ProfilesState) =>
       selector(state.profiles[state.currentProfile || '']?.settings),
   ),
