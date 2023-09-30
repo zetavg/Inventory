@@ -7,3 +7,7 @@ This does not include the actual implementation of data storage.
 ## Development
 
 Run `yarn run generate-schema` before and after development.
+
+## Implementations
+
+* CouchDB: [data-storage-couchdb](../packages/data-storage-couchdb)
