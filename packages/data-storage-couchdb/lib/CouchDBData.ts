@@ -1,21 +1,10 @@
-import nano from 'nano';
-
 import { GetConfig, GetData, GetDatum, GetRelated } from '@deps/data/types';
 
 import getGetConfig from './functions/getGetConfig';
 import getGetData from './functions/getGetData';
 import getGetDatum from './functions/getGetDatum';
 import getGetRelated from './functions/getGetRelated';
-
-type P =
-  | {
-      type?: 'couchdb';
-      db: nano.DocumentScope<unknown>;
-    }
-  | {
-      type: 'pouchdb';
-      db: any;
-    };
+import { Context } from './functions/types';
 
 export default class CouchDBData {
   public getConfig: GetConfig;
@@ -23,16 +12,10 @@ export default class CouchDBData {
   public getData: GetData;
   public getRelated: GetRelated;
 
-  constructor(p: P) {
-    if (p.type === 'pouchdb') {
-      throw new Error('Not implemented yet');
-    } else {
-      const { db } = p;
-
-      this.getConfig = getGetConfig({ db });
-      this.getDatum = getGetDatum({ db });
-      this.getData = getGetData({ db });
-      this.getRelated = getGetRelated({ db });
-    }
+  constructor(context: Context) {
+    this.getConfig = getGetConfig(context);
+    this.getDatum = getGetDatum(context);
+    this.getData = getGetData(context);
+    this.getRelated = getGetRelated(context);
   }
 }

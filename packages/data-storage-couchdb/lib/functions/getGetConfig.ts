@@ -4,6 +4,8 @@ import type nano from 'nano';
 import { configSchema, ConfigType } from '@deps/data/schema';
 import { GetConfig } from '@deps/data/types';
 
+import { Context } from './types';
+
 const CONFIG_ID = '0000-config' as const;
 
 export const INITIAL_CONFIG: ConfigType = {
@@ -16,16 +18,20 @@ export const INITIAL_CONFIG: ConfigType = {
   collections_order: [],
 };
 
-export default function getGetConfig({
-  db,
-}: {
-  db: nano.DocumentScope<unknown>;
-}) {
+export default function getGetConfig({ db, dbType }: Context) {
   const getConfigFn: GetConfig = async function getConfig({
     ensureSaved,
   } = {}) {
+    const dbGet = (docId: string) => {
+      if (dbType === 'pouchdb') {
+        return db.get(docId);
+      } else {
+        return db.get(docId);
+      }
+    };
+
     try {
-      const configDoc = await db.get(CONFIG_ID);
+      const configDoc = await dbGet(CONFIG_ID);
       const config = configSchema.parse(configDoc);
       return config;
     } catch (e) {

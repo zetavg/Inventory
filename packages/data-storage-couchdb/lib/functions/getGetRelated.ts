@@ -1,18 +1,13 @@
-import type nano from 'nano';
-
 import { getRelationTypeAndConfig } from '@deps/data/relations';
 import { GetRelated } from '@deps/data/types';
 
 import getGetData from './getGetData';
 import getGetDatum from './getGetDatum';
+import { Context } from './types';
 
-export default function getGetRelated({
-  db,
-}: {
-  db: nano.DocumentScope<unknown>;
-}): GetRelated {
-  const getDatum = getGetDatum({ db });
-  const getData = getGetData({ db });
+export default function getGetRelated(context: Context): GetRelated {
+  const getDatum = getGetDatum(context);
+  const getData = getGetData(context);
   const getRelated: GetRelated = async function getRelated(
     d,
     relationName,

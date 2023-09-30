@@ -1,5 +1,6 @@
 #!/usr/bin/env -S npx ts-node -r tsconfig-paths/register
 
+import PouchDB from 'pouchdb';
 import nano from 'nano';
 import { program } from 'commander';
 
@@ -17,6 +18,23 @@ program
   .option(
     '-p, --db_password <password>',
     'Database password. You can also specify a file path to load it from a file.',
+  )
+  .option(
+    '-c, --client_type <type>',
+    'Client type, either "nano" or "pouchdb".',
+    value => {
+      const validValues = ['nano', 'pouchdb'];
+      if (!validValues.includes(value)) {
+        console.error(
+          `Invalid value for --client_type. Must be one of: ${validValues.join(
+            ', ',
+          )}`,
+        );
+        process.exit(1);
+      }
+      return value;
+    },
+    'nano',
   );
 
 program.parse(process.argv);
@@ -47,20 +65,47 @@ function getPassword(callback: () => void) {
 }
 
 getPassword(async () => {
-  const { db_uri, db_username, db_password } = options;
+  const { db_uri, db_username, db_password, client_type } = options;
+
   const dbUrlObject = new URL(db_uri);
   const dbProtocol = dbUrlObject.protocol;
   const dbHost = dbUrlObject.host;
   const dbName = dbUrlObject.pathname.split('/').pop() || '';
 
-  const couchDBServer = nano(
-    `${dbProtocol}//${db_username}:${db_password}@${dbHost}`,
-  );
+  const db = await (async () => {
+    switch (client_type) {
+      case 'nano': {
+        const couchDBServer = nano(
+          `${dbProtocol}//${db_username}:${db_password}@${dbHost}`,
+        );
 
-  const db = couchDBServer.db.use(dbName);
+        return couchDBServer.db.use(dbName);
+      }
+
+      case 'pouchdb': {
+        console.log('Using PouchDB');
+        PouchDB.plugin(require('pouchdb-authentication'));
+        PouchDB.plugin(require('pouchdb-find'));
+
+        const remoteDB = new PouchDB(db_uri, {
+          skip_setup: true,
+          auth: {
+            username: db_username,
+            password: db_password,
+          },
+        });
+
+        await (remoteDB as any).logIn(db_username, db_password);
+        return remoteDB;
+      }
+
+      default:
+        throw new Error(`Invalid client_type: ${client_type}.`);
+    }
+  })();
 
   try {
-    await db.get('0000-config');
+    await (db as any).get('0000-config');
   } catch (e) {
     if (e instanceof Error && e.message === 'missing') {
       console.warn(
@@ -73,10 +118,9 @@ getPassword(async () => {
       throw e;
     }
   }
-  const d = new CouchDBData({ db });
+  const d = new CouchDBData({ db: db as any, dbType: client_type });
 
   const context = {
-    couchDBServer,
     db,
     ...d,
   };

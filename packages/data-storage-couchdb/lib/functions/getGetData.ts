@@ -1,5 +1,3 @@
-import type nano from 'nano';
-
 import {
   DataTypeWithID,
   GetData,
@@ -11,12 +9,9 @@ import {
   getCouchDbId,
   getDatumFromDoc,
 } from './couchdb-utils';
+import { Context } from './types';
 
-export default function getGetData({
-  db,
-}: {
-  db: nano.DocumentScope<unknown>;
-}): GetData {
+export default function getGetData({ db }: Context): GetData {
   const getData: GetData = async function getData(
     type,
     conditions = {},
