@@ -34,6 +34,8 @@ export type GetConfig = (options?: {
   ensureSaved?: boolean;
 }) => Promise<ConfigType>;
 
+export type UpdateConfig = (config: Partial<ConfigType>) => Promise<ConfigType>;
+
 type PartialWithExists<T> = {
   [K in keyof T]?: T[K] | { $exists: boolean };
 };
@@ -77,3 +79,8 @@ export type GetRelated = <
     sort?: SortOption<DataRelationType<T, N>>;
   },
 ) => Promise<DataRelationType<T, N> | null>;
+
+export type SaveDatum = <T extends DataTypeName>(
+  data: DataMeta<T> & { [key: string]: unknown },
+  options?: { noTouch?: boolean; ignoreConflict?: boolean },
+) => Promise<DataMeta<T> & { [key: string]: unknown }>;

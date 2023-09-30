@@ -48,7 +48,7 @@ export function getDatumFromDoc<T extends DataTypeName>(
   {
     logger = console,
     logLevels,
-  }: { logger?: Logger; logLevels?: () => ReadonlyArray<string> } = {},
+  }: { logger?: Logger | null; logLevels?: () => ReadonlyArray<string> } = {},
 ): ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> {
   if (!doc) {
     logger?.warn('getDatumFromDoc: invalid doc - got a falsely value');
@@ -83,9 +83,8 @@ function getProxiedDocDatum(
   d: CouchDBDoc,
   {
     logger = console,
-  }: { logger?: Logger; logLevels?: () => ReadonlyArray<string> } = {},
+  }: { logger?: Logger | null; logLevels?: () => ReadonlyArray<string> } = {},
 ) {
-  const { id } = d._id ? getDataIdFromCouchDbId(d._id) : { id: undefined };
   const s = schema[type];
   let parseResults: ReturnType<typeof s.safeParse> | undefined;
   const getParseResults = () => {
@@ -105,13 +104,42 @@ function getProxiedDocDatum(
 
     return parseResults;
   };
-  return new Proxy((d.data || {}) as Record<string | symbol, unknown>, {
-    get: function (target, prop) {
+
+  const pt: Record<string, string | number | boolean | undefined> = {};
+  function updatePt() {
+    for (const key in pt) {
+      if (pt.hasOwnProperty(key)) {
+        delete pt[key];
+      }
+    }
+    const { id } = d._id ? getDataIdFromCouchDbId(d._id) : { id: undefined };
+
+    pt.__type = type;
+    pt.__id = id;
+
+    switch (type) {
+      case 'collection': {
+        pt.name = ((d.data || {}) as any).name;
+        break;
+      }
+      case 'item': {
+        pt.name = ((d.data || {}) as any).name;
+        break;
+      }
+    }
+  }
+  updatePt();
+
+  return new Proxy(pt, {
+    get: function (_target, prop) {
       if (prop === '__type') {
         return type;
       }
 
       if (prop === '__id') {
+        const { id } = d._id
+          ? getDataIdFromCouchDbId(d._id)
+          : { id: undefined };
         return id;
       }
 
@@ -143,65 +171,76 @@ function getProxiedDocDatum(
         return getParseResults();
       }
 
-      return target[prop];
+      return ((d.data || {}) as any)[prop];
     },
-    set: function (target, prop, value) {
-      if (prop === '__id') {
-        d._id = value;
-        return true;
+    set: function (_target, prop, value) {
+      const success = (() => {
+        if (prop === '__id') {
+          d._id = getCouchDbId(type, value);
+          return true;
+        }
+
+        if (prop === '__rev') {
+          d._rev = value;
+          return true;
+        }
+
+        if (prop === '__deleted') {
+          d._deleted = value;
+          return true;
+        }
+
+        if (prop === '__created_at') {
+          d.created_at = value;
+          return true;
+        }
+
+        if (prop === '__updated_at') {
+          d.updated_at = value;
+          return true;
+        }
+
+        if (prop === '__deleted') {
+          d._deleted = value;
+          return true;
+        }
+
+        // Only allow assigning known properties
+        if (Object.keys(schema[type].shape).includes(prop as string)) {
+          if (typeof d.data !== 'object') {
+            d.data = {};
+          }
+          (d.data as any)[prop] = value;
+          return true;
+        }
+
+        return false;
+      })();
+
+      if (success) {
+        updatePt();
       }
 
-      if (prop === '__rev') {
-        d._rev = value;
-        return true;
-      }
-
-      if (prop === '__deleted') {
-        d._deleted = value;
-        return true;
-      }
-
-      if (prop === '__created_at') {
-        d.created_at = value;
-        return true;
-      }
-
-      if (prop === '__updated_at') {
-        d.updated_at = value;
-        return true;
-      }
-
-      if (prop === '__deleted') {
-        d._deleted = value;
-        return true;
-      }
-
-      // Only allow assigning known properties
-      if (Object.keys(schema[type].shape).includes(prop as string)) {
-        target[prop] = value;
-        return true;
-      }
-
-      return false;
+      return success;
     },
-    ownKeys: function (target) {
-      return [...DATA_ADDITIONAL_INFO_KEYS, ...Object.keys(target)];
+    ownKeys: function (_target) {
+      return [...DATA_ADDITIONAL_INFO_KEYS, ...Object.keys(d.data || {})];
     },
-    getOwnPropertyDescriptor: function (target, prop) {
+    getOwnPropertyDescriptor: function (_target, prop) {
       if (DATA_ADDITIONAL_INFO_KEYS.includes(prop as any)) {
         return {
           configurable: true,
           enumerable: true,
         };
       }
-      return Object.getOwnPropertyDescriptor(target, prop);
+      return Object.getOwnPropertyDescriptor(d.data, prop);
     },
   }) as any;
 }
 
 export function getDocFromDatum<T extends DataTypeName>(
   d: DataTypeWithID<T>,
-  { logger = console }: { logger?: Logger } = {},
+  { logger = console }: { logger?: Logger | null } = {},
 ): CouchDBDoc {
   let {
     __type,

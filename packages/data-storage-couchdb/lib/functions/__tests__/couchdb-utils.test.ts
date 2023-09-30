@@ -57,10 +57,14 @@ describe('getDatumFromDoc & getDocFromDatum', () => {
 
 describe('getDatumFromDoc', () => {
   it('returns a datum with correct __type and __id', () => {
-    const invalidDatum = getDatumFromDoc('collection', {
-      _id: 'collection-1234',
-      type: 'collection',
-    });
+    const invalidDatum = getDatumFromDoc(
+      'collection',
+      {
+        _id: 'collection-1234',
+        type: 'collection',
+      },
+      { logger: null },
+    );
 
     expect(invalidDatum.__valid).toBe(false);
     expect(invalidDatum.__type).toBe('collection');
@@ -81,6 +85,24 @@ describe('getDatumFromDoc', () => {
     expect(validDatum.__valid).toBe(true);
     expect(validDatum.__type).toBe('collection');
     expect(validDatum.__id).toBe('1234');
+  });
+
+  it('returns a datum which __id is assignable', () => {
+    const datum = getDatumFromDoc('collection', {
+      type: 'collection',
+      data: {
+        name: 'Test Collection',
+        collection_reference_number: '1234',
+        icon_name: '',
+        icon_color: '',
+        config_uuid: 'mock-config-id',
+      },
+    });
+
+    expect(datum.__id).toBe(undefined);
+    datum.__id = '1234';
+    expect(datum.__id).toBe('1234');
+    expect(getDocFromDatum(datum as any)._id).toBe('collection-1234');
   });
 
   it('preserve meta properties with object spread', () => {

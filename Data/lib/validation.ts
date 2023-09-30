@@ -14,6 +14,21 @@ import {
 
 export type ValidationResults = Array<ZodIssue>;
 
+class ValidationError extends Error {
+  messages: Array<string>;
+  zodIssues: Array<ZodIssue>;
+
+  constructor(validationResults: ValidationResults) {
+    const messages = getValidationResultMessages(validationResults);
+    super(messages.join(', '));
+    this.messages = messages;
+    this.zodIssues = validationResults;
+
+    // Set the prototype explicitly to ValidationError, to make instanceof work
+    Object.setPrototypeOf(this, ValidationError.prototype);
+  }
+}
+
 export default function getValidation({
   getConfig,
   getDatum,
@@ -421,17 +436,30 @@ export default function getValidation({
   };
 }
 
+export function getErrorFromValidationResults(
+  validationResults: ValidationResults,
+): ValidationError | null {
+  if (validationResults.length <= 0) return null;
+  return new ValidationError(validationResults);
+}
+
+export function getValidationResultMessages(
+  validationResults: ValidationResults,
+) {
+  return validationResults.map(
+    (issue: any) =>
+      `${toTitleCase(
+        issue.path.join('_').replace(/_/g, ' '),
+      )}: ${issue.message.toLowerCase()}`,
+  );
+}
+
 export function getValidationResultMessage(
   validationResults: ValidationResults,
   { bullet = '', joinWith = ', ' }: { bullet?: string; joinWith?: string } = {},
 ) {
-  return validationResults
-    .map(
-      (issue: any) =>
-        `${bullet ? `${bullet} ` : ''}${toTitleCase(
-          issue.path.join('_').replace(/_/g, ' '),
-        )}: ${issue.message.toLowerCase()}`,
-    )
+  return getValidationResultMessages(validationResults)
+    .map(message => `${bullet ? `${bullet} ` : ''}${message}`)
     .join(joinWith);
 }
 

@@ -20,7 +20,11 @@ export default function getGetDatum({
   const getDatum: GetDatum = async function getDatum(type, id) {
     const doc =
       (await dbGet(getCouchDbId(type, id)).catch(e => {
-        if (e instanceof Error && e.name === 'not_found') {
+        if (
+          e.message === 'not_found' /* nano */ ||
+          e.message ===
+            'missing' /* pouchdb, note that `e instanceof Error` will be false */
+        ) {
           return null;
         }
 

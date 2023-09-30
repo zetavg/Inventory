@@ -1,4 +1,4 @@
-#!/usr/bin/env -S npx ts-node -r tsconfig-paths/register
+#!/usr/bin/env -S npx ts-node --transpile-only -r tsconfig-paths/register
 
 import PouchDB from 'pouchdb';
 import nano from 'nano';
@@ -123,15 +123,25 @@ getPassword(async () => {
       throw e;
     }
   }
-  const d = new CouchDBData({ db: db as any, dbType: client_type });
 
   let r: repl.REPLServer | undefined;
+  let logLevels = ['info', 'log', 'warn', 'error'];
+  const getLogLevels = () => logLevels;
+  const setLogLevels = (levels: Array<string>) => (logLevels = levels);
+  const d = new CouchDBData({
+    db: db as any,
+    dbType: client_type,
+    logger: console,
+    logLevels: getLogLevels,
+  });
   const context = {
     getREPL: () => r,
     db,
     getDatumFromDoc,
     getDocFromDatum,
     ...d,
+    getLogLevels,
+    setLogLevels,
   };
   Object.assign(global, context);
 

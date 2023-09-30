@@ -6,9 +6,9 @@ import { GetConfig } from '@deps/data/types';
 
 import { Context } from './types';
 
-const CONFIG_ID = '0000-config' as const;
+export const CONFIG_ID = '0000-config' as const;
 
-export const INITIAL_CONFIG: ConfigType = {
+export const getInitialConfig: () => ConfigType = () => ({
   uuid: uuid(),
   rfid_tag_company_prefix: '0000000',
   rfid_tag_individual_asset_reference_prefix: '100',
@@ -16,9 +16,14 @@ export const INITIAL_CONFIG: ConfigType = {
   default_use_mixed_rfid_tag_access_password: false,
   rfid_tag_access_password_encoding: '082a4c6e',
   collections_order: [],
-};
+});
 
-export default function getGetConfig({ db, dbType }: Context) {
+export default function getGetConfig({
+  db,
+  dbType,
+  logger,
+  logLevels,
+}: Context) {
   const getConfigFn: GetConfig = async function getConfig({
     ensureSaved,
   } = {}) {
@@ -40,7 +45,7 @@ export default function getGetConfig({ db, dbType }: Context) {
         (e as any).name === 'not_found' &&
         !ensureSaved
       ) {
-        return INITIAL_CONFIG;
+        return getInitialConfig();
       } else {
         throw new Error(
           `getConfig error: ${
