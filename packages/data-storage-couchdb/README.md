@@ -7,10 +7,10 @@ Functions for accessing data stored in CouchDB.
 You can start a TypeScript REPL to manage data in a CouchDB database by running:
 
 ```bash
-./repl.ts --db_uri <uri> --db_username <username>
+./repl --db_uri <uri> --db_username <username>
 ```
 
-See `./repl.ts --help` for more info.
+See `./repl --help` for more info.
 
 Sample usage inside the REPL:
 

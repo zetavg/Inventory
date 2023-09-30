@@ -1,5 +1,10 @@
 {
   "extends": "@tsconfig/react-native/tsconfig.json",
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  },
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,

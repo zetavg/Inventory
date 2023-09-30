@@ -1,15 +1,19 @@
-#!/usr/bin/env -S npx ts-node --transpile-only -r tsconfig-paths/register
+#!/usr/bin/env -S npx ts-node --transpile-only
 
 import PouchDB from 'pouchdb';
 import nano from 'nano';
 import { program } from 'commander';
 
 import fs from 'fs';
-import CouchDBData from 'lib/CouchDBData';
-import { getDatumFromDoc, getDocFromDatum } from 'lib/functions/couchdb-utils';
 import path from 'path';
 import prompt from 'prompt';
 import repl from 'repl';
+
+import CouchDBData from './lib/CouchDBData';
+import {
+  getDatumFromDoc,
+  getDocFromDatum,
+} from './lib/functions/couchdb-utils';
 
 program
   .description('Inventory CouchDB Data REPL.')
@@ -126,7 +130,11 @@ getPassword(async () => {
 
         await (remoteDB as any).logIn(db_username, db_password);
 
-        const localDB = new PouchDB(':memory:', {
+        const pouchdbMd5 = require('pouchdb-md5');
+        const localDbName = `.repl_temp_dbs/pouchdb-websql-${pouchdbMd5.stringMd5(
+          db_uri,
+        )}`;
+        const localDB = new PouchDB(localDbName, {
           adapter: 'react-native-sqlite',
         });
 
@@ -158,8 +166,7 @@ getPassword(async () => {
           batch_size: 10,
           retry: true,
         });
-        dbWarning =
-          'WARNING: You are using a in-memory database which syncs to your remote database. However, synchronization is not guaranteed and may be affected by network connectivity.\nONCE YOU EXIT THE REPL, ALL YOUR UN-SYNCED CHANGES WILL BE LOST!';
+        dbWarning = `WARNING: You are using a temporary local database ("${localDbName}") which syncs to your remote database. However, synchronization is not guaranteed and may be affected by network connectivity.`;
 
         return localDB;
       }
