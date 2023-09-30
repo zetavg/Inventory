@@ -24,9 +24,9 @@ program
   )
   .option(
     '-c, --client_type <type>',
-    'Client type, either "nano" or "pouchdb".',
+    'Client type, either "nano", "pouchdb" or "pouchdb-websql".',
     value => {
-      const validValues = ['nano', 'pouchdb'];
+      const validValues = ['nano', 'pouchdb', 'pouchdb-websql'];
       if (!validValues.includes(value)) {
         console.error(
           `Invalid value for --client_type. Must be one of: ${validValues.join(
@@ -77,6 +77,7 @@ getPassword(async () => {
   const dbHost = dbUrlObject.host;
   const dbName = dbUrlObject.pathname.split('/').pop() || '';
 
+  let dbWarning = '';
   const db = await (async () => {
     switch (client_type) {
       case 'nano': {
@@ -102,6 +103,65 @@ getPassword(async () => {
 
         await (remoteDB as any).logIn(db_username, db_password);
         return remoteDB;
+      }
+
+      case 'pouchdb-websql': {
+        console.log('Using PouchDB with WebSQL');
+        PouchDB.plugin(require('pouchdb-authentication'));
+        PouchDB.plugin(require('pouchdb-find'));
+        var openDatabase = require('websql');
+        const SQLiteAdapter =
+          require('pouchdb-adapter-react-native-sqlite/lib')({
+            openDatabase,
+          });
+        PouchDB.plugin(SQLiteAdapter);
+
+        const remoteDB = new PouchDB(db_uri, {
+          skip_setup: true,
+          auth: {
+            username: db_username,
+            password: db_password,
+          },
+        });
+
+        await (remoteDB as any).logIn(db_username, db_password);
+
+        const localDB = new PouchDB(':memory:', {
+          adapter: 'react-native-sqlite',
+        });
+
+        await new Promise<void>(resolve => {
+          const initialSyncHandler = localDB.sync(remoteDB, {
+            live: false,
+            batch_size: 100,
+            retry: true,
+          });
+          let lastOutputAt = 0;
+          initialSyncHandler.on('change', function (info) {
+            const now = Date.now();
+            const pending = (info.change as any)?.pending;
+            if (
+              (now - lastOutputAt > 2000 || pending === 0) &&
+              info.direction === 'pull'
+            ) {
+              console.log(`Initial sync in progress, pending: ${pending}`);
+              lastOutputAt = now;
+            }
+          });
+          initialSyncHandler.on('complete', () => {
+            resolve();
+          });
+        });
+
+        localDB.sync(remoteDB, {
+          live: true,
+          batch_size: 10,
+          retry: true,
+        });
+        dbWarning =
+          'WARNING: You are using a in-memory database which syncs to your remote database. However, synchronization is not guaranteed and may be affected by network connectivity.\nONCE YOU EXIT THE REPL, ALL YOUR UN-SYNCED CHANGES WILL BE LOST!';
+
+        return localDB;
       }
 
       default:
@@ -159,6 +219,12 @@ getPassword(async () => {
   console.log('');
   console.log('To exit, press Ctrl+C twice, or type .exit');
   console.log('');
+
+  if (dbWarning) {
+    console.log('');
+    console.log(dbWarning);
+    console.log('');
+  }
 
   r = repl.start();
 

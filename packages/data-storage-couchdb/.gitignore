@@ -12,3 +12,7 @@ yarn-error.log
 # deps
 #
 deps/
+
+# PouchDB
+#
+/*-mrview-*
