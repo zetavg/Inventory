@@ -1,7 +1,11 @@
-import type nano from 'nano';
-
 import schema, { DATA_TYPE_NAMES, DataTypeName } from '@deps/data/schema';
-import { DataTypeWithID, InvalidDataTypeWithID } from '@deps/data/types';
+import {
+  DataTypeWithID,
+  InvalidDataTypeWithID,
+  ValidDataTypeWithID,
+} from '@deps/data/types';
+
+import { CouchDBDoc, Logger } from './types';
 
 export function getCouchDbId(type: DataTypeName, id: string) {
   return `${type}-${id}`;
@@ -40,18 +44,29 @@ const DATA_ADDITIONAL_INFO_KEYS = [
 
 export function getDatumFromDoc<T extends DataTypeName>(
   type: T,
-  doc: nano.DocumentGetResponse | null,
-): DataTypeWithID<T> | InvalidDataTypeWithID<T> | null {
+  doc: CouchDBDoc | null,
+  {
+    logger = console,
+    logLevels,
+  }: { logger?: Logger; logLevels?: () => ReadonlyArray<string> } = {},
+): ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> {
   if (!doc) {
-    return null;
+    logger?.warn('getDatumFromDoc: invalid doc - got a falsely value');
+
+    return {
+      __type: type,
+      __raw: doc,
+      __valid: false,
+    };
   }
 
-  let id: undefined | string;
   if (doc._id) {
-    const { type: typeName, id: iid } = getDataIdFromCouchDbId(doc._id);
-    id = iid;
+    const { type: typeName } = getDataIdFromCouchDbId(doc._id);
 
     if (typeName !== type) {
+      logger?.warn(
+        `getDatumFromDoc: type from doc ID "${doc._id}" does not match the expected data type "${type}"`,
+      );
       return {
         __type: type,
         __raw: doc,
@@ -60,126 +75,134 @@ export function getDatumFromDoc<T extends DataTypeName>(
     }
   }
 
-  const parseResults = schema[type].safeParse((doc as any).data);
+  return getProxiedDocDatum(type, doc, { logger, logLevels });
+}
 
-  function getProxiedDoc(
-    d: any,
-    valid: boolean,
-    error: unknown,
-    error_details: unknown,
-  ) {
-    return new Proxy(d.data || {}, {
-      get: function (target, prop) {
-        if (prop === '__type') {
-          return type;
-        }
+function getProxiedDocDatum(
+  type: DataTypeName,
+  d: CouchDBDoc,
+  {
+    logger = console,
+  }: { logger?: Logger; logLevels?: () => ReadonlyArray<string> } = {},
+) {
+  const { id } = d._id ? getDataIdFromCouchDbId(d._id) : { id: undefined };
+  const s = schema[type];
+  let parseResults: ReturnType<typeof s.safeParse> | undefined;
+  const getParseResults = () => {
+    if (parseResults) return parseResults;
 
-        if (prop === '__id') {
-          return id;
-        }
+    parseResults = s.safeParse(d?.data);
 
-        if (prop === '__rev') {
-          return d._rev;
-        }
+    if (!parseResults?.success) {
+      logger?.warn(
+        `getProxiedDocDatum: invalid doc for type "${type}": ${JSON.stringify(
+          parseResults,
+          null,
+          2,
+        )}, doc: ${JSON.stringify(d, null, 2)}`,
+      );
+    }
 
-        if (prop === '__deleted') {
-          return d._deleted;
-        }
+    return parseResults;
+  };
+  return new Proxy((d.data || {}) as Record<string | symbol, unknown>, {
+    get: function (target, prop) {
+      if (prop === '__type') {
+        return type;
+      }
 
-        if (prop === '__created_at') {
-          return d.created_at;
-        }
+      if (prop === '__id') {
+        return id;
+      }
 
-        if (prop === '__updated_at') {
-          return d.updated_at;
-        }
+      if (prop === '__rev') {
+        return d._rev;
+      }
 
-        if (prop === '__deleted') {
-          return d._deleted;
-        }
+      if (prop === '__deleted') {
+        return d._deleted;
+      }
 
-        if (prop === '__raw') {
-          return d;
-        }
+      if (prop === '__created_at') {
+        return d.created_at;
+      }
 
-        if (prop === '__valid') {
-          return valid;
-        }
+      if (prop === '__updated_at') {
+        return d.updated_at;
+      }
 
-        if (prop === '__error_details') {
-          return error_details;
-        }
+      if (prop === '__raw') {
+        return d;
+      }
 
-        return target[prop];
-      },
-      set: function (target, prop, value) {
-        if (prop === '__id') {
-          d._id = value;
-          return true;
-        }
+      if (prop === '__valid') {
+        return getParseResults().success;
+      }
 
-        if (prop === '__rev') {
-          d._rev = value;
-          return true;
-        }
+      if (prop === '__error_details') {
+        return getParseResults();
+      }
 
-        if (prop === '__deleted') {
-          d._deleted = value;
-          return true;
-        }
+      return target[prop];
+    },
+    set: function (target, prop, value) {
+      if (prop === '__id') {
+        d._id = value;
+        return true;
+      }
 
-        if (prop === '__created_at') {
-          d.created_at = value;
-          return true;
-        }
+      if (prop === '__rev') {
+        d._rev = value;
+        return true;
+      }
 
-        if (prop === '__updated_at') {
-          d.updated_at = value;
-          return true;
-        }
+      if (prop === '__deleted') {
+        d._deleted = value;
+        return true;
+      }
 
-        if (prop === '__deleted') {
-          d._deleted = value;
-          return true;
-        }
+      if (prop === '__created_at') {
+        d.created_at = value;
+        return true;
+      }
 
-        // Only allow assigning known properties
-        if (Object.keys(schema[type].shape).includes(prop as string)) {
-          target[prop] = value;
-          return true;
-        }
+      if (prop === '__updated_at') {
+        d.updated_at = value;
+        return true;
+      }
 
-        return false;
-      },
-      ownKeys: function () {
-        return [
-          ...DATA_ADDITIONAL_INFO_KEYS,
-          ...Object.keys(schema[type].shape),
-        ];
-      },
-      getOwnPropertyDescriptor: function (target, prop) {
-        if (DATA_ADDITIONAL_INFO_KEYS.includes(prop as any)) {
-          return {
-            configurable: true,
-            enumerable: true,
-          };
-        }
-        return Object.getOwnPropertyDescriptor(target, prop);
-      },
-    }) as any;
-  }
+      if (prop === '__deleted') {
+        d._deleted = value;
+        return true;
+      }
 
-  return getProxiedDoc(
-    doc,
-    parseResults.success,
-    null,
-    parseResults.success ? null : parseResults,
-  );
+      // Only allow assigning known properties
+      if (Object.keys(schema[type].shape).includes(prop as string)) {
+        target[prop] = value;
+        return true;
+      }
+
+      return false;
+    },
+    ownKeys: function (target) {
+      return [...DATA_ADDITIONAL_INFO_KEYS, ...Object.keys(target)];
+    },
+    getOwnPropertyDescriptor: function (target, prop) {
+      if (DATA_ADDITIONAL_INFO_KEYS.includes(prop as any)) {
+        return {
+          configurable: true,
+          enumerable: true,
+        };
+      }
+      return Object.getOwnPropertyDescriptor(target, prop);
+    },
+  }) as any;
 }
 
 export function getDocFromDatum<T extends DataTypeName>(
-  d: DataTypeWithID<T> | InvalidDataTypeWithID<T>,
-): nano.DocumentGetResponse {
+  d: DataTypeWithID<T>,
+  { logger = console }: { logger?: Logger } = {},
+): CouchDBDoc {
   let {
     __type,
     __id,
@@ -194,32 +217,17 @@ export function getDocFromDatum<T extends DataTypeName>(
     Object.entries(unfilteredPureData).filter(([k]) => !k.startsWith('__')),
   ) as any;
 
+  const s = (schema as any)[__type as any];
+
   const doc: Record<string, unknown> = {
+    ...(__id ? { _id: getCouchDbId(__type as any, __id as any) } : {}),
+    ...(__rev ? { _rev: __rev } : {}),
+    ...(__deleted ? { _deleted: __deleted } : {}),
     type: __type,
-    data: {
-      ...pureData,
-    },
+    data: sortObjectKeys(pureData, Object.keys(s?.shape || {})),
+    ...(typeof __created_at === 'number' ? { created_at: __created_at } : {}),
+    ...(typeof __updated_at === 'number' ? { updated_at: __updated_at } : {}),
   };
-
-  if (__id) {
-    doc._id = getCouchDbId(__type, __id);
-  }
-
-  if (__rev) {
-    doc._rev = __rev;
-  }
-
-  if (__deleted) {
-    doc._deleted = __deleted;
-  }
-
-  if (__created_at) {
-    doc.created_at = __created_at;
-  }
-
-  if (__updated_at) {
-    doc.updated_at = __updated_at;
-  }
 
   return doc as any;
 }
@@ -242,4 +250,23 @@ export function flattenSelector(obj: any, parent = '', result = {} as any) {
     }
   }
   return result;
+}
+
+export function sortObjectKeys<T extends Record<string, unknown>>(
+  obj: T,
+  sort: ReadonlyArray<string>,
+) {
+  const sortedObj: any = {};
+  for (const key of sort) {
+    if (obj.hasOwnProperty(key)) {
+      sortedObj[key] = obj[key];
+    }
+  }
+
+  const sortedKeysSet = new Set(sort);
+  for (const key of Object.keys(obj).filter(k => !sortedKeysSet.has(k))) {
+    sortedObj[key] = obj[key];
+  }
+
+  return sortedObj;
 }

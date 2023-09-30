@@ -6,22 +6,25 @@ import {
 import { ConfigType, DataType, DataTypeName } from './schema';
 export type { DataTypeName } from './schema';
 
-export type DataTypeWithID<T extends DataTypeName> = DataType<T> & {
+export type DataMeta<T extends DataTypeName> = {
   __type: T;
   __id?: string;
   __rev?: string;
   __deleted?: boolean;
   __created_at?: number;
   __updated_at?: number;
-  __valid: true;
   __raw?: unknown;
 };
 
-export type InvalidDataTypeWithID<T extends DataTypeName> = {
-  __type: T;
-  __id?: string;
+export type DataTypeWithID<T extends DataTypeName> = DataMeta<T> & DataType<T>;
+
+export type ValidDataTypeWithID<T extends DataTypeName> = DataTypeWithID<T> & {
+  __valid: true;
+};
+
+export type InvalidDataTypeWithID<T extends DataTypeName> = DataMeta<T> & {
   __valid: false;
-  __raw?: unknown;
+  // TODO: type this
   __errors?: unknown;
   __error_details?: unknown;
 } & { [key: string]: unknown };
@@ -55,18 +58,18 @@ export type GetData = <T extends DataTypeName>(
     limit?: number;
     sort?: SortOption<DataType<T>>;
   },
-) => Promise<Array<DataTypeWithID<T> | InvalidDataTypeWithID<T>>>;
+) => Promise<Array<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>>>;
 
 export type GetDatum = <T extends DataTypeName>(
   type: T,
   id: string,
-) => Promise<DataTypeWithID<T> | InvalidDataTypeWithID<T> | null>;
+) => Promise<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null>;
 
 export type GetRelated = <
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
 >(
-  d: DataTypeWithID<T> | InvalidDataTypeWithID<T>,
+  d: DataMeta<T> & { [key: string]: unknown },
   relationName: N,
   {
     sort,

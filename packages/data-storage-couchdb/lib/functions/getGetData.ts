@@ -11,12 +11,18 @@ import {
 } from './couchdb-utils';
 import { Context } from './types';
 
-export default function getGetData({ db }: Context): GetData {
+export default function getGetData({
+  db,
+  logger,
+  logLevels,
+}: Context): GetData {
   const getData: GetData = async function getData(
     type,
     conditions = {},
     { skip = 0, limit = undefined, sort } = {},
   ) {
+    const logDebug = logLevels && logLevels().includes('debug');
+
     const couchdbSort: Array<{ [key: string]: 'asc' | 'desc' }> | undefined =
       sort &&
       sort.map(
@@ -100,7 +106,7 @@ export default function getGetData({ db }: Context): GetData {
         return {
           ddocName: `auto_get_data--${type}--${indexFields.join('-')}`,
           index: {
-            fields: indexFields,
+            fields: ['type', ...indexFields],
             partial_filter_selector: { type },
           },
         };
@@ -115,7 +121,15 @@ export default function getGetData({ db }: Context): GetData {
       sort: couchdbSort || undefined,
     };
 
-    // console.log(JSON.stringify({ query, index }, null, 2));
+    if (logger && logDebug) {
+      logger.debug(
+        `getData query ${JSON.stringify(query, null, 2)} index ${JSON.stringify(
+          index,
+          null,
+          2,
+        )}`,
+      );
+    }
 
     const response = await (async () => {
       let retries = 0;
@@ -131,12 +145,24 @@ export default function getGetData({ db }: Context): GetData {
             index,
           });
 
+          if (logger && logDebug) {
+            logger.debug(
+              `getData: creating index "${ddocName}": ${JSON.stringify(
+                index,
+                null,
+                2,
+              )}`,
+            );
+          }
+
           retries += 1;
         }
       }
     })();
 
-    const data = response.docs.map(d => getDatumFromDoc(type, d)) as any;
+    const data = response.docs.map(d =>
+      getDatumFromDoc(type, d, { logger, logLevels }),
+    ) as any;
 
     if (Array.isArray(conditions) && !couchdbSort) {
       const dataMap = new Map<

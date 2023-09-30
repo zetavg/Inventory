@@ -6,6 +6,7 @@ import { program } from 'commander';
 
 import fs from 'fs';
 import CouchDBData from 'lib/CouchDBData';
+import { getDatumFromDoc, getDocFromDatum } from 'lib/functions/couchdb-utils';
 import path from 'path';
 import prompt from 'prompt';
 import repl from 'repl';
@@ -128,6 +129,8 @@ getPassword(async () => {
   const context = {
     getREPL: () => r,
     db,
+    getDatumFromDoc,
+    getDocFromDatum,
     ...d,
   };
   Object.assign(global, context);

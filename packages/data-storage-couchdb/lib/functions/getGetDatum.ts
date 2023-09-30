@@ -3,7 +3,12 @@ import { GetDatum } from '@deps/data/types';
 import { getCouchDbId, getDatumFromDoc } from './couchdb-utils';
 import { Context } from './types';
 
-export default function getGetDatum({ db, dbType }: Context): GetDatum {
+export default function getGetDatum({
+  db,
+  dbType,
+  logger,
+  logLevels,
+}: Context): GetDatum {
   const dbGet = (docId: string) => {
     if (dbType === 'pouchdb') {
       return db.get(docId);
@@ -23,7 +28,7 @@ export default function getGetDatum({ db, dbType }: Context): GetDatum {
       })) || null;
     if (!doc) return null;
 
-    return getDatumFromDoc(type, doc);
+    return getDatumFromDoc(type, doc, { logger, logLevels });
   };
 
   return getDatum;
