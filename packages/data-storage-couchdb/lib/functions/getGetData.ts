@@ -17,9 +17,7 @@ export default function getGetData({ db }: Context): GetData {
     conditions = {},
     { skip = 0, limit = undefined, sort } = {},
   ) {
-    let selector = { type };
-
-    const sortData: typeof sort =
+    const couchdbSort: Array<{ [key: string]: 'asc' | 'desc' }> | undefined =
       sort &&
       sort.map(
         s =>
@@ -40,19 +38,34 @@ export default function getGetData({ db }: Context): GetData {
           ) as any,
       );
 
-    let ddocName;
-    if (Array.isArray(conditions)) {
-      selector = {
-        _id: {
-          $in: conditions.map(id => getCouchDbId(type, id)),
-        },
-      } as any;
-    } else if (Object.keys(conditions).length > 0) {
-      const conditionData = flattenSelector(
+    const { selector, indexFields } = (() => {
+      if (Array.isArray(conditions)) {
+        if (couchdbSort) {
+          throw new Error(
+            'The sort option is not currently supported while using and array of IDs as the conditions',
+          );
+        }
+
+        return {
+          selector: {
+            type,
+            _id: {
+              $in: conditions.map(id => getCouchDbId(type, id)),
+            },
+          },
+          indexFields: [],
+        };
+      }
+
+      const flattenedSelector = flattenSelector(
         Object.fromEntries(
           Object.entries(conditions).map(([k, v]) => [
             (() => {
               switch (k) {
+                case '__created_at':
+                  return 'created_at';
+                case '__updated_at':
+                  return 'updated_at';
                 default:
                   return `data.${k}`;
               }
@@ -61,65 +74,71 @@ export default function getGetData({ db }: Context): GetData {
           ]),
         ) as any,
       );
-      const indexFields = [
-        ...(sortData ? sortData.flatMap(s => Object.keys(s)) : []),
-        ...Object.keys(conditionData),
-      ];
-      ddocName = `get_data--type_${type}--${indexFields.join('-')}`;
-      await db.createIndex({
-        ddoc: ddocName,
-        name: ddocName,
-        index: {
-          fields: indexFields,
-          partial_filter_selector: { type },
-        },
-      });
-      selector = {
-        ...conditionData,
-      };
-    } else if (sortData) {
-      const indexFields = [...sortData.flatMap(s => Object.keys(s))];
-      ddocName = `get_data--type_${type}--${indexFields.join('-')}`;
-      await db.createIndex({
-        ddoc: ddocName,
-        name: ddocName,
-        index: {
-          fields: indexFields,
-          partial_filter_selector: { type },
-        },
-      });
-    } else {
-      ddocName = 'get_data--type';
-      await db.createIndex({
-        ddoc: ddocName,
-        name: ddocName,
-        index: {
-          fields: ['type'],
-        },
-      });
-    }
 
-    if (sortData) {
-      for (const s of sortData) {
-        for (const key of Object.keys(s)) {
-          (selector as any)[key] = { $exists: true };
-        }
+      const sortKeys = (couchdbSort || []).flatMap(s => Object.keys(s));
+
+      return {
+        selector: {
+          type,
+          ...flattenedSelector,
+          ...Object.fromEntries(sortKeys.map(k => [k, { $exists: true }])),
+        },
+        indexFields: [...Object.keys(flattenedSelector), ...sortKeys],
+      };
+    })();
+
+    const { ddocName, index } = (() => {
+      if (indexFields.length <= 0) {
+        return {
+          ddocName: 'auto_get_data--type',
+          index: {
+            fields: ['type'],
+            partial_filter_selector: { type },
+          },
+        };
+      } else {
+        return {
+          ddocName: `auto_get_data--${type}--${indexFields.join('-')}`,
+          index: {
+            fields: indexFields,
+            partial_filter_selector: { type },
+          },
+        };
       }
-    }
+    })();
 
     const query = {
       use_index: ddocName ? ([ddocName, ddocName] as any) : undefined,
       selector,
       skip,
       limit,
-      sort: sortData || undefined,
+      sort: couchdbSort || undefined,
     };
 
-    const response = await db.find(query);
+    // console.log(JSON.stringify({ query, index }, null, 2));
+
+    const response = await (async () => {
+      let retries = 0;
+      while (true) {
+        try {
+          return await db.find(query);
+        } catch (e) {
+          if (retries > 3) throw e;
+
+          await db.createIndex({
+            ddoc: ddocName,
+            name: ddocName,
+            index,
+          });
+
+          retries += 1;
+        }
+      }
+    })();
 
     const data = response.docs.map(d => getDatumFromDoc(type, d)) as any;
 
-    if (Array.isArray(conditions) && !sortData) {
+    if (Array.isArray(conditions) && !couchdbSort) {
       const dataMap = new Map<
         string,
         DataTypeWithID<typeof type> | InvalidDataTypeWithID<typeof type>
