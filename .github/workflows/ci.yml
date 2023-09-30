@@ -1,5 +1,5 @@
 name: CI
-run-name: "CI${{ !vars.CI_DISABLE_BUILD && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) && ' & Build:' || ':' }} ${{ github.event_name == 'push' && format('[{0}] {1}', github.ref_name, github.event.head_commit.message) || github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'schedule' && format('Scheduled: {0}', github.ref_name) || github.ref_name }}"
+run-name: "CI${{ vars.CI_ENABLE_BUILD && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) && ' & Build:' || ':' }} ${{ github.event_name == 'push' && format('[{0}] {1}', github.ref_name, github.event.head_commit.message) || github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'schedule' && format('Scheduled: {0}', github.ref_name) || github.ref_name }}"
 on:
   push:
     branches:
@@ -203,7 +203,7 @@ jobs:
     - test-app
     - paths-filter
     # Build if the app has changes, and event is not a pull request, or if the pull request is not a draft and the pull request is not from a fork (runs of fork PRs will not have access to secrets that are required for building the app).
-    if: ${{ !vars.CI_DISABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
+    if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     uses: ./.github/workflows/build_app.yml
     with:
       build-release: ${{ github.event_name == 'release' }}
