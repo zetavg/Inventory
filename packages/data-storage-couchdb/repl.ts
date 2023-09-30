@@ -160,7 +160,7 @@ getPassword(async () => {
           .split('\n')
           .reverse()
           .filter(line => !!line);
-        (r as any).history.unshift(loadedHistory);
+        (r as any).history.unshift(...loadedHistory);
       })
       .catch(err =>
         console.error(`Failed to read REPL history: ${err.message}`),
