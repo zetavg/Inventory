@@ -4,7 +4,9 @@ import PouchDB from 'pouchdb';
 import nano from 'nano';
 import { program } from 'commander';
 
+import fs from 'fs';
 import CouchDBData from 'lib/CouchDBData';
+import path from 'path';
 import prompt from 'prompt';
 import repl from 'repl';
 
@@ -40,6 +42,8 @@ program
 program.parse(process.argv);
 
 const options = program.opts();
+
+const historyFilePath = path.join(__dirname, '.repl_history');
 
 function getPassword(callback: () => void) {
   if (!options.db_password) {
@@ -120,7 +124,9 @@ getPassword(async () => {
   }
   const d = new CouchDBData({ db: db as any, dbType: client_type });
 
+  let r: repl.REPLServer | undefined;
   const context = {
+    getREPL: () => r,
     db,
     ...d,
   };
@@ -141,5 +147,33 @@ getPassword(async () => {
   console.log('To exit, press Ctrl+C twice, or type .exit');
   console.log('');
 
-  repl.start();
+  r = repl.start();
+
+  if (Array.isArray((r as any).history)) {
+    fs.promises
+      .readFile(historyFilePath, 'utf8')
+      .then(data => {
+        const loadedHistory = data
+          .split('\n')
+          .reverse()
+          .filter(line => !!line);
+        (r as any).history.unshift(loadedHistory);
+      })
+      .catch(err =>
+        console.error(`Failed to read REPL history: ${err.message}`),
+      );
+  }
+
+  const historyStream = fs.createWriteStream(historyFilePath, { flags: 'a' });
+
+  r.on('line', line => {
+    if (line) {
+      // Skip empty lines
+      historyStream.write(`${line}\n`);
+    }
+  });
+
+  r?.on('exit', () => {
+    historyStream.end();
+  });
 });
