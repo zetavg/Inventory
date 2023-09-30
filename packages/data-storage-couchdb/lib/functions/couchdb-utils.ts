@@ -1,7 +1,7 @@
+import type nano from 'nano';
+
 import schema, { DATA_TYPE_NAMES, DataTypeName } from '@deps/data/schema';
 import { DataTypeWithID, InvalidDataTypeWithID } from '@deps/data/types';
-
-import type nano from 'nano';
 
 export function getCouchDbId(type: DataTypeName, id: string) {
   return `${type}-${id}`;

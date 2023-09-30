@@ -16,7 +16,7 @@ export function getGetData(_context: {
 }): GetData {
   const getData: GetData = async function getData<T extends DataTypeName>(
     type: T,
-    conditions: ReadonlyArray<string> | Partial<DataType<T>>,
+    conditions: ReadonlyArray<string> | Partial<DataType<T>> = {},
     {
       skip = 0,
       limit = undefined,

@@ -1,7 +1,7 @@
+import type nano from 'nano';
+
 import { getRelationTypeAndConfig } from '@deps/data/relations';
 import { GetRelated } from '@deps/data/types';
-
-import type nano from 'nano';
 
 import getGetData from './getGetData';
 import getGetDatum from './getGetDatum';

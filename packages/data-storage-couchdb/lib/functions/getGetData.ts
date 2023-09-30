@@ -1,12 +1,16 @@
+import type nano from 'nano';
+
 import {
   DataTypeWithID,
   GetData,
   InvalidDataTypeWithID,
 } from '@deps/data/types';
 
-import type nano from 'nano';
-
-import { flattenSelector, getCouchDbId, getDatumFromDoc } from './couchdb-utils';
+import {
+  flattenSelector,
+  getCouchDbId,
+  getDatumFromDoc,
+} from './couchdb-utils';
 
 export default function getGetData({
   db,
@@ -15,8 +19,8 @@ export default function getGetData({
 }): GetData {
   const getData: GetData = async function getData(
     type,
-    conditions,
-    { skip = 0, limit = undefined, sort },
+    conditions = {},
+    { skip = 0, limit = undefined, sort } = {},
   ) {
     let selector = { type };
 

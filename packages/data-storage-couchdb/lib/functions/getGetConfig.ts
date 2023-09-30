@@ -1,9 +1,8 @@
 import { v4 as uuid } from 'uuid';
+import type nano from 'nano';
 
 import { configSchema, ConfigType } from '@deps/data/schema';
 import { GetConfig } from '@deps/data/types';
-
-import type nano from 'nano';
 
 const CONFIG_ID = '0000-config' as const;
 

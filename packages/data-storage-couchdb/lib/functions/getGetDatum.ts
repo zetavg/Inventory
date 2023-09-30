@@ -1,6 +1,6 @@
-import { GetDatum } from '@deps/data/types';
-
 import type nano from 'nano';
+
+import { GetDatum } from '@deps/data/types';
 
 import { getCouchDbId, getDatumFromDoc } from './couchdb-utils';
 

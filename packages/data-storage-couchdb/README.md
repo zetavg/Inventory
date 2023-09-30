@@ -2,41 +2,22 @@
 
 Functions for accessing data stored in CouchDB.
 
-## Try it in `ts-node`
+## REPL
+
+You can start a TypeScript REPL to manage data in a CouchDB database by running:
 
 ```bash
-ts-node -r tsconfig-paths/register
+./repl.ts --db_uri <uri> --db_username <username>
 ```
 
-```js
-const nano = require('nano')('http://admin:mypassword@localhost:5984');
-let db = nano.db.use('<db_name>');
-```
+See `./repl.ts --help` for more info.
+
+Sample usage inside the REPL:
 
 ```js
-import getGetConfig from  './lib/functions/getGetConfig';
-let getConfig = getGetConfig({ db });
 await getConfig();
-```
-
-```js
-import getGetDatum from  './lib/functions/getGetDatum';
-let getDatum = getGetDatum({ db });
-await getDatum('item', '<item_id>');
-```
-
-```js
-import getGetData from  './lib/functions/getGetData';
-let getData = getGetData({ db });
 await getData('collection', {}, {});
-```
-
-```js
-import getGetData from  './lib/functions/getGetData';
-let getData = getGetData({ db });
-
-import getGetRelated from  './lib/functions/getGetRelated';
-let getRelated = getGetRelated({ db });
-let collections = await getData('collection', {}, {});
-await getRelated(collections[0], 'items', {});
+await getData('item', {}, { sort: [{ __updated_at: 'desc' }], limit: 10 });
+await getDatum('item', '<item_id>');
+await getRelated((await getData('collection'))[0], 'items', { limit: 10 });
 ```

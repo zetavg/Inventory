@@ -44,8 +44,8 @@ export type GetConfig = (options?: {
 export type GetData = <T extends DataTypeName>(
   type: T,
   /** Array of IDs, or a partial match of the data */
-  conditions: ReadonlyArray<string> | Partial<DataType<T>>,
-  options: {
+  conditions?: ReadonlyArray<string> | Partial<DataType<T>>,
+  options?: {
     skip?: number;
     limit?: number;
     sort?: SortOption;

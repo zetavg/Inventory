@@ -18,8 +18,8 @@ export function getGetData({
 }): GetData {
   const getData: GetData = async function getData(
     type,
-    conditions,
-    { skip = 0, limit = undefined, sort },
+    conditions = {},
+    { skip = 0, limit = undefined, sort } = {},
   ) {
     let selector = {
       type,
