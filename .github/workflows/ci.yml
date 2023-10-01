@@ -54,7 +54,7 @@ jobs:
     - name: Test
       run: |
         cd Data
-        yarn test
+        FORCE_COLOR=true yarn test --verbose
 
   test-app:
     name: "Test: App"
@@ -86,7 +86,7 @@ jobs:
     - name: Test
       run: |
         cd App
-        yarn test
+        FORCE_COLOR=true yarn test --verbose
 
   test-epc-utils:
     name: "Test: epc-utils"
@@ -118,7 +118,7 @@ jobs:
     - name: Test
       run: |
         cd packages/epc-utils
-        yarn test
+        FORCE_COLOR=true yarn test --verbose
 
   test-data-storage-couchdb:
     name: "Test: data-storage-couchdb"
@@ -150,7 +150,7 @@ jobs:
     - name: Test
       run: |
         cd packages/data-storage-couchdb
-        yarn test
+        FORCE_COLOR=true yarn test --verbose
 
   test-integration-snipe-it:
     name: "Test: integration-snipe-it"
@@ -182,7 +182,7 @@ jobs:
     - name: Test
       run: |
         cd packages/integration-snipe-it
-        yarn test
+        FORCE_COLOR=true yarn test --verbose
 
   paths-filter:
     runs-on: ubuntu-latest
