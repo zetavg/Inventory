@@ -1,12 +1,12 @@
 #!/usr/bin/env -S npx ts-node --transpile-only
 
 import PouchDB from 'pouchdb';
-import nano from 'nano';
 import { program } from 'commander';
+import nano from 'nano';
+import prompt from 'prompt';
 
 import fs from 'fs';
 import path from 'path';
-import prompt from 'prompt';
 import repl from 'repl';
 
 import CouchDBData from './lib/CouchDBData';
@@ -204,7 +204,7 @@ getPassword(async () => {
   const setLogLevels = (levels: Array<string>) => (logLevels = levels);
   const d = new CouchDBData({
     db: db as any,
-    dbType: client_type,
+    dbType: client_type.split('-')[0],
     logger: console,
     logLevels: getLogLevels,
   });
