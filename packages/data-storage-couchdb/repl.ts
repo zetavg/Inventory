@@ -28,7 +28,7 @@ program
   )
   .option(
     '-c, --client_type <type>',
-    'Client type, either "nano", "pouchdb" or "pouchdb-websql".',
+    'Client type, either "nano", "pouchdb" or "pouchdb-websql". "pouchdb-websql" is only for development purpose to simulate using SQLite on mobile devices, do not use it to connect a production database.',
     value => {
       const validValues = ['nano', 'pouchdb', 'pouchdb-websql'];
       if (!validValues.includes(value)) {
@@ -42,7 +42,8 @@ program
       return value;
     },
     'nano',
-  );
+  )
+  .option('--debug', 'Enable debug output.');
 
 program.parse(process.argv);
 
@@ -131,9 +132,9 @@ getPassword(async () => {
         await (remoteDB as any).logIn(db_username, db_password);
 
         const pouchdbMd5 = require('pouchdb-md5');
-        const localDbName = `.repl_temp_dbs/pouchdb-websql-${pouchdbMd5.stringMd5(
-          db_uri,
-        )}`;
+        const localDbName = `.repl_temp_dbs/pouchdb-websql-${pouchdbMd5
+          .stringMd5(db_uri)
+          .slice(0, 8)}`;
         const localDB = new PouchDB(localDbName, {
           adapter: 'react-native-sqlite',
         });
@@ -192,7 +193,13 @@ getPassword(async () => {
   }
 
   let r: repl.REPLServer | undefined;
-  let logLevels = ['info', 'log', 'warn', 'error'];
+  let logLevels = [
+    'info',
+    'log',
+    'warn',
+    'error',
+    ...(options.debug ? ['debug'] : []),
+  ];
   const getLogLevels = () => logLevels;
   const setLogLevels = (levels: Array<string>) => (logLevels = levels);
   const d = new CouchDBData({

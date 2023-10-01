@@ -1,0 +1,47 @@
+diff --git a/node_modules/websql/lib/sqlite/SQLiteDatabase.js b/node_modules/websql/lib/sqlite/SQLiteDatabase.js
+index 2f007c3..8dc892e 100644
+--- a/node_modules/websql/lib/sqlite/SQLiteDatabase.js
++++ b/node_modules/websql/lib/sqlite/SQLiteDatabase.js
+@@ -37,12 +37,42 @@ function runNonSelect(db, sql, args, cb) {
+   });
+ }
+ 
++function titleLine(s, c) {
++  const d = 80 - s.length;
++
++  if (d > 0) {
++    return s + c.repeat(d);
++  }
++
++  return s;
++}
++
+ SQLiteDatabase.prototype.exec = function exec(queries, readOnly, callback) {
+ 
+   var db = this._db;
+   var len = queries.length;
+   var results = new Array(len);
+ 
++  if (typeof global.getLogLevels === 'function' && global.getLogLevels().includes('debug')) {
++    const dbNameParts = db.filename.split('/');
++    let dbName = dbNameParts[dbNameParts.length - 1];
++    if (dbName.length > 40) {
++      dbName = dbName.slice(0, 40) + '...';
++    }
++
++    console.debug(titleLine(`==== Executing SQL on DB ${dbName} ====`, '='));
++
++    queries.forEach(query => {
++      console.debug(titleLine('---- SQL -----', '-'));
++      console.debug(query.sql);
++      console.debug(titleLine('---- Args ----', '-'));
++      console.debug(query.args);
++      console.debug(titleLine('--------------', '-'));
++    });
++
++    console.debug('');
++  }
++
+   var i = 0;
+ 
+   function checkDone() {
