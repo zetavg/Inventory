@@ -715,6 +715,18 @@ describe('getDataCount', () => {
         expect(itemsCount).toEqual(20);
       });
     });
+
+    it('works while there are no data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collectionsCount = await d.getDataCount('collection');
+        expect(collectionsCount).toEqual(0);
+
+        const itemsCount = await d.getDataCount('item');
+        expect(itemsCount).toEqual(0);
+      });
+    });
   });
 
   describe('with conditions', () => {
@@ -847,6 +859,22 @@ describe('getDataCount', () => {
             container_id: container_2.__id,
           }),
         ).toEqual(7);
+      });
+    });
+
+    it('works while there are no data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        expect(await d.getDataCount('item', { collection_id: 'null' })).toEqual(
+          0,
+        );
+        expect(
+          await d.getDataCount('item', {
+            collection_id: 'null',
+            container_id: 'null',
+          }),
+        ).toEqual(0);
       });
     });
   });

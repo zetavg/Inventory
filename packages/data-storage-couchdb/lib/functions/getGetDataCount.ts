@@ -49,6 +49,7 @@ export default function getGetDataCount({
         while (true) {
           try {
             const body = await db.query(`${ddocName}/count`);
+            if (body.rows.length <= 0) return 0;
             if (body.rows.length !== 1) {
               throw new Error(
                 `Invalid response body: ${JSON.stringify(
@@ -74,7 +75,9 @@ export default function getGetDataCount({
             try {
               await db.put(ddoc);
             } catch (err) {
-              throw new Error(`Cannot save design doc ${ddoc._id}: ${err}`);
+              throw new Error(
+                `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
+              );
             }
 
             retries += 1;
@@ -86,6 +89,7 @@ export default function getGetDataCount({
         while (true) {
           try {
             const body = await db.view(ddocName, 'count');
+            if (body.rows.length <= 0) return 0;
             if (body.rows.length !== 1) {
               throw new Error(
                 `Invalid response body: ${JSON.stringify(
@@ -111,7 +115,9 @@ export default function getGetDataCount({
             try {
               await db.insert(ddoc);
             } catch (err) {
-              throw new Error(`Cannot save design doc ${ddoc._id}: ${err}`);
+              throw new Error(
+                `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
+              );
             }
 
             retries += 1;
@@ -166,6 +172,7 @@ export default function getGetDataCount({
       while (true) {
         try {
           const body = await db.query(`${ddocName}/count`, { key });
+          if (body.rows.length <= 0) return 0;
           if (body.rows.length !== 1) {
             throw new Error(
               `Invalid response body: ${JSON.stringify(
@@ -191,7 +198,9 @@ export default function getGetDataCount({
           try {
             await db.put(ddoc);
           } catch (err) {
-            throw new Error(`Cannot save design doc ${ddoc._id}: ${err}`);
+            throw new Error(
+              `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
+            );
           }
 
           retries += 1;
@@ -203,6 +212,7 @@ export default function getGetDataCount({
       while (true) {
         try {
           const body = await db.view(ddocName, 'count', { key });
+          if (body.rows.length <= 0) return 0;
           if (body.rows.length !== 1) {
             throw new Error(
               `Invalid response body: ${JSON.stringify(
@@ -228,7 +238,9 @@ export default function getGetDataCount({
           try {
             await db.insert(ddoc);
           } catch (err) {
-            throw new Error(`Cannot save design doc ${ddoc._id}: ${err}`);
+            throw new Error(
+              `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
+            );
           }
 
           retries += 1;
