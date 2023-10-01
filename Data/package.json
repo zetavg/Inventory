@@ -11,7 +11,7 @@
     "postinstall": "yarn run copy-dependencies",
     "lint": "eslint .",
     "typecheck": "tsc",
-    "test": "jest --passWithNoTests"
+    "test": "jest"
   },
   "dependencies": {
     "epc-tds": "^1.3.0",

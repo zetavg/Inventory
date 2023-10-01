@@ -82,5 +82,12 @@ export type GetRelated = <
 
 export type SaveDatum = <T extends DataTypeName>(
   data: DataMeta<T> & { [key: string]: unknown },
-  options?: { noTouch?: boolean; ignoreConflict?: boolean },
+  options?: {
+    /** Set to true to not update the `__updated_at` field. */
+    noTouch?: boolean;
+    /** Set to true to force ignore data conflicts and override the data. */
+    ignoreConflict?: boolean;
+    /** By default, if no changes has been made, the data will not be touched. Set this to true to force update the `__updated_at` field even if no data has been changed. */
+    forceTouch?: boolean;
+  },
 ) => Promise<DataMeta<T> & { [key: string]: unknown }>;

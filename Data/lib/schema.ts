@@ -14,12 +14,6 @@ export const schema = filterObject(generatedSchema, ['config']);
 export const configSchema = generatedSchema.config;
 export type ConfigType = z.infer<typeof configSchema>;
 
-export const plurals: Record<keyof typeof schema, string> = {
-  collection: 'collections',
-  item: 'items',
-  db_sharing: 'db_sharing',
-};
-
 export type DataTypeName = keyof typeof schema;
 export const DATA_TYPE_NAMES: ReadonlyArray<DataTypeName> = Object.keys(
   schema,

@@ -10,6 +10,7 @@ import {
   GetRelated,
   SaveDatum,
 } from '../types';
+import { hasChanges } from '../utils';
 import getValidation, { getErrorFromValidationResults } from '../validation';
 
 export default function getSaveDatum({
@@ -47,7 +48,11 @@ export default function getSaveDatum({
 
   const saveDatum: SaveDatum = async <T extends DataTypeName>(
     d: DataMeta<T> & { [key: string]: unknown },
-    options: { noTouch?: boolean; ignoreConflict?: boolean } = {},
+    options: {
+      noTouch?: boolean;
+      forceTouch?: boolean;
+      ignoreConflict?: boolean;
+    } = {},
   ) => {
     const existingData = await (async () => {
       if (typeof d.__id !== 'string') return null;
@@ -73,7 +78,7 @@ export default function getSaveDatum({
       dataToSave.__created_at = new Date().getTime();
     }
 
-    if (!options.noTouch || typeof dataToSave.__updated_at !== 'number') {
+    if (typeof dataToSave.__updated_at !== 'number') {
       dataToSave.__updated_at = new Date().getTime();
     }
 
@@ -90,6 +95,20 @@ export default function getSaveDatum({
       const validationResults = await validate(dataToSave);
       const validationError = getErrorFromValidationResults(validationResults);
       if (validationError) throw validationError;
+
+      if (
+        existingData &&
+        !hasChanges(existingData, dataToSave) &&
+        !options.forceTouch
+      ) {
+        // Data has not been changed, skip saving
+        return dataToSave;
+      }
+
+      if (!options.noTouch) {
+        dataToSave.__updated_at = new Date().getTime();
+      }
+
       await writeDatum(dataToSave);
     } else {
       // Delete

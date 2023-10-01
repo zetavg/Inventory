@@ -731,4 +731,184 @@ describe('saveDatum', () => {
       ).toBeUndefined();
     });
   });
+
+  it('updates the updated timestamp', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+      const collection = await d.saveDatum({
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+      const item = await d.saveDatum(
+        {
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          model_name: 'Model',
+          __created_at: 0,
+          __updated_at: 0,
+        },
+        { noTouch: true },
+      );
+
+      expect((await d.getDatum('item', item.__id || ''))?.__updated_at).toEqual(
+        0,
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: item.__id,
+          notes: 'Hello world!',
+        },
+        { ignoreConflict: true },
+      );
+
+      expect(
+        (await d.getDatum('item', item.__id || ''))?.__updated_at,
+      ).not.toEqual(0);
+    });
+  });
+
+  describe('with noTouch', () => {
+    it('does not update the updated timestamp', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+        const item = await d.saveDatum(
+          {
+            __type: 'item',
+            collection_id: collection.__id,
+            name: 'Item',
+            icon_name: 'cube-outline',
+            icon_color: 'gray',
+            model_name: 'Model',
+            __created_at: 0,
+            __updated_at: 0,
+          },
+          { noTouch: true },
+        );
+
+        expect(
+          (await d.getDatum('item', item.__id || ''))?.__updated_at,
+        ).toEqual(0);
+
+        await d.saveDatum(
+          {
+            __type: 'item',
+            __id: item.__id,
+            notes: 'Hello world!',
+          },
+          { ignoreConflict: true, noTouch: true },
+        );
+
+        expect(
+          (await d.getDatum('item', item.__id || ''))?.__updated_at,
+        ).toEqual(0);
+      });
+    });
+  });
+
+  describe('while data has no changes', () => {
+    it('does not actually save the data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+        const item = await d.saveDatum(
+          {
+            __type: 'item',
+            collection_id: collection.__id,
+            name: 'Item',
+            icon_name: 'cube-outline',
+            icon_color: 'gray',
+            model_name: 'Model',
+            __created_at: 0,
+            __updated_at: 0,
+          },
+          { noTouch: true },
+        );
+
+        expect(
+          (await d.getDatum('item', item.__id || ''))?.__updated_at,
+        ).toEqual(0);
+
+        await d.saveDatum(
+          {
+            __type: 'item',
+            __id: item.__id,
+            name: 'Item',
+            icon_color: 'gray',
+          },
+          { ignoreConflict: true },
+        );
+
+        expect(
+          (await d.getDatum('item', item.__id || ''))?.__updated_at,
+        ).toEqual(0);
+      });
+    });
+
+    describe('with forceTouch', () => {
+      it('forces save the data', async () => {
+        await withContext(async context => {
+          const d = new CouchDBData(context);
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: 'Collection',
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: '1',
+          });
+          const item = await d.saveDatum(
+            {
+              __type: 'item',
+              collection_id: collection.__id,
+              name: 'Item',
+              icon_name: 'cube-outline',
+              icon_color: 'gray',
+              model_name: 'Model',
+              __created_at: 0,
+              __updated_at: 0,
+            },
+            { noTouch: true },
+          );
+
+          expect(
+            (await d.getDatum('item', item.__id || ''))?.__updated_at,
+          ).toEqual(0);
+
+          await d.saveDatum(
+            {
+              __type: 'item',
+              __id: item.__id,
+              name: 'Item',
+              icon_color: 'gray',
+            },
+            { ignoreConflict: true, forceTouch: true },
+          );
+
+          expect(
+            (await d.getDatum('item', item.__id || ''))?.__updated_at,
+          ).not.toEqual(0);
+        });
+      });
+    });
+  });
 });
