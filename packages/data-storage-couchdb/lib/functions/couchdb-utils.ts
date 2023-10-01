@@ -105,32 +105,39 @@ function getProxiedDocDatum(
     return parseResults;
   };
 
-  const pt: Record<string, string | number | boolean | undefined> = {};
+  /** This `proxyTarget` is for previewing the data in the JS console. */
+  const proxyTarget: Record<string, string | number | boolean | undefined> = {};
   function updatePt() {
-    for (const key in pt) {
-      if (pt.hasOwnProperty(key)) {
-        delete pt[key];
+    for (const key in proxyTarget) {
+      if (proxyTarget.hasOwnProperty(key)) {
+        delete proxyTarget[key];
       }
     }
     const { id } = d._id ? getDataIdFromCouchDbId(d._id) : { id: undefined };
 
-    pt.__type = type;
-    pt.__id = id;
+    proxyTarget.__type = type;
+    proxyTarget.__id = id;
 
     switch (type) {
       case 'collection': {
-        pt.name = ((d.data || {}) as any).name;
+        proxyTarget.name = ((d.data || {}) as any).name;
+        proxyTarget.collection_reference_number = (
+          (d.data || {}) as any
+        ).collection_reference_number;
         break;
       }
       case 'item': {
-        pt.name = ((d.data || {}) as any).name;
+        proxyTarget.name = ((d.data || {}) as any).name;
+        proxyTarget.individual_asset_reference = (
+          (d.data || {}) as any
+        ).individual_asset_reference;
         break;
       }
     }
   }
   updatePt();
 
-  return new Proxy(pt, {
+  return new Proxy(proxyTarget, {
     get: function (_target, prop) {
       if (prop === '__type') {
         return type;

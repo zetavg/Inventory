@@ -13,13 +13,13 @@ export type Context =
   | {
       dbType?: 'couchdb';
       db: nano.DocumentScope<unknown>;
-      logger?: Logger;
+      logger?: Logger | null;
       logLevels?: () => ReadonlyArray<string>;
     }
   | {
       dbType: 'pouchdb';
       db: PouchDB.Database;
-      logger?: Logger;
+      logger?: Logger | null;
       logLevels?: () => ReadonlyArray<string>;
     };
 
