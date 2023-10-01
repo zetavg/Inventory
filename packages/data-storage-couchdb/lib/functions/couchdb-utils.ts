@@ -1,5 +1,6 @@
 import schema, { DATA_TYPE_NAMES, DataTypeName } from '@deps/data/schema';
 import {
+  DataMeta,
   DataTypeWithID,
   InvalidDataTypeWithID,
   ValidDataTypeWithID,
@@ -246,7 +247,7 @@ function getProxiedDocDatum(
 }
 
 export function getDocFromDatum<T extends DataTypeName>(
-  d: DataTypeWithID<T>,
+  d: Partial<DataTypeWithID<T>> & DataMeta<T>,
   { logger = console }: { logger?: Logger | null } = {},
 ): CouchDBDoc {
   let {

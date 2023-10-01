@@ -3,6 +3,14 @@
  */
 
 import { v4 as uuid } from 'uuid';
+import { program } from 'commander';
+import nano from 'nano';
+import cliProgress from 'cli-progress';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
+import he from 'he';
 import fetch from 'node-fetch';
 
 import getCallbacks from '@deps/data/callbacks';
@@ -15,16 +23,8 @@ import getGetDatum from '@deps/data-storage-couchdb/functions/getGetDatum';
 import getGetRelated from '@deps/data-storage-couchdb/functions/getGetRelated';
 import EPCUtils from '@deps/epc-utils';
 
-import cliProgress from 'cli-progress';
-import { program } from 'commander';
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
 import fs from 'fs';
-import he from 'he';
 import getCategoryById from 'lib/snipe-it-client/functions/getCategoryById';
-import nano from 'nano';
 import path from 'path';
 import { URL } from 'url';
 

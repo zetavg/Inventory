@@ -1131,6 +1131,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/debug@*":
+  version "4.1.9"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.9.tgz#906996938bc672aaf2fb8c0d3733ae1dda05b005"
+  integrity sha512-8Hz50m2eoS56ldRlepxSBa6PWEVCtzUo/92HgLc2qTMnotJNIm7xP+UZhyWoYsyOdd5dxZ+NZLb24rsKyFs2ow==
+  dependencies:
+    "@types/ms" "*"
+
 "@types/eslint@^8.44.0":
   version "8.44.3"
   resolved "https://registry.yarnpkg.com/@types/eslint/-/eslint-8.44.3.tgz#96614fae4875ea6328f56de38666f582d911d962"
@@ -1188,6 +1195,11 @@
   resolved "https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.13.tgz"
   integrity sha512-RbSSoHliUbnXj3ny0CNFOoxrIDV6SUGyStHsvDqosw6CkdPV8TtWGlfecuK4ToyMEAql6pzNxgCFKanovUzlgQ==
 
+"@types/ms@*":
+  version "0.7.32"
+  resolved "https://registry.yarnpkg.com/@types/ms/-/ms-0.7.32.tgz#f6cd08939ae3ad886fcc92ef7f0109dacddf61ab"
+  integrity sha512-xPSg0jm4mqgEkNhowKgZFBNtwoEwF6gJ4Dhww+GFpm3IgtNseHQZ5IqdNwnquZEoANxyDAKDRAdVo4Z72VvD/g==
+
 "@types/node-fetch@^2.6.5":
   version "2.6.5"
   resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.5.tgz#972756a9a0fe354b2886bf3defe667ddb4f0d30a"
@@ -1200,6 +1212,152 @@
   version "20.6.3"
   resolved "https://registry.npmjs.org/@types/node/-/node-20.6.3.tgz"
   integrity sha512-HksnYH4Ljr4VQgEy2lTStbCKv/P590tmPe5HqOnv9Gprffgv5WXAY+Y5Gqniu0GGqeTCUdBnzC3QSrzPkBkAMA==
+
+"@types/pouchdb-adapter-cordova-sqlite@*":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-cordova-sqlite/-/pouchdb-adapter-cordova-sqlite-1.0.2.tgz#0b61618adfcf7d9033e280f44a0b4f246ab248c8"
+  integrity sha512-5QvEjCGvABdBV0sFxkyBB2X+aqKTSO9FNE7xe0n8xarEx78lUnir6elDTWDOSmZsPYnoSztEoMcvOfaLil5iow==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-fruitdown@*":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-fruitdown/-/pouchdb-adapter-fruitdown-6.1.4.tgz#29298591084b19bd9e526599c6dd7c133168c749"
+  integrity sha512-NjPzzfEbpS9Els9cZJka2l6R+SQPEPsR6lQqdR7AKmlEqD1FE06HaQWmulVx6SpKf4tZwny5GAucE1WxZkuXNw==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-http@*":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-http/-/pouchdb-adapter-http-6.1.4.tgz#dff04388a709def203cb2c1fa4d7027d8da93085"
+  integrity sha512-KuG+10COIkAO/j+oVFKqg4Pu/QVjnhx2r+MyUN2JdVDueWuNlCIbRALGEAmqVr3dXghknsnVw+3T+VIx8QeugQ==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-idb@*":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-idb/-/pouchdb-adapter-idb-6.1.5.tgz#e897d98c9870e0afd07416aaa898252d87795a12"
+  integrity sha512-P9iMwCXcxyov7rzzCFDCzxUY0XX+8cl+I5TwJi/dnZu/ZWSxkMaG7myTKsK4HkAjAzq0HuBdB48Iq1gpt2BCBg==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-leveldb@*":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-leveldb/-/pouchdb-adapter-leveldb-6.1.4.tgz#02ce035b61ffce2ebff4c4f921c5031bcf3b97ed"
+  integrity sha512-MgpRKuKvy7HXFqmYkuU3r/o9Qc2J32LbFAMTeZhS8/bEA5mKllOAaOU26jO4KS7656Gcm4Vz6/mbmSSOdprQig==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-localstorage@*":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-localstorage/-/pouchdb-adapter-localstorage-6.1.4.tgz#4dc75483b160d80bdc3b87d629dad255d6ea7750"
+  integrity sha512-37vic5XXP2X1CEuK8YQ4EFnujospi0rURPn6FJaLl2Zkm9yB3O70jBM0o2ePR+euy8vIJL7bGm2Rmt09erEn1Q==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-memory@*":
+  version "6.1.4"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-memory/-/pouchdb-adapter-memory-6.1.4.tgz#a19bf9e8143c5ab752225c1e5e5b72a43a73d927"
+  integrity sha512-FE08C6I/c+algSlDV9kp66Hv+MZ79q7cTje8x3Fc5H/ZdRzAonvjZ7rvDDLn/vNtRSwy+l/pSjebl+vl+oR9cA==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-node-websql@*":
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-node-websql/-/pouchdb-adapter-node-websql-6.1.3.tgz#aa18bc68af8cf509acd12c400010dcd5fab2243d"
+  integrity sha512-F/P+os6Jsa7CgHtH64+Z0HfwIcj0hIRB5z8gNhF7L7dxPWoAfkopK5H2gydrP3sQrlGyN4WInF+UJW/Zu1+FKg==
+  dependencies:
+    "@types/pouchdb-adapter-websql" "*"
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-adapter-websql@*":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-adapter-websql/-/pouchdb-adapter-websql-6.1.5.tgz#3c3bd930cecb98f8a2d06879c23f1d96f1e5c909"
+  integrity sha512-6uiPyEIkWVJyjqUAJW3Tl4JC0cysewDK3dBqenMUMG+kZfjnv50Mw2XgLldqJk9PdO85iFtgVTn9EKQz4ZEfHg==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-browser@*":
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-browser/-/pouchdb-browser-6.1.3.tgz#8f33d6ef58d6817d1f6d36979148a1c7f63244d8"
+  integrity sha512-EdYowrWxW9SWBMX/rux2eq7dbHi5Zeyzz+FF/IAsgQKnUxgeCO5VO2j4zTzos0SDyJvAQU+EYRc11r7xGn5tvA==
+  dependencies:
+    "@types/pouchdb-adapter-http" "*"
+    "@types/pouchdb-adapter-idb" "*"
+    "@types/pouchdb-adapter-websql" "*"
+    "@types/pouchdb-core" "*"
+    "@types/pouchdb-mapreduce" "*"
+    "@types/pouchdb-replication" "*"
+
+"@types/pouchdb-core@*":
+  version "7.0.12"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-core/-/pouchdb-core-7.0.12.tgz#2e9f4fcea298479d093e6137f3240b5d752ac68f"
+  integrity sha512-Y1Ilqu02gJfo191p7uqBpvIkotkRwVORtLZZw9a2rs2YB4N6TdbBqNe/v4Ha5wL53bpV+JSwyg+nIEq2yjNL1Q==
+  dependencies:
+    "@types/debug" "*"
+    "@types/pouchdb-find" "*"
+
+"@types/pouchdb-find@*":
+  version "7.3.1"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-find/-/pouchdb-find-7.3.1.tgz#546e0fb54513b3f5f82ba3bf1dd1152c3822c3a2"
+  integrity sha512-zCN3M74PS+3c/tc6Cu8y8392L1JzBdvKRDtWyeET0gl2zCPyw0DiYHJX6FEjZBJJzQPVFG36RTpvbCA8zx/XHQ==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-http@*":
+  version "6.1.3"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-http/-/pouchdb-http-6.1.3.tgz#09576c0d409da1f8dee34ec5b768415e2472ea52"
+  integrity sha512-0e9E5SqNOyPl/3FnEIbENssB4FlJsNYuOy131nxrZk36S+y1R/6qO7ZVRypWpGTqBWSuVd7gCsq2UDwO/285+w==
+  dependencies:
+    "@types/pouchdb-adapter-http" "*"
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-mapreduce@*":
+  version "6.1.8"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-mapreduce/-/pouchdb-mapreduce-6.1.8.tgz#50a2310c7aaf8e99ba9f8d877e056eed3c7146a7"
+  integrity sha512-/p2LR9rz3OXOogIhQ+ulkxu35tXM88UnxlcxY2iPwvoBOZLO01QMMdbQWeDo/M7p3R1YJuW75+N4SPQElbEKUw==
+  dependencies:
+    "@types/pouchdb-core" "*"
+
+"@types/pouchdb-node@*":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-node/-/pouchdb-node-6.1.5.tgz#98dcb4c6b172fd9071ee5e36917c108a11127c00"
+  integrity sha512-xHUtC9yuiU6wYy3xbr6o7W0FnIXfnKFLmstATThzwMPiufsXxifQdyGGEWEMyinwqdi9l+BvtRCX5kj0mWNv1w==
+  dependencies:
+    "@types/pouchdb-adapter-http" "*"
+    "@types/pouchdb-adapter-leveldb" "*"
+    "@types/pouchdb-core" "*"
+    "@types/pouchdb-mapreduce" "*"
+    "@types/pouchdb-replication" "*"
+
+"@types/pouchdb-replication@*":
+  version "6.4.5"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb-replication/-/pouchdb-replication-6.4.5.tgz#29d1bb292971033b9e17dae9a58dc7b98f15a2c4"
+  integrity sha512-2sWCIkRDBe1x4Gmsz+7CpZG1fOgGMG7xXzZQ/TftzF+l5olr9Dj76DEcHIl2vACBC54HyuX78yUmZkrPO8PeHA==
+  dependencies:
+    "@types/pouchdb-core" "*"
+    "@types/pouchdb-find" "*"
+
+"@types/pouchdb@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@types/pouchdb/-/pouchdb-6.4.0.tgz#f9c41ca64b23029f9bf2eb4bf6956e6431cb79f8"
+  integrity sha512-eGCpX+NXhd5VLJuJMzwe3L79fa9+IDTrAG3CPaf4s/31PD56hOrhDJTSmRELSXuiqXr6+OHzzP0PldSaWsFt7w==
+  dependencies:
+    "@types/pouchdb-adapter-cordova-sqlite" "*"
+    "@types/pouchdb-adapter-fruitdown" "*"
+    "@types/pouchdb-adapter-http" "*"
+    "@types/pouchdb-adapter-idb" "*"
+    "@types/pouchdb-adapter-leveldb" "*"
+    "@types/pouchdb-adapter-localstorage" "*"
+    "@types/pouchdb-adapter-memory" "*"
+    "@types/pouchdb-adapter-node-websql" "*"
+    "@types/pouchdb-adapter-websql" "*"
+    "@types/pouchdb-browser" "*"
+    "@types/pouchdb-core" "*"
+    "@types/pouchdb-http" "*"
+    "@types/pouchdb-mapreduce" "*"
+    "@types/pouchdb-node" "*"
+    "@types/pouchdb-replication" "*"
 
 "@types/semver@^7.3.12":
   version "7.5.2"
