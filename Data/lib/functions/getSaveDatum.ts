@@ -20,6 +20,7 @@ export default function getSaveDatum({
   getRelated,
   writeDatum,
   deleteDatum,
+  skipSaveCallback,
 }: {
   getConfig: GetConfig;
   getDatum: GetDatum;
@@ -31,6 +32,7 @@ export default function getSaveDatum({
   deleteDatum: (
     d: DataMeta<DataTypeName> & { [key: string]: unknown },
   ) => Promise<void>;
+  skipSaveCallback?: (existingData: unknown, dataToSave: unknown) => void;
 }): SaveDatum {
   const { beforeSave } = getCallbacks({
     getConfig,
@@ -102,6 +104,7 @@ export default function getSaveDatum({
         !options.forceTouch
       ) {
         // Data has not been changed, skip saving
+        if (skipSaveCallback) skipSaveCallback(existingData, dataToSave);
         return dataToSave;
       }
 

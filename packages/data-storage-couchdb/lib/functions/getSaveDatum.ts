@@ -47,6 +47,18 @@ export default function getSaveDatum(context: Context): SaveDatum {
         await db.destroy(doc._id || '', doc._rev || '');
       }
     },
+    skipSaveCallback: (existingData, dataToSave) => {
+      const logDebug = logLevels && logLevels().includes('debug');
+      if (logger && logDebug) {
+        logger.debug(
+          `saveDatum: skipping save since data has no changes between existing data ${JSON.stringify(
+            existingData,
+            null,
+            2,
+          )} and data to save ${JSON.stringify(dataToSave, null, 2)}`,
+        );
+      }
+    },
   });
 
   return saveDatum;

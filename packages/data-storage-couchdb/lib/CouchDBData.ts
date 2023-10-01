@@ -1,6 +1,7 @@
 import {
   GetConfig,
   GetData,
+  GetDataCount,
   GetDatum,
   GetRelated,
   SaveDatum,
@@ -9,6 +10,7 @@ import {
 
 import getGetConfig from './functions/getGetConfig';
 import getGetData from './functions/getGetData';
+import getGetDataCount from './functions/getGetDataCount';
 import getGetDatum from './functions/getGetDatum';
 import getGetRelated from './functions/getGetRelated';
 import getSaveDatum from './functions/getSaveDatum';
@@ -20,6 +22,7 @@ export default class CouchDBData {
   public updateConfig: UpdateConfig;
   public getDatum: GetDatum;
   public getData: GetData;
+  public getDataCount: GetDataCount;
   public getRelated: GetRelated;
   public saveDatum: SaveDatum;
 
@@ -28,6 +31,7 @@ export default class CouchDBData {
     this.updateConfig = getUpdateConfig(context);
     this.getDatum = getGetDatum(context);
     this.getData = getGetData(context);
+    this.getDataCount = getGetDataCount(context);
     this.getRelated = getGetRelated(context);
     this.saveDatum = getSaveDatum(context);
   }

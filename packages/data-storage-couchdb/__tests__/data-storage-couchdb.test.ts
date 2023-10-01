@@ -677,6 +677,181 @@ describe('getData', () => {
   // TODO: test $gt, ...
 });
 
+describe('getDataCount', () => {
+  describe('with no conditions', () => {
+    it('works', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}-1`,
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}-2`,
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        const collectionsCount = await d.getDataCount('collection');
+        expect(collectionsCount).toEqual(10);
+
+        const itemsCount = await d.getDataCount('item');
+        expect(itemsCount).toEqual(20);
+      });
+    });
+  });
+
+  describe('with conditions', () => {
+    it('works', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection_1 = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection #1',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const collection_2 = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection #2',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        });
+
+        const container_1 = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection_1.__id,
+          item_type: 'container',
+          name: 'Container #1',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const container_2 = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection_2.__id,
+          item_type: 'container',
+          name: 'Container #2',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        for (let i = 1; i <= 10; i++) {
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection_1.__id,
+            container_id: container_1.__id,
+            name: 'Item Type A',
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        for (let i = 1; i <= 9; i++) {
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection_1.__id,
+            container_id: container_2.__id,
+            name: 'Item Type B',
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        for (let i = 1; i <= 8; i++) {
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection_2.__id,
+            container_id: container_1.__id,
+            name: 'Item Type C',
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        for (let i = 1; i <= 7; i++) {
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection_2.__id,
+            container_id: container_2.__id,
+            name: 'Item Type D',
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        expect(
+          await d.getDataCount('item', { collection_id: collection_1.__id }),
+        ).toEqual(20); // 1 container, 10 type A, 9 type B
+
+        expect(
+          await d.getDataCount('item', { container_id: container_1.__id }),
+        ).toEqual(18); // 10 type A, 8 type C
+
+        expect(
+          await d.getDataCount('item', {
+            collection_id: collection_1.__id,
+            container_id: container_1.__id,
+          }),
+        ).toEqual(10);
+        expect(
+          await d.getDataCount('item', {
+            container_id: container_1.__id,
+            collection_id: collection_1.__id,
+          }),
+        ).toEqual(10);
+
+        expect(
+          await d.getDataCount('item', {
+            collection_id: collection_1.__id,
+            container_id: container_2.__id,
+          }),
+        ).toEqual(9);
+        expect(
+          await d.getDataCount('item', {
+            container_id: container_2.__id,
+            collection_id: collection_1.__id,
+          }),
+        ).toEqual(9);
+
+        expect(
+          await d.getDataCount('item', {
+            collection_id: collection_2.__id,
+            container_id: container_1.__id,
+          }),
+        ).toEqual(8);
+
+        expect(
+          await d.getDataCount('item', {
+            collection_id: collection_2.__id,
+            container_id: container_2.__id,
+          }),
+        ).toEqual(7);
+      });
+    });
+  });
+});
+
 describe('saveDatum', () => {
   it('can update fields to become undefined', async () => {
     await withContext(async context => {
@@ -859,6 +1034,16 @@ describe('saveDatum', () => {
           { ignoreConflict: true },
         );
 
+        expect(
+          (await d.getDatum('item', item.__id || ''))?.__updated_at,
+        ).toEqual(0);
+
+        await d.saveDatum(
+          (await d.getDatum('item', item.__id || '')) || { __type: 'item' },
+          {
+            ignoreConflict: true,
+          },
+        );
         expect(
           (await d.getDatum('item', item.__id || ''))?.__updated_at,
         ).toEqual(0);

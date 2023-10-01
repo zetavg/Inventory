@@ -118,7 +118,7 @@ export default function getGetData({
 
         const seenIndexFieldsSet = new Set();
         const indexFields = [
-          ...Object.keys(flattenedSelector),
+          ...Object.keys(flattenedSelector).sort(),
           ...sortKeys,
         ].filter(f => {
           const result = !seenIndexFieldsSet.has(f);
@@ -185,21 +185,25 @@ export default function getGetData({
           if (retries > 3) throw e;
 
           if (ddocName && index) {
-            await db.createIndex({
-              ddoc: ddocName,
-              name: ddocName,
-              index,
-            });
-          }
+            if (logger && logDebug) {
+              logger.debug(
+                `getData: creating index "${ddocName}": ${JSON.stringify(
+                  index,
+                  null,
+                  2,
+                )}`,
+              );
+            }
 
-          if (logger && logDebug) {
-            logger.debug(
-              `getData: creating index "${ddocName}": ${JSON.stringify(
+            try {
+              await db.createIndex({
+                ddoc: ddocName,
+                name: ddocName,
                 index,
-                null,
-                2,
-              )}`,
-            );
+              });
+            } catch (err) {
+              throw new Error(`Cannot create index ${ddocName}: ${err}`);
+            }
           }
 
           retries += 1;

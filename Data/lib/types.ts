@@ -36,6 +36,11 @@ export type GetConfig = (options?: {
 
 export type UpdateConfig = (config: Partial<ConfigType>) => Promise<ConfigType>;
 
+export type GetDatum = <T extends DataTypeName>(
+  type: T,
+  id: string,
+) => Promise<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null>;
+
 type PartialWithExists<T> = {
   [K in keyof T]?: T[K] | { $exists: boolean };
 };
@@ -62,10 +67,10 @@ export type GetData = <T extends DataTypeName>(
   },
 ) => Promise<Array<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>>>;
 
-export type GetDatum = <T extends DataTypeName>(
+export type GetDataCount = <T extends DataTypeName>(
   type: T,
-  id: string,
-) => Promise<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null>;
+  conditions?: Partial<DataType<T>>,
+) => Promise<number>;
 
 export type GetRelated = <
   T extends DataTypeWithRelationDefsName,
