@@ -117,6 +117,45 @@ describe('getData', () => {
       });
     });
 
+    it('works with limit and skip', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 8; i++) {
+          await d.saveDatum({
+            __type: 'collection',
+            __id: `${i}`,
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+        }
+
+        const collectionsWithLimit = await d.getData(
+          'collection',
+          {},
+          { limit: 3 },
+        );
+        expect(collectionsWithLimit).toHaveLength(3);
+        expect(collectionsWithLimit.map(c => c.name)).toEqual(
+          Array.from(new Array(3)).map((_, i) => `Collection #${i + 1}`),
+        );
+
+        const collectionsWithSkip = await d.getData(
+          'collection',
+          {},
+          {
+            limit: 4,
+            skip: 3,
+          },
+        );
+        expect(collectionsWithSkip).toHaveLength(4);
+        expect(collectionsWithSkip.map(c => c.name)).toEqual(
+          Array.from(new Array(4)).map((_, i) => `Collection #${i + 4}`),
+        );
+      });
+    });
+
     it('works with sort', async () => {
       await withContext(async context => {
         const d = new CouchDBData(context);
@@ -160,6 +199,536 @@ describe('getData', () => {
           Array.from(new Array(10)).map((_, i) => 11 + i),
         );
       });
+    });
+
+    it('works with sort and limit and skip', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+        }
+
+        const collectionsWithLimit = await d.getData(
+          'collection',
+          {},
+          { sort: [{ collection_reference_number: 'asc' }], limit: 3 },
+        );
+        expect(collectionsWithLimit).toHaveLength(3);
+        expect(collectionsWithLimit.map(c => c.name)).toEqual(
+          Array.from(new Array(3)).map((_, i) => `Collection #${i + 1}`),
+        );
+
+        const collectionsWithSkip = await d.getData(
+          'collection',
+          {},
+          {
+            sort: [{ collection_reference_number: 'asc' }],
+            limit: 4,
+            skip: 3,
+          },
+        );
+        expect(collectionsWithSkip).toHaveLength(4);
+        expect(collectionsWithSkip.map(c => c.name)).toEqual(
+          Array.from(new Array(4)).map((_, i) => `Collection #${i + 4}`),
+        );
+      });
+    });
+
+    it('works with multiple sort', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item A2000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'A',
+          purchase_price_x1000: 2000,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item C1500',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'C',
+          purchase_price_x1000: 1500,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item B5000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'B',
+          purchase_price_x1000: 5000,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item A1000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'A',
+          purchase_price_x1000: 1000,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item C8763',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'C',
+          purchase_price_x1000: 8763,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item D8000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'D',
+          purchase_price_x1000: 8000,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item B2000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'B',
+          purchase_price_x1000: 2000,
+        });
+
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item A4000',
+          icon_name: 'box',
+          icon_color: 'gray',
+          model_name: 'A',
+          purchase_price_x1000: 4000,
+        });
+
+        const items_1 = await d.getData(
+          'item',
+          {},
+          { sort: [{ model_name: 'asc' }, { purchase_price_x1000: 'asc' }] },
+        );
+        expect(items_1.map(it => it.name)).toEqual([
+          'Item A1000',
+          'Item A2000',
+          'Item A4000',
+          'Item B2000',
+          'Item B5000',
+          'Item C1500',
+          'Item C8763',
+          'Item D8000',
+        ]);
+
+        const items_2 = await d.getData(
+          'item',
+          {},
+          { sort: [{ model_name: 'desc' }, { purchase_price_x1000: 'desc' }] },
+        );
+        expect(items_2.map(it => it.name)).toEqual([
+          'Item D8000',
+          'Item C8763',
+          'Item C1500',
+          'Item B5000',
+          'Item B2000',
+          'Item A4000',
+          'Item A2000',
+          'Item A1000',
+        ]);
+
+        const items_3 = await d.getData(
+          'item',
+          {},
+          { sort: [{ purchase_price_x1000: 'asc' }, { model_name: 'asc' }] },
+        );
+        expect(items_3.map(it => it.name)).toEqual([
+          'Item A1000',
+          'Item C1500',
+          'Item A2000',
+          'Item B2000',
+          'Item A4000',
+          'Item B5000',
+          'Item D8000',
+          'Item C8763',
+        ]);
+
+        const items_4 = await d.getData(
+          'item',
+          {},
+          { sort: [{ purchase_price_x1000: 'desc' }, { model_name: 'desc' }] },
+        );
+        expect(items_4.map(it => it.name)).toEqual([
+          'Item C8763',
+          'Item D8000',
+          'Item B5000',
+          'Item A4000',
+          'Item B2000',
+          'Item A2000',
+          'Item C1500',
+          'Item A1000',
+        ]);
+
+        // TODO: test with ['desc', 'asc'] pairs, as this is not currently supported
+      });
+    });
+  });
+
+  describe('with array of IDs', () => {
+    it('works', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            __id: `${i}`,
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            __id: `${i}`,
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+          });
+        }
+
+        const collections = await d.getData('collection', ['1', '1', '8', '4']);
+        expect(collections).toHaveLength(4);
+        expect(collections.map(c => c.name)).toEqual([
+          'Collection #1',
+          'Collection #1',
+          'Collection #8',
+          'Collection #4',
+        ]);
+
+        const items = await d.getData('item', ['6', '5', '5', '3', '5']);
+        expect(items).toHaveLength(5);
+        expect(items.map(c => c.name)).toEqual([
+          'Item #6',
+          'Item #5',
+          'Item #5',
+          'Item #3',
+          'Item #5',
+        ]);
+      });
+    });
+
+    it('leaves not-found items as invalid', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          await d.saveDatum({
+            __type: 'collection',
+            __id: `${i}`,
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+        }
+
+        const collections = await d.getData('collection', ['1', '0', '2', '4']);
+        expect(collections).toHaveLength(4);
+        expect(collections.map(c => c.__valid)).toEqual([
+          true,
+          false,
+          true,
+          true,
+        ]);
+        expect(collections.map(c => c.name)).toEqual([
+          'Collection #1',
+          undefined,
+          'Collection #2',
+          'Collection #4',
+        ]);
+      });
+    });
+  });
+
+  describe('with field match conditions', () => {
+    it('works', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            model_name: `Model ${i <= 5 ? 'A' : 'B'}`,
+          });
+        }
+
+        const modelAItems = await d.getData('item', { model_name: 'Model A' });
+        expect(modelAItems).toHaveLength(5);
+        expect(modelAItems.map(it => it.name)).toEqual(
+          expect.arrayContaining(
+            Array.from(new Array(5)).map((_, i) => `Item #${i + 1}`),
+          ),
+        );
+
+        const modelBItems = await d.getData('item', { model_name: 'Model B' });
+        expect(modelBItems).toHaveLength(5);
+        expect(modelBItems.map(it => it.name)).toEqual(
+          expect.arrayContaining(
+            Array.from(new Array(5)).map((_, i) => `Item #${i + 6}`),
+          ),
+        );
+      });
+    });
+
+    it('works with limit and skip', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 9; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            __id: `${i}`,
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            __id: `${i}`,
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            model_name: `Model ${i <= 5 ? 'A' : 'B'}`,
+          });
+        }
+
+        const modelAItemsWithLimit = await d.getData(
+          'item',
+          {
+            model_name: 'Model A',
+          },
+          { limit: 3 },
+        );
+        expect(modelAItemsWithLimit).toHaveLength(3);
+        expect(modelAItemsWithLimit.map(it => it.name)).toEqual(
+          expect.arrayContaining(
+            Array.from(new Array(3)).map((_, i) => `Item #${i + 1}`),
+          ),
+        );
+
+        const modelBItemsWithSkip = await d.getData(
+          'item',
+          {
+            model_name: 'Model B',
+          },
+          { limit: 3, skip: 2 },
+        );
+        expect(modelBItemsWithSkip).toHaveLength(2); // since we only have 9 items
+        expect(modelBItemsWithSkip.map(it => it.name)).toEqual(
+          expect.arrayContaining(
+            Array.from(new Array(2)).map((_, i) => `Item #${i + 8}`),
+          ),
+        );
+      });
+    });
+
+    it('works with sort', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            model_name: `Model ${i <= 5 ? 'A' : 'B'}`,
+            purchase_price_x1000: Math.abs(6 - i) * 1000,
+          });
+        }
+
+        const items_a = await d.getData(
+          'item',
+          { model_name: 'Model A' },
+          { sort: [{ purchase_price_x1000: 'asc' }] },
+        );
+        expect(items_a).toHaveLength(5);
+        expect(items_a.map(it => it.name)).toEqual(
+          Array.from(new Array(5)).map((_, i) => `Item #${5 - i}`),
+        );
+
+        const items_b = await d.getData(
+          'item',
+          { model_name: 'Model B' },
+          { sort: [{ purchase_price_x1000: 'desc' }] },
+        );
+        expect(items_b).toHaveLength(5);
+        expect(items_b.map(it => it.name)).toEqual(
+          Array.from(new Array(5)).map((_, i) => `Item #${i + 6}`),
+        );
+      });
+    });
+  });
+
+  describe('with field exists conditions', () => {
+    it('works', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+        const container = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Container',
+          item_type: 'container',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        for (let i = 1; i <= 10; i++) {
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            container_id: i <= 5 ? container.__id : undefined,
+          });
+        }
+
+        const itemWithContainer = await d.getData('item', {
+          container_id: { $exists: true },
+        });
+        expect(itemWithContainer).toHaveLength(5);
+        expect(itemWithContainer.map(it => it.name)).toEqual(
+          expect.arrayContaining(
+            Array.from(new Array(5)).map((_, i) => `Item #${i + 1}`),
+          ),
+        );
+
+        // TODO: Not working
+        // const itemWithoutContainer = await d.getData('item', {
+        //   container_id: { $exists: false },
+        // });
+        // expect(itemWithoutContainer).toHaveLength(5);
+        // expect(itemWithoutContainer.map(it => it.name)).toEqual(
+        //   expect.arrayContaining(
+        //     Array.from(new Array(5)).map((_, i) => `Item #${i + 6}`),
+        //   ),
+        // );
+      });
+    });
+  });
+
+  // TODO: test $gt, ...
+});
+
+describe('saveDatum', () => {
+  it('can update fields to become undefined', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+      const collection = await d.saveDatum({
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+      const container = await d.saveDatum({
+        __type: 'item',
+        collection_id: collection.__id,
+        item_type: 'container',
+        name: 'Container',
+        icon_name: 'box',
+        icon_color: 'gray',
+      });
+      const item = await d.saveDatum({
+        __type: 'item',
+        collection_id: collection.__id,
+        container_id: container.__id,
+        name: 'Item',
+        icon_name: 'cube-outline',
+        icon_color: 'gray',
+        model_name: 'Model',
+      });
+
+      expect(
+        (await d.getDatum('item', item.__id || ''))?.container_id,
+      ).not.toBeUndefined();
+      expect(
+        (await d.getDatum('item', item.__id || ''))?.model_name,
+      ).not.toBeUndefined();
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: item.__id,
+          container_id: undefined,
+          model_name: undefined,
+        },
+        { ignoreConflict: true },
+      );
+
+      expect(
+        (await d.getDatum('item', item.__id || ''))?.container_id,
+      ).toBeUndefined();
+      expect(
+        (await d.getDatum('item', item.__id || ''))?.model_name,
+      ).toBeUndefined();
     });
   });
 });
