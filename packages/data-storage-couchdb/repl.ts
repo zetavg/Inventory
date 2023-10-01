@@ -132,7 +132,7 @@ getPassword(async () => {
         await (remoteDB as any).logIn(db_username, db_password);
 
         const pouchdbMd5 = require('pouchdb-md5');
-        const localDbName = `.repl_temp_dbs/pouchdb-websql-${pouchdbMd5
+        const localDbName = `.temp_dbs/pouchdb-websql-${pouchdbMd5
           .stringMd5(db_uri)
           .slice(0, 8)}`;
         const localDB = new PouchDB(localDbName, {

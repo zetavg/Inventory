@@ -16,4 +16,4 @@ deps/
 # PouchDB
 #
 /*-mrview-*
-/.repl_temp_dbs/pouchdb*
+/.temp_dbs/pouchdb*
