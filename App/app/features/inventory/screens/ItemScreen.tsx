@@ -170,10 +170,16 @@ function ItemScreen({
     async its => {
       if (!data || !data.__valid) return false;
 
-      const saved = await save({
-        ...data,
-        contents_order: its.map(it => it.__id).filter((s): s is string => !!s),
-      });
+      const saved = await save(
+        {
+          __type: data.__type,
+          __id: data.__id,
+          contents_order: its
+            .map(it => it.__id)
+            .filter((s): s is string => !!s),
+        },
+        { ignoreConflict: true },
+      );
       if (saved) reloadData();
 
       return !!saved;
@@ -187,12 +193,16 @@ function ItemScreen({
     if (!data || !data.__valid) return;
     if (!data.rfid_tag_epc_memory_bank_contents) return;
 
-    data.actual_rfid_tag_epc_memory_bank_contents =
-      data.rfid_tag_epc_memory_bank_contents;
-    try {
-      await save(data);
-      refreshData();
-    } catch (e) {}
+    await save(
+      {
+        __id: data.__id,
+        __type: data.__type,
+        actual_rfid_tag_epc_memory_bank_contents:
+          data.rfid_tag_epc_memory_bank_contents,
+      },
+      { ignoreConflict: true },
+    );
+    refreshData();
   }, [data, refreshData, save]);
 
   const [displayEpc, setDisplayEpc] = useState<null | 'epc' | 'hex'>(null);

@@ -227,10 +227,11 @@ function CollectionScreen({
 
       const saved = await save(
         {
-          ...data,
+          __type: data.__type,
+          __id: data.__id,
           items_order: its.map(it => it.__id).filter((s): s is string => !!s),
         },
-        { noTouch: true },
+        { ignoreConflict: true },
       );
 
       if (saved) reloadData();
