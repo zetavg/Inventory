@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform, StatusBar, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Appbar } from 'react-native-paper';
@@ -41,6 +41,7 @@ type Props = {
   onAction2Press?: () => void;
   action2Variant?: 'normal' | 'strong' | 'destructive';
   footer?: React.ReactNode;
+  disableSwipeToDismissInContent?: boolean;
 };
 
 function ModalContent({
@@ -61,8 +62,18 @@ function ModalContent({
   onAction2Press,
   action2Variant,
   footer,
+  disableSwipeToDismissInContent,
 }: Props) {
   const safeAreaInsets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (disableSwipeToDismissInContent) {
+      navigation.setOptions({
+        gestureResponseDistance: safeAreaInsets.top + 50,
+      });
+    }
+  }, [disableSwipeToDismissInContent, navigation, safeAreaInsets.top]);
+
   // const isDarkMode = useIsDarkMode();
   const { backgroundColor } = useColors();
 

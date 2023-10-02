@@ -2,9 +2,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { useData } from '@app/data';
-
-import commonStyles from '@app/utils/commonStyles';
 import moveItemInArray from '@app/utils/moveItemInArray';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -94,6 +91,7 @@ function OrderItemsScreen({
       action1Variant="strong"
       action2Label="Cancel"
       onAction2Press={handleCancel}
+      disableSwipeToDismissInContent // since EditingListView does not support this
     >
       <EditingListView canMove editing onItemMove={handleItemMove}>
         {items.map((item, i) => (
