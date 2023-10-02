@@ -63,7 +63,7 @@ function useSave({
         if (e instanceof ValidationError) {
           if (showAlertOnError !== false) {
             Alert.alert(
-              !d.__deleted
+              !(!Array.isArray(d) && d.__deleted)
                 ? 'Please Fix The Following Errors'
                 : `Cannot Delete ${getHumanName(d.__type, {
                     titleCase: true,
