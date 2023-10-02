@@ -1,5 +1,5 @@
 name: Build App
-run-name: Build ${{ github.event.inputs.branch }}
+run-name: ${{ format('Build {0}{1}', github.event.inputs.branch, github.event.inputs.notes && format(' - {0}', github.event.inputs.notes)) }}
 on:
   workflow_dispatch:
     inputs:
