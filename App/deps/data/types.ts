@@ -107,8 +107,32 @@ export type GetRelated = <
   },
 ) => Promise<DataRelationType<T, N> | null>;
 
+/**
+ * Create, update or delete a datum.
+ *
+ * It will return the saved datum or throw if anything fails.
+ */
 export type SaveDatum = <T extends DataTypeName>(
-  data: DataMeta<T> & { [key: string]: unknown },
+  /**
+   * The data to create, update or delete.
+   *
+   * * For creation, if `__id` is omitted, a random one will be assigned automatically.
+   * * For updating, data can be provided partially, just make sure that `__type` and `__id` is valid.
+   *     * A updater function can also be used by providing a tuple of the data type, ID and the updater function. In such case, `ignoreConflict` will be assumed as `true`.
+   * * For deletion, set `__deleted` to `true` while making sure that `__type` and `__id` is valid. Other fields are not necessary for deletion.
+   */
+  data:
+    | (DataMeta<T> &
+        (
+          | { [key: string]: unknown } // Since the data will be validated, we can accept unknown user input.
+          // Adding this just for editor auto-complete
+          | DataType<T>
+        ))
+    | [
+        T,
+        string,
+        (d: DataMeta<T> & { [key: string]: unknown }) => Partial<DataType<T>>,
+      ],
   options?: {
     /** Set to true to not update the `__updated_at` field. */
     noTouch?: boolean;

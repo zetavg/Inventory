@@ -1230,6 +1230,285 @@ describe('saveDatum', () => {
       });
     });
   });
+
+  describe('with updater function', () => {
+    it('updates the datum', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const consumableItem = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Consumable Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_type: 'consumable',
+          consumable_stock_quantity: 1,
+        });
+
+        await d.saveDatum([
+          'item',
+          consumableItem.__id || '',
+          datum => ({
+            consumable_stock_quantity:
+              (typeof datum.consumable_stock_quantity === 'number' &&
+              !isNaN(datum.consumable_stock_quantity)
+                ? datum.consumable_stock_quantity
+                : 0) + 1,
+          }),
+        ]);
+
+        expect(
+          (await d.getDatum('item', consumableItem.__id || ''))
+            ?.consumable_stock_quantity,
+        ).toBe(2);
+
+        await d.saveDatum([
+          'item',
+          consumableItem.__id || '',
+          datum => ({
+            consumable_stock_quantity:
+              (typeof datum.consumable_stock_quantity === 'number' &&
+              !isNaN(datum.consumable_stock_quantity)
+                ? datum.consumable_stock_quantity
+                : 0) + 1,
+          }),
+        ]);
+
+        expect(
+          (await d.getDatum('item', consumableItem.__id || ''))
+            ?.consumable_stock_quantity,
+        ).toBe(3);
+      });
+    });
+
+    it('returns the saved datum', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const consumableItem = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Consumable Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_type: 'consumable',
+          consumable_stock_quantity: 1,
+        });
+
+        const updatedConsumableItem = await d.saveDatum([
+          'item',
+          consumableItem.__id || '',
+          datum => ({
+            consumable_stock_quantity:
+              (typeof datum.consumable_stock_quantity === 'number' &&
+              !isNaN(datum.consumable_stock_quantity)
+                ? datum.consumable_stock_quantity
+                : 0) + 1,
+          }),
+        ]);
+
+        expect(updatedConsumableItem?.consumable_stock_quantity).toBe(2);
+      });
+    });
+
+    it('does data validation and callbacks', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const consumableItem = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Consumable Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_type: 'consumable',
+          consumable_stock_quantity: 1,
+        });
+
+        await d.saveDatum([
+          'item',
+          consumableItem.__id || '',
+          datum => ({
+            consumable_stock_quantity:
+              (typeof datum.consumable_stock_quantity === 'number' &&
+              !isNaN(datum.consumable_stock_quantity)
+                ? datum.consumable_stock_quantity
+                : 0) + 1,
+            item_reference_number: '000001',
+          }),
+        ]);
+
+        const updatedDatum1 = await d.getDatum(
+          'item',
+          consumableItem.__id || '',
+        );
+        expect(updatedDatum1?.consumable_stock_quantity).toBe(2);
+        expect(updatedDatum1?.individual_asset_reference).toBe(
+          '0001.000001.0000',
+        );
+
+        await expect(async () => {
+          await d.saveDatum([
+            'item',
+            consumableItem.__id || '',
+            () => ({
+              consumable_stock_quantity: 'invalid!' as any,
+              item_reference_number: '000001',
+            }),
+          ]);
+        }).rejects.toThrowError(ValidationError);
+
+        const updatedDatum2 = await d.getDatum(
+          'item',
+          consumableItem.__id || '',
+        );
+        expect(updatedDatum2?.consumable_stock_quantity).toBe(2);
+        expect(updatedDatum2?.individual_asset_reference).toBe(
+          '0001.000001.0000',
+        );
+      });
+    });
+
+    it('can skip data validation and callbacks', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '0001',
+        });
+
+        const consumableItem = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Consumable Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_type: 'consumable',
+          consumable_stock_quantity: 1,
+        });
+
+        await d.saveDatum([
+          'item',
+          consumableItem.__id || '',
+          datum => ({
+            consumable_stock_quantity:
+              (typeof datum.consumable_stock_quantity === 'number' &&
+              !isNaN(datum.consumable_stock_quantity)
+                ? datum.consumable_stock_quantity
+                : 0) + 1,
+            item_reference_number: '000001',
+          }),
+        ]);
+
+        const updatedDatum1 = await d.getDatum(
+          'item',
+          consumableItem.__id || '',
+        );
+        expect(updatedDatum1?.consumable_stock_quantity).toBe(2);
+        expect(updatedDatum1?.individual_asset_reference).toBe(
+          '0001.000001.0000',
+        );
+
+        await d.saveDatum(
+          [
+            'item',
+            consumableItem.__id || '',
+            () => ({
+              consumable_stock_quantity: 'invalid!' as any,
+              item_reference_number: '000002',
+            }),
+          ],
+          { skipValidation: true, skipCallbacks: true },
+        );
+
+        const updatedDatum2 = await d.getDatum(
+          'item',
+          consumableItem.__id || '',
+        );
+        expect(updatedDatum2?.consumable_stock_quantity).toBe('invalid!');
+        expect(updatedDatum2?.individual_asset_reference).toBe(
+          '0001.000001.0000',
+        );
+      });
+    });
+
+    it('prevents race conditions', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const collection = await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const consumableItem = await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Consumable Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_type: 'consumable',
+          consumable_stock_quantity: 1,
+        });
+
+        const toAdd = 20;
+
+        await Promise.all(
+          Array.from(new Array(toAdd)).map(async () => {
+            await d.saveDatum([
+              'item',
+              consumableItem.__id || '',
+              datum => ({
+                consumable_stock_quantity:
+                  (typeof datum.consumable_stock_quantity === 'number' &&
+                  !isNaN(datum.consumable_stock_quantity)
+                    ? datum.consumable_stock_quantity
+                    : 0) + 1,
+              }),
+            ]);
+          }),
+        );
+
+        const updatedDatum = await d.getDatum(
+          'item',
+          consumableItem.__id || '',
+        );
+        expect(updatedDatum?.consumable_stock_quantity).toBe(1 + toAdd);
+      });
+    });
+  });
 });
 
 describe('fixDataConsistency', () => {

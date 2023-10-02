@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   Alert,
   LayoutAnimation,
@@ -17,6 +23,8 @@ import Svg, { Path, Rect } from 'react-native-svg';
 
 import Clipboard from '@react-native-clipboard/clipboard';
 
+import { ValidationError } from '@deps/data/validation';
+
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
@@ -25,10 +33,12 @@ import { getTagAccessPassword } from '@app/features/rfid/utils';
 import {
   DataTypeWithID,
   onlyValid,
+  schema,
   useConfig,
   useData,
   useRelated,
   useSave,
+  ValidDataTypeWithID,
 } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -71,12 +81,28 @@ function ItemScreen({
 
   const [reloadCounter, setReloadCounter] = useState(0);
   const {
-    data,
+    data: loadedData,
     loading: dataLoading,
     reload: reloadData,
     refresh: refreshData,
     refreshing: dataRefreshing,
   } = useData('item', id);
+  // const [overwrittenData, setOverwrittenData] =
+  //   useState<typeof loadedData>(null);
+  // const data = useMemo(
+  //   () => overwrittenData || loadedData,
+  //   [loadedData, overwrittenData],
+  // );
+  // useEffect(() => {
+  //   setOverwrittenData(null);
+  // }, [loadedData]);
+  const data = loadedData;
+  const [overwrittenStockQuantity, setOverwrittenStockQuantity] = useState<
+    number | null
+  >(null);
+  useEffect(() => {
+    setOverwrittenStockQuantity(null);
+  }, [loadedData]);
   const {
     data: collection,
     loading: collectionLoading,
@@ -292,22 +318,62 @@ function ItemScreen({
     }
   })();
 
+  const lastUpdateStockQuantityCalledAt = useRef(0);
   const updateStockQuantity = useCallback(
-    async (quantity: number) => {
-      if (!data?.__valid) return;
-      try {
-        await save({
-          ...data,
-          consumable_stock_quantity: quantity,
-        });
-        reloadData();
+    async (quantity: number | ((n: number) => number)) => {
+      const currentTimestamp = Date.now();
+      lastUpdateStockQuantityCalledAt.current = currentTimestamp;
+      const savedData = await (async () => {
+        return await save(
+          [
+            'item',
+            id,
+            oldD => ({
+              consumable_stock_quantity:
+                typeof quantity === 'function'
+                  ? quantity(
+                      typeof oldD.consumable_stock_quantity === 'number' &&
+                        !isNaN(oldD.consumable_stock_quantity)
+                        ? oldD.consumable_stock_quantity
+                        : 0,
+                    )
+                  : quantity,
+            }),
+          ],
+          { skipCallbacks: true, skipValidation: true },
+        );
+      })();
+
+      if (savedData) {
+        // try {
+        //   const parsedSavedData = schema.item.parse(savedData);
+        //   setOverwrittenData({
+        //     __type: 'item',
+        //     ...parsedSavedData,
+        //     __valid: true,
+        //   });
+        // } catch (e) {
+        //   setOverwrittenData({
+        //     ...savedData,
+        //     __valid: false,
+        //     __error: e instanceof Error ? e : undefined,
+        //     __issues: e instanceof ValidationError ? e.issues : undefined,
+        //   });
+        // }
+        if (currentTimestamp >= lastUpdateStockQuantityCalledAt.current) {
+          setOverwrittenStockQuantity(
+            typeof savedData.consumable_stock_quantity === 'number'
+              ? savedData.consumable_stock_quantity
+              : null,
+          );
+        }
         ReactNativeHapticFeedback.trigger('impactLight', {
           enableVibrateFallback: false,
         });
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
-      } catch (e) {}
+      }
     },
-    [data, reloadData, save],
+    [id, save],
   );
 
   const updateWillNotRestock = useCallback(
@@ -326,6 +392,9 @@ function ItemScreen({
 
   // Cannot write RFID tag for shared item because we don't know the password
   const canWriteRfidTag = isFromSharedDb !== null && !isFromSharedDb;
+
+  const consumableStockQuantity =
+    overwrittenStockQuantity || data?.consumable_stock_quantity;
 
   return (
     <ScreenContent
@@ -816,8 +885,8 @@ function ItemScreen({
               keyboardType="number-pad"
               selectTextOnFocus
               returnKeyType="done"
-              value={(typeof data.consumable_stock_quantity === 'number'
-                ? data.consumable_stock_quantity
+              value={(typeof consumableStockQuantity === 'number'
+                ? consumableStockQuantity
                 : 1
               ).toString()}
               onChangeText={t => {
@@ -829,16 +898,19 @@ function ItemScreen({
                 <View style={commonStyles.ml8}>
                   <PlusAndMinusButtons
                     value={
-                      typeof data.consumable_stock_quantity === 'number'
-                        ? data.consumable_stock_quantity
+                      typeof consumableStockQuantity === 'number'
+                        ? consumableStockQuantity
                         : 1
                     }
-                    onChangeValue={v => updateStockQuantity(v)}
+                    // onChangeValue={v => updateStockQuantity(v)}
+                    onChangeValueUpdater={updater =>
+                      updateStockQuantity(updater)
+                    }
                   />
                 </View>
               }
             />
-            {data.consumable_stock_quantity === 0 && (
+            {consumableStockQuantity === 0 && (
               <>
                 <UIGroup.ListItemSeparator />
                 <UIGroup.ListTextInputItem

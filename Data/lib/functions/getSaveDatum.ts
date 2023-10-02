@@ -1,14 +1,16 @@
 import { v4 as uuid } from 'uuid';
 
 import getCallbacks from '../callbacks';
-import schema, { DataTypeName } from '../schema';
+import schema, { DataType, DataTypeName } from '../schema';
 import {
   DataMeta,
   GetConfig,
   GetData,
   GetDatum,
   GetRelated,
+  InvalidDataTypeWithID,
   SaveDatum,
+  ValidDataTypeWithID,
 } from '../types';
 import { hasChanges } from '../utils';
 import { getValidationErrorFromZodSafeParseReturnValue } from '../utils/validation-utils';
@@ -50,7 +52,13 @@ export default function getSaveDatum({
   });
 
   const saveDatum: SaveDatum = async <T extends DataTypeName>(
-    d: DataMeta<T> & { [key: string]: unknown },
+    d:
+      | (DataMeta<T> & { [key: string]: unknown })
+      | [
+          T,
+          string,
+          (d: DataMeta<T> & { [key: string]: unknown }) => Partial<DataType<T>>,
+        ],
     options: {
       noTouch?: boolean;
       forceTouch?: boolean;
@@ -59,94 +67,155 @@ export default function getSaveDatum({
       skipCallbacks?: boolean;
     } = {},
   ) => {
-    const existingData = await (async () => {
-      if (typeof d.__id !== 'string') return null;
-
-      return await getDatum(d.__type, d.__id);
-    })();
-
-    const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
-      ...(existingData
-        ? (Object.fromEntries(
-            Object.entries(existingData).filter(
-              ([k]) => k !== '__rev' && k !== '__type',
-            ),
-          ) as any)
-        : {}),
-      ...d,
-      ...(options.ignoreConflict && existingData?.__rev
-        ? { __rev: existingData.__rev }
-        : {}),
-    };
-
-    if (typeof dataToSave.__created_at !== 'number') {
-      dataToSave.__created_at = new Date().getTime();
-    }
-
-    if (typeof dataToSave.__updated_at !== 'number') {
-      dataToSave.__updated_at = new Date().getTime();
-    }
-
-    const s = schema[d.__type];
-
-    if (!options.skipCallbacks) {
-      await beforeSave(dataToSave);
-    }
-
-    if (!dataToSave.__deleted) {
-      // Save
-      if (typeof dataToSave.__id !== 'string') {
-        dataToSave.__id = uuid();
+    /** A reusable function that run callbacks, do validation and save the provided data. */
+    const doSaveData = async (
+      existingData: ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null,
+      dataToSave: DataMeta<T> & { [key: string]: unknown },
+    ) => {
+      if (typeof dataToSave.__created_at !== 'number') {
+        dataToSave.__created_at = new Date().getTime();
       }
 
-      if (!options.skipValidation) {
-        const safeParseResults = s.safeParse(dataToSave);
-        const safeParseError =
-          getValidationErrorFromZodSafeParseReturnValue(safeParseResults);
-        if (safeParseError) throw safeParseError;
-
-        const validationResults = await validate(dataToSave);
-        const validationError =
-          getErrorFromValidationResults(validationResults);
-        if (validationError) throw validationError;
-      }
-
-      if (
-        existingData &&
-        !hasChanges(existingData, dataToSave) &&
-        !options.forceTouch
-      ) {
-        // Data has not been changed, skip saving
-        if (skipSaveCallback) skipSaveCallback(existingData, dataToSave);
-        return dataToSave;
-      }
-
-      if (!options.noTouch) {
+      if (typeof dataToSave.__updated_at !== 'number') {
         dataToSave.__updated_at = new Date().getTime();
       }
 
-      await writeDatum(dataToSave);
-    } else {
-      // Delete
-      if (typeof dataToSave.__id !== 'string') {
-        throw new Error('__id must be specified while setting __deleted: true');
+      const s = schema[dataToSave.__type];
+
+      if (!options.skipCallbacks) {
+        await beforeSave(dataToSave);
       }
 
-      if (!options.skipValidation) {
-        const validationResults = await validateDelete({
-          ...dataToSave,
-          __id: dataToSave.__id,
-          __deleted: true,
-        });
-        const validationError =
-          getErrorFromValidationResults(validationResults);
-        if (validationError) throw validationError;
+      if (!dataToSave.__deleted) {
+        // Save
+        if (typeof dataToSave.__id !== 'string') {
+          dataToSave.__id = uuid();
+        }
+
+        if (!options.skipValidation) {
+          const safeParseResults = s.safeParse(dataToSave);
+          const safeParseError =
+            getValidationErrorFromZodSafeParseReturnValue(safeParseResults);
+          if (safeParseError) throw safeParseError;
+
+          const validationResults = await validate(dataToSave);
+          const validationError =
+            getErrorFromValidationResults(validationResults);
+          if (validationError) throw validationError;
+        }
+
+        if (
+          existingData &&
+          !hasChanges(existingData, dataToSave) &&
+          !options.forceTouch
+        ) {
+          // Data has not been changed, skip saving
+          if (skipSaveCallback) skipSaveCallback(existingData, dataToSave);
+          return dataToSave;
+        }
+
+        if (!options.noTouch) {
+          dataToSave.__updated_at = new Date().getTime();
+        }
+
+        await writeDatum(dataToSave);
+      } else {
+        // Delete
+        if (typeof dataToSave.__id !== 'string') {
+          throw new Error(
+            '__id must be specified while setting __deleted: true',
+          );
+        }
+
+        if (!options.skipValidation) {
+          const validationResults = await validateDelete({
+            ...dataToSave,
+            __id: dataToSave.__id,
+            __deleted: true,
+          });
+          const validationError =
+            getErrorFromValidationResults(validationResults);
+          if (validationError) throw validationError;
+        }
+
+        await deleteDatum(dataToSave);
       }
 
-      await deleteDatum(dataToSave);
+      return dataToSave;
+    };
+
+    // Using a updater function
+    if (Array.isArray(d)) {
+      if (options.ignoreConflict === false) {
+        throw new Error(
+          'Setting ignoreConflict to false does not make sense while using an updater function.',
+        );
+      }
+
+      const [type, id, updater] = d;
+      const errors: unknown[] = [];
+      while (true) {
+        try {
+          const existingData = await getDatum(type, id);
+          if (!existingData) throw new Error(`Data not found: ${type} ${id}`);
+
+          const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
+            ...(existingData
+              ? (Object.fromEntries(
+                  Object.entries(existingData).filter(
+                    ([k]) => k !== '__rev' && k !== '__type',
+                  ),
+                ) as any)
+              : {}),
+            ...updater(existingData),
+            __type: type,
+            __rev: existingData.__rev,
+          };
+
+          return await doSaveData(existingData, dataToSave);
+        } catch (e) {
+          if (errors.length > 24) {
+            if (
+              e &&
+              typeof e === 'object' &&
+              typeof (e as any).message === 'string'
+            ) {
+              (e as any).message +=
+                '\n\nprevious errors:\n' + errors.join('\n');
+            }
+
+            throw e;
+          }
+
+          errors.push(e);
+        }
+      }
     }
 
-    return dataToSave;
+    // Normal save
+    if (true /* an unnecessary if condition for code folding in editors */) {
+      const existingData = await (async () => {
+        if (typeof d.__id !== 'string') return null;
+
+        return await getDatum(d.__type, d.__id);
+      })();
+
+      const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
+        ...(existingData
+          ? (Object.fromEntries(
+              Object.entries(existingData).filter(
+                ([k]) => k !== '__rev' && k !== '__type',
+              ),
+            ) as any)
+          : {}),
+        ...d,
+        ...(options.ignoreConflict && existingData?.__rev
+          ? { __rev: existingData.__rev }
+          : {}),
+      };
+
+      return await doSaveData(existingData, dataToSave);
+    }
   };
 
   return saveDatum;

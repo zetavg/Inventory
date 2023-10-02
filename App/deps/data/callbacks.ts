@@ -103,7 +103,7 @@ export default function getCallbacks({
           }
 
           if (datum.item_type === 'consumable') {
-            if (typeof datum.consumable_stock_quantity !== 'number') {
+            if (typeof datum.consumable_stock_quantity === 'undefined') {
               datum.consumable_stock_quantity = 1;
               datum.consumable_will_not_restock = false;
             }
