@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { getHumanTypeName, useData, useDataCount } from '@app/data';
+import { getHumanName, useData, useDataCount } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
@@ -50,7 +50,7 @@ function DataListScreen({
   return (
     <ScreenContent
       navigation={navigation}
-      title={getHumanTypeName(type, { titleCase: true, plural: true })}
+      title={getHumanName(type, { titleCase: true, plural: true })}
       action1Label="Add Data"
       action1SFSymbolName="plus.square.fill"
       action1MaterialIconName="square-edit-outline"
@@ -71,7 +71,7 @@ function DataListScreen({
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup
           loading={loading}
-          placeholder={`No ${getHumanTypeName(type, {
+          placeholder={`No ${getHumanName(type, {
             titleCase: false,
             plural: true,
           })}.`}

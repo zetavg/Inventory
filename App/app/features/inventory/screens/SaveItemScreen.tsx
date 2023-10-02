@@ -14,18 +14,14 @@ import RNPickerSelect from 'react-native-picker-select';
 
 import { ZodError } from 'zod';
 
+import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { selectors, useAppSelector } from '@app/redux';
 
-import {
-  DataTypeWithAdditionalInfo,
-  useConfig,
-  useData,
-  useSave,
-} from '@app/data';
+import { DataTypeWithID, useConfig, useData, useSave } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 import randomInt from '@app/utils/randomInt';
@@ -87,7 +83,9 @@ function SaveItemScreen({
 
   const { contentTextColor, contentSecondaryTextColor } = useColors();
 
-  const initialData = useMemo<Partial<DataTypeWithAdditionalInfo<'item'>>>(
+  const initialData = useMemo<
+    DataMeta<'item'> & Partial<DataTypeWithID<'item'>>
+  >(
     () => ({
       __type: 'item',
       icon_name: 'cube-outline',
@@ -96,8 +94,9 @@ function SaveItemScreen({
     }),
     [initialDataFromParams],
   );
-  const [data, setData] =
-    useState<Partial<DataTypeWithAdditionalInfo<'item'>>>(initialData);
+  const [data, setData] = useState<
+    DataMeta<'item'> & Partial<DataTypeWithID<'item'>>
+  >(initialData);
   const hasChanges = !useDeepCompare(initialData, data);
 
   // const [selectedCollectionData, setSelectedCollectionData] = useState<
@@ -243,14 +242,14 @@ function SaveItemScreen({
 
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
-    try {
-      const d = await save(data, { showErrorAlert: true });
+    const savedData = await save(data);
+    if (savedData) {
       isDone.current = true;
       if (route.params.afterSave) {
-        route.params.afterSave(d);
+        route.params.afterSave(savedData);
       }
       navigation.goBack();
-    } catch (e: any) {}
+    }
   }, [data, navigation, route.params, save]);
 
   const handleLeave = useCallback(
@@ -298,31 +297,17 @@ function SaveItemScreen({
       selectedContainer.collection_id === data.collection_id);
 
   const doDelete = useCallback(async () => {
-    try {
-      await save(
-        {
-          ...initialData,
-          __type: initialData.__type,
-          __id: initialData.__id,
-          __deleted: true,
-        },
-        { showErrorAlert: false },
-      );
+    const deleted = await save({
+      ...initialData,
+      __deleted: true,
+    });
+    if (deleted) {
       navigation.goBack();
       if (typeof afterDelete === 'function') {
         afterDelete();
       }
-    } catch (e) {
-      if (e instanceof ZodError) {
-        Alert.alert(
-          'Cannot delete item',
-          e.issues.map(i => i.message).join('\n'),
-        );
-      } else {
-        logger.error(e, { showAlert: true });
-      }
     }
-  }, [afterDelete, initialData, logger, navigation, save]);
+  }, [afterDelete, initialData, navigation, save]);
   const handleDeleteButtonPressed = useCallback(() => {
     Alert.alert(
       'Confirmation',

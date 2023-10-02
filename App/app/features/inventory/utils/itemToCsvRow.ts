@@ -1,21 +1,24 @@
 import appLogger from '@app/logger';
 
-import { DataTypeWithAdditionalInfo } from '@app/data';
-import getDatum from '@app/data/functions/getDatum';
+import { DataTypeWithID } from '@app/data';
+import { getGetDatum } from '@app/data/functions';
 
 export default async function itemToCsvRow(
-  item: DataTypeWithAdditionalInfo<'item'>,
+  item: DataTypeWithID<'item'>,
   {
     db,
     loadedCollectionsMap,
   }: {
     db: PouchDB.Database;
-    loadedCollectionsMap: Map<string, DataTypeWithAdditionalInfo<'collection'>>;
+    loadedCollectionsMap: Map<string, DataTypeWithID<'collection'>>;
   },
 ) {
   const logger = appLogger.for({ module: 'itemToCsvRow' });
   if (!loadedCollectionsMap.has(item.collection_id)) {
-    const c = await getDatum('collection', item.collection_id, { db, logger });
+    const c = await getGetDatum({ db, logger })(
+      'collection',
+      item.collection_id,
+    );
     if (c?.__valid) loadedCollectionsMap.set(item.collection_id, c);
   }
   const collection = loadedCollectionsMap.get(item.collection_id);

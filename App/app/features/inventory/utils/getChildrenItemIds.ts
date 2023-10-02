@@ -1,7 +1,8 @@
+import { onlyValid } from '@deps/data/utils';
+
 import appLogger from '@app/logger';
 
-import getData from '@app/data/functions/getData';
-import onlyValid from '@app/data/functions/onlyValid';
+import { getGetData } from '@app/data/functions';
 import { DataTypeWithAdditionalInfo } from '@app/data/types';
 
 export default async function getChildrenItemIds(
@@ -21,9 +22,11 @@ export default async function getChildrenItemIds(
     currentDepth?: number;
   },
 ): Promise<Record<string, Array<string>>> {
+  const logger = appLogger.for({ module: 'getChildrenItemIds' });
+  const getData = getGetData({ db, logger });
+
   if (currentDepth >= maxDepth) return {};
 
-  const logger = appLogger.for({ module: 'getChildrenItemIds' });
   if (loadedItemsMapRef.current === null) {
     loadedItemsMapRef.current = new Map();
   }
@@ -32,12 +35,7 @@ export default async function getChildrenItemIds(
     id => !loadedItemsMapRef.current?.has(id),
   );
   if (parentIdsToLoad.length > 0) {
-    const newLoadedItems = await getData(
-      'item',
-      parentIdsToLoad,
-      {},
-      { db, logger },
-    );
+    const newLoadedItems = await getData('item', parentIdsToLoad, {});
 
     for (const item of onlyValid(newLoadedItems)) {
       if (item.__id) loadedItemsMapRef.current?.set(item.__id, item);
@@ -58,7 +56,6 @@ export default async function getChildrenItemIds(
         {
           sort: [{ __created_at: 'asc' }],
         },
-        { db, logger },
       );
       const data = onlyValid(loadedData);
       data.forEach(d => loadedItemsMapRef.current?.set(d.__id || '', d));

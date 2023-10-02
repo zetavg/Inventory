@@ -75,6 +75,9 @@ function copyDepDir(source: Array<string>, target: Array<string>) {
 }
 
 copyDepDir(['Data', 'lib'], ['data']);
-
+copyDepDir(
+  ['packages', 'data-storage-couchdb', 'lib'],
+  ['data-storage-couchdb'],
+);
 copyDepDir(['packages', 'epc-utils', 'lib'], ['epc-utils']);
 copyDepDir(['packages', 'epc-utils', 'types'], ['types']);

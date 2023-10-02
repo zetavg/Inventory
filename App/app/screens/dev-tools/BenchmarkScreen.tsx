@@ -2,10 +2,10 @@ import React, { useCallback, useRef, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import getData from '@app/data/functions/getData';
-import getDatum from '@app/data/functions/getDatum';
-import getRelated from '@app/data/functions/getRelated';
-import saveDatum from '@app/data/functions/saveDatum';
+// import getData from '@app/data/functions/getData';
+// import getDatum from '@app/data/functions/getDatum';
+// import getRelated from '@app/data/functions/getRelated';
+// import saveDatum from '@app/data/functions/saveDatum';
 
 import { useDB } from '@app/db';
 
@@ -157,10 +157,10 @@ function BenchmarkScreen({
         const returnValue = await benchmarkFn({
           logger,
           db,
-          getDatum,
-          getData,
-          getRelated,
-          saveDatum,
+          // getDatum,
+          // getData,
+          // getRelated,
+          // saveDatum,
           i,
         });
 

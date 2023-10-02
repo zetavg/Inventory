@@ -6,9 +6,8 @@ import { jsonToCSV } from 'react-native-csv';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
-import { DataTypeWithAdditionalInfo, onlyValid } from '@app/data';
-import getData from '@app/data/functions/getData';
-import getDatum from '@app/data/functions/getDatum';
+import { DataTypeWithID, onlyValid } from '@app/data';
+import { getGetData, getGetDatum } from '@app/data/functions';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -62,26 +61,25 @@ function ExportItemsToCsvScreen({
     setExportFrom(null);
     setLoading(true);
 
+    const getDatum = getGetDatum({ db, logger });
+    const getData = getGetData({ db, logger });
+
     try {
       await new Promise(resolve => setTimeout(resolve, 300));
-      let items: DataTypeWithAdditionalInfo<'item'>[] = [];
+      let items: DataTypeWithID<'item'>[] = [];
       switch (exportFrom) {
         case 'collection': {
-          const collection = await getDatum('collection', fromId, {
-            db,
-            logger,
-          });
+          const collection = await getDatum('collection', fromId);
           const data = onlyValid(
             await getData(
               'item',
               { collection_id: fromId },
               { sort: [{ __created_at: 'desc' }] },
-              { db, logger },
             ),
           );
           const dataMap: Record<
             string,
-            DataTypeWithAdditionalInfo<'item'>
+            DataTypeWithID<'item'>
           > = Object.fromEntries(data.map(d => [d.__id, d]));
 
           const order = Array.isArray(collection?.items_order)
@@ -121,18 +119,13 @@ function ExportItemsToCsvScreen({
             return result;
           };
           const ids = flattenIdsObj(idsObj, fromId);
-          items = onlyValid(await getData('item', ids, {}, { db, logger }));
+          items = onlyValid(await getData('item', ids, {}));
           break;
         }
 
         case 'all': {
           items = onlyValid(
-            await getData(
-              'item',
-              {},
-              { sort: [{ __created_at: 'desc' }] },
-              { db, logger },
-            ),
+            await getData('item', {}, { sort: [{ __created_at: 'desc' }] }),
           );
           break;
         }

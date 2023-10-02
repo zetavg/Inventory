@@ -4,11 +4,10 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import {
   DataTypeName,
-  DataTypeWithAdditionalInfo,
-  getHumanTypeName,
+  DataTypeWithID,
+  getHumanName,
   getPropertyNames,
   getPropertyType,
-  toTitleCase,
   useData,
   useRelated,
   useSave,
@@ -56,21 +55,17 @@ function DatumScreen({
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            try {
-              await save({
-                __type: type,
-                __id: id,
-                __deleted: true,
-              });
-              navigation.goBack();
-            } catch (e) {
-              logger.error(e, { showAlert: true });
-            }
+            const saved = await save({
+              __type: type,
+              __id: id,
+              __deleted: true,
+            });
+            if (saved) navigation.goBack();
           },
         },
       ],
     );
-  }, [data?.name, id, logger, navigation, save, type]);
+  }, [data?.name, id, navigation, save, type]);
 
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
@@ -81,7 +76,7 @@ function DatumScreen({
       title={
         (typeof data?.name === 'string' && data?.name) ||
         preloadedTitle ||
-        getHumanTypeName(type, { titleCase: true, plural: false })
+        getHumanName(type, { titleCase: true, plural: false })
       }
       action1Label="Edit"
       action1SFSymbolName="square.and.pencil"
@@ -135,7 +130,7 @@ function DatumScreen({
           placeholder={
             loading
               ? undefined
-              : `Can't load ${getHumanTypeName(type, {
+              : `Can't load ${getHumanName(type, {
                   titleCase: false,
                   plural: false,
                 })} with ID "${id}".`
@@ -148,9 +143,7 @@ function DatumScreen({
                   type,
                   propertyName,
                 );
-                const humanPropertyName = toTitleCase(
-                  propertyName.replace(/_/g, ' '),
-                );
+                const humanPropertyName = getHumanName(propertyName);
                 const value: unknown = data[propertyName];
                 switch (propertyType) {
                   case 'boolean': {
@@ -321,7 +314,7 @@ function BelongsToItem<T extends DataTypeWithRelationDefsName>({
   relationName,
   onPress,
 }: {
-  data: DataTypeWithAdditionalInfo<T>;
+  data: DataTypeWithID<T>;
   relationName: DataRelationName<T>;
   onPress: (payload: { type: DataTypeName; id: string }) => void;
 }): JSX.Element {
@@ -329,7 +322,7 @@ function BelongsToItem<T extends DataTypeWithRelationDefsName>({
   return (
     <UIGroup.ListItem
       verticalArrangedLargeTextIOS
-      label={toTitleCase(String(relationName).replace(/_/g, ' '))}
+      label={getHumanName(String(relationName))}
       detail={
         loading
           ? 'Loading...'
@@ -357,7 +350,7 @@ function HasManyGroup<T extends DataTypeWithRelationDefsName>({
   onPress,
   onAddPress,
 }: {
-  data: DataTypeWithAdditionalInfo<T>;
+  data: DataTypeWithID<T>;
   relationName: DataRelationName<T>;
   onPress: (payload: { type: DataTypeName; id: string }) => void;
   onAddPress: (payload: { type: DataTypeName; initialData: any }) => void;
@@ -370,7 +363,7 @@ function HasManyGroup<T extends DataTypeWithRelationDefsName>({
   } = useRelated(data, relationName);
   return (
     <UIGroup
-      header={toTitleCase(String(relationName).replace(/_/g, ' '))}
+      header={getHumanName(String(relationName).replace(/_/g, ' '))}
       loading={loading}
     >
       {UIGroup.ListItemSeparator.insertBetween([

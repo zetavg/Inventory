@@ -10,12 +10,11 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import {
   DataTypeName,
-  DataTypeWithAdditionalInfo,
-  getHumanTypeName,
+  DataTypeWithID,
+  getHumanName,
   getPropertyNames,
   getPropertyType,
   schema,
-  toTitleCase,
   useData,
   useSave,
 } from '@app/data';
@@ -42,7 +41,7 @@ function SaveDataModalScreen({
     disable: !id,
   });
   const initialData = useMemo<
-    Partial<DataTypeWithAdditionalInfo<DataTypeName>> & {
+    Partial<DataTypeWithID<DataTypeName>> & {
       __type: keyof typeof schema;
     }
   >(
@@ -55,7 +54,7 @@ function SaveDataModalScreen({
     [id, initialDataFromParams, originalData, type],
   );
   const [data, setData] = useState<
-    Partial<DataTypeWithAdditionalInfo<DataTypeName>> & {
+    Partial<DataTypeWithID<DataTypeName>> & {
       __type: keyof typeof schema;
     }
   >(initialData);
@@ -75,12 +74,12 @@ function SaveDataModalScreen({
 
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
-    try {
-      const results = await save(data);
+    const results = await save(data);
+    if (results) {
       isDone.current = true;
       if (afterSave) afterSave(results);
       navigation.goBack();
-    } catch (e) {}
+    }
   }, [afterSave, data, navigation, save]);
 
   const handleLeave = useCallback(
@@ -117,7 +116,7 @@ function SaveDataModalScreen({
       navigation={navigation}
       confirmCloseFn={handleLeave}
       preventClose={hasChanges}
-      title={`${id ? 'Update' : 'Create'} ${getHumanTypeName(type, {
+      title={`${id ? 'Update' : 'Create'} ${getHumanName(type, {
         plural: false,
         titleCase: true,
       })}`}
@@ -138,9 +137,7 @@ function SaveDataModalScreen({
                 type,
                 propertyName,
               );
-              const humanPropertyName = toTitleCase(
-                propertyName.replace(/_/g, ' '),
-              );
+              const humanPropertyName = getHumanName(propertyName);
               const value: any = data[propertyName];
               switch (propertyType) {
                 case 'string': {

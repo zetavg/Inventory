@@ -62,10 +62,8 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import { DataType, DataTypeName, DataTypeWithAdditionalInfo } from '@app/data';
-import { getGetConfig } from '@app/data/functions/config';
-import getData from '@app/data/functions/getData';
-import getDatum from '@app/data/functions/getDatum';
+import { DataType, DataTypeName, DataTypeWithID } from '@app/data';
+import { getGetConfig, getGetData, getGetDatum } from '@app/data/functions';
 
 import { useDB } from '@app/db';
 
@@ -130,12 +128,12 @@ export type RootStackParamList = {
     defaultValue?: string;
   };
   SaveCollection: {
-    initialData?: Partial<DataTypeWithAdditionalInfo<'collection'>>;
+    initialData?: Partial<DataTypeWithID<'collection'>>;
     afterDelete?: () => void;
   };
   SaveItem: {
-    initialData?: Partial<DataTypeWithAdditionalInfo<'item'>>;
-    afterSave?: (data: Partial<DataTypeWithAdditionalInfo<'item'>>) => void;
+    initialData?: Partial<DataTypeWithID<'item'>>;
+    afterSave?: (data: Partial<DataTypeWithID<'item'>>) => void;
     afterDelete?: () => void;
   };
   SelectItemType: {
@@ -147,10 +145,10 @@ export type RootStackParamList = {
     afterDelete?: () => void;
   };
   OrderItems: {
-    orderedItems: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>;
+    orderedItems: ReadonlyArray<DataTypeWithID<'item'>>;
     onSaveFunctionRef: {
       current: (
-        orderedItems: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
+        orderedItems: ReadonlyArray<DataTypeWithID<'item'>>,
       ) => Promise<boolean>;
     };
     // updateOrderFunctionRef?: { current: (newOrder: string[]) => void };
@@ -296,13 +294,16 @@ function Navigation({
   const { db } = useDB();
   const handleLink = useCallback(
     async (url: string) => {
+      if (!db) {
+        logger.warn(`Can't handle link: "${url}", db is not ready.`);
+        return;
+      }
       logger.debug(`Handling link: "${url}".`);
 
+      const getDatum = getGetDatum({ db });
+      const getData = getGetData({ db });
+
       const openItemWithIAR = async (iar: string) => {
-        if (!db) {
-          logger.warn(`Can't handle link: "${url}", db is not ready.`);
-          return;
-        }
         let iarWithDotsAdded: string | null = null;
         if (!iar.includes('.')) {
           const config = await getGetConfig({ db })();
@@ -321,7 +322,6 @@ function Navigation({
           'item',
           { individual_asset_reference: iar },
           { limit: 1 },
-          { db, logger },
         );
         let item = items[0];
         if (!item && iarWithDotsAdded) {
@@ -329,7 +329,6 @@ function Navigation({
             'item',
             { individual_asset_reference: iarWithDotsAdded },
             { limit: 1 },
-            { db, logger },
           );
           item = items2[0];
         }
@@ -352,7 +351,7 @@ function Navigation({
           logger.warn(`Can't handle link: "${url}", db is not ready.`);
           return;
         }
-        const item = await getDatum('item', id, { db, logger });
+        const item = await getDatum('item', id);
         if (!item?.__id) {
           Alert.alert('Item Not Found', `Can't find item with ID: "${id}".`);
         } else {
@@ -369,7 +368,7 @@ function Navigation({
           logger.warn(`Can't handle link: "${url}", db is not ready.`);
           return;
         }
-        const collection = await getDatum('collection', id, { db, logger });
+        const collection = await getDatum('collection', id);
         if (!collection?.__id) {
           Alert.alert(
             'Collection Not Found',

@@ -13,16 +13,18 @@ import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ZodError } from 'zod';
 
-import { DataTypeWithAdditionalInfo, useSave } from '@app/data';
-import { InvalidDataTypeWithAdditionalInfo } from '@app/data/types';
 import {
-  getValidationResultMessage,
+  DataTypeWithID,
+  InvalidDataTypeWithID,
+  ValidDataTypeWithID,
+} from '@app/data';
+import { getSaveDatum } from '@app/data/functions';
+import {
+  getValidationResultMessages,
+  ValidationError,
   ValidationResults,
 } from '@app/data/validation';
-
-import titleCase from '@app/utils/titleCase';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
@@ -57,19 +59,17 @@ function ImportItemsFromCsvScreen({
   const handleGetSampleCsv = useCallback(async () => {
     if (!db) return;
 
-    const items: DataTypeWithAdditionalInfo<'item'>[] = Array.from(
-      new Array(100),
-    ).map(() => ({
-      __type: 'item',
-      __valid: true,
-      __raw: {},
-      __id: uuidv4(),
-      name: '',
-      collection_id: '',
-      icon_name: '',
-      icon_color: '',
-      config_uuid: '',
-    }));
+    const items: DataTypeWithID<'item'>[] = Array.from(new Array(100)).map(
+      () => ({
+        __type: 'item',
+        __id: uuidv4(),
+        name: '',
+        collection_id: '',
+        icon_name: '',
+        icon_color: '',
+        config_uuid: '',
+      }),
+    );
     items[0].name = 'IDs are auto-generated for new items.';
     items[1].name = 'Items with no name will be ignored.';
     const loadedCollectionsMap = new Map();
@@ -90,17 +90,14 @@ function ImportItemsFromCsvScreen({
   const [csvFileName, setCsvFileName] = useState<null | string>(null);
   const [csvContents, setCsvContents] = useState<null | any>(null);
   const [loadedItems, setLoadedItems] = useState<Array<
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>
+    ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>
   > | null>(null);
   const [processedLoadedItems, setProcessedLoadedItems] = useState<Array<
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>
+    ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>
   > | null>(null);
   const [loadedItemsIssues, setLoadedItemsIssues] = useState<
     WeakMap<
-      | DataTypeWithAdditionalInfo<'item'>
-      | InvalidDataTypeWithAdditionalInfo<'item'>,
+      ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>,
       ValidationResults
     >
   >(new WeakMap());
@@ -178,18 +175,18 @@ function ImportItemsFromCsvScreen({
   const hasValidItemsToCreate = itemsToCreate && itemsToCreate.length > 0;
   const hasValidItemsToUpdate = itemsToUpdate && itemsToUpdate.length > 0;
 
-  const { save } = useSave();
   const [importing, setImporting] = useState(false);
   const handleImport = useCallback(async () => {
     if (!db) return;
 
     setImporting(true);
+    const saveDatum = getSaveDatum({ db, logger });
     const errorMessages = [];
     await new Promise(resolve => setTimeout(resolve, 1000));
     try {
       for (const it of loadedValidItems) {
         try {
-          await save(it, { showErrorAlert: false });
+          await saveDatum(it);
         } catch (e) {
           errorMessages.push(
             `${
@@ -197,14 +194,8 @@ function ImportItemsFromCsvScreen({
                 ? `${it.name}${it.__id ? ` (${it.__id})` : ''}`
                 : it.__id
             } - ${
-              e instanceof ZodError
-                ? e.issues
-                    .map(issue => {
-                      const path = issue.path.join('.');
-                      const name = path.split('.').map(titleCase).join(' ');
-                      return `${name}: ${issue.message}`;
-                    })
-                    .join(', ')
+              e instanceof ValidationError
+                ? e.messages.join(', ')
                 : e instanceof Error
                 ? e.message
                 : 'Unknown error.'
@@ -239,7 +230,7 @@ function ImportItemsFromCsvScreen({
         setLoadedItemsIssues(new WeakMap());
       }
     }
-  }, [csvContents, db, loadedValidItems, save]);
+  }, [csvContents, db, loadedValidItems, logger]);
 
   const working = loading || importing;
 
@@ -366,24 +357,15 @@ function ImportItemsFromCsvScreen({
                     ? `${it.name}${it.__id ? ` (${it.__id})` : ''}`
                     : it.__id;
                 const errorMessage = (() => {
-                  const zodError = (it.__error_details as any)?.error;
-                  if (zodError instanceof ZodError) {
-                    return zodError.issues
-                      .map(issue => {
-                        const path = issue.path.join('.');
-                        const name = path.split('.').map(titleCase).join(' ');
-                        return `${name}: ${issue.message}`;
-                      })
-                      .join(', ');
+                  const error = it.__error;
+                  if (error instanceof ValidationError) {
+                    return error.messages.join(', ');
                   }
 
                   if (loadedItemsIssues.has(it)) {
                     const issues = loadedItemsIssues.get(it);
                     if (issues) {
-                      return getValidationResultMessage(issues, {
-                        bullet: '',
-                        joinWith: ', ',
-                      });
+                      return getValidationResultMessages(issues).join(', ');
                     }
                   }
 

@@ -202,7 +202,7 @@ export default function getGetData({
                 index,
               });
             } catch (err) {
-              throw new Error(
+              logger?.warn(
                 `Cannot create index ${ddocName}: ${err} (trying to create index because of ${e})`,
               );
             }

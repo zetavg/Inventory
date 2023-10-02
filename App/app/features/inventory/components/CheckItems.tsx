@@ -18,7 +18,7 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 
 import Color from 'color';
 
-import { DataTypeWithAdditionalInfo } from '@app/data';
+import { DataTypeWithID } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -45,14 +45,14 @@ export default function CheckItems({
   resultSeenIdsRef,
   resultManuallyCheckedIdsRef,
 }: {
-  items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>;
+  items: ReadonlyArray<DataTypeWithID<'item'>>;
   scannedItems: Record<string, ScanData>;
   clearScannedDataCounter: number;
   contentBackgroundColor: string;
   dedicatedIdsMap: Record<string, Array<string>>;
   loadedItemsMapRef: React.MutableRefObject<Map<
     string,
-    DataTypeWithAdditionalInfo<'item'>
+    DataTypeWithID<'item'>
   > | null>;
   onViewItemPress: (itemId: string) => void;
   resultSeenIdsRef?: React.MutableRefObject<Set<string> | null>;
@@ -376,9 +376,9 @@ export default function CheckItems({
     // `delayedNotSeenItemIdsChange` is used here to give the re-order some delay
     delayedNotSeenItemIdsChangeCounter;
 
-    const seenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
-    const partiallySeenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
-    const notSeenItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
+    const seenItems: Array<DataTypeWithID<'item'>> = [];
+    const partiallySeenItems: Array<DataTypeWithID<'item'>> = [];
+    const notSeenItems: Array<DataTypeWithID<'item'>> = [];
 
     for (const it of topLevelItems) {
       if (!it.__id) continue;
@@ -625,7 +625,7 @@ function DedicatedCheckItem({
   dedicatedIdsMap: Record<string, Array<string>>;
   loadedItemsMapRef: React.MutableRefObject<Map<
     string,
-    DataTypeWithAdditionalInfo<'item'>
+    DataTypeWithID<'item'>
   > | null>;
   manuallyCheckedIds: { value: Set<string> };
   forceExpandedItems: { value: Set<string> };

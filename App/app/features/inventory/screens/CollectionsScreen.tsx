@@ -91,25 +91,18 @@ function CollectionsScreen({
     async (index: number) => {
       if (!orderedData) return;
       const d = orderedData[index];
-      try {
-        await save(
-          { ...d, __type: d.__type, __id: d.__id, __deleted: true },
-          { showErrorAlert: false },
-        );
+      const deleted = await save({
+        ...d,
+        __deleted: true,
+      });
+      if (deleted) {
         reload();
-      } catch (e) {
-        if (e instanceof ZodError) {
-          Alert.alert(
-            'Cannot delete collection',
-            e.issues.map(i => i.message).join('\n'),
-          );
-        } else {
-          logger.error(e, { showAlert: true });
-        }
+      } else {
+        // Re-render to make the item appear back in the list
         setEditingListViewKey(n => n + 1);
       }
     },
-    [logger, orderedData, reload, save],
+    [orderedData, reload, save],
   );
 
   const [searchText, setSearchText] = useState('');

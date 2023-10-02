@@ -457,13 +457,13 @@ export function getValidationResultMessages(
   return validationResults.map((issue: ValidationIssue) => {
     const message = capitalizeAcronyms(issue.message.toLowerCase());
 
-    if (issue.path) {
+    if (issue.path && issue.path.length > 0) {
       const pathName = capitalizeAcronyms(
         toTitleCase(issue.path.join(' - ').replace(/_/g, ' ')),
       );
       return `${pathName}: ${message}`;
     }
 
-    return message;
+    return message.charAt(0).toUpperCase() + message.slice(1);
   });
 }

@@ -4,7 +4,7 @@ import { StackScreenProps } from '@react-navigation/stack';
 
 import { RenderScannedItemsFn } from '@app/features/rfid/RFIDSheet';
 
-import { DataTypeWithAdditionalInfo } from '@app/data';
+import { DataTypeWithID } from '@app/data';
 
 import { StackParamList } from '@app/navigation/MainStack';
 import { useRootBottomSheets } from '@app/navigation/RootBottomSheetsContext';
@@ -21,7 +21,7 @@ export default function useCheckItems({
   navigation,
 }: {
   scanName: string;
-  items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>;
+  items: ReadonlyArray<DataTypeWithID<'item'>>;
   navigation: StackScreenProps<StackParamList>['navigation'];
 }) {
   const { db } = useDB();
@@ -32,7 +32,7 @@ export default function useCheckItems({
     useRef<RenderScannedItemsFn | null>(null);
   const checkContentsLoadedItemsMapRef = useRef<null | Map<
     string,
-    DataTypeWithAdditionalInfo<'item'>
+    DataTypeWithID<'item'>
   >>(null);
   const dedicatedIdsMapRef = useRef<null | Record<string, Array<string>>>(null);
   useFocusEffect(

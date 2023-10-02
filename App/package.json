@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "storybook-watcher": "sb-rn-watcher",
-    "postinstall": "yarn run copy-dependencies && patch-package && ./patches/patch-immediate-330.sh"
+    "postinstall": "yarn run copy-dependencies && patch-package && scripts/compile-pouchdb-adapter-websql-core.sh && ./patches/patch-immediate-330.sh"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^3.13.0",
@@ -111,6 +111,7 @@
     "@types/color": "^3.0.3",
     "@types/eslint": "^8.44.0",
     "@types/jest": "^29.5.4",
+    "@types/nano": "^7.0.0",
     "@types/node": "^20.4.0",
     "@types/pouchdb": "^6.4.0",
     "@types/react": "^18.0.24",

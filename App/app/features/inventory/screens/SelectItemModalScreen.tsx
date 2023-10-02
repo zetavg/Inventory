@@ -11,13 +11,8 @@ import SearchBar from 'react-native-platform-searchbar';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
-import {
-  DataTypeWithAdditionalInfo,
-  onlyValid,
-  useConfig,
-  useData,
-} from '@app/data';
-import { getDatumFromDoc } from '@app/data/pouchdb-utils';
+import { DataTypeWithID, onlyValid, useConfig, useData } from '@app/data';
+import { getDatumFromDoc } from '@app/data/functions';
 
 import { useDB } from '@app/db';
 
@@ -64,7 +59,7 @@ function SelectItemModalScreen({
 
   const [searched, setSearched] = useState('');
   const [searchResults, setSearchResults] = useState<
-    DataTypeWithAdditionalInfo<'item'>[] | null
+    DataTypeWithID<'item'>[] | null
   >(null);
   const { db } = useDB();
   const doSearch = useCallback(
@@ -93,7 +88,7 @@ function SelectItemModalScreen({
       if (c?.canceled) return;
 
       const d = results.rows.map(r =>
-        getDatumFromDoc('item', r.doc || null, logger),
+        getDatumFromDoc('item', r.doc || null, { logger }),
       );
       const validData = onlyValid(d);
 

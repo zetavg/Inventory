@@ -1,14 +1,13 @@
 import appLogger from '@app/logger';
 
 import getCallbacks from '@app/data/callbacks';
-import { getGetConfig } from '@app/data/functions/config';
-import { getGetData } from '@app/data/functions/getData';
-import { getGetDatum } from '@app/data/functions/getDatum';
-import { getGetRelated } from '@app/data/functions/getRelated';
 import {
-  DataTypeWithAdditionalInfo,
-  InvalidDataTypeWithAdditionalInfo,
-} from '@app/data/types';
+  getGetConfig,
+  getGetData,
+  getGetDatum,
+  getGetRelated,
+} from '@app/data/functions';
+import { InvalidDataTypeWithID, ValidDataTypeWithID } from '@app/data/types';
 import getValidation, { ValidationResults } from '@app/data/validation';
 
 import csvRowToItem from './csvRowToItem';
@@ -32,8 +31,7 @@ export async function getItemsFromCsv(
 
 export async function processItems(
   items: Array<
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>
+    ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>
   > | null,
   { db }: { db: PouchDB.Database },
 ) {
@@ -42,7 +40,7 @@ export async function processItems(
     function: 'processItems',
   });
 
-  const getConfig = getGetConfig({ db });
+  const getConfig = getGetConfig({ db, logger });
   const getDatum = getGetDatum({ db, logger });
   const getData = getGetData({ db, logger });
   const getRelated = getGetRelated({ db, logger });
@@ -67,7 +65,7 @@ export async function processItems(
       return it;
     }),
   );
-  const issuesMap = new WeakMap();
+  const issuesMap = new WeakMap<object, ValidationResults>();
   await Promise.all(
     processedItems.map(async it => {
       const issues = await validate(it);
@@ -82,27 +80,24 @@ export async function processItems(
 
 export function classifyItems(
   items: Array<
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>
+    ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>
   > | null,
   {
     itemIssues,
   }: {
     itemIssues: WeakMap<
-      | DataTypeWithAdditionalInfo<'item'>
-      | InvalidDataTypeWithAdditionalInfo<'item'>,
+      ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>,
       ValidationResults
     >;
   },
 ) {
-  const validItems: Array<DataTypeWithAdditionalInfo<'item'>> = [];
+  const validItems: Array<ValidDataTypeWithID<'item'>> = [];
   const invalidItems: Array<
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>
+    ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>
   > = [];
 
-  const itemsToCreate: Array<DataTypeWithAdditionalInfo<'item'>> = [];
-  const itemsToUpdate: Array<DataTypeWithAdditionalInfo<'item'>> = [];
+  const itemsToCreate: Array<ValidDataTypeWithID<'item'>> = [];
+  const itemsToUpdate: Array<ValidDataTypeWithID<'item'>> = [];
 
   for (const item of items || []) {
     if (item) {

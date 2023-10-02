@@ -51,6 +51,14 @@ type PartialWithExists<T> = {
   [K in keyof T]?: T[K] | { $exists: boolean };
 };
 
+export type ConditionsObject<T extends DataTypeName> = PartialWithExists<
+  DataType<T>
+>;
+
+export type GetDataConditions<T extends DataTypeName> =
+  | ReadonlyArray<string>
+  | ConditionsObject<T>;
+
 type SortOrder = 'asc' | 'desc';
 
 type DataDateProperties = '__created_at' | '__updated_at';
@@ -65,7 +73,7 @@ export type SortOption<T> = ReadonlyArray<Sort<T>>;
 export type GetData = <T extends DataTypeName>(
   type: T,
   /** Array of IDs, or a partial match of the data */
-  conditions?: ReadonlyArray<string> | PartialWithExists<DataType<T>>,
+  conditions?: GetDataConditions<T>,
   options?: {
     skip?: number;
     limit?: number;

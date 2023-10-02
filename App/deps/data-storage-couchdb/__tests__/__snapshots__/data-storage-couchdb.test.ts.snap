@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`fixDataConsistency works: fixDataConsistencyResults-collection 1`] = `
+{
+  "done": 2,
+  "errored": 1,
+  "errors": [
+    {
+      "error": [Error: Name: cannot be blank.],
+      "id": "sample-invalid-collection-id",
+      "type": "collection",
+    },
+  ],
+  "total": 2,
+}
+`;
+
+exports[`fixDataConsistency works: fixDataConsistencyResults-item 1`] = `
+{
+  "done": 11,
+  "total": 11,
+}
+`;
+
+exports[`saveDatum validates the data: collection collection_reference_number already used 1`] = `
+[
+  {
+    "code": "custom",
+    "message": "Must be unique (reference number 0001 is already taken by collection "Collection")",
+    "path": [
+      "collection_reference_number",
+    ],
+  },
+]
+`;
+
+exports[`saveDatum validates the data: collection name empty 1`] = `
+[
+  {
+    "code": "too_small",
+    "exact": false,
+    "inclusive": true,
+    "message": "Cannot be blank",
+    "minimum": 1,
+    "path": [
+      "name",
+    ],
+    "type": "string",
+  },
+]
+`;
+
+exports[`saveDatum validates the data: collection name missing 1`] = `
+[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "message": "Required",
+    "path": [
+      "name",
+    ],
+    "received": "undefined",
+  },
+]
+`;

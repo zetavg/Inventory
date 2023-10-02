@@ -1,26 +1,26 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, Linking } from 'react-native';
-
-import { ZodError } from 'zod';
-
-import { CONTACT_GET_HELP_URL } from '@app/consts/info';
+import { Alert } from 'react-native';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { GetConfigError } from '../functions/config';
-import saveDatum from '../functions/saveDatum';
-import { DataTypeName } from '../schema';
-import { DataTypeWithAdditionalInfo } from '../types';
-import { toTitleCase } from '../utils';
+import { getSaveDatum } from '../functions';
+import { DataMeta, DataTypeName, SaveDatum } from '../types';
+import { getHumanName } from '../utils';
+import { ValidationError } from '../validation';
 
-type SaveFn = <T extends DataTypeName>(
-  d: Partial<DataTypeWithAdditionalInfo<T>>,
-  options?: { showErrorAlert?: boolean },
-) => Promise<DataTypeWithAdditionalInfo<T>>;
+export type SaveFn = <T extends DataTypeName>(
+  data: DataMeta<T> & { [key: string]: unknown },
+  options?: Parameters<SaveDatum>[1],
+) => Promise<(DataMeta<T> & { [key: string]: unknown }) | null>;
 
-function useSave(): { save: SaveFn; saving: boolean } {
+function useSave({
+  showAlertOnError = true,
+}: { showAlertOnError?: boolean } = {}): {
+  save: SaveFn;
+  saving: boolean;
+} {
   const logger = useLogger('useSave');
   const { db } = useDB();
 
@@ -29,55 +29,58 @@ function useSave(): { save: SaveFn; saving: boolean } {
   const save = useCallback<SaveFn>(
     async (d, options) => {
       setSaving(true);
+
       try {
         if (!db) throw new Error('Database is not ready yet.');
-        return await saveDatum(d, { db, logger });
+        const saveDatum = getSaveDatum({ db, logger });
+        return await saveDatum(d, options);
       } catch (e) {
-        if (e instanceof ZodError) {
-          if (options?.showErrorAlert !== false) {
+        if (e instanceof ValidationError) {
+          if (showAlertOnError !== false) {
             Alert.alert(
-              'Please Fix The Following Errors',
-              e.issues
-                .map(
-                  i =>
-                    `• ${toTitleCase(
-                      i.path.join('_').replace(/_/g, ' '),
-                    )} - ${i.message.toLowerCase()}`,
-                )
-                .join('\n'),
+              !d.__deleted
+                ? 'Please Fix The Following Errors'
+                : `Cannot Delete ${getHumanName(d.__type, {
+                    titleCase: true,
+                  })}`,
+              e.messages.map(msg => `• ${msg}`).join('\n'),
             );
+          } else {
+            logger.error(e, {
+              details: JSON.stringify({ data: d }, null, 2),
+            });
           }
         } else {
           logger.error(e, {
-            showAlert: options?.showErrorAlert,
+            showAlert: showAlertOnError,
             details: JSON.stringify({ data: d }, null, 2),
           });
-          if (e instanceof GetConfigError) {
-            Alert.alert(
-              'Database Error',
-              'The config document could not be retrieved. Your database may be corrupted.',
-              [
-                {
-                  text: 'Ok',
-                  style: 'cancel',
-                },
-                {
-                  text: 'Get Help',
-                  onPress: () => {
-                    Linking.openURL(CONTACT_GET_HELP_URL);
-                  },
-                },
-              ],
-            );
-          }
+          // if (e instanceof GetConfigError) {
+          //   Alert.alert(
+          //     'Database Error',
+          //     'The config document could not be retrieved. Your database may be corrupted.',
+          //     [
+          //       {
+          //         text: 'Ok',
+          //         style: 'cancel',
+          //       },
+          //       {
+          //         text: 'Get Help',
+          //         onPress: () => {
+          //           Linking.openURL(CONTACT_GET_HELP_URL);
+          //         },
+          //       },
+          //     ],
+          //   );
+          // }
         }
 
-        throw e;
+        return null;
       } finally {
         setSaving(false);
       }
     },
-    [db, logger],
+    [db, logger, showAlertOnError],
   );
 
   return useMemo(() => ({ save, saving }), [save, saving]);

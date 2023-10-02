@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 
-import { DataTypeWithAdditionalInfo, useDataCount } from '@app/data';
+import { DataTypeWithID, useDataCount } from '@app/data';
 
 import { IconName } from '@app/components/Icon';
 import UIGroup from '@app/components/UIGroup';
@@ -14,7 +14,7 @@ export default function CollectionListItem({
   additionalDetails,
   ...props
 }: {
-  collection: DataTypeWithAdditionalInfo<'collection'>;
+  collection: DataTypeWithID<'collection'>;
   onPress: () => void;
   additionalDetails?: React.ComponentProps<typeof UIGroup.ListItem>['detail'];
   hideDetails?: boolean;

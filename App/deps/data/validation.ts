@@ -6,10 +6,10 @@
 //   Data/lib/validation.ts
 //
 
-import { ZodIssue } from 'zod';
-
 import EPCUtils from '@deps/epc-utils';
 
+import capitalizeAcronyms from './utils/capitalizeAcronyms';
+import toTitleCase from './utils/toTitleCase';
 import { DataTypeName } from './schema';
 import {
   DataTypeWithID,
@@ -18,9 +18,30 @@ import {
   GetDatum,
   GetRelated,
   InvalidDataTypeWithID,
+  ValidationIssue,
 } from './types';
 
-export type ValidationResults = Array<ZodIssue>;
+export type ValidationResults = Array<ValidationIssue>;
+
+export class ValidationError extends Error {
+  messages: Array<string>;
+  issues: Array<ValidationIssue>;
+
+  constructor(issues: Array<ValidationIssue>) {
+    issues.forEach(issue => {
+      if (issue.message === 'String must contain at least 1 character(s)') {
+        issue.message = 'Cannot be blank';
+      }
+    });
+    const messages = getValidationResultMessages(issues);
+    super((messages.join(', ') || 'no details') + '.');
+    this.messages = messages;
+    this.issues = issues;
+
+    // Set the prototype explicitly to ValidationError, to make instanceof work
+    Object.setPrototypeOf(this, ValidationError.prototype);
+  }
+}
 
 export default function getValidation({
   getConfig,
@@ -39,7 +60,7 @@ export default function getValidation({
         DataTypeWithID<DataTypeName> | InvalidDataTypeWithID<DataTypeName>
       >,
     ): Promise<ValidationResults> {
-      const issues: Array<ZodIssue> = [];
+      const issues: Array<ValidationIssue> = [];
 
       const config = await getConfig({ ensureSaved: true });
       const isFromSharedDb =
@@ -349,10 +370,10 @@ export default function getValidation({
       __type: DataTypeName;
       __id: string | undefined;
       __deleted: boolean;
-    }): Promise<Array<ZodIssue>> {
+    }): Promise<Array<ValidationIssue>> {
       const config = await getConfig({ ensureSaved: true });
 
-      const issues: Array<ZodIssue> = [];
+      const issues: Array<ValidationIssue> = [];
 
       const originalDatum = await getDatum(d.__type, d.__id || '');
       if (originalDatum) {
@@ -429,22 +450,28 @@ export default function getValidation({
   };
 }
 
-export function getValidationResultMessage(
-  validationResults: ValidationResults,
-  { bullet = '', joinWith = ', ' }: { bullet?: string; joinWith?: string } = {},
-) {
-  return validationResults
-    .map(
-      (issue: any) =>
-        `${bullet ? `${bullet} ` : ''}${toTitleCase(
-          issue.path.join('_').replace(/_/g, ' '),
-        )}: ${issue.message.toLowerCase()}`,
-    )
-    .join(joinWith);
+export function getErrorFromValidationResults(
+  validationResults: ValidationResults | null | undefined,
+): ValidationError | null {
+  if (!validationResults) return null;
+  if (validationResults.length <= 0) return null;
+
+  return new ValidationError(validationResults);
 }
 
-function toTitleCase(str: string) {
-  return str.replace(/\w\S*/g, function (txt: string) {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+export function getValidationResultMessages(
+  validationResults: ValidationResults,
+) {
+  return validationResults.map((issue: ValidationIssue) => {
+    const message = capitalizeAcronyms(issue.message.toLowerCase());
+
+    if (issue.path && issue.path.length > 0) {
+      const pathName = capitalizeAcronyms(
+        toTitleCase(issue.path.join(' - ').replace(/_/g, ' ')),
+      );
+      return `${pathName}: ${message}`;
+    }
+
+    return message.charAt(0).toUpperCase() + message.slice(1);
   });
 }

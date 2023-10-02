@@ -3,8 +3,7 @@ import { Platform, StyleSheet, View } from 'react-native';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { DataTypeWithAdditionalInfo } from '@app/data';
-import { InvalidDataTypeWithAdditionalInfo } from '@app/data/types';
+import { DataTypeWithID } from '@app/data';
 
 import useColors from '@app/hooks/useColors';
 
@@ -13,9 +12,7 @@ export default function StockStatusIcon({
   sizeMultiplier = 1,
   moreMargin = false,
 }: {
-  item:
-    | DataTypeWithAdditionalInfo<'item'>
-    | InvalidDataTypeWithAdditionalInfo<'item'>;
+  item: DataTypeWithID<'item'>;
   sizeMultiplier?: number;
   moreMargin?: boolean;
 }): JSX.Element | null {

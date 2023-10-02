@@ -7,33 +7,35 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import getData from '../functions/getData';
-import getDatum from '../functions/getDatum';
+import { getGetData, getGetDatum } from '../functions';
 import { DataType, DataTypeName } from '../schema';
 import {
-  DataTypeWithAdditionalInfo,
-  InvalidDataTypeWithAdditionalInfo,
+  GetDataConditions,
+  InvalidDataTypeWithID,
+  SortOption,
+  ValidDataTypeWithID,
 } from '../types';
-
-type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
 
 export default function useData<
   T extends DataTypeName,
-  CT extends string | ReadonlyArray<string> | Partial<DataType<T>>,
+  CT extends GetDataConditions<T> | string,
 >(
   type: T,
+  /** ID, array of IDs or conditions object. */
   cond: CT,
   {
-    skip = 0,
-    limit = undefined,
-    disable = false,
     sort,
+    limit = undefined,
+    skip = 0,
+    showAlertOnError = true,
+    disable = false,
     onInitialLoad,
   }: {
-    skip?: number;
+    sort?: SortOption<DataType<T>>;
     limit?: number;
+    skip?: number;
+    showAlertOnError?: boolean;
     disable?: boolean;
-    sort?: Sort;
     onInitialLoad?: () => void;
   } = {},
 ): {
@@ -41,13 +43,8 @@ export default function useData<
   data:
     | null
     | (CT extends string
-        ? DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
-        : ReadonlyArray<
-            DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
-          >);
-  // Deprecated
-  // ids: ReadonlyArray<string> | null;
-  // rawData: unknown;
+        ? ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>
+        : ReadonlyArray<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>>);
   reload: () => Promise<void>;
   refresh: () => Promise<void>;
   refreshing: boolean;
@@ -98,10 +95,8 @@ export default function useData<
   const [data, setData] = useState<
     | null
     | (CT extends string
-        ? DataTypeWithAdditionalInfo<T> | InvalidDataTypeWithAdditionalInfo<T>
-        : ReadonlyArray<
-            InvalidDataTypeWithAdditionalInfo<T> | DataTypeWithAdditionalInfo<T>
-          >)
+        ? ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>
+        : ReadonlyArray<InvalidDataTypeWithID<T> | ValidDataTypeWithID<T>>)
   >(null);
   const dataRef = useRef(data);
   dataRef.current = data;
@@ -117,10 +112,7 @@ export default function useData<
       switch (true) {
         case typeof cachedCond === 'string': {
           const id: string = cachedCond as any;
-          const d = await getDatum(type, id, {
-            db,
-            logger,
-          });
+          const d = await getGetDatum({ db, logger })(type, id);
           setIds(null);
           if (!hasLoaded.current) {
             if (typeof onInitialLoad === 'function') {
@@ -133,12 +125,11 @@ export default function useData<
         }
 
         default: {
-          const d = await getData(
-            type,
-            cachedCond as any,
-            { skip, limit, sort: cachedSort },
-            { db, logger },
-          );
+          const d = await getGetData({ db, logger })(type, cachedCond as any, {
+            skip,
+            limit,
+            sort: cachedSort,
+          });
           if (!hasLoaded.current) {
             if (typeof onInitialLoad === 'function') {
               onInitialLoad();
@@ -149,12 +140,22 @@ export default function useData<
         }
       }
     } catch (e) {
-      logger.error(e);
+      logger.error(e, { showAlert: showAlertOnError });
     } finally {
       setLoading(false);
       hasLoaded.current = true;
     }
-  }, [db, cachedCond, type, logger, onInitialLoad, skip, limit, cachedSort]);
+  }, [
+    db,
+    cachedCond,
+    logger,
+    type,
+    onInitialLoad,
+    skip,
+    limit,
+    cachedSort,
+    showAlertOnError,
+  ]);
 
   useFocusEffect(
     useCallback(() => {

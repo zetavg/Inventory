@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { DATA_TYPE_NAMES, getHumanTypeName } from '@app/data';
+import { DATA_TYPE_NAMES, getHumanName } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 
@@ -25,7 +25,7 @@ function DataTypesScreen({
             DATA_TYPE_NAMES.map(type => (
               <UIGroup.ListItem
                 key={type}
-                label={getHumanTypeName(type, {
+                label={getHumanName(type, {
                   titleCase: true,
                   plural: true,
                 })}

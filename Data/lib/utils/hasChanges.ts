@@ -7,7 +7,7 @@ export default function hasChanges(
   );
 
   for (const key of keys) {
-    if (key === '__rev') {
+    if (key === '__rev' || key === '__raw') {
       continue;
     }
 

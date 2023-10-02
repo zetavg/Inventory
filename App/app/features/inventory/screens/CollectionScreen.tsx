@@ -3,11 +3,9 @@ import {
   Alert,
   FlatList,
   LayoutAnimation,
-  RefreshControl,
   Text,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -22,13 +20,13 @@ import {
 } from '@app/consts/icons';
 
 import {
-  DataTypeWithAdditionalInfo,
+  DataTypeWithID,
   onlyValid,
   useData,
   useRelated,
   useSave,
 } from '@app/data';
-import { getDatumFromDoc } from '@app/data/pouchdb-utils';
+import { getDatumFromDoc } from '@app/data/functions';
 
 import { useDB } from '@app/db';
 
@@ -113,7 +111,7 @@ function CollectionScreen({
   searchTextRef.current = searchText;
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<
-    Array<DataTypeWithAdditionalInfo<'item'>>
+    Array<DataTypeWithID<'item'>>
   >([]);
   const loadSearchResults = useCallback(async () => {
     if (!db) {
@@ -137,19 +135,17 @@ function CollectionScreen({
           })
         : { rows: [] });
       if (searchTextRef.current === searchText) {
-        const dd = results.rows.map(
-          (r: any): DataTypeWithAdditionalInfo<'item'> | null => {
-            switch (true) {
-              case r.id.startsWith('item'): {
-                const d = getDatumFromDoc('item', r.doc, logger, {});
-                if (d.__valid) return d;
-                return null;
-              }
-              default:
-                return null;
+        const dd = results.rows.map((r: any): DataTypeWithID<'item'> | null => {
+          switch (true) {
+            case r.id.startsWith('item'): {
+              const d = getDatumFromDoc('item', r.doc, { logger });
+              if (d.__valid) return d;
+              return null;
             }
-          },
-        );
+            default:
+              return null;
+          }
+        });
 
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
         setSearchResults(dd.filter((d: any) => !!d));
@@ -223,23 +219,22 @@ function CollectionScreen({
 
   const { save } = useSave();
   const handleUpdateItemsOrder = useCallback<
-    (
-      items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
-    ) => Promise<boolean>
+    (items: ReadonlyArray<DataTypeWithID<'item'>>) => Promise<boolean>
   >(
     async its => {
       if (!data || !data.__valid) return false;
 
-      try {
-        await save({
+      const saved = await save(
+        {
           ...data,
           items_order: its.map(it => it.__id).filter((s): s is string => !!s),
-        });
-        reloadData();
-        return true;
-      } catch (e) {
-        return false;
-      }
+        },
+        { noTouch: true },
+      );
+
+      if (saved) reloadData();
+
+      return !!saved;
     },
     [data, reloadData, save],
   );
@@ -265,13 +260,7 @@ function CollectionScreen({
   }, [id, showActionSheet]);
 
   const renderListItem = useCallback(
-    ({
-      item,
-      index,
-    }: {
-      item: DataTypeWithAdditionalInfo<'item'>;
-      index: number;
-    }) => (
+    ({ item, index }: { item: DataTypeWithID<'item'>; index: number }) => (
       <UIGroup.ListItem.RenderItemContainer
         isFirst={index === 0}
         isLast={

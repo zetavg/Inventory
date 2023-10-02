@@ -1,34 +1,40 @@
-import onlyValid from './functions/onlyValid';
+import onlyValid from '@deps/data/utils/onlyValid';
+
 import useConfig from './hooks/useConfig';
 import useData from './hooks/useData';
 import useDataCount from './hooks/useDataCount';
 import useRelated from './hooks/useRelated';
 import useSave from './hooks/useSave';
-import fixConsistency from './fixConsistency';
 import schema, {
   DATA_TYPE_NAMES,
   DataType,
   DataTypeName,
   getPropertyNames,
   getPropertyType,
-  plurals as typePlurals,
 } from './schema';
-import type { DataTypeWithAdditionalInfo } from './types';
-import { getHumanTypeName, toTitleCase } from './utils';
+import type {
+  DataTypeWithID,
+  InvalidDataTypeWithID,
+  ValidDataTypeWithID,
+} from './types';
+import { getHumanName } from './utils';
 export {
   DATA_TYPE_NAMES,
-  fixConsistency,
-  getHumanTypeName,
+  getHumanName,
   getPropertyNames,
   getPropertyType,
   onlyValid,
   schema,
-  toTitleCase,
-  typePlurals,
   useConfig,
   useData,
   useDataCount,
   useRelated,
   useSave,
 };
-export type { DataType, DataTypeName, DataTypeWithAdditionalInfo };
+export type {
+  DataType,
+  DataTypeName,
+  DataTypeWithID,
+  InvalidDataTypeWithID,
+  ValidDataTypeWithID,
+};

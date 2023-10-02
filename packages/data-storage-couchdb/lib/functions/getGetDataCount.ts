@@ -75,7 +75,7 @@ export default function getGetDataCount({
             try {
               await db.put(ddoc);
             } catch (err) {
-              throw new Error(
+              logger?.warn(
                 `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
               );
             }
@@ -115,7 +115,7 @@ export default function getGetDataCount({
             try {
               await db.insert(ddoc);
             } catch (err) {
-              throw new Error(
+              logger?.warn(
                 `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
               );
             }
@@ -198,7 +198,7 @@ export default function getGetDataCount({
           try {
             await db.put(ddoc);
           } catch (err) {
-            throw new Error(
+            logger?.warn(
               `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
             );
           }
@@ -238,7 +238,7 @@ export default function getGetDataCount({
           try {
             await db.insert(ddoc);
           } catch (err) {
-            throw new Error(
+            logger?.warn(
               `Cannot save design doc ${ddoc._id}: ${err} (trying to save design doc because of ${e})`,
             );
           }

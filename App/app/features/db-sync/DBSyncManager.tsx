@@ -4,8 +4,7 @@ import NetInfo from '@react-native-community/netinfo';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import { schema } from '@app/data';
-import { hasConfig } from '@app/data/functions/config';
+import { getGetConfig } from '@app/data/functions';
 import { configSchema } from '@app/data/schema';
 
 import { PouchDB, useDB } from '@app/db';
@@ -92,7 +91,16 @@ export default function DBSyncManager() {
         });
         if (!db) throw new Error('DB is not ready');
 
-        const hasLocalConfig = await hasConfig({ db });
+        const hasLocalConfig = await (async () => {
+          try {
+            await getGetConfig({ db, logger })({
+              ensureSaved: true,
+            });
+            return true;
+          } catch (e) {
+            return false;
+          }
+        })();
         if (!hasLocalConfig) {
           // We can only sync with a database that has a valid config when there's no local config.
           const remoteConfig = await remoteDB

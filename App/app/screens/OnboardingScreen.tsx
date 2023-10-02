@@ -36,7 +36,6 @@ import { DBSyncServerEditableData } from '@app/features/db-sync/slice';
 import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import { useConfig } from '@app/data';
-import { INITIAL_CONFIG } from '@app/data/functions/config';
 
 import cs from '@app/utils/commonStyles';
 import commonStyles from '@app/utils/commonStyles';

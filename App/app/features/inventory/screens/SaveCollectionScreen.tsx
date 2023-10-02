@@ -10,6 +10,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import { ZodError } from 'zod';
 
+import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
 
 import {
@@ -20,7 +21,7 @@ import {
 } from '@app/consts/icons';
 
 import {
-  DataTypeWithAdditionalInfo,
+  DataTypeWithID,
   useConfig,
   useData,
   useRelated,
@@ -75,7 +76,7 @@ function SaveCollectionScreen({
   );
 
   const initialData = useMemo<
-    Partial<DataTypeWithAdditionalInfo<'collection'>>
+    DataMeta<'collection'> & Partial<DataTypeWithID<'collection'>>
   >(
     () => ({
       __type: 'collection',
@@ -86,8 +87,9 @@ function SaveCollectionScreen({
     }),
     [initialDataFromParams],
   );
-  const [data, setData] =
-    useState<Partial<DataTypeWithAdditionalInfo<'collection'>>>(initialData);
+  const [data, setData] = useState<
+    DataMeta<'collection'> & Partial<DataTypeWithID<'collection'>>
+  >(initialData);
   const hasChanges = !useDeepCompare(initialData, data);
   const isFromSharedDb = !config
     ? null
@@ -154,11 +156,11 @@ function SaveCollectionScreen({
 
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
-    try {
-      await save(data);
+    const saved = await save(data);
+    if (saved) {
       isDone.current = true;
       navigation.goBack();
-    } catch (_e) {}
+    }
   }, [data, navigation, save]);
 
   const handleLeave = useCallback(
@@ -187,31 +189,17 @@ function SaveCollectionScreen({
   );
 
   const doDelete = useCallback(async () => {
-    try {
-      await save(
-        {
-          ...initialData,
-          __type: initialData.__type,
-          __id: initialData.__id,
-          __deleted: true,
-        },
-        { showErrorAlert: false },
-      );
+    const deleted = await save({
+      ...initialData,
+      __deleted: true,
+    });
+    if (deleted) {
       navigation.goBack();
       if (typeof afterDelete === 'function') {
         afterDelete();
       }
-    } catch (e) {
-      if (e instanceof ZodError) {
-        Alert.alert(
-          'Cannot delete item',
-          e.issues.map(i => i.message).join('\n'),
-        );
-      } else {
-        logger.error(e, { showAlert: true });
-      }
     }
-  }, [afterDelete, initialData, logger, navigation, save]);
+  }, [afterDelete, initialData, navigation, save]);
   const handleDeleteButtonPressed = useCallback(() => {
     Alert.alert(
       'Confirmation',

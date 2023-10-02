@@ -7,7 +7,7 @@
 //
 
 import { DataTypeName } from './schema';
-import type { DataTypeWithID, InvalidDataTypeWithID } from './types';
+import type { ValidDataTypeWithID, InvalidDataTypeWithID } from './types';
 
 export type RelationConfig = {
   type_name: DataTypeName;
@@ -72,7 +72,7 @@ export type DataRelationTypeName<
       : never);
 
 type DataRelationBaseType<T extends DataTypeName> =
-  | DataTypeWithID<T>
+  | ValidDataTypeWithID<T>
   | InvalidDataTypeWithID<T>;
 
 export type DataRelationType<

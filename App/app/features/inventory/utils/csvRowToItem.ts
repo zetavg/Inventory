@@ -1,15 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
+import { ZodError } from 'zod';
+
+import { getValidationErrorFromZodError } from '@deps/data/utils/validation-utils';
+import { ValidationError } from '@deps/data/validation';
 
 import appLogger from '@app/logger';
 
-import { getGetConfig } from '@app/data/functions/config';
-import getData from '@app/data/functions/getData';
-import getDatum from '@app/data/functions/getDatum';
+import { getGetConfig, getGetData, getGetDatum } from '@app/data/functions';
 import { schema } from '@app/data/schema';
-import {
-  DataTypeWithAdditionalInfo,
-  InvalidDataTypeWithAdditionalInfo,
-} from '@app/data/types';
+import { InvalidDataTypeWithID, ValidDataTypeWithID } from '@app/data/types';
 
 export default async function csvRowToItem(
   csvRow: Record<string, string>,
@@ -18,14 +17,9 @@ export default async function csvRowToItem(
     loadedRefNoCollectionsMap,
   }: {
     db: PouchDB.Database;
-    loadedRefNoCollectionsMap: Map<
-      string,
-      DataTypeWithAdditionalInfo<'collection'>
-    >;
+    loadedRefNoCollectionsMap: Map<string, ValidDataTypeWithID<'collection'>>;
   },
-): Promise<
-  DataTypeWithAdditionalInfo<'item'> | InvalidDataTypeWithAdditionalInfo<'item'>
-> {
+): Promise<ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>> {
   const logger = appLogger.for({ module: 'csvRowToItem' });
   let collectionRefNumber =
     csvRow['Collection Ref. No.'] ||
@@ -40,11 +34,10 @@ export default async function csvRowToItem(
     typeof collectionRefNumber === 'string' &&
     !loadedRefNoCollectionsMap.has(collectionRefNumber)
   ) {
-    const cs = await getData(
+    const cs = await getGetData({ db, logger })(
       'collection',
       { collection_reference_number: collectionRefNumber },
       {},
-      { db, logger },
     );
     const c = cs[0];
     if (c?.__valid) loadedRefNoCollectionsMap.set(collectionRefNumber, c);
@@ -152,16 +145,17 @@ export default async function csvRowToItem(
 
   const itemId = csvRow.ID ? csvRow.ID : undefined;
   const oldItem = itemId
-    ? await getDatum('item', itemId, { db, logger }).catch(() => null)
+    ? await getGetDatum({ db, logger })('item', itemId).catch(() => null)
     : null;
-  const item: Partial<DataTypeWithAdditionalInfo<'item'>> = oldItem
+  const item: Partial<ValidDataTypeWithID<'item'>> = oldItem
     ? {
         ...oldItem,
         __valid: undefined,
       }
     : {
         __id: itemId || uuidv4(),
-        config_uuid: (await getGetConfig({ db })({ ensureSaved: true })).uuid,
+        config_uuid: (await getGetConfig({ db, logger })({ ensureSaved: true }))
+          .uuid,
       };
 
   for (const key in updateData) {
@@ -191,11 +185,27 @@ export default async function csvRowToItem(
       __raw: { csvRow, oldItem },
     };
   } catch (e) {
+    const issues = e instanceof ZodError ? e.issues : [];
+
+    if (
+      collectionRefNumber &&
+      !loadedRefNoCollectionsMap.get(collectionRefNumber)
+    ) {
+      issues.unshift({
+        code: 'custom',
+        message: `Can't find collection with ref. number ${collectionRefNumber}`,
+        path: [],
+      });
+    }
+
+    const validationError = new ValidationError(issues);
+
     return {
       ...item,
       __type: 'item',
       __valid: false,
-      __error_details: e,
+      __issues: issues,
+      __error: validationError,
       __raw: { csvRow, oldItem },
     };
   }

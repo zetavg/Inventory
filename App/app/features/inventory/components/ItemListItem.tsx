@@ -10,11 +10,7 @@ import {
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
 
-import {
-  DataTypeWithAdditionalInfo,
-  useDataCount,
-  useRelated,
-} from '@app/data';
+import { DataTypeWithID, useDataCount, useRelated } from '@app/data';
 
 import useColors from '@app/hooks/useColors';
 
@@ -39,7 +35,7 @@ function ItemListItem({
   grayOut,
   ...props
 }: {
-  item: DataTypeWithAdditionalInfo<'item'>;
+  item: DataTypeWithID<'item'>;
   onPress: () => void;
   onLongPress?: () => void;
   hideDetails?: boolean;

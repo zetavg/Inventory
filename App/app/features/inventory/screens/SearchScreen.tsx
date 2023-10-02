@@ -11,8 +11,8 @@ import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
-import { DataTypeWithAdditionalInfo, onlyValid, useData } from '@app/data';
-import { getDatumFromDoc } from '@app/data/pouchdb-utils';
+import { DataTypeWithID, onlyValid, useData } from '@app/data';
+import { getDatumFromDoc } from '@app/data/functions';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -32,9 +32,7 @@ import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
 
 type SearchResultItem = {
   highlight: React.ComponentProps<typeof UIGroup.ListItem>['detail'] | null;
-  d:
-    | DataTypeWithAdditionalInfo<'item'>
-    | DataTypeWithAdditionalInfo<'collection'>;
+  d: DataTypeWithID<'item'> | DataTypeWithID<'collection'>;
 };
 
 function SearchScreen({
@@ -79,7 +77,7 @@ function SearchScreen({
         const dd = results.rows.map((r: any): SearchResultItem | null => {
           switch (true) {
             case r.id.startsWith('item'): {
-              const d = getDatumFromDoc('item', r.doc, logger, {});
+              const d = getDatumFromDoc('item', r.doc, { logger });
               const [, highlightStr] =
                 Object.entries(r.highlighting || {}).filter(([k, v]) => {
                   return ![
@@ -99,7 +97,7 @@ function SearchScreen({
               return null;
             }
             case r.id.startsWith('collection'): {
-              const d = getDatumFromDoc('collection', r.doc, logger, {});
+              const d = getDatumFromDoc('collection', r.doc);
               const [, highlightStr] =
                 Object.entries(r.highlighting || {}).filter(([k, v]) => {
                   return ![

@@ -23,7 +23,7 @@ import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import {
-  DataTypeWithAdditionalInfo,
+  DataTypeWithID,
   onlyValid,
   useConfig,
   useData,
@@ -142,25 +142,18 @@ function ItemScreen({
   );
 
   const handleUpdateContentsOrder = useCallback<
-    (
-      items: ReadonlyArray<DataTypeWithAdditionalInfo<'item'>>,
-    ) => Promise<boolean>
+    (items: ReadonlyArray<DataTypeWithID<'item'>>) => Promise<boolean>
   >(
     async its => {
       if (!data || !data.__valid) return false;
 
-      try {
-        await save({
-          ...data,
-          contents_order: its
-            .map(it => it.__id)
-            .filter((s): s is string => !!s),
-        });
-        reloadData();
-        return true;
-      } catch (e) {
-        return false;
-      }
+      const saved = await save({
+        ...data,
+        contents_order: its.map(it => it.__id).filter((s): s is string => !!s),
+      });
+      if (saved) reloadData();
+
+      return !!saved;
     },
     [data, reloadData, save],
   );

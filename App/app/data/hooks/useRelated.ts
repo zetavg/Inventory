@@ -7,7 +7,9 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import getRelated from '../functions/getRelated';
+import LPJQ from '@app/LPJQ';
+
+import { getGetRelated } from '../functions';
 import {
   DataRelationName,
   DataRelationType,
@@ -17,11 +19,7 @@ import {
   RelationType,
 } from '../relations';
 import { DataTypeName } from '../schema';
-import {
-  DataTypeWithAdditionalInfo,
-  InvalidDataTypeWithAdditionalInfo,
-} from '../types';
-import LPJQ from '@app/LPJQ';
+import { DataMeta } from '../types';
 
 type Sort = Array<{ [propName: string]: 'asc' | 'desc' }>;
 
@@ -29,10 +27,7 @@ export default function useRelated<
   T extends DataTypeWithRelationDefsName,
   N extends DataRelationName<T>,
 >(
-  d:
-    | DataTypeWithAdditionalInfo<T>
-    | InvalidDataTypeWithAdditionalInfo<T>
-    | null,
+  d: DataMeta<T> | null,
   relationName: N,
   {
     disable = false,
@@ -104,11 +99,10 @@ export default function useRelated<
 
     setLoading(true);
     try {
-      const loadedData = await getRelated(
+      const loadedData = await getGetRelated({ db, logger })(
         cachedD,
         relationName,
         { sort: cachedSort },
-        { db, logger },
       );
       if (!hasLoaded.current) {
         if (typeof onInitialLoad === 'function') {
