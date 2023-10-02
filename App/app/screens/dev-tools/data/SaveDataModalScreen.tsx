@@ -8,6 +8,8 @@ import React, {
 import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import { getValidationErrorFromZodSafeParseReturnValue } from '@deps/data/utils/validation-utils';
+
 import {
   DataTypeName,
   DataTypeWithID,
@@ -116,7 +118,7 @@ function SaveDataModalScreen({
       navigation={navigation}
       confirmCloseFn={handleLeave}
       preventClose={hasChanges}
-      title={`${id ? 'Update' : 'Create'} ${getHumanName(type, {
+      title={`${id ? 'Edit' : 'New'} ${getHumanName(type, {
         plural: false,
         titleCase: true,
       })}`}
@@ -137,9 +139,12 @@ function SaveDataModalScreen({
                 type,
                 propertyName,
               );
-              const humanPropertyName = getHumanName(propertyName);
+              const humanPropertyName = getHumanName(propertyName, {
+                titleCase: true,
+              });
               const value: any = data[propertyName];
               switch (propertyType) {
+                case 'enum':
                 case 'string': {
                   return (
                     <UIGroup.ListTextInputItem
@@ -151,16 +156,46 @@ function SaveDataModalScreen({
                       }
                       placeholder={`Enter ${humanPropertyName}`}
                       returnKeyType="done"
+                      multiline
+                      blurOnSubmit
+                      {...kiaTextInputProps}
+                    />
+                  );
+                }
+                case 'number':
+                case 'integer': {
+                  return (
+                    <UIGroup.ListTextInputItem
+                      key={propertyName}
+                      label={humanPropertyName}
+                      value={typeof value === 'number' ? value.toString() : ''}
+                      onChangeText={t => {
+                        const n =
+                          propertyType === 'integer'
+                            ? parseInt(t, 10)
+                            : parseFloat(t);
+                        if (Number.isNaN(n)) {
+                          setData(d => ({ ...d, [propertyName]: undefined }));
+                        } else {
+                          setData(d => ({ ...d, [propertyName]: n }));
+                        }
+                      }}
+                      placeholder={`Enter ${humanPropertyName}`}
+                      returnKeyType="done"
+                      keyboardType={
+                        propertyType === 'integer' ? 'number-pad' : 'numeric'
+                      }
                       {...kiaTextInputProps}
                     />
                   );
                 }
                 case 'boolean': {
                   return (
-                    <UIGroup.ListItem
+                    <UIGroup.ListTextInputItem
                       key={propertyName}
                       label={humanPropertyName}
-                      detail={
+                      horizontalLabel
+                      inputElement={
                         <UIGroup.ListItem.Switch
                           value={value}
                           onValueChange={v =>
@@ -173,11 +208,12 @@ function SaveDataModalScreen({
                 }
                 default: {
                   return (
-                    <UIGroup.ListItem
+                    <UIGroup.ListTextInputItem
                       key={propertyName}
                       label={humanPropertyName}
-                      detail={`Type "${propertyType}" is not supported.`}
-                      verticalArrangedLargeTextIOS
+                      value={`- Editing type "${propertyType}" is not supported. -`}
+                      disabled
+                      multiline
                     />
                   );
                 }
@@ -197,12 +233,17 @@ function SaveDataModalScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
-            label="Validation Results"
+            label="Validation Issues"
             multiline
             monospaced
             small
             showSoftInputOnFocus={false}
-            value={JSON.stringify(safeParseResults, null, 2)}
+            value={JSON.stringify(
+              getValidationErrorFromZodSafeParseReturnValue(safeParseResults)
+                ?.issues || [],
+              null,
+              2,
+            )}
           />
         </UIGroup>
       </ModalContent.ScrollView>

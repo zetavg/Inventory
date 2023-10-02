@@ -105,21 +105,15 @@ function DatumScreen({
             <UIGroup.ListItem
               label="Type"
               detail={data.__type}
+              monospaceDetail
               verticalArrangedLargeTextIOS
             />
             <UIGroup.ListItemSeparator />
             <UIGroup.ListItem
               label="ID"
               adjustsDetailFontSizeToFit
-              // eslint-disable-next-line react/no-unstable-nested-components
-              detail={({ textProps }) => (
-                <Text
-                  {...textProps}
-                  style={[textProps.style, commonStyles.monospaced]}
-                >
-                  {data.__id}
-                </Text>
-              )}
+              detail={data.__id}
+              monospaceDetail
               verticalArrangedLargeTextIOS
             />
           </UIGroup>
@@ -143,7 +137,9 @@ function DatumScreen({
                   type,
                   propertyName,
                 );
-                const humanPropertyName = getHumanName(propertyName);
+                const humanPropertyName = getHumanName(propertyName, {
+                  titleCase: true,
+                });
                 const value: unknown = data[propertyName];
                 switch (propertyType) {
                   case 'boolean': {
@@ -160,7 +156,25 @@ function DatumScreen({
                             ? 'true'
                             : 'false'
                         }
+                        detailTextStyle={
+                          typeof value === 'boolean'
+                            ? undefined
+                            : commonStyles.opacity05
+                        }
                         verticalArrangedLargeTextIOS
+                      />
+                    );
+                  }
+                  case 'object':
+                  case 'array': {
+                    return (
+                      <UIGroup.ListItem
+                        key={propertyName}
+                        label={humanPropertyName}
+                        detail={JSON.stringify(value, null, 2)}
+                        verticalArrangedLargeTextIOS
+                        monospaceDetail
+                        detailTextStyle={commonStyles.fs14}
                       />
                     );
                   }
@@ -170,13 +184,19 @@ function DatumScreen({
                       <UIGroup.ListItem
                         key={propertyName}
                         label={humanPropertyName}
+                        detailTextStyle={
+                          typeof value !== 'undefined'
+                            ? undefined
+                            : commonStyles.opacity05
+                        }
                         detail={
                           typeof value === 'undefined'
                             ? '(undefined)'
                             : typeof value !== 'string'
-                            ? `(invalid type: ${typeof value})`
+                            ? JSON.stringify(value)
                             : value
                         }
+                        monospaceDetail={propertyName.endsWith('_id')}
                         verticalArrangedLargeTextIOS
                       />
                     );
@@ -227,9 +247,14 @@ function DatumScreen({
             <UIGroup.ListItem
               verticalArrangedLargeTextIOS
               label="Created At"
+              detailTextStyle={
+                typeof data.__created_at === 'number'
+                  ? undefined
+                  : commonStyles.opacity05
+              }
               detail={
                 typeof data.__created_at === 'number'
-                  ? data.__created_at
+                  ? new Date(data.__created_at).toISOString()
                   : '(unknown)'
               }
             />
@@ -237,9 +262,14 @@ function DatumScreen({
             <UIGroup.ListItem
               verticalArrangedLargeTextIOS
               label="Updated At"
+              detailTextStyle={
+                typeof data.__updated_at === 'number'
+                  ? undefined
+                  : commonStyles.opacity05
+              }
               detail={
                 typeof data.__updated_at === 'number'
-                  ? data.__updated_at
+                  ? new Date(data.__updated_at).toISOString()
                   : '(unknown)'
               }
             />
@@ -322,7 +352,7 @@ function BelongsToItem<T extends DataTypeWithRelationDefsName>({
   return (
     <UIGroup.ListItem
       verticalArrangedLargeTextIOS
-      label={getHumanName(String(relationName))}
+      label={getHumanName(String(relationName), { titleCase: true })}
       detail={
         loading
           ? 'Loading...'

@@ -1,8 +1,15 @@
 const ACRONYMS_DICT: Record<string, string> = {
   cpu: 'CPU',
   gpu: 'GPU',
+  uri: 'URI',
+  url: 'URL',
+  id: 'ID',
+  uid: 'UID',
+  uuid: 'UUID',
   db: 'DB',
   rfid: 'RFID',
+  epc: 'EPC',
+  iar: 'IAR',
 };
 
 export default function capitalizeAcronyms(str: string) {

@@ -1,8 +1,11 @@
 import {
   z,
+  ZodArray,
   ZodBoolean,
+  ZodEnum,
   ZodNullable,
   ZodNumber,
+  ZodObject,
   ZodOptional,
   ZodString,
 } from 'zod';
@@ -27,7 +30,15 @@ export function getPropertyNames<T extends DataTypeName>(
   return Object.keys(schema[type].shape) as any;
 }
 
-type TypeName = 'string' | 'number' | 'boolean' | 'unknown';
+type TypeName =
+  | 'string'
+  | 'number'
+  | 'integer'
+  | 'boolean'
+  | 'enum'
+  | 'array'
+  | 'object'
+  | 'unknown';
 
 function getTypeFromZodTypeDef(t: unknown): [TypeName, ReadonlyArray<string>] {
   if (t instanceof ZodOptional || t instanceof ZodNullable) {
@@ -39,11 +50,26 @@ function getTypeFromZodTypeDef(t: unknown): [TypeName, ReadonlyArray<string>] {
   }
 
   if (t instanceof ZodNumber) {
+    if (t._def.checks.some(c => c.kind === 'int')) {
+      return ['integer', []];
+    }
     return ['number', []];
   }
 
   if (t instanceof ZodBoolean) {
     return ['boolean', []];
+  }
+
+  if (t instanceof ZodEnum) {
+    return ['enum', []];
+  }
+
+  if (t instanceof ZodArray) {
+    return ['array', []];
+  }
+
+  if (t instanceof ZodObject) {
+    return ['object', []];
   }
 
   return ['unknown', []];

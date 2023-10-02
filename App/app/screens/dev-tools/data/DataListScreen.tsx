@@ -1,11 +1,20 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { RefreshControl, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
-import { getHumanName, useData, useDataCount } from '@app/data';
+import { SortOption } from '@deps/data/types';
+
+import {
+  getHumanName,
+  getPropertyNames,
+  useData,
+  useDataCount,
+} from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
+
+import useActionSheet from '@app/hooks/useActionSheet';
 
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
@@ -17,18 +26,29 @@ function DataListScreen({
   const rootNavigation = useRootNavigation();
   const scrollViewRef = useRef<ScrollView>(null);
   const { type } = route.params;
-  const numberOfItemsPerPageList = [10, 50, 100, 500];
-  const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[2]);
+  const numberOfItemsPerPageList = [10, 20, 50, 100, 500];
+  const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
   const [page, setPage] = React.useState<number>(1);
-  const skip = perPage * (page - 1);
   const limit = perPage;
+  const skip = perPage * (page - 1);
+
+  const [searchText, setSearchText] = useState('');
+  const [sort, setSort] = useState<any | undefined>(undefined);
 
   const {
     loading,
     data,
     refresh: refreshData,
     refreshing: refreshingData,
-  } = useData(type, {}, { skip, limit });
+  } = useData(
+    type,
+    searchText ? { __id: { $gte: searchText, $lte: `${searchText}zzz` } } : {},
+    {
+      sort,
+      limit,
+      skip,
+    },
+  );
 
   const {
     count,
@@ -44,6 +64,8 @@ function DataListScreen({
 
   const numberOfPages = count === null ? null : Math.ceil(count / perPage);
 
+  const { showActionSheet } = useActionSheet();
+
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
@@ -51,6 +73,9 @@ function DataListScreen({
     <ScreenContent
       navigation={navigation}
       title={getHumanName(type, { titleCase: true, plural: true })}
+      showSearch
+      searchPlaceholder="Find by ID..."
+      onSearchChangeText={setSearchText}
       action1Label="Add Data"
       action1SFSymbolName="plus.square.fill"
       action1MaterialIconName="square-edit-outline"
@@ -60,6 +85,28 @@ function DataListScreen({
           afterSave: ({ __type: t, __id: i }) =>
             i && navigation.navigate('Datum', { type: t, id: i }),
         })
+      }
+      action2Label="Sort"
+      action2SFSymbolName="list.number"
+      action2MaterialIconName="sort"
+      onAction2Press={() =>
+        showActionSheet([
+          { name: 'Default', onSelect: () => setSort(undefined) },
+          ...[
+            '__created_at',
+            '__updated_at',
+            ...getPropertyNames(type),
+          ].flatMap(name => [
+            {
+              name: `${name} ASC`,
+              onSelect: () => setSort([{ [name]: 'asc' }]),
+            },
+            {
+              name: `${name} DESC`,
+              onSelect: () => setSort([{ [name]: 'desc' }]),
+            },
+          ]),
+        ])
       }
     >
       <ScreenContent.ScrollView
@@ -71,12 +118,12 @@ function DataListScreen({
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup
           loading={loading}
-          placeholder={`No ${getHumanName(type, {
+          placeholder={`No${searchText ? ' matched' : ''} ${getHumanName(type, {
             titleCase: false,
             plural: true,
           })}.`}
           footer={
-            count
+            count && !searchText
               ? `Showing ${skip + 1}-${Math.max(
                   Math.min(skip + perPage, count),
                   skip + 1,

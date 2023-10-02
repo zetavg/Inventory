@@ -82,15 +82,27 @@ export default function useData<
       }
     }
   }, [cond, cachedCond]);
+  const cachedCondRef = useRef(cachedCond);
+  cachedCondRef.current = cachedCond;
 
   const [cachedSort, setCachedSort] = useState(sort);
   useEffect(() => {
-    if (Object.keys(diff(sort as any, cachedSort as any)).length > 0) {
+    if (
+      typeof sort !== typeof cachedSort ||
+      Object.keys(diff(sort as any, cachedSort as any) || {}).length > 0
+    ) {
       setCachedSort(sort);
     }
   }, [sort, cachedSort]);
+  const cachedSortRef = useRef(cachedSort);
+  cachedSortRef.current = cachedSort;
 
-  const [loading, setLoading] = useState(true);
+  const limitRef = useRef(limit);
+  limitRef.current = limit;
+  const skipRef = useRef(skip);
+  skipRef.current = skip;
+
+  const [loading, setLoading] = useState(!disable);
 
   const [data, setData] = useState<
     | null
@@ -108,11 +120,22 @@ export default function useData<
     if (!db) return;
     setLoading(true);
 
+    const thisCachedCond = cachedCond;
+    const thisCachedSort = cachedSort;
+    const thisLimit = limit;
+    const thisSkip = skip;
+    const isStillValid = () =>
+      thisCachedCond === cachedCondRef.current &&
+      thisCachedSort === cachedSortRef.current &&
+      thisLimit === limitRef.current &&
+      thisSkip === skipRef.current;
+
     try {
       switch (true) {
         case typeof cachedCond === 'string': {
           const id: string = cachedCond as any;
           const d = await getGetDatum({ db, logger })(type, id);
+          if (!isStillValid()) return;
           setIds(null);
           if (!hasLoaded.current) {
             if (typeof onInitialLoad === 'function') {
@@ -130,6 +153,7 @@ export default function useData<
             limit,
             sort: cachedSort,
           });
+          if (!isStillValid()) return;
           if (!hasLoaded.current) {
             if (typeof onInitialLoad === 'function') {
               onInitialLoad();

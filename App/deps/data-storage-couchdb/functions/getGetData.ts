@@ -45,6 +45,8 @@ export default function getGetData({
             Object.entries(s).map(([k, v]) => [
               (() => {
                 switch (k) {
+                  case '__id':
+                    return '_id';
                   case '__created_at':
                     return 'created_at';
                   case '__updated_at':
@@ -86,7 +88,7 @@ export default function getGetData({
       if (Object.keys(conditions).length <= 0 && (!sort || sort.length <= 0)) {
         const ddocName_ = `${AUTO_DDOC_PREFIX}--type`;
         const index_ = {
-          fields: ['type'],
+          fields: ['type', '_id'],
         };
         const query_ = {
           use_index: ddocName_,
@@ -109,6 +111,8 @@ export default function getGetData({
             Object.entries(conditions).map(([k, v]) => [
               (() => {
                 switch (k) {
+                  case '__id':
+                    return '_id';
                   case '__created_at':
                     return 'created_at';
                   case '__updated_at':
@@ -117,7 +121,39 @@ export default function getGetData({
                     return `data.${k}`;
                 }
               })(),
-              v,
+              (() => {
+                switch (k) {
+                  case '__id': {
+                    if (typeof v === 'string') {
+                      return `${type}-${v}`;
+                    }
+
+                    if (typeof v === 'object') {
+                      return Object.fromEntries(
+                        Object.entries(v).map(([kk, vv]) => {
+                          if (
+                            [
+                              '$lt',
+                              '$gt',
+                              '$lte',
+                              '$gte',
+                              '$eq',
+                              '$ne',
+                            ].includes(kk)
+                          ) {
+                            return [kk, `${type}-${vv}`];
+                          }
+                          return [kk, vv];
+                        }),
+                      );
+                    }
+
+                    return v;
+                  }
+                  default:
+                    return v;
+                }
+              })(),
             ]),
           ) as any,
         );
@@ -129,21 +165,30 @@ export default function getGetData({
           ...Object.keys(flattenedSelector).sort(),
           ...sortKeys,
         ].filter(f => {
+          if (f === '_id') return false;
+
           const result = !seenIndexFieldsSet.has(f);
           if (result) seenIndexFieldsSet.add(f);
           return result;
         });
 
-        const ddocName_ = `${AUTO_DDOC_PREFIX}--${type}--${indexFields.join(
-          '-',
-        )}`;
-        const index_ = {
-          fields: [...indexFields],
-          partial_filter_selector: { type },
-        };
+        const ddocName_ =
+          indexFields.length > 0
+            ? `${AUTO_DDOC_PREFIX}--type_${type}--${indexFields.join('-')}`
+            : `${AUTO_DDOC_PREFIX}--type`;
+        const index_ =
+          indexFields.length > 0
+            ? {
+                fields: [...indexFields],
+                partial_filter_selector: { type },
+              }
+            : {
+                fields: ['type', '_id'],
+              };
         const query_ = {
           use_index: ddocName_,
           selector: {
+            ...(indexFields.length <= 0 ? { type } : {}),
             ...flattenedSelector,
           },
           sort: couchdbSort
