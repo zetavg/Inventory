@@ -907,7 +907,11 @@ function SaveItemScreen({
           />
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
-            label="Purchase Price"
+            label={
+              data.item_type === 'consumable'
+                ? 'Purchase Price per Unit'
+                : 'Purchase Price'
+            }
             horizontalLabel
             placeholder="000.00"
             keyboardType="numeric"

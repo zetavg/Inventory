@@ -929,7 +929,11 @@ function ItemScreen({
               <UIGroup.ListItem
                 key="purchasePrice"
                 verticalArrangedLargeTextIOS
-                label="Purchase Price"
+                label={
+                  data?.item_type === 'consumable'
+                    ? 'Purchase Price per Unit'
+                    : 'Purchase Price'
+                }
                 // eslint-disable-next-line react/no-unstable-nested-components
                 detail={({ textProps }) => (
                   <Text {...textProps}>
