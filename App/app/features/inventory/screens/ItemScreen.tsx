@@ -32,6 +32,7 @@ import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import {
   DataTypeWithID,
+  InvalidDataTypeWithID,
   onlyValid,
   schema,
   useConfig,
@@ -97,12 +98,7 @@ function ItemScreen({
   //   setOverwrittenData(null);
   // }, [loadedData]);
   const data = loadedData;
-  const [overwrittenStockQuantity, setOverwrittenStockQuantity] = useState<
-    number | null
-  >(null);
-  useEffect(() => {
-    setOverwrittenStockQuantity(null);
-  }, [loadedData]);
+
   const {
     data: collection,
     loading: collectionLoading,
@@ -318,83 +314,8 @@ function ItemScreen({
     }
   })();
 
-  const lastUpdateStockQuantityCalledAt = useRef(0);
-  const updateStockQuantity = useCallback(
-    async (quantity: number | ((n: number) => number)) => {
-      const currentTimestamp = Date.now();
-      lastUpdateStockQuantityCalledAt.current = currentTimestamp;
-      const savedData = await (async () => {
-        return await save(
-          [
-            'item',
-            id,
-            oldD => ({
-              consumable_stock_quantity:
-                typeof quantity === 'function'
-                  ? quantity(
-                      typeof oldD.consumable_stock_quantity === 'number' &&
-                        !isNaN(oldD.consumable_stock_quantity)
-                        ? oldD.consumable_stock_quantity
-                        : 0,
-                    )
-                  : quantity,
-            }),
-          ],
-          { skipCallbacks: true, skipValidation: true },
-        );
-      })();
-
-      if (savedData) {
-        // try {
-        //   const parsedSavedData = schema.item.parse(savedData);
-        //   setOverwrittenData({
-        //     __type: 'item',
-        //     ...parsedSavedData,
-        //     __valid: true,
-        //   });
-        // } catch (e) {
-        //   setOverwrittenData({
-        //     ...savedData,
-        //     __valid: false,
-        //     __error: e instanceof Error ? e : undefined,
-        //     __issues: e instanceof ValidationError ? e.issues : undefined,
-        //   });
-        // }
-        if (currentTimestamp >= lastUpdateStockQuantityCalledAt.current) {
-          setOverwrittenStockQuantity(
-            typeof savedData.consumable_stock_quantity === 'number'
-              ? savedData.consumable_stock_quantity
-              : null,
-          );
-        }
-        ReactNativeHapticFeedback.trigger('impactLight', {
-          enableVibrateFallback: false,
-        });
-        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
-      }
-    },
-    [id, save],
-  );
-
-  const updateWillNotRestock = useCallback(
-    async (v: boolean) => {
-      if (!data?.__valid) return;
-      try {
-        await save({
-          ...data,
-          consumable_will_not_restock: v,
-        });
-        reloadData();
-      } catch (e) {}
-    },
-    [data, reloadData, save],
-  );
-
   // Cannot write RFID tag for shared item because we don't know the password
   const canWriteRfidTag = isFromSharedDb !== null && !isFromSharedDb;
-
-  const consumableStockQuantity =
-    overwrittenStockQuantity || data?.consumable_stock_quantity;
 
   return (
     <ScreenContent
@@ -879,55 +800,7 @@ function ItemScreen({
 
         {data?.item_type === 'consumable' && (
           <UIGroup loading={saving}>
-            <UIGroup.ListTextInputItem
-              label="Stock Quantity"
-              horizontalLabel
-              keyboardType="number-pad"
-              selectTextOnFocus
-              returnKeyType="done"
-              value={(typeof consumableStockQuantity === 'number'
-                ? consumableStockQuantity
-                : 1
-              ).toString()}
-              onChangeText={t => {
-                const n = parseInt(t, 10);
-                if (isNaN(n)) return;
-                updateStockQuantity(n);
-              }}
-              controlElement={
-                <View style={commonStyles.ml8}>
-                  <PlusAndMinusButtons
-                    value={
-                      typeof consumableStockQuantity === 'number'
-                        ? consumableStockQuantity
-                        : 1
-                    }
-                    // onChangeValue={v => updateStockQuantity(v)}
-                    onChangeValueUpdater={updater =>
-                      updateStockQuantity(updater)
-                    }
-                  />
-                </View>
-              }
-            />
-            {consumableStockQuantity === 0 && (
-              <>
-                <UIGroup.ListItemSeparator />
-                <UIGroup.ListTextInputItem
-                  label="Will Not Be Restocked"
-                  horizontalLabel
-                  inputElement={
-                    <UIGroup.ListItem.Switch
-                      value={!!data.consumable_will_not_restock}
-                      onValueChange={v => {
-                        updateWillNotRestock(v);
-                      }}
-                      trackColor={{ true: iosTintColor }}
-                    />
-                  }
-                />
-              </>
-            )}
+            <StockQuantityInputs item={data} reloadData={reloadData} />
           </UIGroup>
         )}
 
@@ -1259,6 +1132,201 @@ function DateDisplay({
         </Text>
       </View>
     </TouchableWithoutFeedback>
+  );
+}
+
+function StockQuantityInputs({
+  item,
+  reloadData,
+}: {
+  item: ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>;
+  reloadData: () => void;
+}) {
+  const id = item.__id || '';
+  const reloadDataRef = useRef(reloadData);
+  reloadDataRef.current = reloadData;
+  const { save, saving } = useSave();
+
+  const [overwrittenStockQuantity, setOverwrittenStockQuantity] = useState<
+    number | null
+  >(null);
+  const [overwrittenWillNotRestock, setOverwrittenWillNotRestock] = useState<
+    boolean | null
+  >(null);
+
+  useEffect(() => {
+    setOverwrittenStockQuantity(null);
+  }, [item?.consumable_stock_quantity]);
+  useEffect(() => {
+    setOverwrittenWillNotRestock(null);
+  }, [item?.consumable_will_not_restock]);
+
+  const reloadDataTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastUpdateStockQuantityCalledAt = useRef(0);
+  const updateStockQuantity = useCallback(
+    async (quantity: number | ((n: number) => number)) => {
+      const currentTimestamp = Date.now();
+      lastUpdateStockQuantityCalledAt.current = currentTimestamp;
+      const savedData = await (async () => {
+        return await save(
+          [
+            'item',
+            id,
+            oldD => ({
+              consumable_stock_quantity:
+                typeof quantity === 'function'
+                  ? quantity(
+                      typeof oldD.consumable_stock_quantity === 'number' &&
+                        !isNaN(oldD.consumable_stock_quantity)
+                        ? oldD.consumable_stock_quantity
+                        : 0,
+                    )
+                  : quantity,
+            }),
+          ],
+          { skipCallbacks: true, skipValidation: true },
+        );
+      })();
+
+      if (savedData) {
+        if (currentTimestamp >= lastUpdateStockQuantityCalledAt.current) {
+          setOverwrittenStockQuantity(
+            typeof savedData.consumable_stock_quantity === 'number'
+              ? savedData.consumable_stock_quantity
+              : null,
+          );
+        }
+
+        ReactNativeHapticFeedback.trigger('impactLight', {
+          enableVibrateFallback: false,
+        });
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+
+        if (reloadDataTimer.current) clearTimeout(reloadDataTimer.current);
+        reloadDataTimer.current = setTimeout(() => {
+          reloadDataRef.current();
+          reloadDataTimer.current = null;
+        }, 1000);
+      }
+    },
+    [id, save],
+  );
+
+  const updateWillNotRestock = useCallback(
+    async (v: boolean) => {
+      const savedData = await save([
+        'item',
+        id,
+        () => ({
+          consumable_will_not_restock: v,
+        }),
+      ]);
+      if (savedData) {
+        if (typeof savedData.consumable_will_not_restock === 'boolean') {
+          setOverwrittenWillNotRestock(savedData.consumable_will_not_restock);
+        }
+        if (reloadDataTimer.current) clearTimeout(reloadDataTimer.current);
+        reloadDataTimer.current = setTimeout(() => {
+          reloadDataRef.current();
+          reloadDataTimer.current = null;
+        }, 10);
+      }
+    },
+    [id, save],
+  );
+
+  const [stockQuantityTextInputValue, setStockQuantityTextInputValue] =
+    useState<string | null>(null);
+  const updateStockQuantityFromInputTimer = useRef<NodeJS.Timeout | null>(null);
+  const updateStockQuantityFromInput = useCallback(() => {
+    if (updateStockQuantityFromInputTimer.current) {
+      clearTimeout(updateStockQuantityFromInputTimer.current);
+    }
+
+    if (typeof stockQuantityTextInputValue !== 'string') return;
+
+    const n = parseInt(stockQuantityTextInputValue, 10);
+    if (!isNaN(n)) updateStockQuantity(n);
+    setStockQuantityTextInputValue(null);
+  }, [stockQuantityTextInputValue, updateStockQuantity]);
+  useEffect(() => {
+    if (typeof stockQuantityTextInputValue !== 'string') return;
+
+    if (updateStockQuantityFromInputTimer.current) {
+      clearTimeout(updateStockQuantityFromInputTimer.current);
+    }
+
+    if (!stockQuantityTextInputValue) return;
+
+    updateStockQuantityFromInputTimer.current = setTimeout(
+      updateStockQuantityFromInput,
+      500,
+    );
+  }, [stockQuantityTextInputValue, updateStockQuantityFromInput]);
+
+  const consumableStockQuantity =
+    typeof overwrittenStockQuantity === 'number'
+      ? overwrittenStockQuantity
+      : item?.consumable_stock_quantity;
+  const willNotRestock =
+    typeof overwrittenWillNotRestock === 'boolean'
+      ? overwrittenWillNotRestock
+      : item?.consumable_will_not_restock;
+
+  const { iosTintColor } = useColors();
+
+  return (
+    <>
+      <UIGroup.ListTextInputItem
+        label="Stock Quantity"
+        horizontalLabel
+        keyboardType="number-pad"
+        selectTextOnFocus
+        returnKeyType="done"
+        value={
+          typeof stockQuantityTextInputValue === 'string'
+            ? stockQuantityTextInputValue
+            : (typeof consumableStockQuantity === 'number'
+                ? consumableStockQuantity
+                : 1
+              ).toString()
+        }
+        onChangeText={setStockQuantityTextInputValue}
+        onBlur={updateStockQuantityFromInput}
+        controlElement={
+          <View style={commonStyles.ml8}>
+            <PlusAndMinusButtons
+              value={
+                typeof consumableStockQuantity === 'number'
+                  ? consumableStockQuantity
+                  : 1
+              }
+              // onChangeValue={v => updateStockQuantity(v)}
+              onChangeValueUpdater={updater => updateStockQuantity(updater)}
+              disabled={typeof stockQuantityTextInputValue === 'string'}
+            />
+          </View>
+        }
+      />
+      {consumableStockQuantity === 0 && (
+        <>
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Will Not Be Restocked"
+            horizontalLabel
+            inputElement={
+              <UIGroup.ListItem.Switch
+                value={!!willNotRestock}
+                onValueChange={v => {
+                  updateWillNotRestock(v);
+                }}
+                trackColor={{ true: iosTintColor }}
+              />
+            }
+          />
+        </>
+      )}
+    </>
   );
 }
 
