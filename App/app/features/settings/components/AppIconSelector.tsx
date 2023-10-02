@@ -114,7 +114,7 @@ export default function AppIconSelector({}: Props) {
                       ]}
                     >
                       <Image
-                        source={{ uri: `${value}-display` }}
+                        source={{ uri: value }}
                         style={[
                           styles.iconImage,
                           { backgroundColor: gray, borderColor: gray },
