@@ -3,8 +3,8 @@ import PouchDB from 'pouchdb';
 import { fixDataConsistency } from '@deps/data/utils';
 import { ValidationError } from '@deps/data/validation';
 
-import { CouchDBData } from '../lib';
-import { Context } from '../lib/functions/types';
+import CouchDBData from '../CouchDBData';
+import { Context } from '../functions/types';
 
 class NoErrorThrownError extends Error {}
 
