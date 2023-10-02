@@ -5,6 +5,10 @@ import { program } from 'commander';
 import nano from 'nano';
 import prompt from 'prompt';
 
+import { GetData, GetDataCount, SaveDatum } from '@deps/data/types';
+import { fixDataConsistency as uFixDataConsistency } from '@deps/data/utils';
+import { ValidationError } from '@deps/data/validation';
+
 import fs from 'fs';
 import path from 'path';
 import repl from 'repl';
@@ -50,6 +54,9 @@ program.parse(process.argv);
 const options = program.opts();
 
 const historyFilePath = path.join(__dirname, '.repl_history');
+
+(global as any).Err = Error; // in the REPL, Error will not be the same as it is here, so we assign it to a global variable so that we can use it in the REPL
+(global as any).ValidationError = ValidationError;
 
 function getPassword(callback: () => void) {
   if (!options.db_password) {
@@ -208,12 +215,31 @@ getPassword(async () => {
     logger: console,
     logLevels: getLogLevels,
   });
+  const fixDataConsistency = ({
+    batchSize = 10,
+    getData,
+    getDataCount,
+    saveDatum,
+  }: {
+    batchSize?: number;
+    getData?: GetData;
+    getDataCount?: GetDataCount;
+    saveDatum?: SaveDatum;
+  } = {}) =>
+    uFixDataConsistency({
+      batchSize,
+      getData: getData || d.getData,
+      getDataCount: getDataCount || d.getDataCount,
+      saveDatum: saveDatum || d.saveDatum,
+    });
+
   const context = {
     getREPL: () => r,
     db,
     getDatumFromDoc,
     getDocFromDatum,
     ...d,
+    fixDataConsistency,
     getLogLevels,
     setLogLevels,
   };
@@ -266,7 +292,7 @@ getPassword(async () => {
     }
   });
 
-  r?.on('exit', () => {
+  r.on('exit', () => {
     historyStream.end();
   });
 });

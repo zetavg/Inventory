@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getDatumFromDoc validates the data: collectionWithBlankName_issues 1`] = `
+[
+  {
+    "code": "too_small",
+    "exact": false,
+    "inclusive": true,
+    "message": "Cannot be blank",
+    "minimum": 1,
+    "path": [
+      "name",
+    ],
+    "type": "string",
+  },
+]
+`;
+
+exports[`getDatumFromDoc validates the data: collectionWithInvalidName_issues 1`] = `
+[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "message": "Expected string, received number",
+    "path": [
+      "name",
+    ],
+    "received": "number",
+  },
+]
+`;
+
+exports[`getDatumFromDoc validates the data: collectionWithoutName_issues 1`] = `
+[
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "message": "Required",
+    "path": [
+      "name",
+    ],
+    "received": "undefined",
+  },
+]
+`;

@@ -11,6 +11,7 @@ import {
   SaveDatum,
 } from '../types';
 import { hasChanges } from '../utils';
+import { getValidationErrorFromZodSafeParseReturnValue } from '../utils/validation-utils';
 import getValidation, { getErrorFromValidationResults } from '../validation';
 
 export default function getSaveDatum({
@@ -54,6 +55,8 @@ export default function getSaveDatum({
       noTouch?: boolean;
       forceTouch?: boolean;
       ignoreConflict?: boolean;
+      skipValidation?: boolean;
+      skipCallbacks?: boolean;
     } = {},
   ) => {
     const existingData = await (async () => {
@@ -84,19 +87,29 @@ export default function getSaveDatum({
       dataToSave.__updated_at = new Date().getTime();
     }
 
-    await beforeSave(dataToSave);
-
     const s = schema[d.__type];
+
+    if (!options.skipCallbacks) {
+      await beforeSave(dataToSave);
+    }
 
     if (!dataToSave.__deleted) {
       // Save
       if (typeof dataToSave.__id !== 'string') {
         dataToSave.__id = uuid();
       }
-      s.parse(dataToSave);
-      const validationResults = await validate(dataToSave);
-      const validationError = getErrorFromValidationResults(validationResults);
-      if (validationError) throw validationError;
+
+      if (!options.skipValidation) {
+        const safeParseResults = s.safeParse(dataToSave);
+        const safeParseError =
+          getValidationErrorFromZodSafeParseReturnValue(safeParseResults);
+        if (safeParseError) throw safeParseError;
+
+        const validationResults = await validate(dataToSave);
+        const validationError =
+          getErrorFromValidationResults(validationResults);
+        if (validationError) throw validationError;
+      }
 
       if (
         existingData &&
@@ -118,13 +131,18 @@ export default function getSaveDatum({
       if (typeof dataToSave.__id !== 'string') {
         throw new Error('__id must be specified while setting __deleted: true');
       }
-      const validationResults = await validateDelete({
-        ...dataToSave,
-        __id: dataToSave.__id,
-        __deleted: true,
-      });
-      const validationError = getErrorFromValidationResults(validationResults);
-      if (validationError) throw validationError;
+
+      if (!options.skipValidation) {
+        const validationResults = await validateDelete({
+          ...dataToSave,
+          __id: dataToSave.__id,
+          __deleted: true,
+        });
+        const validationError =
+          getErrorFromValidationResults(validationResults);
+        if (validationError) throw validationError;
+      }
+
       await deleteDatum(dataToSave);
     }
 

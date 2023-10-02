@@ -5,6 +5,8 @@ import {
   InvalidDataTypeWithID,
   ValidDataTypeWithID,
 } from '@deps/data/types';
+import { getValidationErrorFromZodSafeParseReturnValue } from '@deps/data/utils/validation-utils';
+import { ValidationError } from '@deps/data/validation';
 
 import { CouchDBDoc, Logger } from './types';
 
@@ -87,23 +89,25 @@ function getProxiedDocDatum(
   }: { logger?: Logger | null; logLevels?: () => ReadonlyArray<string> } = {},
 ) {
   const s = schema[type];
-  let parseResults: ReturnType<typeof s.safeParse> | undefined;
-  const getParseResults = () => {
-    if (parseResults) return parseResults;
+  let validationError: ValidationError | null | undefined;
+  const getValidationError = () => {
+    if (validationError !== undefined) return validationError;
 
-    parseResults = s.safeParse(d?.data);
+    validationError = getValidationErrorFromZodSafeParseReturnValue(
+      s.safeParse(d?.data),
+    );
 
-    if (!parseResults?.success) {
+    if (validationError) {
       logger?.warn(
         `getProxiedDocDatum: invalid doc for type "${type}": ${JSON.stringify(
-          parseResults,
+          validationError.issues,
           null,
           2,
         )}, doc: ${JSON.stringify(d, null, 2)}`,
       );
     }
 
-    return parseResults;
+    return validationError;
   };
 
   /** This `proxyTarget` is for previewing the data in the JS console. */
@@ -172,11 +176,20 @@ function getProxiedDocDatum(
       }
 
       if (prop === '__valid') {
-        return getParseResults().success;
+        return !getValidationError();
+      }
+
+      if (prop === '__issues') {
+        const error = getValidationError();
+        return error?.issues;
+      }
+
+      if (prop === '__error') {
+        return getValidationError() || undefined;
       }
 
       if (prop === '__error_details') {
-        return getParseResults();
+        return getValidationError();
       }
 
       return ((d.data || {}) as any)[prop];

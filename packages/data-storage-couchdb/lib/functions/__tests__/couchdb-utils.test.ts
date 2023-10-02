@@ -105,6 +105,64 @@ describe('getDatumFromDoc', () => {
     expect(getDocFromDatum(datum as any)._id).toBe('collection-1234');
   });
 
+  it('validates the data', () => {
+    const validCollection = getDatumFromDoc('collection', {
+      data: {
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '0001',
+        config_uuid: 'xxxx',
+      },
+    });
+
+    expect(validCollection.__valid).toBe(true);
+
+    const collectionWithInvalidName = getDatumFromDoc('collection', {
+      data: {
+        name: 123,
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '0001',
+        config_uuid: 'xxxx',
+      },
+    });
+
+    expect(collectionWithInvalidName.__valid).toBe(false);
+    expect(collectionWithInvalidName.__issues).toMatchSnapshot(
+      'collectionWithInvalidName_issues',
+    );
+
+    const collectionWithoutName = getDatumFromDoc('collection', {
+      data: {
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '0001',
+        config_uuid: 'xxxx',
+      },
+    });
+
+    expect(collectionWithoutName.__valid).toBe(false);
+    expect(collectionWithoutName.__issues).toMatchSnapshot(
+      'collectionWithoutName_issues',
+    );
+
+    const collectionWithBlankName = getDatumFromDoc('collection', {
+      data: {
+        name: '',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '0001',
+        config_uuid: 'xxxx',
+      },
+    });
+
+    expect(collectionWithBlankName.__valid).toBe(false);
+    expect(collectionWithBlankName.__issues).toMatchSnapshot(
+      'collectionWithBlankName_issues',
+    );
+  });
+
   it('preserve meta properties with object spread', () => {
     const doc = getDocFromDatum({
       __type: 'collection',

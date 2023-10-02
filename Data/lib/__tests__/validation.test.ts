@@ -1,6 +1,13 @@
 import { CONFIG, getConfig } from '../mock-data/mock-config';
 import { DataTypeWithID } from '../types';
-import getValidation from '../validation';
+import getValidation, { ValidationError } from '../validation';
+
+describe('ValidationError', () => {
+  it('instances should also be instanceof Error', () => {
+    const err = new ValidationError([]);
+    expect(err instanceof Error).toBe(true);
+  });
+});
 
 describe('validate', () => {
   describe('for item', () => {

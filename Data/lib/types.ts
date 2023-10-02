@@ -18,14 +18,20 @@ export type DataMeta<T extends DataTypeName> = {
 
 export type DataTypeWithID<T extends DataTypeName> = DataMeta<T> & DataType<T>;
 
+export type ValidationIssue = {
+  message: string;
+  code?: string;
+  path?: (string | number)[];
+};
+
 export type ValidDataTypeWithID<T extends DataTypeName> = DataTypeWithID<T> & {
   __valid: true;
 };
 
 export type InvalidDataTypeWithID<T extends DataTypeName> = DataMeta<T> & {
   __valid: false;
-  // TODO: type this
-  __errors?: unknown;
+  __issues?: ValidationIssue[];
+  __error?: Error;
   __error_details?: unknown;
 } & { [key: string]: unknown };
 
@@ -94,5 +100,7 @@ export type SaveDatum = <T extends DataTypeName>(
     ignoreConflict?: boolean;
     /** By default, if no changes has been made, the data will not be touched. Set this to true to force update the `__updated_at` field even if no data has been changed. */
     forceTouch?: boolean;
+    skipValidation?: boolean;
+    skipCallbacks?: boolean;
   },
 ) => Promise<DataMeta<T> & { [key: string]: unknown }>;

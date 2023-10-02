@@ -1,7 +1,12 @@
 import PouchDB from 'pouchdb';
 
+import { fixDataConsistency } from '@deps/data/utils';
+import { ValidationError } from '@deps/data/validation';
+
 import { CouchDBData } from '../lib';
 import { Context } from '../lib/functions/types';
+
+class NoErrorThrownError extends Error {}
 
 PouchDB.plugin(require('pouchdb-find'));
 const openDatabase = require('websql');
@@ -10,12 +15,25 @@ const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite/lib')({
 });
 PouchDB.plugin(SQLiteAdapter);
 
-let contextCounter = 0;
+const contextSet = new Set();
+const getContextID = () => {
+  let id = 1;
+  while (true) {
+    if (!contextSet.has(id)) {
+      contextSet.add(id);
+      return id;
+    }
+    id += 1;
+  }
+};
+const releaseContextID = (id: number) => {
+  contextSet.delete(id);
+};
 async function withContext(fn: (c: Context) => Promise<void>) {
-  const db = new PouchDB(`.temp_dbs/pouchdb-test-${contextCounter}`, {
+  const contextID = getContextID();
+  const db = new PouchDB(`.temp_dbs/pouchdb-test-${contextID}`, {
     adapter: 'react-native-sqlite',
   });
-  // contextCounter += 1;
 
   const context: Context = {
     dbType: 'pouchdb',
@@ -30,6 +48,7 @@ async function withContext(fn: (c: Context) => Promise<void>) {
     await fn(context);
   } finally {
     await db.destroy();
+    releaseContextID(contextID);
   }
 }
 
@@ -881,6 +900,85 @@ describe('getDataCount', () => {
 });
 
 describe('saveDatum', () => {
+  it('validates the data', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      // Should not throw
+      await d.saveDatum({
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      try {
+        // Should throw because collection_reference_number is used
+        await d.saveDatum({
+          __type: 'collection',
+          name: 'Collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+        throw new NoErrorThrownError();
+      } catch (error) {
+        if (error instanceof NoErrorThrownError) {
+          throw new Error('Expects an error to be thrown, but none was thrown');
+        }
+
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(
+          error instanceof ValidationError ? error.issues : [],
+        ).toMatchSnapshot(
+          'collection collection_reference_number already used',
+        );
+      }
+
+      try {
+        // Should throw because name is missing
+        await d.saveDatum({
+          __type: 'collection',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        });
+        throw new NoErrorThrownError();
+      } catch (error) {
+        if (error instanceof NoErrorThrownError) {
+          throw new Error('Expects an error to be thrown, but none was thrown');
+        }
+
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(
+          error instanceof ValidationError ? error.issues : [],
+        ).toMatchSnapshot('collection name missing');
+      }
+
+      try {
+        // Should throw because name is blank
+        await d.saveDatum({
+          __type: 'collection',
+          name: '',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '23',
+        });
+        throw new NoErrorThrownError();
+      } catch (error) {
+        if (error instanceof NoErrorThrownError) {
+          throw new Error('Expects an error to be thrown, but none was thrown');
+        }
+
+        expect(error).toBeInstanceOf(ValidationError);
+        expect(
+          error instanceof ValidationError ? error.issues : [],
+        ).toMatchSnapshot('collection name empty');
+      }
+    });
+  });
+
   it('can update fields to become undefined', async () => {
     await withContext(async context => {
       const d = new CouchDBData(context);
@@ -1122,6 +1220,83 @@ describe('saveDatum', () => {
           ).not.toEqual(0);
         });
       });
+    });
+  });
+});
+
+describe('fixDataConsistency', () => {
+  it('works', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: 'sample-invalid-collection-id',
+          name: '',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        },
+        { skipValidation: true },
+      );
+
+      for (let i = 1; i <= 10; i++) {
+        await d.saveDatum({
+          __type: 'item',
+          collection_id: collection.__id,
+          name: `Item #${i}`,
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+      }
+
+      const itemWithReferenceNumber = await d.saveDatum(
+        {
+          __type: 'item',
+          collection_id: collection.__id,
+          name: 'Item',
+          icon_name: 'cube-outline',
+          icon_color: 'gray',
+          item_reference_number: '123456',
+        },
+        { skipValidation: true, skipCallbacks: true },
+      );
+
+      expect(
+        (await d.getDatum('item', itemWithReferenceNumber.__id || ''))
+          ?.individual_asset_reference,
+      ).toBeFalsy(); // since it's saved with skipCallbacks: true
+
+      let fixDataConsistencyResults;
+      for await (const progress of fixDataConsistency({
+        batchSize: 2,
+        getData: d.getData,
+        getDataCount: d.getDataCount,
+        saveDatum: d.saveDatum,
+      })) {
+        fixDataConsistencyResults = progress;
+      }
+
+      expect(
+        (await d.getDatum('item', itemWithReferenceNumber.__id || ''))
+          ?.individual_asset_reference,
+      ).toBe('0001.123456.0000'); // Fixed by fixDataConsistency
+
+      expect(fixDataConsistencyResults?.collection).toMatchSnapshot(
+        'fixDataConsistencyResults-collection',
+      );
+      expect(fixDataConsistencyResults?.item).toMatchSnapshot(
+        'fixDataConsistencyResults-item',
+      );
     });
   });
 });

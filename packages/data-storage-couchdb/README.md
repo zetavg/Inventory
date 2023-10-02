@@ -33,4 +33,31 @@ await saveDatum({ ...newItem, individual_asset_reference: '123456' }, { ignoreCo
 // Delete data
 await saveDatum({ __type: 'item', __id: newItem.__id, __deleted: true }, { ignoreConflict: true });
 await saveDatum({ __type: 'collection', __id: newCollection.__id, __deleted: true }, { ignoreConflict: true });
+
+// Fix data consistency
+(async () => {
+  // Running this in async IIFE to allow stopping the iteration by pressing Ctrl+C
+  let shouldStopIteration = false;
+  const onSEGINT = () => {
+    console.log('Stopping fixDataConsistency...');
+    shouldStopIteration = true;
+  };
+  getREPL().on('SIGINT', onSEGINT);
+  for await (const progress of fixDataConsistency({
+    batchSize: 10,
+    // Other parameters such as getData,saveDatum will be provided automatically buy the REPL
+  })) {
+    console.log(progress);
+    fixDataConsistencyResults = progress;
+    if (shouldStopIteration) break;
+  }
+  if (shouldStopIteration) {
+    console.log('fixDataConsistency stopped.');
+    console.log('');
+  } else {
+    console.log('fixDataConsistency done.');
+    console.log('');
+  }
+  getREPL().removeListener('SIGINT', onSEGINT);
+})();
 ```
