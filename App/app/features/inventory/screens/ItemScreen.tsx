@@ -113,6 +113,7 @@ function ItemScreen({
   } = useRelated(data, 'contents', {
     sort: [{ __created_at: 'asc' }],
     disable: dContentsLoading,
+    startWithLoadingState: true,
     onInitialLoad: useCallback(() => {
       LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
     }, []),

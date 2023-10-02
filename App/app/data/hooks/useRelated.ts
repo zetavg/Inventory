@@ -31,11 +31,13 @@ export default function useRelated<
   relationName: N,
   {
     disable = false,
+    startWithLoadingState,
     lowPriority = false,
     sort,
     onInitialLoad,
   }: {
     disable?: boolean;
+    startWithLoadingState?: boolean;
     lowPriority?: boolean;
     sort?: Sort;
     onInitialLoad?: () => void;
@@ -77,7 +79,7 @@ export default function useRelated<
     }
   }, [sort, cachedSort]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!disable || !!startWithLoadingState);
 
   const [data, setData] = useState<null | DataRelationType<T, N>>(null);
   const dataRef = useRef(data);

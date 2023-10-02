@@ -29,6 +29,7 @@ export default function useData<
     skip = 0,
     showAlertOnError = true,
     disable = false,
+    startWithLoadingState,
     onInitialLoad,
   }: {
     sort?: SortOption<DataType<T>>;
@@ -36,6 +37,7 @@ export default function useData<
     skip?: number;
     showAlertOnError?: boolean;
     disable?: boolean;
+    startWithLoadingState?: boolean;
     onInitialLoad?: () => void;
   } = {},
 ): {
@@ -102,7 +104,7 @@ export default function useData<
   const skipRef = useRef(skip);
   skipRef.current = skip;
 
-  const [loading, setLoading] = useState(!disable);
+  const [loading, setLoading] = useState(!disable || !!startWithLoadingState);
 
   const [data, setData] = useState<
     | null

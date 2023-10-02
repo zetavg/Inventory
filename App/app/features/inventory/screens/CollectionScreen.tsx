@@ -90,6 +90,7 @@ function CollectionScreen({
     {
       sort: [{ __created_at: 'asc' }],
       disable: d1,
+      startWithLoadingState: true,
       onInitialLoad: useCallback(() => {
         LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
       }, []),
