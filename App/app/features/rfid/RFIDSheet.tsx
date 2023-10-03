@@ -1457,10 +1457,9 @@ function RFIDSheet(
                                 >
                                   {(() => {
                                     try {
-                                      const [epc] =
-                                        EPCUtils.getGiaiUriFromEpcHex(
-                                          options.epc,
-                                        );
+                                      const epc = EPCUtils.getGiaiUriFromEpcHex(
+                                        options.epc,
+                                      );
                                       return epc;
                                     } catch (e) {
                                       return options.epc;
