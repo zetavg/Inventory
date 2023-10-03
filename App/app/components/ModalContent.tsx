@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Platform, StatusBar, View } from 'react-native';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { Appbar } from 'react-native-paper';
 // import { BlurView } from '@react-native-community/blur';
@@ -67,11 +67,12 @@ function ModalContent({
   const safeAreaInsets = useSafeAreaInsets();
 
   useEffect(() => {
-    if (disableSwipeToDismissInContent) {
-      navigation.setOptions({
-        gestureResponseDistance: safeAreaInsets.top + 50,
-      });
-    }
+    navigation.setOptions({
+      cardStyle: styles.cardStyle,
+      ...(disableSwipeToDismissInContent
+        ? { gestureResponseDistance: safeAreaInsets.top + 50 }
+        : {}),
+    });
   }, [disableSwipeToDismissInContent, navigation, safeAreaInsets.top]);
 
   // const isDarkMode = useIsDarkMode();
@@ -216,5 +217,15 @@ function ModalContent({
 }
 
 ModalContent.ScrollView = ModalContentScrollView;
+
+const styles = StyleSheet.create({
+  cardStyle: {
+    maxWidth: 640,
+    alignSelf: 'center',
+    width: '100%',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+});
 
 export default ModalContent;

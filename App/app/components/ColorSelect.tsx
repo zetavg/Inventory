@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginHorizontal: -1,
+    maxWidth: 400,
   },
   colorItemContainer: {
     width: 32,

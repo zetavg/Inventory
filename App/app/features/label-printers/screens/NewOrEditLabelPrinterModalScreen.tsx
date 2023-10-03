@@ -4,6 +4,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import { diff } from 'deep-object-diff';
 
+import { URLS } from '@app/consts/info';
+
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
 import filterObjectKeys from '@app/utils/filterObjectKeys';
@@ -286,9 +288,7 @@ function NewOrEditLabelPrinterModalScreen({
             button
             label="Printer Integration Documentation"
             onPress={() =>
-              Linking.openURL(
-                'https://docs.inventory.z72.io/app/label-printer-integration',
-              )
+              Linking.openURL(URLS.label_printer_integration_document)
             }
           />
         </UIGroup>

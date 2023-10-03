@@ -4,6 +4,8 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
 import GitInfo from 'react-git-info/macro';
 
+import { URLS } from '@app/consts/info';
+
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -88,9 +90,7 @@ function AboutScreen({
           <TableView.Item
             arrow
             detail="zetavg/Inventory"
-            onPress={() =>
-              Linking.openURL('https://github.com/zetavg/Inventory')
-            }
+            onPress={() => Linking.openURL(URLS.github_project)}
           >
             GitHub
           </TableView.Item>

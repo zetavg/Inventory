@@ -29,7 +29,7 @@ import { v4 as uuidv4 } from 'uuid';
 import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
-import { GITHUB_PROJECT_URL, USER_DOCUMENTS_URL } from '@app/consts/info';
+import { GITHUB_PROJECT_URL, URLS, USER_DOCUMENTS_URL } from '@app/consts/info';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import useNewOrEditServerUI from '@app/features/db-sync/hooks/useNewOrEditServerUI';
@@ -122,16 +122,18 @@ function OnboardingScreen({
 
   const [showSkipBtnCounter, setShowSkipBtnCounter] = useState(0);
 
-  useEffect(
-    () =>
-      // Prevent the user from closing the onboarding screen if setup is not done
-      navigation.addListener('beforeRemove', e => {
-        if (isSetupNotDoneRef.current) {
-          e.preventDefault();
-        }
-      }),
-    [navigation],
-  );
+  useEffect(() => {
+    // Prevent the user from closing the onboarding screen if setup is not done
+    navigation.addListener('beforeRemove', e => {
+      if (isSetupNotDoneRef.current) {
+        e.preventDefault();
+      }
+    });
+
+    navigation.setOptions({
+      cardStyle: styles.cardStyle,
+    });
+  }, [navigation]);
 
   const scrollViewContentContainerPaddingTop =
     useScrollViewContentContainerPaddingTop();
@@ -162,9 +164,7 @@ function OnboardingScreen({
               To utilize all functionalities of this app, a compatible RFID
               reader is required. View a list of supported devices{' '}
               <Link
-                onPress={() =>
-                  Linking.openURL('https://hackmd.io/@Inventory/RFID-Readers')
-                }
+                onPress={() => Linking.openURL(URLS.supported_rfid_devices)}
               >
                 here
               </Link>
@@ -368,19 +368,13 @@ function OnboardingScreen({
 
               <Text style={styles.text}>
                 This app uses{' '}
-                <Link
-                  onPress={() =>
-                    Linking.openURL('https://hackmd.io/@Inventory/what-is-giai')
-                  }
-                >
+                <Link onPress={() => Linking.openURL(URLS.what_is_giai)}>
                   Global Individual Asset Identifier (GIAI)
                 </Link>{' '}
                 to tag your items. This unique identifier is comprised of a{' '}
                 <Link
                   onPress={() =>
-                    Linking.openURL(
-                      'https://hackmd.io/@Inventory/what-is-gs1-company-prefix',
-                    )
+                    Linking.openURL(URLS.what_is_gs1_company_prefix)
                   }
                 >
                   GS1 Company Prefix
@@ -391,9 +385,7 @@ function OnboardingScreen({
                 A{' '}
                 <Link
                   onPress={() =>
-                    Linking.openURL(
-                      'https://hackmd.io/@Inventory/what-is-gs1-company-prefix',
-                    )
+                    Linking.openURL(URLS.what_is_gs1_company_prefix)
                   }
                 >
                   GS1 Company Prefix
@@ -1501,7 +1493,7 @@ function OnboardingScreen({
       navigateToDBSyncHasBeenSetupFnRef.current = () =>
         props.navigation.navigate('DBSyncHasBeenSetup');
       return (
-        <View style={{ backgroundColor }}>
+        <>
           <ScrollView
             ref={restoreFromCouchDBScrollViewRef}
             style={{ backgroundColor }}
@@ -1538,7 +1530,7 @@ function OnboardingScreen({
               />
             </UIGroup>
           </BlurView>
-        </View>
+        </>
       );
     },
     [
@@ -1891,6 +1883,13 @@ function generateRfidTagPasswordEncoding() {
 }
 
 const styles = StyleSheet.create({
+  cardStyle: {
+    maxWidth: 640,
+    alignSelf: 'center',
+    width: '100%',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
   welcomeAppIcon: {
     width: 64,
     height: 64,
@@ -1899,7 +1898,7 @@ const styles = StyleSheet.create({
   scrollViewContentContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   titleText: {
     textAlign: 'center',
