@@ -36,22 +36,47 @@ export const APP_ICONS: ReadonlyArray<{
   //   })(),
   //   isDefault: true,
   // },
-  { name: 'Inventory', value: 'AppIcon' },
-  { name: 'Dark', value: 'AppIcon-dark' },
-  { name: 'Black', value: 'AppIcon-black' },
-  { name: 'Nightly', value: 'AppIcon-stg' },
-  { name: 'Development', value: 'AppIcon-dev' },
+  {
+    name: 'Inventory',
+    value: 'AppIcon',
+    preview: require('@app/images/app-icons/default.png'),
+  },
+  {
+    name: 'Dark',
+    value: 'AppIcon-dark',
+    preview: require('@app/images/app-icons/dark.png'),
+  },
+  {
+    name: 'Black Monochrome',
+    value: 'AppIcon-black-monochrome',
+    preview: require('@app/images/app-icons/black-monochrome.png'),
+  },
+  {
+    name: 'White Monochrome',
+    value: 'AppIcon-white-monochrome',
+    preview: require('@app/images/app-icons/white-monochrome.png'),
+  },
+  {
+    name: 'Nightly',
+    value: 'AppIcon-stg',
+    preview: require('@app/images/app-icons/nightly.png'),
+  },
+  {
+    name: 'Development',
+    value: 'AppIcon-dev',
+    preview: require('@app/images/app-icons/dev.png'),
+  },
 ].map(icon => {
   if (APP_NAME.endsWith('(Dev)')) {
     if (icon.name === 'Development') {
-      return { name: 'Default', value: icon.value, isDefault: true };
+      return { ...icon, name: 'Default', isDefault: true };
     }
   } else if (APP_NAME.endsWith('(Nightly)')) {
     if (icon.name === 'Nightly') {
-      return { name: 'Default', value: icon.value, isDefault: true };
+      return { ...icon, name: 'Default', isDefault: true };
     }
   } else if (icon.name === 'Inventory') {
-    return { name: 'Default', value: icon.value, isDefault: true };
+    return { ...icon, name: 'Default', isDefault: true };
   }
 
   return icon;
@@ -93,7 +118,7 @@ export default function AppIconSelector({}: Props) {
               horizontal
               contentContainerStyle={styles.iconsScrollViewContentContainer}
             >
-              {APP_ICONS.map(({ name, value, isDefault }) => {
+              {APP_ICONS.map(({ name, value, preview, isDefault }) => {
                 const selected =
                   value === selectedIcon ||
                   (isDefault && selectedIcon === 'default');
@@ -114,7 +139,7 @@ export default function AppIconSelector({}: Props) {
                       ]}
                     >
                       <Image
-                        source={{ uri: value }}
+                        source={preview}
                         style={[
                           styles.iconImage,
                           { backgroundColor: gray, borderColor: gray },
@@ -126,6 +151,7 @@ export default function AppIconSelector({}: Props) {
                         styles.iconText,
                         { color: contentSecondaryTextColor },
                       ]}
+                      numberOfLines={1}
                     >
                       {name}
                     </Text>
@@ -169,6 +195,8 @@ const styles = StyleSheet.create({
   },
   iconText: {
     marginTop: 1,
+    textAlign: 'center',
     fontSize: 12,
+    maxWidth: 64,
   },
 });

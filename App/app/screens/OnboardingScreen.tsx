@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import {
   BackHandler,
+  Image,
   LayoutAnimation,
   Linking,
   Platform,
@@ -149,12 +150,9 @@ function OnboardingScreen({
         >
           <UIGroup.FirstGroupSpacing />
           <UIGroup style={[cs.centerChildren]}>
-            <Icon
-              name="cube-outline"
-              color="teal"
-              size={64}
-              sfSymbolWeight="medium"
-              style={cs.mb8}
+            <Image
+              source={require('@app/images/app-icons/default.png')}
+              style={styles.welcomeAppIcon}
             />
             <Text style={styles.titleText}>Welcome to Inventory</Text>
             <Text style={styles.text}>
@@ -1893,6 +1891,11 @@ function generateRfidTagPasswordEncoding() {
 }
 
 const styles = StyleSheet.create({
+  welcomeAppIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+  },
   scrollViewContentContainer: {
     flexGrow: 1,
     justifyContent: 'center',
