@@ -21,6 +21,7 @@ const APP_NAME = DeviceInfo.getApplicationName();
 export const APP_ICONS: ReadonlyArray<{
   name: string;
   value: string;
+  preview: any;
   isDefault?: boolean;
 }> = [
   // {
