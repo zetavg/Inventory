@@ -1,6 +1,10 @@
 import React from 'react';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+
+import { selectors, useAppSelector } from '@app/redux';
+
 import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import ModalContent from '@app/components/ModalContent';
@@ -11,6 +15,10 @@ import ProfileSwitcher from '../components/ProfileSwitcher';
 function SwitchProfileScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'SwitchProfile'>) {
+  const currentProfileId = useAppSelector(
+    selectors.profiles.currentProfileUuid,
+  );
+
   return (
     <ModalContent navigation={navigation} title="Profiles">
       <ModalContent.ScrollView>
@@ -34,6 +42,16 @@ function SwitchProfileScreen({
             button
             label="Delete Profile..."
             onPress={() => navigation.push('DeleteProfile')}
+          />
+        </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListItem
+            button
+            label="Copy Current Profile ID"
+            onPress={() =>
+              currentProfileId && Clipboard.setString(currentProfileId)
+            }
           />
         </UIGroup>
       </ModalContent.ScrollView>

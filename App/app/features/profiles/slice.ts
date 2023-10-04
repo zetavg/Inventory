@@ -73,6 +73,7 @@ export type ProfileColor = (typeof COLORS)[number];
 interface ProfileState {
   name: string;
   color: ProfileColor;
+  configUuid?: string;
   setupDone?: boolean;
   dbSync: DBSyncState;
   settings: SettingsState;
@@ -149,13 +150,17 @@ export const profilesSlice = createSlice({
           state.currentProfile = Object.keys(state.profiles)[0];
         }
       },
-      markCurrentProfileAsSetupDone: (state: ProfilesState) => {
+      markCurrentProfileAsSetupDone: (
+        state: ProfilesState,
+        action: PayloadAction<{ configUuid: string }>,
+      ) => {
         const currentProfile = state.currentProfile
           ? state.profiles[state.currentProfile]
           : null;
         if (!currentProfile) return;
 
         currentProfile.setupDone = true;
+        currentProfile.configUuid = action.payload.configUuid;
       },
     },
     mapActionReducers(
@@ -332,6 +337,7 @@ reducer.dehydrate = (state: ProfilesState) => {
       name: s.name,
       color: s.color,
       setupDone: s.setupDone,
+      configUuid: s.configUuid,
       ...(dbSyncReducer.dehydrate
         ? { dbSync: dbSyncReducer.dehydrate(s.dbSync) }
         : {}),

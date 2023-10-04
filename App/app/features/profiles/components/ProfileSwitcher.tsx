@@ -30,16 +30,18 @@ function ProfileSwitcher() {
 
       Alert.alert(
         'Confirm',
-        'Are you sure you want to switch profile? The app will be unloaded and all your unsaved changes will be discarded.',
+        'Are you sure you want to switch profile? The app will be reloaded and all your unsaved changes will be discarded.',
         [
           {
             text: 'Cancel',
             style: 'cancel',
+            isPreferred: false,
           },
           {
             text: 'Switch Profile',
             style: 'destructive',
             onPress: () => _handleSwitchProfile(profileUuid),
+            isPreferred: true,
           },
         ],
       );

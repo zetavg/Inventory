@@ -13,6 +13,7 @@ import {
 import {
   DefaultTheme,
   NavigationContainer,
+  NavigationContainerRefWithCurrent,
   useFocusEffect,
   useNavigationContainerRef,
 } from '@react-navigation/native';
@@ -23,6 +24,7 @@ import {
 } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SFSymbol } from 'react-native-sfsymbols';
+import { URL as PURL } from 'react-native-url-polyfill';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import {
@@ -38,7 +40,7 @@ import { LogLevel } from '@app/logger/types';
 
 import { IconName } from '@app/consts/icons';
 
-import { selectors, useAppSelector } from '@app/redux';
+import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 // import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
 import DBSyncNewOrEditServerModalScreen from '@app/features/db-sync/screens/DBSyncNewOrEditServerModalScreen';
 import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
@@ -62,7 +64,7 @@ import SelectProfileToEditScreen from '@app/features/profiles/screens/SelectProf
 import SwitchProfileScreen from '@app/features/profiles/screens/SwitchProfileScreen';
 import RFIDSheet, { RFIDSheetOptions } from '@app/features/rfid/RFIDSheet';
 
-import { DataType, DataTypeName, DataTypeWithID } from '@app/data';
+import { DataType, DataTypeName, DataTypeWithID, useConfig } from '@app/data';
 import { getGetConfig, getGetData, getGetDatum } from '@app/data/functions';
 
 import { useDB } from '@app/db';
@@ -291,140 +293,8 @@ function Navigation({
   // }
 
   const navigationRef = useNavigationContainerRef();
-  const { db } = useDB();
-  const handleLink = useCallback(
-    async (url: string) => {
-      if (!db) {
-        logger.warn(`Can't handle link: "${url}", db is not ready.`);
-        return;
-      }
-      logger.debug(`Handling link: "${url}".`);
 
-      const getDatum = getGetDatum({ db });
-      const getData = getGetData({ db });
-
-      const openItemWithIAR = async (iar: string) => {
-        let iarWithDotsAdded: string | null = null;
-        if (!iar.includes('.')) {
-          const config = await getGetConfig({ db })();
-          const collectionReferenceDigits =
-            EPCUtils.getCollectionReferenceDigits({
-              companyPrefix: config.rfid_tag_company_prefix,
-              iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
-            });
-          iarWithDotsAdded = [
-            iar.slice(0, collectionReferenceDigits),
-            iar.slice(collectionReferenceDigits, iar.length - 4),
-            iar.slice(iar.length - 4),
-          ].join('.');
-        }
-        const items = await getData(
-          'item',
-          { individual_asset_reference: iar },
-          { limit: 1 },
-        );
-        let item = items[0];
-        if (!item && iarWithDotsAdded) {
-          const items2 = await getData(
-            'item',
-            { individual_asset_reference: iarWithDotsAdded },
-            { limit: 1 },
-          );
-          item = items2[0];
-        }
-        if (!item) {
-          Alert.alert(
-            'Item Not Found',
-            `Can't find item with individual asset reference: "${iar}".`,
-          );
-        } else {
-          (navigationRef.current?.navigate as any)('Item', {
-            id: item.__id,
-            preloadedTitle:
-              typeof item.name === 'string' ? item.name : undefined,
-          });
-        }
-      };
-
-      const openItem = async (id: string) => {
-        if (!db) {
-          logger.warn(`Can't handle link: "${url}", db is not ready.`);
-          return;
-        }
-        const item = await getDatum('item', id);
-        if (!item?.__id) {
-          Alert.alert('Item Not Found', `Can't find item with ID: "${id}".`);
-        } else {
-          (navigationRef.current?.navigate as any)('Item', {
-            id: item.__id,
-            preloadedTitle:
-              typeof item.name === 'string' ? item.name : undefined,
-          });
-        }
-      };
-
-      const openCollection = async (id: string) => {
-        if (!db) {
-          logger.warn(`Can't handle link: "${url}", db is not ready.`);
-          return;
-        }
-        const collection = await getDatum('collection', id);
-        if (!collection?.__id) {
-          Alert.alert(
-            'Collection Not Found',
-            `Can't find collection with ID: "${id}".`,
-          );
-        } else {
-          (navigationRef.current?.navigate as any)('Collection', {
-            id: collection.__id,
-            preloadedTitle:
-              typeof collection.name === 'string' ? collection.name : undefined,
-          });
-        }
-      };
-
-      const [, , ...path] = url.split('/');
-      switch (path[0]) {
-        case 'iar': {
-          openItemWithIAR(path[1]);
-          break;
-        }
-        case 'items':
-        case 'item': {
-          openItem(path[1]);
-          break;
-        }
-
-        case 'collections':
-        case 'collection': {
-          openCollection(path[1]);
-          break;
-        }
-      }
-    },
-    [db, logger, navigationRef],
-  );
-
-  useEffect(() => {
-    const subscription = Linking.addEventListener('url', ({ url }) =>
-      handleLink(url),
-    );
-    return () => {
-      subscription.remove();
-    };
-  }, [handleLink]);
-  useEffect(() => {
-    if (!db) return;
-
-    const timer = setTimeout(async () => {
-      const url = await Linking.getInitialURL();
-      if (url) handleLink(url);
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [db, handleLink]);
+  useDeepLinkHandling({ navigationRef });
 
   return (
     <NavigationContainer theme={navigationTheme} ref={navigationRef}>
@@ -798,6 +668,286 @@ function OnboardingScreenOpener({
   }, [isSetupNotDone, navigation]);
   return null;
 }
+
+function useDeepLinkHandling({
+  navigationRef,
+}: {
+  navigationRef: NavigationContainerRefWithCurrent<{}>;
+}) {
+  const logger = useLogger('deep-link-handling');
+
+  const { db } = useDB();
+  const dbRef = useRef(db);
+  dbRef.current = db;
+
+  const dispatch = useAppDispatch();
+  const profiles = useAppSelector(selectors.profiles.profiles);
+  const currentProfileUuid = useAppSelector(
+    selectors.profiles.currentProfileUuid,
+  );
+  const profilesRef = useRef(profiles);
+  profilesRef.current = profiles;
+
+  const handleURL = useCallback(
+    async (urlStr: string, isInitial?: boolean) => {
+      if (!dbRef.current) {
+        logger.error(
+          `Can't handle URL: "${urlStr}", DB is not ready. Please try again.`,
+          {
+            showAlert: true,
+          },
+        );
+        return;
+      }
+      logger.debug(`Handling URL: "${urlStr}".`);
+
+      try {
+        const url = new PURL(urlStr);
+
+        let shouldSwitchProfileTo: string | null = null;
+
+        const profileUuid =
+          url.searchParams.get('p') || url.searchParams.get('profile');
+        if (profileUuid && profileUuid !== currentProfileUuid) {
+          shouldSwitchProfileTo = profileUuid;
+        }
+
+        const getConfig = getGetConfig({ db: dbRef.current });
+        const getDatum = getGetDatum({ db: dbRef.current });
+        const getData = getGetData({ db: dbRef.current });
+
+        const configUuidMatcher = url.searchParams.get('c');
+        if (configUuidMatcher) {
+          const currentConfigUuid = (await getConfig()).uuid;
+          if (!currentConfigUuid.startsWith(configUuidMatcher)) {
+            const [pId] =
+              Object.entries(profilesRef.current)
+                .sort(([, a], [, b]) => a.name.localeCompare(b.name))
+                .find(([_id, p]) =>
+                  p.configUuid?.startsWith(configUuidMatcher),
+                ) || [];
+            console.log('profilesRef.current 398923', profilesRef.current);
+            if (!pId) {
+              Alert.alert(
+                'Profile Not Found',
+                `Profile with config UUID matching "${configUuidMatcher}" does not exists.`,
+              );
+              return;
+            }
+
+            shouldSwitchProfileTo = pId;
+          }
+        }
+
+        if (shouldSwitchProfileTo) {
+          const switchProfileAndHandleUrlLater = () => {
+            if (!shouldSwitchProfileTo) return;
+
+            if (
+              !Object.keys(profilesRef.current).includes(shouldSwitchProfileTo)
+            ) {
+              Alert.alert(
+                'Profile Not Found',
+                `Profile with ID "${shouldSwitchProfileTo}" does not exists.`,
+              );
+              return;
+            }
+            useDeepLinkHandling.deepLinkURL = urlStr;
+            dispatch(actions.profiles.switchProfile(shouldSwitchProfileTo));
+          };
+
+          if (isInitial) {
+            switchProfileAndHandleUrlLater();
+          } else {
+            Alert.alert(
+              'Switching Profile',
+              "You're about to switch to another profile. The app will be reloaded and all your unsaved changes will be discarded.",
+              [
+                {
+                  text: 'Do Not Switch',
+                  style: 'cancel',
+                  isPreferred: false,
+                },
+                {
+                  text: 'Switch Profile and Proceed',
+                  style: 'destructive',
+                  onPress: switchProfileAndHandleUrlLater,
+                  isPreferred: true,
+                },
+              ],
+            );
+          }
+
+          return;
+        }
+
+        useDeepLinkHandling.deepLinkURL = null;
+
+        const openItemWithIAR = async (iar: string) => {
+          let iarWithDotsAdded: string | null = null;
+          if (!iar.includes('.')) {
+            const config = await getConfig();
+            const collectionReferenceDigits =
+              EPCUtils.getCollectionReferenceDigits({
+                companyPrefix: config.rfid_tag_company_prefix,
+                iarPrefix: config.rfid_tag_individual_asset_reference_prefix,
+              });
+            iarWithDotsAdded = [
+              iar.slice(0, collectionReferenceDigits),
+              iar.slice(collectionReferenceDigits, iar.length - 4),
+              iar.slice(iar.length - 4),
+            ].join('.');
+          }
+          const items = await getData(
+            'item',
+            { individual_asset_reference: iar },
+            { limit: 1 },
+          );
+          let item = items[0];
+          if (!item && iarWithDotsAdded) {
+            const items2 = await getData(
+              'item',
+              { individual_asset_reference: iarWithDotsAdded },
+              { limit: 1 },
+            );
+            item = items2[0];
+          }
+          if (!item) {
+            Alert.alert(
+              'Item Not Found',
+              `Can't find item with individual asset reference: "${iar}" (URL: "${urlStr}").`,
+            );
+          } else {
+            (navigationRef.current?.navigate as any)('Item', {
+              id: item.__id,
+              preloadedTitle:
+                typeof item.name === 'string' ? item.name : undefined,
+            });
+          }
+        };
+
+        const openItem = async (id: string) => {
+          const item = await getDatum('item', id);
+          if (!item?.__id) {
+            Alert.alert(
+              'Item Not Found',
+              `Can't find item with ID: "${id}" (URL: "${urlStr}").`,
+            );
+          } else {
+            (navigationRef.current?.navigate as any)('Item', {
+              id: item.__id,
+              preloadedTitle:
+                typeof item.name === 'string' ? item.name : undefined,
+            });
+          }
+        };
+
+        const openCollection = async (id: string) => {
+          const collection = await getDatum('collection', id);
+          if (!collection?.__id) {
+            Alert.alert(
+              'Collection Not Found',
+              `Can't find collection with ID: "${id}" (URL: "${urlStr}").`,
+            );
+          } else {
+            (navigationRef.current?.navigate as any)('Collection', {
+              id: collection.__id,
+              preloadedTitle:
+                typeof collection.name === 'string'
+                  ? collection.name
+                  : undefined,
+            });
+          }
+        };
+
+        const [, ...path] = url.pathname.split('/');
+        switch (url.host) {
+          case 'iar': {
+            openItemWithIAR(path[0]);
+            break;
+          }
+          case 'items':
+          case 'item': {
+            openItem(path[0]);
+            break;
+          }
+
+          case 'collections':
+          case 'collection': {
+            openCollection(path[0]);
+            break;
+          }
+
+          case '_':
+          case 'null':
+          case 'nothing': {
+            break;
+          }
+
+          default: {
+            Alert.alert('Unknown URL', `Unknown URL: ${urlStr}`);
+          }
+        }
+      } catch (e) {
+        logger.error(`Can't handle URL: "${urlStr}": ${e}`, {
+          showAlert: true,
+          details: JSON.stringify(e),
+        });
+      }
+    },
+    [currentProfileUuid, dispatch, logger, navigationRef],
+  );
+
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', ({ url }) =>
+      handleURL(url),
+    );
+    return () => {
+      subscription.remove();
+    };
+  }, [handleURL]);
+  useEffect(() => {
+    if (!db) return;
+
+    const timer = setTimeout(async () => {
+      if (!useDeepLinkHandling.initialURLProceeded) {
+        // Process URL from app launch
+        const url = await Linking.getInitialURL();
+        useDeepLinkHandling.initialURLProceeded = true; // So that we will not process it again (e.g. after switching to another profile, causing Navigation to reload)
+        if (url) handleURL(url, true);
+      } else if (useDeepLinkHandling.deepLinkURL) {
+        // Process URL from profile switched, etc.
+        handleURL(useDeepLinkHandling.deepLinkURL);
+        useDeepLinkHandling.deepLinkURL = null;
+      }
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [db, handleURL]);
+
+  useEffect(() => {
+    if (!db) return;
+
+    (async () => {
+      const cfg = await getGetConfig({ db })();
+      if (!currentProfileUuid) return;
+      if (!profiles[currentProfileUuid]?.setupDone) return;
+
+      if (profiles[currentProfileUuid]?.configUuid !== cfg.uuid) {
+        dispatch(
+          actions.profiles.markCurrentProfileAsSetupDone({
+            configUuid: cfg.uuid,
+          }),
+        );
+      }
+    })();
+  }, [db, currentProfileUuid, dispatch, profiles]);
+}
+
+useDeepLinkHandling.initialURLProceeded = false;
+useDeepLinkHandling.deepLinkURL = null as string | null;
 
 const styles = StyleSheet.create({
   tabBarBlurView: {

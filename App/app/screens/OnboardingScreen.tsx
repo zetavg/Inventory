@@ -1371,8 +1371,12 @@ function OnboardingScreen({
                 onPress={
                   delayConfirmAndProceedSeconds <= 0
                     ? () => {
+                        if (!config?.uuid) return;
+
                         dispatch(
-                          actions.profiles.markCurrentProfileAsSetupDone(),
+                          actions.profiles.markCurrentProfileAsSetupDone({
+                            configUuid: config.uuid,
+                          }),
                         );
                         isSetupNotDoneRef.current = false;
                         navigation.goBack();
@@ -1387,6 +1391,7 @@ function OnboardingScreen({
     },
     [
       backgroundColor,
+      config?.uuid,
       contentBackgroundColor,
       delayConfirmAndProceedSeconds,
       dispatch,
@@ -1678,15 +1683,31 @@ function OnboardingScreen({
     ],
   );
   useEffect(() => {
+    if (!config?.uuid) return;
+
     if (dbSyncHasBeenSetupStatus === 'DONE') {
-      dispatch(actions.profiles.markCurrentProfileAsSetupDone());
+      dispatch(
+        actions.profiles.markCurrentProfileAsSetupDone({
+          configUuid: config.uuid,
+        }),
+      );
     } else if (
       dbSyncHasBeenSetupStatus === 'WORKING' &&
       initialSyncDoneProgress > 10
     ) {
-      dispatch(actions.profiles.markCurrentProfileAsSetupDone());
+      dispatch(
+        actions.profiles.markCurrentProfileAsSetupDone({
+          configUuid: config.uuid,
+        }),
+      );
     }
-  }, [dbSyncHasBeenSetupStatus, dispatch, navigation, initialSyncDoneProgress]);
+  }, [
+    dbSyncHasBeenSetupStatus,
+    dispatch,
+    navigation,
+    initialSyncDoneProgress,
+    config?.uuid,
+  ]);
 
   // Load form values from config
   useEffect(() => {
