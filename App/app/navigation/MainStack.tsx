@@ -33,14 +33,12 @@ import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
 import AppLogsScreen from '@app/screens/AppLogsScreen';
 import AppLogsSettingsScreen from '@app/screens/AppLogsSettingsScreen';
 import ConfigurationScreen from '@app/screens/ConfigurationScreen';
+import DatabaseManagementScreen from '@app/screens/DatabaseManagementScreen';
 import BenchmarkScreen from '@app/screens/dev-tools/BenchmarkScreen';
 import DataListScreen from '@app/screens/dev-tools/data/DataListScreen';
 import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
 import DevDataMigrationScreen from '@app/screens/dev-tools/data/DevDataMigrationScreen';
-import FixDataConsistencyErrorScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorScreen';
-import FixDataConsistencyErrorsScreen from '@app/screens/dev-tools/data/FixDataConsistencyErrorsScreen';
-import FixDataConsistencyScreen from '@app/screens/dev-tools/data/FixDataConsistencyScreen';
 import EPCUtilsScreen from '@app/screens/dev-tools/EPCUtilsScreen';
 import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
 import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
@@ -85,6 +83,7 @@ export type StackParamList = {
   UIAndAppearanceSettings: undefined;
   Configuration: undefined;
   HowToSwitchBetweenProfiles: undefined;
+  DatabaseManagement: undefined;
   GenericTextDetails: {
     title?: string;
     details: string;
@@ -132,13 +131,6 @@ export type StackParamList = {
   DataTypes: undefined;
   DataList: { type: DataTypeName };
   Datum: { type: DataTypeName; id: string; preloadedTitle?: string };
-  FixDataConsistency: undefined;
-  FixDataConsistencyErrors: {
-    errors: ReadonlyArray<{ id?: string; rawId: string; error: unknown }>;
-  };
-  FixDataConsistencyError: {
-    error: { id?: string; rawId: string; error: unknown };
-  };
   DevDataMigration: undefined;
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
@@ -231,6 +223,10 @@ function MainStack({ initialRouteName }: Props) {
         component={HowToSwitchBetweenProfilesScreen}
       />
       <Stack.Screen
+        name="DatabaseManagement"
+        component={DatabaseManagementScreen}
+      />
+      <Stack.Screen
         name="GenericTextDetails"
         component={GenericTextDetailsScreen}
       />
@@ -255,18 +251,6 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="DataTypes" component={DataTypesScreen} />
       <Stack.Screen name="DataList" component={DataListScreen} />
       <Stack.Screen name="Datum" component={DatumScreen} />
-      <Stack.Screen
-        name="FixDataConsistency"
-        component={FixDataConsistencyScreen}
-      />
-      <Stack.Screen
-        name="FixDataConsistencyErrors"
-        component={FixDataConsistencyErrorsScreen}
-      />
-      <Stack.Screen
-        name="FixDataConsistencyError"
-        component={FixDataConsistencyErrorScreen}
-      />
       <Stack.Screen
         name="DevDataMigration"
         component={DevDataMigrationScreen}

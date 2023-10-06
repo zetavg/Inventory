@@ -209,6 +209,14 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
           >
             Export to CSV
           </TableView.Item>
+          <TableView.Item
+            arrow
+            icon="database-cog"
+            iosImage="ios-menu.database.png"
+            onPress={() => navigation.push('DatabaseManagement')}
+          >
+            Database Management
+          </TableView.Item>
         </TableView.Section>
         <TableView.Section>
           <TableView.Item

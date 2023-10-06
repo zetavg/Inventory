@@ -1919,7 +1919,7 @@ const styles = StyleSheet.create({
   scrollViewContentContainer: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingBottom: 20,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 100,
   },
   titleText: {
     textAlign: 'center',

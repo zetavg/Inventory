@@ -76,6 +76,7 @@ import DatePickerModalScreen from '@app/screens/DatePickerModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/dev-tools/pouchdb/PouchDBPutDataModalScreen';
+import FixDataConsistencyScreen from '@app/screens/FixDataConsistencyScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
 import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
 import SampleModalScreen from '@app/screens/SampleModalScreen';
@@ -110,6 +111,7 @@ export type RootStackParamList = {
   };
   SelectProfileToEdit: undefined;
   DeleteProfile: undefined;
+  FixDataConsistency: undefined;
   DBSyncConfigUpdate: {
     name?: string;
   };
@@ -372,6 +374,10 @@ function Navigation({
             <Stack.Screen
               name="DeleteProfile"
               component={DeleteProfileScreen}
+            />
+            <Stack.Screen
+              name="FixDataConsistency"
+              component={FixDataConsistencyScreen}
             />
             {/*<Stack.Screen
               name="DBSyncConfigUpdate"

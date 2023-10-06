@@ -5,6 +5,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 import { DATA_TYPE_NAMES, getHumanName } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
+import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
@@ -13,6 +14,9 @@ function DataTypesScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'DataTypes'>) {
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const rootNavigation = useRootNavigation();
+
   const { kiaTextInputProps } =
     ScreenContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
 
@@ -43,7 +47,7 @@ function DataTypesScreen({
             label="Fix Data Consistency"
             navigable
             onPress={() => {
-              navigation.navigate('FixDataConsistency');
+              rootNavigation?.navigate('FixDataConsistency');
             }}
           />
         </UIGroup>
