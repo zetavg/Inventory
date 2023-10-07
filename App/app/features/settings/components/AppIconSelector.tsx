@@ -53,6 +53,16 @@ export const APP_ICONS: ReadonlyArray<{
     preview: require('@app/images/app-icons/black-monochrome.png'),
   },
   {
+    name: 'Dark Vibrant',
+    value: 'AppIcon-dark-vibrant',
+    preview: require('@app/images/app-icons/dark-vibrant.png'),
+  },
+  {
+    name: 'Light Vibrant',
+    value: 'AppIcon-light-vibrant',
+    preview: require('@app/images/app-icons/light-vibrant.png'),
+  },
+  {
     name: 'White Monochrome',
     value: 'AppIcon-white-monochrome',
     preview: require('@app/images/app-icons/white-monochrome.png'),
