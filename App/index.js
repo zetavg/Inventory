@@ -1,4 +1,5 @@
 import './ignore-logs';
+import './app/utils/readAsArrayBuffer-polyfill';
 
 import { AppRegistry, LogBox, Platform, UIManager } from 'react-native';
 import { shim as rnQuickBase64Shim } from 'react-native-quick-base64';

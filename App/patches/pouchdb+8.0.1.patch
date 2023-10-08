@@ -1,0 +1,29 @@
+diff --git a/node_modules/pouchdb/lib/index-browser.js b/node_modules/pouchdb/lib/index-browser.js
+index c079b11..4f2608c 100644
+--- a/node_modules/pouchdb/lib/index-browser.js
++++ b/node_modules/pouchdb/lib/index-browser.js
+@@ -2472,7 +2472,8 @@ class AbstractPouchDB extends EE {
+         }
+         if (res.doc._attachments && res.doc._attachments[attachmentId]) {
+           opts.ctx = res.ctx;
+-          opts.binary = true;
++          // api._getAttachment in pouchdb-adapter-websql-core/src/index.js will throw error [Error: Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported] on binaryStringToBlobOrBuffer in React Native, so here we force it to use base64 instead.
++          opts.binary = this._adapter === 'react-native-sqlite' ? false : true;
+           this._getAttachment(docId, attachmentId,
+                               res.doc._attachments[attachmentId], opts, callback);
+         } else {
+@@ -10098,6 +10099,14 @@ function replicate(src, target, opts, returnValue, result) {
+       .then(startNextBatch)
+       .catch(function (err) {
+         abortReplication('batch processing terminated with error', err);
++        // Log errors to the custom logger
++        if (opts.logger) {
++          let errorDetails = JSON.stringify(err);
++          if (errorDetails.length > 4096) {
++            errorDetails = errorDetails.slice(0, 4096) + '... (truncated)';
++          }
++          opts.logger.error(`batch processing terminated with error: ${err instanceof Error ? err.message : 'unknown error'}`, { details: errorDetails });
++        }
+       });
+   }
+ 

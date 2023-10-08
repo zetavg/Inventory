@@ -40,6 +40,7 @@ import DataTypesScreen from '@app/screens/dev-tools/data/DataTypesScreen';
 import DatumScreen from '@app/screens/dev-tools/data/DatumScreen';
 import DevDataMigrationScreen from '@app/screens/dev-tools/data/DevDataMigrationScreen';
 import EPCUtilsScreen from '@app/screens/dev-tools/EPCUtilsScreen';
+import PouchDBAttachmentScreen from '@app/screens/dev-tools/pouchdb/PouchDBAttachmentScreen';
 import PouchDBIndexDetailScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexDetailScreen';
 import PouchDBIndexesScreen from '@app/screens/dev-tools/pouchdb/PouchDBIndexesScreen';
 import PouchDBItemScreen from '@app/screens/dev-tools/pouchdb/PouchDBItemScreen';
@@ -55,8 +56,6 @@ import LoggerLogScreen from '@app/screens/LoggerLogScreen';
 import MoreScreen from '@app/screens/MoreScreen';
 import NewAppScreen from '@app/screens/NewAppScreen';
 import NotImplementedScreen from '@app/screens/NotImplementedScreen';
-import PouchDBAttachmentScreen from '@app/screens/PouchDBAttachmentScreen';
-import PouchDBAttachmentsScreen from '@app/screens/PouchDBAttachmentsScreen';
 import ReduxActionDetailScreen from '@app/screens/ReduxActionDetailScreen';
 import ReduxScreen from '@app/screens/ReduxScreen';
 import RFIDUHFModuleScreen from '@app/screens/RFIDUHFModuleScreen';
@@ -134,8 +133,12 @@ export type StackParamList = {
   DevDataMigration: undefined;
   DBSync: undefined;
   DBSyncServerDetail: { id: string };
-  PouchDBAttachments: undefined;
-  PouchDBAttachment: { id: string };
+  PouchDBAttachment: {
+    docId: string;
+    attachmentId: string;
+    contentType: string;
+    length: number;
+  };
   RNFS: undefined;
   LinguisticTaggerModuleIOS: undefined;
   EPCUtils: undefined;
@@ -259,10 +262,6 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen
         name="DBSyncServerDetail"
         component={DBSyncServerDetailScreen}
-      />
-      <Stack.Screen
-        name="PouchDBAttachments"
-        component={PouchDBAttachmentsScreen}
       />
       <Stack.Screen
         name="PouchDBAttachment"

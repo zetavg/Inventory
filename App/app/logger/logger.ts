@@ -77,6 +77,10 @@ export function logger(
     }
   }
 
+  if (details && details.length > 4096) {
+    details = details.slice(0, 4096) + ' ... (truncated)';
+  }
+
   insertLog({
     level,
     user,

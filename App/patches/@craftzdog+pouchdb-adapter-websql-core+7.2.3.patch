@@ -1,0 +1,24 @@
+diff --git a/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/bulkDocs.js b/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/bulkDocs.js
+index ad8445d..8454316 100644
+--- a/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/bulkDocs.js
++++ b/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/bulkDocs.js
+@@ -142,7 +142,8 @@ function websqlBulkDocs(dbOpts, req, opts, api, db, websqlChanges, callback) {
+           return false; // ack handling a constraint error
+         }
+         function add(att) {
+-          var sql = 'INSERT INTO ' + ATTACH_AND_SEQ_STORE +
++          // Use 'INSERT OR REPLACE INTO' to fix "UNIQUE constraint failed" error
++          var sql = 'INSERT OR REPLACE INTO ' + ATTACH_AND_SEQ_STORE +
+             ' (digest, seq) VALUES (?,?)';
+           var sqlArgs = [data._attachments[att].digest, seq];
+           tx.executeSql(sql, sqlArgs, checkDone, checkDone);
+@@ -306,7 +307,8 @@ function websqlBulkDocs(dbOpts, req, opts, api, db, websqlChanges, callback) {
+       // we could just insert before selecting and catch the error,
+       // but my hunch is that it's cheaper not to serialize the blob
+       // from JS to C if we don't have to (TODO: confirm this)
+-      sql = 'INSERT INTO ' + ATTACH_STORE +
++      // Use 'INSERT OR REPLACE INTO' to fix "UNIQUE constraint failed" error
++      sql = 'INSERT OR REPLACE INTO ' + ATTACH_STORE +
+       ' (digest, body, escaped) VALUES (?,?,1)';
+       tx.executeSql(sql, [digest, escapeBlob(data)], function () {
+         callback();

@@ -69,7 +69,23 @@ export default function DBSyncManager() {
             username: server.username,
             password: server.password,
           },
+          // Wrap fetch to log HTTP errors.
+          fetch: async (url, opts) => {
+            const r = await fetch(url, opts);
+
+            if (r.status >= 400) {
+              const body = await r.text();
+              fLogger.error(`Remote DB returns HTTP ${r.status}: ${body}`, {
+                details: JSON.stringify(r),
+              });
+              r.text = async () => body;
+              r.json = async () => JSON.parse(body);
+            }
+
+            return r;
+          },
         });
+
         // Need this to reset the session, in case the same hostname has been login with different credentials
         await (remoteDB as any).logIn(server.username, server.password);
         // await remoteDB.logIn(server.username, server.password); // Will get error "You are not allowed to access this db", so we use 'auth' on new PouchDB instead.
@@ -178,12 +194,14 @@ export default function DBSyncManager() {
         }) => void;
       } = {},
     ): PouchDB.Replication.Sync<{}> => {
+      const fLogger = logger.for({ function: server.id });
+
       const syncHandler = localDB.sync(remoteDB, {
         ...params,
         retry: true,
+        // The patched PouchDB will accept a logger for logging during the sync
+        ...({ logger: fLogger } as any),
       });
-
-      const fLogger = logger.for({ function: server.id });
 
       syncHandler.on('change', async function (info) {
         const { direction } = info;

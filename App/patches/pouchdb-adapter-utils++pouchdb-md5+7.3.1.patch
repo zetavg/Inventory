@@ -1,0 +1,14 @@
+diff --git a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
+index 3a1521e..c2b25f5 100644
+--- a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
++++ b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
+@@ -64,7 +64,8 @@ function binaryMd5(data, callback) {
+ 
+   function loadNextChunk() {
+     var start = currentChunk * chunkSize;
+-    var end = start + chunkSize;
++    // Fix error "-[NSConcreteMutableData subdataWithRange:]: range {..., 32768} exceeds data length <len>" on iOS
++    var end = Math.min(start + chunkSize, len);
+     currentChunk++;
+     if (currentChunk < chunks) {
+       append(buffer, data, start, end, next);
