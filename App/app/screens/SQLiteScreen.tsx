@@ -3,6 +3,8 @@ import { Alert, ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import { QuickSQLite } from 'react-native-quick-sqlite';
 
+import { selectors, useAppSelector } from '@app/redux';
+
 import { deleteSqliteDb, getSqliteDbNames } from '@app/db/sqlite';
 
 import commonStyles from '@app/utils/commonStyles';
@@ -22,6 +24,7 @@ const SAMPLE_QUERIES: ReadonlyArray<string> = [
   "SELECT * FROM sqlite_master WHERE type = 'index';",
   'SELECT * FROM "logs" LIMIT 10 OFFSET 0;',
   'SELECT * FROM "document-store" LIMIT 10 OFFSET 0;',
+  'SELECT digest FROM "attach-store" LIMIT 10 OFFSET 0;',
   'SELECT * FROM "test_sqlite" LIMIT 10 OFFSET 0;',
   `CREATE TABLE "test_sqlite" (
   id INTEGER PRIMARY KEY,
@@ -36,9 +39,11 @@ VALUES ('This is a string', 'This is a text');`,
 function SQLiteScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'SQLite'>) {
+  const currentDbName = useAppSelector(selectors.profiles.currentDbName);
+
   const { showActionSheet } = useActionSheet();
 
-  const [database, setDatabase] = useState('default.sqlite3');
+  const [database, setDatabase] = useState(currentDbName || 'default.sqlite3');
   const [query, setQuery] = useState(SAMPLE_QUERIES[0]);
 
   const [rows, setRows] = useState<undefined | Object>(undefined);
