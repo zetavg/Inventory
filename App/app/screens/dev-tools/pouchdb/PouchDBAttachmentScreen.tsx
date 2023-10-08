@@ -27,7 +27,7 @@ function PouchDBAttachmentScreen({
   route,
 }: StackScreenProps<StackParamList, 'PouchDBAttachment'>) {
   const { db } = useDB();
-  const { docId, attachmentId, contentType, length } = route.params;
+  const { docId, attachmentId, digest, contentType, length } = route.params;
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<string | null>(null);
 
@@ -139,6 +139,19 @@ function PouchDBAttachmentScreen({
             multiline
             showSoftInputOnFocus={false}
           />
+          {!!digest && (
+            <>
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Digest"
+                value={digest}
+                small
+                monospaced
+                multiline
+                showSoftInputOnFocus={false}
+              />
+            </>
+          )}
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
             label="Content Type"

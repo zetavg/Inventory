@@ -201,6 +201,7 @@ function PouchDBItemScreen({
                         navigation.push('PouchDBAttachment', {
                           docId: id,
                           attachmentId,
+                          digest: (attachmentData || ({} as any)).digest,
                           contentType: (attachmentData || ({} as any))
                             .content_type,
                           length: (attachmentData || ({} as any)).length,

@@ -136,6 +136,7 @@ export type StackParamList = {
   PouchDBAttachment: {
     docId: string;
     attachmentId: string;
+    digest?: string;
     contentType: string;
     length: number;
   };
