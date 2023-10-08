@@ -7,12 +7,12 @@ set -e
 cd "$(dirname "$0")"
 cd ..
 
-if [ ! -f "node_modules/@craftzdog/pouchdb-adapter-websql-core/compiled.txt" ]; then
+if [ ! -d "node_modules/@craftzdog/pouchdb-adapter-websql-core/src_compiled" ]; then
   echo "compiling pouchdb-adapter-websql-core"
-  node_modules/.bin/tsc node_modules/@craftzdog/pouchdb-adapter-websql-core/src/* --outDir node_modules/@craftzdog/pouchdb-adapter-websql-core/lib --allowJs > /dev/null || true
-  mv node_modules/@craftzdog/pouchdb-adapter-websql-core/src node_modules/@craftzdog/pouchdb-adapter-websql-core/src_orig
-  mv node_modules/@craftzdog/pouchdb-adapter-websql-core/lib node_modules/@craftzdog/pouchdb-adapter-websql-core/src
-  touch node_modules/@craftzdog/pouchdb-adapter-websql-core/compiled.txt
+  sed s#./src/index.js#./src_compiled/index.js#g node_modules/@craftzdog/pouchdb-adapter-websql-core/package.json > node_modules/@craftzdog/pouchdb-adapter-websql-core/package.json-patched
+  rm -rf node_modules/@craftzdog/pouchdb-adapter-websql-core/package.json
+  mv node_modules/@craftzdog/pouchdb-adapter-websql-core/package.json-patched node_modules/@craftzdog/pouchdb-adapter-websql-core/package.json
+  node_modules/.bin/tsc node_modules/@craftzdog/pouchdb-adapter-websql-core/src/* --outDir node_modules/@craftzdog/pouchdb-adapter-websql-core/src_compiled --allowJs > /dev/null || true
 else
   echo "pouchdb-adapter-websql-core already compiled"
 fi
