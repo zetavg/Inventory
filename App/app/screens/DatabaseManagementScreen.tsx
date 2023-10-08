@@ -22,6 +22,13 @@ function DatabaseManagementScreen({
         <UIGroup.FirstGroupSpacing />
         <UIGroup>
           <UIGroup.ListItem
+            label="Statics"
+            navigable
+            onPress={() => navigation.push('Statistics')}
+          />
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             label="Fix Data Consistency"
             navigable
             onPress={() => rootNavigation?.push('FixDataConsistency')}

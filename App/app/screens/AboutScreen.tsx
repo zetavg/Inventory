@@ -121,12 +121,6 @@ function AboutScreen({
             OS
           </TableView.Item>
         </TableView.Section>
-
-        <TableView.Section>
-          <TableView.Item arrow onPress={() => navigation.push('Statistics')}>
-            Statistics
-          </TableView.Item>
-        </TableView.Section>
       </TableView>
     </ScreenContent>
   );
