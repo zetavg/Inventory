@@ -55,11 +55,14 @@ function DatumScreen({
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            const saved = await save({
-              __type: type,
-              __id: id,
-              __deleted: true,
-            });
+            const saved = await save(
+              {
+                __type: type,
+                __id: id,
+                __deleted: true,
+              },
+              { ignoreConflict: true },
+            );
             if (saved) navigation.goBack();
           },
         },
