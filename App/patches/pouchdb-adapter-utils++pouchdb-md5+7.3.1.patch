@@ -1,8 +1,8 @@
 diff --git a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
-index 3a1521e..fd2325c 100644
+index 3a1521e..f673769 100644
 --- a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
 +++ b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
-@@ -41,38 +41,50 @@ function appendString(buffer, string, start, end, callback) {
+@@ -41,38 +41,55 @@ function appendString(buffer, string, start, end, callback) {
    callback();
  }
  
@@ -59,10 +59,8 @@ index 3a1521e..fd2325c 100644
 -    var base64 = rawToBase64(raw);
 +  // Faster native C/C++ implementation with react-native-quick-crypto
 +  //   ~4x faster (2456ms → 626ms)
-+  var reader = new FileReader();
-+  reader.readAsArrayBuffer(data);
-+  reader.onloadend = function () {
-+    var base64 = crypto.createHash('md5').update(reader.result, 'binary').digest('base64');
++  if (typeof data === 'string') {
++    var base64 = crypto.createHash('md5').update(data, 'binary').digest('base64');
      callback(base64);
 -    buffer.destroy();
 -  }
@@ -76,9 +74,15 @@ index 3a1521e..fd2325c 100644
 -    } else {
 -      append(buffer, data, start, end, done);
 -    }
--  }
++  } else {
++    var reader = new FileReader();
++    reader.readAsArrayBuffer(data);
++    reader.onloadend = function () {
++      var base64 = crypto.createHash('md5').update(reader.result, 'binary').digest('base64');
++      callback(base64);
++    };
+   }
 -  loadNextChunk();
-+  };
  }
  
  function stringMd5(string) {
