@@ -1,0 +1,92 @@
+diff --git a/node_modules/pouchdb-adapter-utils/lib/index.js b/node_modules/pouchdb-adapter-utils/lib/index.js
+index 6566508..b8b8acf 100644
+--- a/node_modules/pouchdb-adapter-utils/lib/index.js
++++ b/node_modules/pouchdb-adapter-utils/lib/index.js
+@@ -221,19 +221,40 @@ function preprocessString(att, blobType, callback) {
+   });
+ }
+ 
+-function preprocessBlob(att, blobType, callback) {
++function preprocessBlob(att, blobType, callback, logDebug) {
++  let binaryMd5StartedAt;
++  if (logDebug) {
++    binaryMd5StartedAt = Date.now();
++  }
++
+   pouchdbMd5.binaryMd5(att.data, function (md5) {
++    if (logDebug) {
++      process.logger.debug(`binaryMd5 done, took ${Date.now() - binaryMd5StartedAt}ms`, { module: 'pouchdb', function: 'pouchdb-adapter-utils/pouchdbMd5.binaryMd5' });
++    }
++
+     att.digest = 'md5-' + md5;
+     // size is for blobs (browser), length is for buffers (node)
+     att.length = att.data.size || att.data.length || 0;
++
++    let convertStartedAt;
++    if (logDebug) {
++      convertStartedAt = Date.now();
++    }
++
+     if (blobType === 'binary') {
+       pouchdbBinaryUtils.blobOrBufferToBinaryString(att.data, function (binString) {
+         att.data = binString;
++        if (logDebug) {
++          process.logger.debug(`blobOrBufferToBinaryString done, took ${Date.now() - convertStartedAt}ms`, { module: 'pouchdb', function: 'pouchdb-adapter-utils/pouchdbBinaryUtils.blobOrBufferToBinaryString' });
++        }
+         callback();
+       });
+     } else if (blobType === 'base64') {
+       pouchdbBinaryUtils.blobOrBufferToBase64(att.data, function (b64) {
+         att.data = b64;
++        if (logDebug) {
++          process.logger.debug(`blobOrBufferToBase64 done, took ${Date.now() - convertStartedAt}ms`, { module: 'pouchdb', function: 'pouchdb-adapter-utils/pouchdbBinaryUtils.blobOrBufferToBase64' });
++        }
+         callback();
+       });
+     } else {
+@@ -242,14 +263,14 @@ function preprocessBlob(att, blobType, callback) {
+   });
+ }
+ 
+-function preprocessAttachment(att, blobType, callback) {
++function preprocessAttachment(att, blobType, callback, logDebug) {
+   if (att.stub) {
+     return callback();
+   }
+   if (typeof att.data === 'string') { // input is a base64 string
+-    preprocessString(att, blobType, callback);
++    preprocessString(att, blobType, callback, logDebug);
+   } else { // input is a blob
+-    preprocessBlob(att, blobType, callback);
++    preprocessBlob(att, blobType, callback, logDebug);
+   }
+ }
+ 
+@@ -279,10 +300,26 @@ function preprocessAttachments(docInfos, blobType, callback) {
+       }
+     }
+ 
++    var logDebug = typeof process.getLevelsToLog === 'function' && process.getLevelsToLog().includes('debug');
++
+     for (var key in docInfo.data._attachments) {
+       if (Object.prototype.hasOwnProperty.call(docInfo.data._attachments, key)) {
++        var k, a, startedAt;
++
++        if (logDebug) {
++          k = key;
++          a = docInfo.data._attachments[key];
++          startedAt = Date.now();
++        }
++
+         preprocessAttachment(docInfo.data._attachments[key],
+-          blobType, processedAttachment);
++          blobType, err => {
++            if (logDebug) {
++              process.logger.debug(`Preprocess attachment: ${docInfo.metadata.id} - ${k} (length: ${a.length}) done, took ${Date.now() - startedAt}ms`, { module: 'pouchdb', function: 'pouchdb-adapter-utils/preprocessAttachment' });
++            }
++
++            return processedAttachment(err);
++          }, logDebug);
+       }
+     }
+   });

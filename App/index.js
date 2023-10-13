@@ -4,6 +4,8 @@ import './app/utils/readAsArrayBuffer-polyfill';
 import { AppRegistry, LogBox, Platform, UIManager } from 'react-native';
 import { shim as rnQuickBase64Shim } from 'react-native-quick-base64';
 
+import logger, { getLevelsToLog } from '@app/logger';
+
 import App from '@app/App';
 
 // import StorybookUIRoot from '@app/StorybookUIRoot';
@@ -15,6 +17,9 @@ rnQuickBase64Shim();
 process.nextTick = setImmediate;
 
 require('events').EventEmitter.defaultMaxListeners = 32;
+
+process.logger = logger;
+process.getLevelsToLog = getLevelsToLog;
 
 if (Platform.OS === 'android') {
   if (UIManager.setLayoutAnimationEnabledExperimental) {
