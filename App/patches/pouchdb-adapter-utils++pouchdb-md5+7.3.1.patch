@@ -1,14 +1,84 @@
 diff --git a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
-index 3a1521e..c2b25f5 100644
+index 3a1521e..fd2325c 100644
 --- a/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
 +++ b/node_modules/pouchdb-adapter-utils/node_modules/pouchdb-md5/lib/index-browser.js
-@@ -64,7 +64,8 @@ function binaryMd5(data, callback) {
+@@ -41,38 +41,50 @@ function appendString(buffer, string, start, end, callback) {
+   callback();
+ }
  
-   function loadNextChunk() {
-     var start = currentChunk * chunkSize;
+-function binaryMd5(data, callback) {
+-  var inputIsString = typeof data === 'string';
+-  var len = inputIsString ? data.length : data.size;
+-  var chunkSize = Math.min(MD5_CHUNK_SIZE, len);
+-  var chunks = Math.ceil(len / chunkSize);
+-  var currentChunk = 0;
+-  var buffer = inputIsString ? new Md5() : new Md5.ArrayBuffer();
+-
+-  var append = inputIsString ? appendString : appendBlob;
++var crypto = require('react-native-quick-crypto');
+ 
+-  function next() {
+-    setImmediateShim(loadNextChunk);
+-  }
++function binaryMd5(data, callback) {
++//   var inputIsString = typeof data === 'string';
++//   var len = inputIsString ? data.length : data.size;
++//   var chunkSize = Math.min(MD5_CHUNK_SIZE, len);
++//   var chunks = Math.ceil(len / chunkSize);
++//   var currentChunk = 0;
++//   var buffer = inputIsString ? new Md5() : new Md5.ArrayBuffer();
++//
++//   var append = inputIsString ? appendString : appendBlob;
++//
++//   function next() {
++//     setImmediateShim(loadNextChunk);
++//   }
++//
++//   function done() {
++//     var raw = buffer.end(true);
++//     var base64 = rawToBase64(raw);
++//     callback(base64);
++//     buffer.destroy();
++//   }
++//
++//   function loadNextChunk() {
++//     var start = currentChunk * chunkSize;
++//     // Fix error "-[NSConcreteMutableData subdataWithRange:]: range {..., 32768} exceeds data length <len>" on iOS
++//     var end = Math.min(start + chunkSize, len);
++//     currentChunk++;
++//     if (currentChunk < chunks) {
++//       append(buffer, data, start, end, next);
++//     } else {
++//       append(buffer, data, start, end, done);
++//     }
++//   }
++//   loadNextChunk();
+ 
+-  function done() {
+-    var raw = buffer.end(true);
+-    var base64 = rawToBase64(raw);
++  // Faster native C/C++ implementation with react-native-quick-crypto
++  //   ~4x faster (2456ms → 626ms)
++  var reader = new FileReader();
++  reader.readAsArrayBuffer(data);
++  reader.onloadend = function () {
++    var base64 = crypto.createHash('md5').update(reader.result, 'binary').digest('base64');
+     callback(base64);
+-    buffer.destroy();
+-  }
+-
+-  function loadNextChunk() {
+-    var start = currentChunk * chunkSize;
 -    var end = start + chunkSize;
-+    // Fix error "-[NSConcreteMutableData subdataWithRange:]: range {..., 32768} exceeds data length <len>" on iOS
-+    var end = Math.min(start + chunkSize, len);
-     currentChunk++;
-     if (currentChunk < chunks) {
-       append(buffer, data, start, end, next);
+-    currentChunk++;
+-    if (currentChunk < chunks) {
+-      append(buffer, data, start, end, next);
+-    } else {
+-      append(buffer, data, start, end, done);
+-    }
+-  }
+-  loadNextChunk();
++  };
+ }
+ 
+ function stringMd5(string) {
