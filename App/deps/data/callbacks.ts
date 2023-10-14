@@ -313,11 +313,15 @@ export default function getCallbacks({
             const size = Object.values(attachments)
               .map(att => att.size)
               .reduce((a, b) => a + b, 0);
-            if (image.size !== size) {
+            const image_1440_digest = attachments['image-1440']?.digest;
+            if (
+              image.size !== size ||
+              image.image_1440_digest !== image_1440_digest
+            ) {
               await saveDatum([
                 image.__type,
                 image.__id || '',
-                d => ({ ...d, size }),
+                d => ({ ...d, size, image_1440_digest }),
               ]);
             }
           } catch (e) {}

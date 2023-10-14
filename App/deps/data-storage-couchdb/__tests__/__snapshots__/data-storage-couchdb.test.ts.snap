@@ -24,12 +24,7 @@ exports[`fixDataConsistency works: fixDataConsistencyResults-item 1`] = `
 
 exports[`getAllAttachmentInfoFromDatum works 1`] = `
 {
-  "image-2048": {
-    "content_type": "image/png",
-    "digest": "md5-IgK4BCejTD2lzMCXOGwXLw==",
-    "size": 271,
-  },
-  "thumbnail-1024": {
+  "image-1440": {
     "content_type": "image/png",
     "digest": "md5-IgK4BCejTD2lzMCXOGwXLw==",
     "size": 271,

@@ -92,6 +92,7 @@
         "expiry_date": { "type": "number" },
         "consumable_stock_quantity": { "type": "number" },
         "consumable_will_not_restock": { "type": "boolean" },
+        "use_first_image_as_icon": { "type": "boolean" },
         "contents_order": {
           "type": "array",
           "items": { "type": "string" }
@@ -141,6 +142,7 @@
       "properties": {
         "filename": { "type": "string" },
         "size": { "type": "number" },
+        "image_1440_digest": { "type": "string" },
         "_item_ids": { "type": "array", "items": { "type": "string" } },
         "_item_collection_ids": { "type": "array", "items": { "type": "string" } }
       },

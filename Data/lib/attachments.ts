@@ -17,11 +17,7 @@ export const attachment_definitions = attachment_defn({
       content_types: ['image/jpeg', 'image/png'] as const,
       required: true,
     },
-    'thumbnail-1024': {
-      content_types: ['image/jpeg', 'image/png'] as const,
-      required: true,
-    },
-    'image-2048': {
+    'image-1440': {
       content_types: ['image/jpeg', 'image/png'] as const,
       required: true,
     },

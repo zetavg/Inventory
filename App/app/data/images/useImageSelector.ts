@@ -4,6 +4,7 @@ import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
+import crypto from 'react-native-quick-crypto';
 
 import ImageEditor from '@react-native-community/image-editor';
 
@@ -34,13 +35,14 @@ export type ImageAsset = {
 type ImageD = {
   contentType: 'image/jpeg' | 'image/png';
   data: string;
+  digest?: string;
 };
 
 export type ImageData = {
   fileName?: string;
   thumbnail128: ImageD;
-  thumbnail1024: ImageD;
-  image2048: ImageD;
+  // thumbnail1024: ImageD;
+  image1440: ImageD;
 };
 
 export default function useImageSelector() {
@@ -78,8 +80,8 @@ export default function useImageSelector() {
       const result = await launchImageLibrary({
         mediaType: 'photo',
         selectionLimit: options.selectionLimit || 1,
-        maxWidth: 1024,
-        maxHeight: 1024,
+        maxWidth: 2048,
+        maxHeight: 2048,
         includeBase64: false,
       });
 
@@ -98,9 +100,10 @@ export default function useImageSelector() {
   const selectImageFromFile = useCallback(
     async (
       options: Options = {},
-    ): Promise<{ name: string | null; uri: string } | null> => {
+    ): Promise<ReadonlyArray<ImageAsset> | null> => {
       try {
-        const { uri, name, type, size } = await DocumentPicker.pickSingle({
+        let files = await DocumentPicker.pick({
+          allowMultiSelection: true,
           type:
             Platform.OS === 'ios'
               ? [
@@ -112,14 +115,36 @@ export default function useImageSelector() {
                 ]
               : ['image/*'],
         });
-        if ((size || 0) > 5242880) {
+        const fileTooLargeErrorFileSizes: Array<number> = [];
+
+        files = files.filter(file => {
+          const isFileTooLarge = (file.size || 0) > 67108864;
+          if (isFileTooLarge) {
+            fileTooLargeErrorFileSizes.push(file.size || 0);
+          }
+          return !isFileTooLarge;
+        });
+        if (fileTooLargeErrorFileSizes.length > 0) {
           Alert.alert(
             'File Size is Too Large',
-            `Maximum size is 5 MB, got ${humanFileSize(size || 0)}.`,
+            `Some of the selected files are too large. Maximum size is 64 MB, got file sizes: ${fileTooLargeErrorFileSizes
+              .map(s => humanFileSize(s))
+              .join(', ')}.`,
           );
-          return null;
         }
-        return { name, uri };
+
+        if (files.length > (options.selectionLimit || 1)) {
+          files = files.slice(0, options.selectionLimit || 1);
+
+          Alert.alert(
+            'Too Many Files Selected',
+            `You can select up to ${
+              options.selectionLimit || 1
+            } files. Some files are ignored.`,
+          );
+        }
+
+        return files.map(f => ({ fileName: f.name || undefined, uri: f.uri }));
       } catch (e) {
         if (e instanceof Error) {
           // User canceled the document picker
@@ -186,15 +211,13 @@ export default function useImageSelector() {
               onSelect: async () => {
                 try {
                   if (options.onUserSelectStart) options.onUserSelectStart();
-                  const file = await selectImageFromFile(options);
-                  if (!file) {
+                  const imageAssets = await selectImageFromFile(options);
+                  if (!imageAssets || imageAssets.length <= 0) {
                     resolve(null);
                     return;
                   }
                   if (options.onUserSelected) options.onUserSelected();
-                  const images = await processAssets([
-                    { fileName: file.name || undefined, uri: file.uri },
-                  ]);
+                  const images = await processAssets(imageAssets);
                   resolve(images);
                 } catch (e) {
                   Alert.alert(
@@ -256,63 +279,42 @@ async function processAssets(assets: ReadonlyArray<ImageAsset>) {
       imageDimensions.height,
     );
 
-    const croppedImageUri = isPng // Do not crop PNG files since they might be a transparent-background icon
-      ? null
-      : await ImageEditor.cropImage(assetUri, {
-          size: { width: imageMinDimension, height: imageMinDimension },
-          offset: {
-            x:
-              imageDimensions.width === imageMinDimension
-                ? 0
-                : (imageDimensions.width - imageMinDimension) / 2,
-            y:
-              imageDimensions.height === imageMinDimension
-                ? 0
-                : (imageDimensions.height - imageMinDimension) / 2,
-          },
-        });
+    const [thumbnail128ContentType, thumbnail128Uri] = await (async () => {
+      // Do not crop small PNG files since they might be a transparent-background icon
+      if (isPng && imageMaxDimension <= 1024) {
+        const { uri } = await ImageResizer.createResizedImage(
+          assetUri,
+          128,
+          128,
+          'PNG',
+          80, // quality
+          0,
+          undefined,
+          false,
+          { mode: 'contain', onlyScaleDown: true },
+        );
 
-    const { uri: thumbnail128Uri } = await ImageResizer.createResizedImage(
-      croppedImageUri || assetUri,
-      128,
-      128,
-      isPng ? 'PNG' : 'JPEG',
-      80, // quality
-      0,
-      undefined,
-      false,
-      { mode: 'contain', onlyScaleDown: true },
-    );
-    const thumbnail128: ImageD = {
-      contentType: isPng ? 'image/png' : 'image/jpeg',
-      data: await base64FromFile(thumbnail128Uri),
-    };
-
-    const { uri: thumbnail1024Uri } = await ImageResizer.createResizedImage(
-      croppedImageUri || assetUri,
-      1024,
-      1024,
-      isPng ? 'PNG' : 'JPEG',
-      80, // quality
-      0,
-      undefined,
-      false,
-      { mode: 'contain', onlyScaleDown: true },
-    );
-    const thumbnail1024: ImageD = {
-      contentType: isPng ? 'image/png' : 'image/jpeg',
-      data: await base64FromFile(thumbnail1024Uri),
-    };
-
-    const image2048Uri = await (async () => {
-      if ((isJpg || isPng) && imageMaxDimension <= 2048) {
-        return assetUri;
+        return ['image/png' as const, uri];
       }
 
+      const croppedImageUri = await ImageEditor.cropImage(assetUri, {
+        size: { width: imageMinDimension, height: imageMinDimension },
+        offset: {
+          x:
+            imageDimensions.width === imageMinDimension
+              ? 0
+              : (imageDimensions.width - imageMinDimension) / 2,
+          y:
+            imageDimensions.height === imageMinDimension
+              ? 0
+              : (imageDimensions.height - imageMinDimension) / 2,
+        },
+      });
+
       const { uri } = await ImageResizer.createResizedImage(
-        assetUri,
-        2048,
-        2048,
+        croppedImageUri,
+        128,
+        128,
         'JPEG',
         80, // quality
         0,
@@ -321,18 +323,67 @@ async function processAssets(assets: ReadonlyArray<ImageAsset>) {
         { mode: 'contain', onlyScaleDown: true },
       );
 
-      return uri;
+      return ['image/jpeg' as const, uri];
     })();
-    const image2048: ImageD = {
-      contentType: 'image/jpeg',
-      data: await base64FromFile(image2048Uri),
+    const thumbnail128: ImageD = {
+      contentType: thumbnail128ContentType,
+      data: await base64FromFile(thumbnail128Uri),
     };
+
+    // const { uri: thumbnail1024Uri } = await ImageResizer.createResizedImage(
+    //   croppedImageUri || assetUri,
+    //   1024,
+    //   1024,
+    //   isPng ? 'PNG' : 'JPEG',
+    //   80, // quality
+    //   0,
+    //   undefined,
+    //   false,
+    //   { mode: 'contain', onlyScaleDown: true },
+    // );
+    // const thumbnail1024: ImageD = {
+    //   contentType: isPng ? 'image/png' : 'image/jpeg',
+    //   data: await base64FromFile(thumbnail1024Uri),
+    // };
+
+    const [image1440ContentType, image1440Uri] = await (async () => {
+      if ((isJpg || isPng) && imageMaxDimension <= 1024) {
+        return [
+          isPng ? ('image/png' as const) : ('image/jpeg' as const),
+          assetUri,
+        ];
+      }
+
+      const { uri } = await ImageResizer.createResizedImage(
+        assetUri,
+        1440,
+        1440,
+        'JPEG',
+        80, // quality
+        0,
+        undefined,
+        false,
+        { mode: 'contain', onlyScaleDown: true },
+      );
+
+      return ['image/jpeg' as const, uri];
+    })();
+    const image1440: ImageD = {
+      contentType: image1440ContentType,
+      data: await base64FromFile(image1440Uri),
+    };
+    image1440.digest =
+      'md5-' +
+      crypto
+        .createHash('md5')
+        .update(image1440.data, 'base64')
+        .digest('base64');
 
     imageData.push({
       fileName,
       thumbnail128,
-      thumbnail1024,
-      image2048,
+      // thumbnail1024,
+      image1440,
     });
   }
 

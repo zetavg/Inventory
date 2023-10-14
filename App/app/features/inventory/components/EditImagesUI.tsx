@@ -62,18 +62,20 @@ export type UnsavedImageData = ImageData & {
 
 type ItemImageDatum = UnsavedImageData | DataTypeWithID<'item_image'>;
 
-const IMAGES_LIMIT = 5;
+const IMAGES_LIMIT = 10;
 
 export function EditImagesUI({
   itemId,
   saveFnRef,
   hasChangesRef,
   loading,
+  additionalElementWhenHavingImages,
 }: {
   itemId: string | undefined;
   loading: boolean;
   saveFnRef: React.MutableRefObject<null | SaveImagesFn>;
   hasChangesRef: React.MutableRefObject<boolean>;
+  additionalElementWhenHavingImages?: JSX.Element;
 }) {
   const logger = useLogger('EditImagesUI');
   const scrollViewRef = useAnimatedRef<Animated.ScrollView>();
@@ -159,13 +161,13 @@ export function EditImagesUI({
           if (isCanceled) return;
           if (!image) continue;
 
-          const image2048 = await getAttachmentFromDatum(image, 'image-2048');
+          const image1440 = await getAttachmentFromDatum(image, 'image-1440');
           if (isCanceled) return;
-          if (!image2048) continue;
+          if (!image1440) continue;
 
           setLoadedImageMap(origMap => ({
             ...origMap,
-            [imageId]: `data:${image2048.content_type};base64,${image2048.data}`,
+            [imageId]: `data:${image1440.content_type};base64,${image1440.data}`,
           }));
         } catch (e) {
           logger.error(e);
@@ -254,34 +256,53 @@ export function EditImagesUI({
             itemImageDataItem.__id || '',
           );
           if (itemImageDataItem.__type === 'unsaved_image_data') {
-            const imageToSave = {
-              __id: itemImageDataItem.__id,
-              __type: 'image',
-              filename: itemImageDataItem.fileName,
-            } as const;
+            // Reuse already-saved image if possible
+            const imageDatum = await (async () => {
+              const image1440Digest = itemImageDataItem.image1440.digest;
+              if (image1440Digest) {
+                const existingImage = await getData(
+                  'image',
+                  {
+                    image_1440_digest: image1440Digest,
+                  },
+                  { limit: 1 },
+                );
 
-            await attachAttachmentToDatum(
-              imageToSave,
-              'thumbnail-128',
-              itemImageDataItem.thumbnail128.contentType,
-              itemImageDataItem.thumbnail128.data,
-            );
-            await attachAttachmentToDatum(
-              imageToSave,
-              'thumbnail-1024',
-              itemImageDataItem.thumbnail1024.contentType,
-              itemImageDataItem.thumbnail1024.data,
-            );
-            await attachAttachmentToDatum(
-              imageToSave,
-              'image-2048',
-              itemImageDataItem.image2048.contentType,
-              itemImageDataItem.image2048.data,
-            );
+                const validExistingImage = onlyValid(existingImage);
+                if (validExistingImage.length >= 1) {
+                  return validExistingImage[0];
+                }
+              }
 
-            const imageDatum = await saveDatum(imageToSave, {
-              ignoreConflict: true,
-            });
+              const imageToSave = {
+                __id: itemImageDataItem.__id,
+                __type: 'image',
+                filename: itemImageDataItem.fileName,
+              } as const;
+
+              await attachAttachmentToDatum(
+                imageToSave,
+                'thumbnail-128',
+                itemImageDataItem.thumbnail128.contentType,
+                itemImageDataItem.thumbnail128.data,
+              );
+              // await attachAttachmentToDatum(
+              //   imageToSave,
+              //   'thumbnail-1024',
+              //   itemImageDataItem.thumbnail1024.contentType,
+              //   itemImageDataItem.thumbnail1024.data,
+              // );
+              await attachAttachmentToDatum(
+                imageToSave,
+                'image-1440',
+                itemImageDataItem.image1440.contentType,
+                itemImageDataItem.image1440.data,
+              );
+
+              return await saveDatum(imageToSave, {
+                ignoreConflict: true,
+              });
+            })();
 
             await saveDatum(
               {
@@ -342,7 +363,7 @@ export function EditImagesUI({
         footer={
           uiShowDetailedInstructions
             ? [
-                `Select at most ${IMAGES_LIMIT} images. Image resolution will be scaled down to at most 2048 pixels.`,
+                `Select at most ${IMAGES_LIMIT} images. Image resolution will be scaled down to at most 1440 pixels.`,
                 (itemImageData || []).length > 1 &&
                   'Long press and drag an image to reorder.',
               ]
@@ -424,6 +445,12 @@ export function EditImagesUI({
               }
             />
             <UIGroup.ListItemSeparator />
+            {!!additionalElementWhenHavingImages && (
+              <>
+                {additionalElementWhenHavingImages}
+                <UIGroup.ListItemSeparator />
+              </>
+            )}
           </>
         )}
         <UIGroup.ListItem
@@ -445,7 +472,7 @@ export function EditImagesUI({
 
             if (itemImageDatum.__type === 'unsaved_image_data') {
               return {
-                uri: `data:${itemImageDatum.thumbnail1024.contentType};base64,${itemImageDatum.thumbnail1024.data}`,
+                uri: `data:${itemImageDatum.image1440.contentType};base64,${itemImageDatum.image1440.data}`,
               };
             }
 
@@ -605,9 +632,13 @@ function ItemImageItem({
               return (
                 <Image
                   source={{
-                    uri: `data:${itemImageDatum.thumbnail1024.contentType};base64,${itemImageDatum.thumbnail1024.data}`,
+                    uri: `data:${itemImageDatum.image1440.contentType};base64,${itemImageDatum.image1440.data}`,
                   }}
-                  resizeMode="contain"
+                  resizeMode={
+                    itemImageDatum.image1440.contentType === 'image/png'
+                      ? 'contain'
+                      : 'cover'
+                  }
                   style={[
                     styles.itemImageImage,
                     {
@@ -674,6 +705,7 @@ function ItemImageImage({
   const logger = useLogger('EditImagesUI');
   const { db } = useDB();
   const [loading, setLoading] = useState(false);
+  const [isPng, setIsPng] = useState(false);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
 
   const getData = useCallback(async () => {
@@ -691,11 +723,14 @@ function ItemImageImage({
       if (!image.__valid) {
         throw new Error('Cannot get image thumbnail - image is not valid');
       }
-      const thumbnail = await getAttachmentFromDatum(image, 'thumbnail-1024');
-      if (!thumbnail) {
-        throw new Error('Cannot get image thumbnail - missing thumbnail-1024');
+      const img = await getAttachmentFromDatum(image, 'image-1440');
+      if (!img) {
+        throw new Error('Cannot get image image - missing image-1440');
       }
-      setImageBase64(`data:${thumbnail.content_type};base64,${thumbnail.data}`);
+      if (img.content_type === 'image/png') {
+        setIsPng(true);
+      }
+      setImageBase64(`data:${img.content_type};base64,${img.data}`);
     } catch (e: any) {
       logger.error(e, {
         details: JSON.stringify({ image_id: itemImage.image_id }, null, 2),
@@ -744,7 +779,7 @@ function ItemImageImage({
   return (
     <Image
       source={{ uri: imageBase64 }}
-      resizeMode="contain"
+      resizeMode={isPng ? 'contain' : 'cover'}
       style={[
         styles.itemImageImage,
         {

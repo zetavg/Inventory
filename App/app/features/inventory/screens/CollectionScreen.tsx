@@ -273,6 +273,7 @@ function CollectionScreen({
         <ItemListItem
           key={item.__id}
           item={item}
+          priority={index}
           reloadCounter={reloadCounter}
           onPress={() =>
             navigation.push('Item', {

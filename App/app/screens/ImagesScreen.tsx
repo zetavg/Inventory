@@ -20,6 +20,7 @@ import humanFileSize from '@app/utils/humanFileSize';
 import type { StackParamList } from '@app/navigation/MainStack';
 
 import useActionSheet from '@app/hooks/useActionSheet';
+import useColors from '@app/hooks/useColors';
 
 import Icon from '@app/components/Icon';
 import ScreenContent from '@app/components/ScreenContent';
@@ -181,17 +182,21 @@ function ImageListItem({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadThumbnail]);
 
+  const { iconBackgroundColor } = useColors();
+
   return (
     <UIGroup.ListItem
       // eslint-disable-next-line react/no-unstable-nested-components
       icon={({ iconProps }) =>
-        thumbnail && true ? (
+        thumbnail ? (
           <Image
             style={[
               styles.imageListItemImage,
               {
                 width: iconProps.size,
                 height: iconProps.size,
+                backgroundColor: iconBackgroundColor,
+                borderColor: iconBackgroundColor,
               },
             ]}
             source={{
@@ -221,6 +226,7 @@ function ImageListItem({
 const styles = StyleSheet.create({
   imageListItemImage: {
     borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
     marginHorizontal: -1,
   },
 });

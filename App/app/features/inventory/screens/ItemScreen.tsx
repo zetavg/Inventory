@@ -896,10 +896,11 @@ function ItemScreen({
               {!!orderedContents &&
                 orderedContents.length > 0 &&
                 UIGroup.ListItemSeparator.insertBetween(
-                  orderedContents.map(i => (
+                  orderedContents.map((i, index) => (
                     <ItemListItem
                       key={i.__id}
                       item={i}
+                      priority={index}
                       onPress={() =>
                         navigation.push('Item', {
                           id: i.__id || '',

@@ -247,40 +247,45 @@ function SaveItemScreen({
   const handleSave = useCallback(async () => {
     setSaveWorking(true);
     await new Promise(r => setTimeout(r, 10));
-    const savedData = await save(data, {
-      forceTouch: true,
-      ignoreConflict: true,
-    });
-    if (savedData) {
-      if (!saveImagesFnRef.current) {
-        Alert.alert('Error', 'Cannot save item images: UI is not ready.');
-        setSaveWorking(false);
-        return;
-      }
-      if (!savedData.__id) {
-        Alert.alert(
-          'Error',
-          'Cannot save item images: Cannot get ID from item.',
-        );
-        setSaveWorking(false);
-        return;
-      }
 
-      const imagesSaved = await saveImagesFnRef.current({
-        savedItemId: savedData.__id,
+    try {
+      const savedData = await save(data, {
+        forceTouch: true,
+        ignoreConflict: true,
       });
-
-      if (imagesSaved) {
-        isDone.current = true;
-        if (route.params.afterSave) {
-          route.params.afterSave(savedData);
+      if (savedData) {
+        if (!saveImagesFnRef.current) {
+          Alert.alert('Error', 'Cannot save item images: UI is not ready.');
+          setSaveWorking(false);
+          return;
         }
-        navigation.goBack();
-      }
+        if (!savedData.__id) {
+          Alert.alert(
+            'Error',
+            'Cannot save item images: Cannot get ID from item.',
+          );
+          setSaveWorking(false);
+          return;
+        }
 
+        const imagesSaved = await saveImagesFnRef.current({
+          savedItemId: savedData.__id,
+        });
+
+        if (imagesSaved) {
+          isDone.current = true;
+          if (route.params.afterSave) {
+            route.params.afterSave(savedData);
+          }
+          navigation.goBack();
+        }
+      }
+    } catch (e) {
+      logger.error(e);
+    } finally {
       setSaveWorking(false);
     }
-  }, [data, navigation, route.params, save]);
+  }, [data, logger, navigation, route.params, save]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
@@ -901,6 +906,7 @@ function SaveItemScreen({
               icon_color: c,
             }));
           }}
+          loading={saveWorking}
         />
 
         <EditImagesUI
@@ -908,6 +914,26 @@ function SaveItemScreen({
           loading={saveWorking}
           saveFnRef={saveImagesFnRef}
           hasChangesRef={editImagesUiHasChanges}
+          additionalElementWhenHavingImages={
+            <UIGroup.ListTextInputItem
+              label="Use First Image as Icon"
+              horizontalLabel
+              inputElement={
+                <UIGroup.ListItem.Switch
+                  value={data.use_first_image_as_icon}
+                  onValueChange={v => {
+                    LayoutAnimation.configureNext(
+                      DEFAULT_LAYOUT_ANIMATION_CONFIG,
+                    );
+                    setData(d => ({
+                      ...d,
+                      use_first_image_as_icon: v,
+                    }));
+                  }}
+                />
+              }
+            />
+          }
         />
 
         <UIGroup loading={saveWorking}>

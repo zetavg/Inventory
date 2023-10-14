@@ -28,7 +28,7 @@ import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import { imageLoadingPlaceholder } from '@app/images';
+// import { imageLoadingPlaceholder } from '@app/images';
 
 type Props = {
   imageIds: ReadonlyArray<string>;
@@ -51,7 +51,6 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
     setLayoutSize(w);
   }, []);
 
-  const [thumbnails, setThumbnails] = useState<{ [id: string]: string }>({});
   const [images, setImages] = useState<{ [id: string]: string }>({});
   const [thumbnailsLoading, setThumbnailsLoading] = useState(true);
 
@@ -91,11 +90,9 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
               );
               if (cancelled.value) return;
               if (!thumbnail) {
-                throw new Error(
-                  'Cannot get image thumbnail - missing thumbnail-1024',
-                );
+                throw new Error('Cannot get image - missing image-1440');
               }
-              setThumbnails(ts => ({
+              setImages(ts => ({
                 ...ts,
                 [imageId]: `data:${thumbnail.content_type};base64,${thumbnail.data}`,
               }));
@@ -103,17 +100,14 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
               if (cancelled.value) return;
             }
 
-            const thumbnail = await getAttachmentFromDatum(
-              image,
-              'thumbnail-1024',
-            );
+            const thumbnail = await getAttachmentFromDatum(image, 'image-1440');
             if (cancelled.value) return;
             if (!thumbnail) {
               throw new Error(
-                'Cannot get image thumbnail - missing thumbnail-1024',
+                'Cannot get image thumbnail - missing image-1440',
               );
             }
-            setThumbnails(ts => ({
+            setImages(ts => ({
               ...ts,
               [imageId]: `data:${thumbnail.content_type};base64,${thumbnail.data}`,
             }));
@@ -127,37 +121,37 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
 
         setThumbnailsLoading(false);
 
-        for (const imageId of imageIds) {
-          try {
-            await new Promise(r => setTimeout(r, 100));
-            if (cancelled.value) return;
+        // for (const imageId of imageIds) {
+        //   try {
+        //     await new Promise(r => setTimeout(r, 100));
+        //     if (cancelled.value) return;
 
-            const image =
-              imageMap.get(imageId) || (await getDatum('image', imageId));
-            if (cancelled.value) return;
+        //     const image =
+        //       imageMap.get(imageId) || (await getDatum('image', imageId));
+        //     if (cancelled.value) return;
 
-            if (!image) {
-              throw new Error('Cannot get image - cannot find image');
-            }
-            if (!image.__valid) {
-              throw new Error('Cannot get image - image is not valid');
-            }
+        //     if (!image) {
+        //       throw new Error('Cannot get image - cannot find image');
+        //     }
+        //     if (!image.__valid) {
+        //       throw new Error('Cannot get image - image is not valid');
+        //     }
 
-            const img = await getAttachmentFromDatum(image, 'image-2048');
-            if (cancelled.value) return;
-            if (!img) {
-              throw new Error('Cannot get image - missing image-2048');
-            }
-            setImages(ts => ({
-              ...ts,
-              [imageId]: `data:${img.content_type};base64,${img.data}`,
-            }));
-          } catch (e) {
-            logger.error(e, { details: JSON.stringify({ imageId }, null, 2) });
-          } finally {
-            i += 1;
-          }
-        }
+        //     const img = await getAttachmentFromDatum(image, 'image-2048');
+        //     if (cancelled.value) return;
+        //     if (!img) {
+        //       throw new Error('Cannot get image - missing image-2048');
+        //     }
+        //     setImages(ts => ({
+        //       ...ts,
+        //       [imageId]: `data:${img.content_type};base64,${img.data}`,
+        //     }));
+        //   } catch (e) {
+        //     logger.error(e, { details: JSON.stringify({ imageId }, null, 2) });
+        //   } finally {
+        //     i += 1;
+        //   }
+        // }
       } catch (e) {
         logger.error(e, { details: JSON.stringify({ imageIds }, null, 2) });
       } finally {
@@ -174,36 +168,26 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
     };
   }, [loadImages]);
 
-  const imageThumbnails = useMemo(
+  const imageImages = useMemo(
     () =>
       imageIds
         .map(imgId =>
-          thumbnails[imgId] ? { __id: imgId, uri: thumbnails[imgId] } : null,
+          images[imgId] ? { __id: imgId, uri: images[imgId] } : null,
         )
         .filter((n): n is NonNullable<typeof n> => !!n),
-    [imageIds, thumbnails],
-  );
-
-  const imageImages = useMemo(
-    () =>
-      imageThumbnails.map(it =>
-        images[it.__id]
-          ? { __id: it.__id, uri: images[it.__id] }
-          : imageLoadingPlaceholder,
-      ),
-    [imageThumbnails, images],
+    [imageIds, images],
   );
 
   const [imageViewVisible, setImageViewVisible] = useState(false);
   const [imageViewImageIndex, setImageViewImageIndex] = useState(0);
   const openImageView = useCallback(
     (imgId: string) => {
-      const index = imageThumbnails.findIndex(ii => ii.__id === imgId);
+      const index = imageImages.findIndex(ii => ii.__id === imgId);
       if (index < 0) return;
       setImageViewImageIndex(index);
       setImageViewVisible(true);
     },
-    [imageThumbnails],
+    [imageImages],
   );
   const closeImageView = useCallback(() => {
     setImageViewVisible(false);
@@ -218,7 +202,7 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
           pagingEnabled
           snapEnabled
           loop={false}
-          data={imageThumbnails}
+          data={imageImages}
           renderItem={({ item }) => (
             <Animated.View entering={FadeIn.duration(300)}>
               <TouchableWithoutFeedback
@@ -244,15 +228,15 @@ function ImagesSliderBox({ imageIds, ratio = 1 }: Props) {
           }}
         />
       )}
-      {!!progressValue && imageThumbnails.length > 1 && (
+      {!!progressValue && imageImages.length > 1 && (
         <View style={styles.paginationContainer}>
-          {imageThumbnails.map((_, index) => {
+          {imageImages.map((_, index) => {
             return (
               <PaginationItem
                 key={index}
                 index={index}
                 progressValue={progressValue}
-                length={imageThumbnails.length}
+                length={imageImages.length}
               />
             );
           })}
@@ -300,6 +284,17 @@ const PaginationItem: React.FC<{
 
   const animStyle = useAnimatedStyle(() => {
     return {
+      shadowOpacity: interpolate(
+        Math.abs(progressValue.value - index),
+        [0, 1],
+        [0.3, 0.5],
+        Extrapolate.CLAMP,
+      ),
+    };
+  }, [progressValue, index]);
+
+  const animContentStyle = useAnimatedStyle(() => {
+    return {
       opacity: interpolate(
         Math.abs(progressValue.value - index),
         [0, 1],
@@ -309,7 +304,11 @@ const PaginationItem: React.FC<{
     };
   }, [progressValue, index]);
 
-  return <Animated.View style={[styles.paginationItem, animStyle]} />;
+  return (
+    <Animated.View style={[styles.paginationItem, animStyle]}>
+      <Animated.View style={[styles.paginationItemContent, animContentStyle]} />
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -335,6 +334,15 @@ const styles = StyleSheet.create({
     height: 32,
   },
   paginationItem: {
+    width: 8,
+    height: 8,
+    borderRadius: 8,
+    shadowColor: 'black',
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  paginationItemContent: {
     width: 8,
     height: 8,
     borderRadius: 8,

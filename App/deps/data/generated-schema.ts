@@ -89,6 +89,7 @@ export const schema = {
       expiry_date: z.number().optional(),
       consumable_stock_quantity: z.number().optional(),
       consumable_will_not_restock: z.boolean().optional(),
+      use_first_image_as_icon: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
       config_uuid: z.string(),
       integrations: z.record(z.any()).optional(),
@@ -109,6 +110,7 @@ export const schema = {
     .object({
       filename: z.string().optional(),
       size: z.number().optional(),
+      image_1440_digest: z.string().optional(),
       _item_ids: z.array(z.string()).optional(),
       _item_collection_ids: z.array(z.string()).optional(),
     })

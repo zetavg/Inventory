@@ -1,5 +1,6 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { SFSymbol } from 'react-native-sfsymbols';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -10,7 +11,10 @@ import {
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
 
-import { DataTypeWithID, useDataCount, useRelated } from '@app/data';
+import { DataTypeWithID, useData, useDataCount, useRelated } from '@app/data';
+import { getGetAttachmentFromDatum } from '@app/data/functions';
+
+import { useDB } from '@app/db';
 
 import useColors from '@app/hooks/useColors';
 
@@ -23,6 +27,7 @@ import StockStatusIcon from './StockStatusIcon';
 
 function ItemListItem({
   item,
+  priority,
   onPress,
   onLongPress,
   hideDetails,
@@ -36,6 +41,7 @@ function ItemListItem({
   ...props
 }: {
   item: DataTypeWithID<'item'>;
+  priority?: number;
   onPress: () => void;
   onLongPress?: () => void;
   hideDetails?: boolean;
@@ -53,7 +59,43 @@ function ItemListItem({
     | 'no-rfid-tag';
   grayOut?: boolean;
 } & React.ComponentProps<typeof UIGroup.ListItem>) {
-  // TODO: Use counter cache?
+  const { data: itemImages, reload: reloadItemImages } = useData(
+    'item_image',
+    { item_id: item.__id, order: 0 },
+    { limit: 1, disable: !item.use_first_image_as_icon },
+  );
+  const imageId = itemImages && itemImages[0]?.image_id;
+  const { data: image } = useData(
+    'image',
+    typeof imageId === 'string' ? imageId : '',
+    {
+      disable: !imageId || typeof imageId !== 'string',
+    },
+  );
+  const [thumbnail, setThumbnail] = useState<null | {
+    content_type: string;
+    data: string | Blob | Buffer;
+  }>(null);
+  const { db } = useDB();
+  const loadThumbnail = useCallback(async () => {
+    if (!db) return;
+    if (!image?.__valid) return;
+
+    const getAttachmentFromDatum = getGetAttachmentFromDatum({ db });
+
+    const t = await getAttachmentFromDatum(image, 'thumbnail-128');
+    setThumbnail(t);
+  }, [db, image]);
+  useEffect(() => {
+    if (typeof priority === 'number' && priority < 12) {
+      loadThumbnail();
+      return;
+    }
+    return LPJQ.push(async () => {
+      await loadThumbnail();
+    });
+  }, [loadThumbnail, priority]);
+
   const { count: itemsCount, reload: reloadItemsCount } = useDataCount(
     'item',
     {
@@ -90,6 +132,7 @@ function ItemListItem({
     if (!reloadCounter) return;
 
     return LPJQ.push(async () => {
+      await reloadItemImages();
       await reloadItemsCount();
       await refreshCollection();
       await refreshContainer();
@@ -100,6 +143,7 @@ function ItemListItem({
     reloadCounter,
     refreshCollection,
     refreshContainer,
+    reloadItemImages,
   ]);
 
   const iconName = verifyIconNameWithDefault(item.icon_name);
@@ -108,6 +152,39 @@ function ItemListItem({
     typeof item.consumable_stock_quantity === 'number'
       ? item.consumable_stock_quantity
       : 1;
+
+  const { iconBackgroundColor } = useColors();
+
+  const iconElem = useCallback(
+    (iconProps: Partial<React.ComponentProps<typeof Icon>>) => {
+      if (item.use_first_image_as_icon && thumbnail) {
+        return (
+          <Animated.Image
+            entering={FadeIn.duration(200)}
+            style={[
+              styles.listItemImage,
+              {
+                width: iconProps.size,
+                height: iconProps.size,
+                borderColor: iconBackgroundColor,
+                backgroundColor: iconBackgroundColor,
+              },
+            ]}
+            source={{
+              uri: `data:${thumbnail.content_type};base64,${thumbnail.data}`,
+            }}
+            resizeMode="contain"
+          />
+        );
+      }
+      return (
+        <Animated.View exiting={FadeOut.duration(200)}>
+          <Icon {...iconProps} name={iconName} />
+        </Animated.View>
+      );
+    },
+    [iconBackgroundColor, iconName, item.use_first_image_as_icon, thumbnail],
+  );
 
   return (
     <UIGroup.ListItem
@@ -121,7 +198,7 @@ function ItemListItem({
           ? // eslint-disable-next-line react/no-unstable-nested-components
             ({ iconProps }) => (
               <View>
-                <Icon {...iconProps} name={iconName} />
+                {iconElem(iconProps)}
                 <CheckStatusIcon status={checkStatus} />
               </View>
             )
@@ -130,12 +207,12 @@ function ItemListItem({
             ({ iconProps }) => {
               return (
                 <View>
-                  <Icon {...iconProps} name={iconName} />
+                  {iconElem(iconProps)}
                   <StockStatusIcon item={item} />
                 </View>
               );
             }
-          : iconName
+          : ({ iconProps }) => iconElem(iconProps)
       }
       iconColor={verifyIconColorWithDefault(item.icon_color)}
       onPress={onPress}
@@ -441,6 +518,11 @@ const styles = StyleSheet.create({
   },
   checkStatusIconIosLayer2: {
     position: 'absolute',
+  },
+  listItemImage: {
+    borderRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginHorizontal: -1,
   },
 });
 

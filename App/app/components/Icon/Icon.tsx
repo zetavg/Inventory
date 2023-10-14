@@ -183,8 +183,7 @@ export default function Icon({
   })();
 
   if (showBackground) {
-    const backgroundColor =
-      bgColor || Color(colors.contentTextColor).opaquer(-0.95).hexa();
+    const backgroundColor = bgColor || colors.iconBackgroundColor;
     return (
       <View
         style={[

@@ -1001,12 +1001,6 @@ describe('saveDatum', () => {
         NYAN_CAT_PNG.content_type,
         NYAN_CAT_PNG.data,
       );
-      await d.attachAttachmentToDatum(
-        image,
-        'thumbnail-1024',
-        NYAN_CAT_PNG.content_type,
-        NYAN_CAT_PNG.data,
-      );
 
       // Missing one attachment
       await expect(async () => {
@@ -1015,7 +1009,7 @@ describe('saveDatum', () => {
 
       await d.attachAttachmentToDatum(
         image,
-        'image-2048',
+        'image-1440',
         'unknown' as any,
         NYAN_CAT_PNG.data,
       );
@@ -1027,7 +1021,7 @@ describe('saveDatum', () => {
 
       await d.attachAttachmentToDatum(
         image,
-        'image-2048',
+        'image-1440',
         NYAN_CAT_PNG.content_type,
         NYAN_CAT_PNG.data,
       );
@@ -1054,13 +1048,7 @@ describe('saveDatum', () => {
       );
       await d.attachAttachmentToDatum(
         image,
-        'thumbnail-1024',
-        NYAN_CAT_PNG.content_type,
-        NYAN_CAT_PNG.data,
-      );
-      await d.attachAttachmentToDatum(
-        image,
-        'image-2048',
+        'image-1440',
         NYAN_CAT_PNG.content_type,
         NYAN_CAT_PNG.data,
       );
@@ -1070,7 +1058,7 @@ describe('saveDatum', () => {
       const loadedImage = await d.getDatum(image.__type, image.__id);
       if (!loadedImage) throw new Error('loadedImage is null');
 
-      expect(loadedImage.size).toBe(271 * 3);
+      expect(loadedImage.size).toBe(271 * 2);
     });
   });
 
@@ -1679,13 +1667,7 @@ describe('saveDatum', () => {
         );
         await d.attachAttachmentToDatum(
           imageD,
-          'thumbnail-1024',
-          NYAN_CAT_PNG.content_type,
-          NYAN_CAT_PNG.data,
-        );
-        await d.attachAttachmentToDatum(
-          imageD,
-          'image-2048',
+          'image-1440',
           NYAN_CAT_PNG.content_type,
           NYAN_CAT_PNG.data,
         );
@@ -1770,13 +1752,7 @@ describe('saveDatum', () => {
         );
         await d.attachAttachmentToDatum(
           imageD,
-          'thumbnail-1024',
-          NYAN_CAT_PNG.content_type,
-          NYAN_CAT_PNG.data,
-        );
-        await d.attachAttachmentToDatum(
-          imageD,
-          'image-2048',
+          'image-1440',
           NYAN_CAT_PNG.content_type,
           NYAN_CAT_PNG.data,
         );
@@ -1920,13 +1896,7 @@ describe('saveDatum', () => {
         );
         await d.attachAttachmentToDatum(
           imageD,
-          'thumbnail-1024',
-          NYAN_CAT_PNG.content_type,
-          NYAN_CAT_PNG.data,
-        );
-        await d.attachAttachmentToDatum(
-          imageD,
-          'image-2048',
+          'image-1440',
           NYAN_CAT_PNG.content_type,
           NYAN_CAT_PNG.data,
         );
@@ -2062,13 +2032,7 @@ describe('saveDatum', () => {
         );
         await d.attachAttachmentToDatum(
           imageD,
-          'thumbnail-1024',
-          NYAN_CAT_PNG.content_type,
-          NYAN_CAT_PNG.data,
-        );
-        await d.attachAttachmentToDatum(
-          imageD,
-          'image-2048',
+          'image-1440',
           NYAN_CAT_PNG.content_type,
           NYAN_CAT_PNG.data,
         );
@@ -2265,13 +2229,7 @@ describe('getAllAttachmentInfoFromDatum', () => {
       );
       await d.attachAttachmentToDatum(
         image,
-        'thumbnail-1024',
-        NYAN_CAT_PNG.content_type,
-        NYAN_CAT_PNG.data,
-      );
-      await d.attachAttachmentToDatum(
-        image,
-        'image-2048',
+        'image-1440',
         NYAN_CAT_PNG.content_type,
         NYAN_CAT_PNG.data,
       );
@@ -2308,13 +2266,7 @@ describe('getAttachmentFromDatum', () => {
       );
       await d.attachAttachmentToDatum(
         image,
-        'thumbnail-1024',
-        NYAN_CAT_PNG.content_type,
-        NYAN_CAT_PNG.data,
-      );
-      await d.attachAttachmentToDatum(
-        image,
-        'image-2048',
+        'image-1440',
         NYAN_CAT_PNG.content_type,
         NYAN_CAT_PNG.data,
       );

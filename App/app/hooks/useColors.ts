@@ -1,6 +1,7 @@
 import { selectors, useAppSelector } from '@app/redux';
 
 import useIsDarkMode from './useIsDarkMode';
+import Color from 'color';
 
 export function useBackgroundColor() {
   const isDarkMode = useIsDarkMode();
@@ -125,6 +126,8 @@ function useColors() {
     }
   })();
 
+  const iconBackgroundColor = Color(contentTextColor).opaquer(-0.95).hexa();
+
   return {
     backgroundColor,
     groupTitleColor,
@@ -180,6 +183,7 @@ function useColors() {
     blueTagBorder,
     purpleTagBorder,
     greyTagBorder,
+    iconBackgroundColor,
   };
 }
 
