@@ -8,9 +8,13 @@ import {
 import { getValidationErrorFromZodSafeParseReturnValue } from '@deps/data/utils/validation-utils';
 import { ValidationError } from '@deps/data/validation';
 
+import DATA_TYPE_PREFIX from '../data-type-prefix';
+
 import { CouchDBDoc, Logger } from './types';
 
 export function getCouchDbId(type: DataTypeName, id: string) {
+  const prefix = DATA_TYPE_PREFIX[type];
+  if (prefix) return `${prefix}-${type}-${id}`;
   return `${type}-${id}`;
 }
 
@@ -18,7 +22,20 @@ export function getDataIdFromCouchDbId(id: string): {
   type: DataTypeName;
   id: string;
 } {
-  const [type, ...idParts] = id.split('-');
+  const [type, ...idParts] = (() => {
+    for (const typeName in DATA_TYPE_PREFIX) {
+      const prefix = (DATA_TYPE_PREFIX as any)[typeName];
+      const typeNameWithPrefix = `${prefix}-${typeName}`;
+      if (id.startsWith(typeNameWithPrefix)) {
+        return [
+          typeName,
+          ...id.slice(typeNameWithPrefix.length + 1).split('-'),
+        ];
+      }
+    }
+    return id.split('-');
+  })();
+
   if (!DATA_TYPE_NAMES.includes(type as any)) {
     throw new Error(
       `getDataIdFromCouchDbId: type "${type}" is unknown (${id})`,
@@ -31,8 +48,8 @@ export function getDataIdFromCouchDbId(id: string): {
 }
 
 export function getTypeIdStartAndEndKey(type: DataTypeName): [string, string] {
-  const idStartKey = `${type}-`;
-  const idEndKey = idStartKey + '\uffff';
+  const idStartKey = getCouchDbId(type, '');
+  const idEndKey = getCouchDbId(type, '\uffff');
   return [idStartKey, idEndKey];
 }
 
@@ -43,6 +60,7 @@ const DATA_ADDITIONAL_INFO_KEYS = [
   '__deleted',
   '__created_at',
   '__updated_at',
+  '__raw',
 ] as const;
 
 export function getDatumFromDoc<T extends DataTypeName>(

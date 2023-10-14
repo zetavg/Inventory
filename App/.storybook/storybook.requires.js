@@ -39,6 +39,7 @@ const getStories = () => {
     require("../app/components/TextInput/TextInput.stories.tsx"),
     require("../app/components/TimeAgo/TimeAgo.stories.tsx"),
     require("../app/components/UIGroup/UIGroup.stories.tsx"),
+    require("../app/components/UIGroupPaginator/UIGroupPaginator.stories.tsx"),
   ];
 
   return s.sort((a, b) => a.default.title.localeCompare(b.default.title));

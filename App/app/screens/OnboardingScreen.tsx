@@ -147,6 +147,7 @@ function OnboardingScreen({
           style={{ backgroundColor }}
           contentContainerStyle={[
             styles.scrollViewContentContainer,
+            styles.homeScrollViewContentContainer,
             { paddingTop: scrollViewContentContainerPaddingTop },
           ]}
         >
@@ -1682,6 +1683,7 @@ function OnboardingScreen({
       syncServerStatus.lastErrorMessage,
     ],
   );
+  const dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef = useRef(false);
   useEffect(() => {
     if (!config?.uuid) return;
 
@@ -1693,13 +1695,15 @@ function OnboardingScreen({
       );
     } else if (
       dbSyncHasBeenSetupStatus === 'WORKING' &&
-      initialSyncDoneProgress > 10
+      initialSyncDoneProgress > 100
     ) {
+      if (dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current) return;
       dispatch(
         actions.profiles.markCurrentProfileAsSetupDone({
           configUuid: config.uuid,
         }),
       );
+      dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current = true;
     }
   }, [
     dbSyncHasBeenSetupStatus,
@@ -1919,6 +1923,9 @@ const styles = StyleSheet.create({
   scrollViewContentContainer: {
     flexGrow: 1,
     justifyContent: 'center',
+    paddingBottom: 100,
+  },
+  homeScrollViewContentContainer: {
     paddingBottom: Platform.OS === 'ios' ? 20 : 100,
   },
   titleText: {

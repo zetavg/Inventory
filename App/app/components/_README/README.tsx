@@ -32,6 +32,11 @@ export const Readme = () => (
 
       <View style={styles.spacing} />
 
+      <Text variant="titleMedium">C. Composed Components</Text>
+      <Text>More complex components composed from other basic components.</Text>
+
+      <View style={styles.spacing} />
+
       <Text variant="titleMedium">Z. Other Components</Text>
       <Text>Should avoid using in the UI directly.</Text>
     </UIGroup>

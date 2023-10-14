@@ -30,6 +30,11 @@ function StatisticsScreen({
     {},
     {},
   );
+  const { count: imagesCount, reload: reloadImagesCount } = useDataCount(
+    'image',
+    {},
+    {},
+  );
 
   const [dbSizeInfo, setDbSizeInfo] = useState<null | {
     db: number;
@@ -124,6 +129,15 @@ function StatisticsScreen({
             }
           >
             Items
+          </TableView.Item>
+          <TableView.Item
+            detail={
+              typeof imagesCount === 'number'
+                ? imagesCount.toString()
+                : 'Calculating...'
+            }
+          >
+            Images
           </TableView.Item>
         </TableView.Section>
       </TableView>

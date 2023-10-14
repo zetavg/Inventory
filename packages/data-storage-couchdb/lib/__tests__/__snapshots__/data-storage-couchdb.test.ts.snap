@@ -22,6 +22,26 @@ exports[`fixDataConsistency works: fixDataConsistencyResults-item 1`] = `
 }
 `;
 
+exports[`getAllAttachmentInfoFromDatum works 1`] = `
+{
+  "image-2048": {
+    "content_type": "image/png",
+    "digest": "md5-IgK4BCejTD2lzMCXOGwXLw==",
+    "size": 271,
+  },
+  "thumbnail-1024": {
+    "content_type": "image/png",
+    "digest": "md5-IgK4BCejTD2lzMCXOGwXLw==",
+    "size": 271,
+  },
+  "thumbnail-128": {
+    "content_type": "image/png",
+    "digest": "md5-IgK4BCejTD2lzMCXOGwXLw==",
+    "size": 271,
+  },
+}
+`;
+
 exports[`saveDatum validates the data: collection collection_reference_number already used 1`] = `
 [
   {

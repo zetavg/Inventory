@@ -51,6 +51,8 @@ import DeveloperToolsScreen from '@app/screens/DeveloperToolsScreen';
 import EPCTDSScreen from '@app/screens/EPCTDSScreen';
 import GenericTextDetailsScreen from '@app/screens/GenericTextDetailsScreen';
 import HowToSwitchBetweenProfilesScreen from '@app/screens/HowToSwitchBetweenProfilesScreen';
+import ImageScreen from '@app/screens/ImageScreen';
+import ImagesScreen from '@app/screens/ImagesScreen';
 import LinguisticTaggerModuleIOSScreen from '@app/screens/LinguisticTaggerModuleIOSScreen';
 import LoggerLogScreen from '@app/screens/LoggerLogScreen';
 import MoreScreen from '@app/screens/MoreScreen';
@@ -76,6 +78,8 @@ export type StackParamList = {
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
+  Images: undefined;
+  Image: { id: string };
   Statistics: undefined;
   Settings: undefined;
   LabelPrinters: undefined;
@@ -297,6 +301,8 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Checklists" component={ChecklistsScreen} />
       <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
+      <Stack.Screen name="Images" component={ImagesScreen} />
+      <Stack.Screen name="Image" component={ImageScreen} />
       <Stack.Screen name="Statistics" component={StatisticsScreen} />
 
       <Stack.Screen name="DevChangeIcon" component={DevChangeIconScreen} />

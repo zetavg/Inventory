@@ -34,6 +34,10 @@ export const relation_definitions = relation_defn({
         type_name: 'item',
         foreign_key: 'container_id',
       },
+      item_images: {
+        type_name: 'item_image',
+        foreign_key: 'item_id',
+      },
     },
   },
 } as const);

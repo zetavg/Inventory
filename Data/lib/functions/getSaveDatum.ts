@@ -4,6 +4,7 @@ import getCallbacks from '../callbacks';
 import schema, { DataType, DataTypeName } from '../schema';
 import {
   DataMeta,
+  GetAllAttachmentInfoFromDatum,
   GetConfig,
   GetData,
   GetDatum,
@@ -21,6 +22,8 @@ export default function getSaveDatum({
   getDatum,
   getData,
   getRelated,
+  getAllAttachmentInfoFromDatum,
+  validateAttachments,
   writeDatum,
   deleteDatum,
   skipSaveCallback,
@@ -29,28 +32,22 @@ export default function getSaveDatum({
   getDatum: GetDatum;
   getData: GetData;
   getRelated: GetRelated;
+  getAllAttachmentInfoFromDatum: GetAllAttachmentInfoFromDatum;
+  validateAttachments: (
+    d: DataMeta<DataTypeName> & { [key: string]: unknown },
+  ) => Promise<Error | null>;
   writeDatum: (
     d: DataMeta<DataTypeName> & { [key: string]: unknown },
+    origData:
+      | ValidDataTypeWithID<DataTypeName>
+      | InvalidDataTypeWithID<DataTypeName>
+      | null,
   ) => Promise<void>;
   deleteDatum: (
     d: DataMeta<DataTypeName> & { [key: string]: unknown },
   ) => Promise<void>;
   skipSaveCallback?: (existingData: unknown, dataToSave: unknown) => void;
 }): SaveDatum {
-  const { beforeSave } = getCallbacks({
-    getConfig,
-    getDatum,
-    getData,
-    getRelated,
-  });
-
-  const { validate, validateDelete } = getValidation({
-    getConfig,
-    getDatum,
-    getData,
-    getRelated,
-  });
-
   const saveDatum: SaveDatum = async <T extends DataTypeName>(
     d:
       | (DataMeta<T> & { [key: string]: unknown })
@@ -102,6 +99,9 @@ export default function getSaveDatum({
           const validationError =
             getErrorFromValidationResults(validationResults);
           if (validationError) throw validationError;
+
+          const attachmentsError = await validateAttachments(dataToSave);
+          if (attachmentsError) throw attachmentsError;
         }
 
         if (
@@ -118,7 +118,7 @@ export default function getSaveDatum({
           dataToSave.__updated_at = new Date().getTime();
         }
 
-        await writeDatum(dataToSave);
+        await writeDatum(dataToSave, existingData);
       } else {
         // Delete
         if (typeof dataToSave.__id !== 'string') {
@@ -141,6 +141,10 @@ export default function getSaveDatum({
         await deleteDatum(dataToSave);
       }
 
+      if (!options.skipCallbacks) {
+        await afterSave(dataToSave);
+      }
+
       return dataToSave;
     };
 
@@ -159,6 +163,7 @@ export default function getSaveDatum({
           const existingData = await getDatum(type, id);
           if (!existingData) throw new Error(`Data not found: ${type} ${id}`);
 
+          const updatedData = updater(existingData);
           const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
             ...(existingData
               ? (Object.fromEntries(
@@ -167,9 +172,10 @@ export default function getSaveDatum({
                   ),
                 ) as any)
               : {}),
-            ...updater(existingData),
+            ...updatedData,
             __type: type,
             __rev: existingData.__rev,
+            ...(updatedData.__raw ? { __raw: updatedData.__raw } : {}),
           };
 
           return await doSaveData(existingData, dataToSave);
@@ -212,11 +218,28 @@ export default function getSaveDatum({
         ...(options.ignoreConflict && existingData?.__rev
           ? { __rev: existingData.__rev }
           : {}),
+        ...(d.__raw ? { __raw: d.__raw } : {}),
       };
 
       return await doSaveData(existingData, dataToSave);
     }
   };
+
+  const { beforeSave, afterSave } = getCallbacks({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+    getAllAttachmentInfoFromDatum,
+    saveDatum,
+  });
+
+  const { validate, validateDelete } = getValidation({
+    getConfig,
+    getDatum,
+    getData,
+    getRelated,
+  });
 
   return saveDatum;
 }

@@ -10,26 +10,35 @@ import { v4 as uuidv4 } from 'uuid';
 
 import EPCUtils from '@deps/epc-utils';
 
+import { only } from 'node:test';
+
 import { DataTypeName } from './schema';
 import {
   DataTypeWithID,
+  GetAllAttachmentInfoFromDatum,
   GetConfig,
   GetData,
   GetDatum,
   GetRelated,
   InvalidDataTypeWithID,
+  SaveDatum,
 } from './types';
+import { onlyValid } from './utils';
 
 export default function getCallbacks({
   getConfig,
   getDatum,
   getData,
   getRelated,
+  getAllAttachmentInfoFromDatum,
+  saveDatum,
 }: {
   getConfig: GetConfig;
   getDatum: GetDatum;
   getData: GetData;
   getRelated: GetRelated;
+  getAllAttachmentInfoFromDatum: GetAllAttachmentInfoFromDatum;
+  saveDatum: SaveDatum;
 }) {
   return {
     beforeSave: async function beforeSave(
@@ -227,6 +236,91 @@ export default function getCallbacks({
           if (!datum.actual_rfid_tag_epc_memory_bank_contents)
             datum.actual_rfid_tag_epc_memory_bank_contents = undefined;
           if (!datum.item_type) datum.item_type = undefined;
+          break;
+        }
+        case 'item_image': {
+          if (typeof datum.item_id === 'string') {
+            const item = await getDatum('item', datum.item_id);
+            if (item) {
+              datum._item_collection_id = item.collection_id;
+            }
+          }
+          break;
+        }
+        case 'image': {
+          if (datum.__id) {
+            const itemImages = await getData('item_image', {
+              image_id: datum.__id,
+            });
+            datum._item_ids = Array.from(
+              new Set(onlyValid(itemImages).map(ii => ii.item_id)),
+            );
+            datum._item_collection_ids = Array.from(
+              new Set(onlyValid(itemImages).map(ii => ii._item_collection_id)),
+            );
+          }
+        }
+      }
+    },
+    afterSave: async function afterSave(
+      datum: Partial<
+        DataTypeWithID<DataTypeName> | InvalidDataTypeWithID<DataTypeName>
+      >,
+    ) {
+      // const config = await getConfig({ ensureSaved: true });
+      // const isFromSharedDb =
+      //   typeof datum.config_uuid === 'string' &&
+      //   datum.config_uuid !== config.uuid;
+
+      switch (datum.__type) {
+        case 'item': {
+          const itemImages = await getData('item_image', {
+            item_id: datum.__id,
+          });
+
+          for (const ii of itemImages) {
+            await saveDatum(
+              { ...ii, __deleted: datum.__deleted },
+              { skipValidation: true, ignoreConflict: true },
+            );
+          }
+
+          break;
+        }
+        case 'item_image': {
+          if (
+            typeof datum.image_id === 'string' &&
+            typeof datum.item_id === 'string'
+          ) {
+            const image = await getDatum('image', datum.image_id);
+            if (image && image.__valid) {
+              await saveDatum(image, {
+                skipValidation: true,
+                ignoreConflict: true,
+              });
+            }
+          }
+
+          break;
+        }
+        case 'image': {
+          if (datum.__deleted) break;
+
+          try {
+            const image = await getDatum(datum.__type, datum.__id || '');
+            if (!image) throw new Error('Cannot get image');
+            const attachments = await getAllAttachmentInfoFromDatum(image);
+            const size = Object.values(attachments)
+              .map(att => att.size)
+              .reduce((a, b) => a + b, 0);
+            if (image.size !== size) {
+              await saveDatum([
+                image.__type,
+                image.__id || '',
+                d => ({ ...d, size }),
+              ]);
+            }
+          } catch (e) {}
           break;
         }
       }

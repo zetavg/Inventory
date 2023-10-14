@@ -1,3 +1,4 @@
+import { attachment_definitions } from '@deps/data/attachments';
 import dGetSaveDatum from '@deps/data/functions/getSaveDatum';
 import { SaveDatum } from '@deps/data/types';
 
@@ -6,6 +7,7 @@ import {
   getDatumFromDoc,
   getDocFromDatum,
 } from './couchdb-utils';
+import getGetAllAttachmentInfoFromDatum from './getGetAllAttachmentInfoFromDatum';
 import getGetConfig from './getGetConfig';
 import getGetData from './getGetData';
 import getGetDatum from './getGetDatum';
@@ -19,13 +21,56 @@ export default function getSaveDatum(context: Context): SaveDatum {
   const getDatum = getGetDatum(context);
   const getData = getGetData(context);
   const getRelated = getGetRelated(context);
+  const getAllAttachmentInfoFromDatum =
+    getGetAllAttachmentInfoFromDatum(context);
 
   const saveDatum = dGetSaveDatum({
     getConfig,
     getDatum,
     getData,
     getRelated,
-    writeDatum: async d => {
+    getAllAttachmentInfoFromDatum,
+    validateAttachments: async d => {
+      const attachmentDefn =
+        attachment_definitions[d.__type as keyof typeof attachment_definitions];
+      if (!attachmentDefn) return null;
+
+      const rawDoc = d.__raw;
+      if (!rawDoc || typeof rawDoc !== 'object') {
+        return new Error(
+          `Expect d.__raw to be an object, got ${typeof rawDoc}`,
+        );
+      }
+      const attachments = (rawDoc as any)._attachments;
+
+      if (!attachments || typeof attachments !== 'object') {
+        return new Error(
+          `Expect _attachments to be an object, got ${typeof attachments}`,
+        );
+      }
+
+      for (const [name, defn] of Object.entries(attachmentDefn)) {
+        if (!attachments[name]) {
+          if (defn.required) {
+            return new Error(
+              `Missing required attachment "${name}" for type "${d.__type}".`,
+            );
+          }
+          continue;
+        }
+
+        if (defn.content_types) {
+          if (!defn.content_types.includes(attachments[name].content_type)) {
+            return new Error(
+              `Attachment "${name}" for type "${d.__type}" has invalid content type "${attachments[name].content_type}".`,
+            );
+          }
+        }
+      }
+
+      return null;
+    },
+    writeDatum: async (d, origD) => {
       const doc = getDocFromDatum(d);
 
       // Delete deprecated fields
@@ -33,10 +78,13 @@ export default function getSaveDatum(context: Context): SaveDatum {
         delete (doc.data as any)._individual_asset_reference;
       }
 
+      const origDoc = origD?.__raw || {};
+      const rawDoc = d?.__raw || {};
+
       if (dbType === 'pouchdb') {
-        await db.put(doc);
+        await db.put({ ...origDoc, ...rawDoc, ...doc });
       } else {
-        await db.insert(doc);
+        await db.insert({ ...origDoc, ...rawDoc, ...doc });
       }
     },
     deleteDatum: async d => {

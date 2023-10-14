@@ -97,6 +97,22 @@ export const schema = {
   db_sharing: z
     .object({ permissions: z.array(z.enum(['read', 'write'])).optional() })
     .catchall(z.unknown()),
+  item_image: z
+    .object({
+      item_id: z.string(),
+      image_id: z.string(),
+      order: z.number().int().optional(),
+      _item_collection_id: z.string().optional(),
+    })
+    .catchall(z.unknown()),
+  image: z
+    .object({
+      filename: z.string().optional(),
+      size: z.number().optional(),
+      _item_ids: z.array(z.string()).optional(),
+      _item_collection_ids: z.array(z.string()).optional(),
+    })
+    .catchall(z.unknown()),
 };
 
 export default schema;

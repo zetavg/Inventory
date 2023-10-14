@@ -1,3 +1,5 @@
+import { atob } from 'react-native-quick-base64';
+
 FileReader.prototype.readAsArrayBuffer = function (blob) {
   if (this.readyState === this.LOADING) throw new Error('InvalidStateError');
   this._setReadyState(this.LOADING);
@@ -15,31 +17,4 @@ FileReader.prototype.readAsArrayBuffer = function (blob) {
     this._setReadyState(this.DONE);
   };
   fr.readAsDataURL(blob);
-};
-
-// from: https://stackoverflow.com/questions/42829838/react-native-atob-btoa-not-working-without-remote-js-debugging
-const chars =
-  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-const atob = (input = '') => {
-  let str = input.replace(/[=]+$/, '');
-  let output = '';
-
-  if (str.length % 4 === 1) {
-    throw new Error(
-      "'atob' failed: The string to be decoded is not correctly encoded.",
-    );
-  }
-  for (
-    let bc = 0, bs = 0, buffer, i = 0;
-    (buffer = str.charAt(i++));
-    // eslint-disable-next-line no-bitwise
-    ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
-      ? // eslint-disable-next-line no-bitwise
-        (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
-      : 0
-  ) {
-    buffer = chars.indexOf(buffer);
-  }
-
-  return output;
 };

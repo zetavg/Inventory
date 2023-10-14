@@ -11,7 +11,9 @@ import PouchDB from 'pouchdb';
 import { fixDataConsistency } from '@deps/data/utils';
 import { ValidationError } from '@deps/data/validation';
 
+import { NYAN_CAT_PNG } from '../__fixtures__/sample-data';
 import CouchDBData from '../CouchDBData';
+import { getCouchDbId } from '../functions/couchdb-utils';
 import { Context } from '../functions/types';
 
 class NoErrorThrownError extends Error {}
@@ -987,6 +989,99 @@ describe('saveDatum', () => {
     });
   });
 
+  it('validates attachments', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const image = {
+        __type: 'image',
+        __id: '1',
+      } as const;
+
+      // Missing all attachments
+      await expect(async () => {
+        await d.saveDatum(image);
+      }).rejects.toThrowError();
+
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-1024',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+
+      // Missing one attachment
+      await expect(async () => {
+        await d.saveDatum(image);
+      }).rejects.toThrowError();
+
+      await d.attachAttachmentToDatum(
+        image,
+        'image-2048',
+        'unknown' as any,
+        NYAN_CAT_PNG.data,
+      );
+
+      // Invalid content type
+      await expect(async () => {
+        await d.saveDatum(image);
+      }).rejects.toThrowError();
+
+      await d.attachAttachmentToDatum(
+        image,
+        'image-2048',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+
+      // Success
+      await d.saveDatum(image);
+    });
+  });
+
+  it('works for image', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const image = {
+        __type: 'image',
+        __id: '1',
+      } as const;
+
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-1024',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'image-2048',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+
+      await d.saveDatum(image);
+
+      const loadedImage = await d.getDatum(image.__type, image.__id);
+      if (!loadedImage) throw new Error('loadedImage is null');
+
+      expect(loadedImage.size).toBe(271 * 3);
+    });
+  });
+
   it('can update fields to become undefined', async () => {
     await withContext(async context => {
       const d = new CouchDBData(context);
@@ -1081,6 +1176,70 @@ describe('saveDatum', () => {
       expect(
         (await d.getDatum('item', item.__id || ''))?.__updated_at,
       ).not.toEqual(0);
+    });
+  });
+
+  it('preserves additional fields', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+      const collection = await d.saveDatum({
+        __type: 'collection',
+        __id: '1',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+      const doc = await (context.db as any).get('collection-1');
+
+      (context.db as any).put({
+        ...doc,
+        additional_field: 'hello',
+      });
+
+      expect(
+        (await (context.db as any).get('collection-1')).additional_field,
+      ).toEqual('hello');
+
+      await d.saveDatum(
+        {
+          ...collection,
+          name: 'Collection 1',
+        },
+        { ignoreConflict: true },
+      );
+
+      expect((await (context.db as any).get('collection-1')).data.name).toEqual(
+        'Collection 1',
+      );
+      expect(
+        (await (context.db as any).get('collection-1')).additional_field,
+      ).toEqual('hello');
+
+      await d.saveDatum({
+        ...(await d.getDatum('collection', '1')),
+        name: 'Collection 2',
+      } as any);
+
+      expect((await (context.db as any).get('collection-1')).data.name).toEqual(
+        'Collection 2',
+      );
+      expect(
+        (await (context.db as any).get('collection-1')).additional_field,
+      ).toEqual('hello');
+
+      await d.saveDatum([
+        'collection',
+        '1',
+        c => ({ ...c, name: c.name + ' Updated' }),
+      ]);
+
+      expect((await (context.db as any).get('collection-1')).data.name).toEqual(
+        'Collection 2 Updated',
+      );
+      expect(
+        (await (context.db as any).get('collection-1')).additional_field,
+      ).toEqual('hello');
     });
   });
 
@@ -1507,6 +1666,680 @@ describe('saveDatum', () => {
         );
         expect(updatedDatum?.consumable_stock_quantity).toBe(1 + toAdd);
       });
+    });
+  });
+
+  describe('for items', () => {
+    it('adding item_image will update info on item_image and image', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const imageD = {
+          __type: 'image',
+          __id: '1',
+        } as const;
+
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-128',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-1024',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'image-2048',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+
+        const image = await d.saveDatum(imageD);
+
+        const collection_1 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-1',
+          name: 'Collection 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const item_1 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-1',
+          collection_id: collection_1.__id,
+          name: 'Item 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_1 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_1.__id,
+          image_id: image.__id,
+        });
+
+        expect(item_image_1._item_collection_id).toEqual(collection_1.__id);
+
+        const loadedImage1 = await d.getDatum('image', image.__id || '');
+        expect((loadedImage1?._item_ids as any).sort()).toEqual(
+          [item_1.__id].sort(),
+        );
+        expect((loadedImage1?._item_collection_ids as any).sort()).toEqual(
+          [collection_1.__id].sort(),
+        );
+
+        const item_2 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-2',
+          collection_id: collection_1.__id,
+          name: 'Item 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_2 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_2.__id,
+          image_id: image.__id,
+        });
+
+        expect(item_image_2._item_collection_id).toEqual(collection_1.__id);
+
+        const loadedImage2 = await d.getDatum('image', image.__id || '');
+        expect((loadedImage2?._item_ids as any).sort()).toEqual(
+          [item_1.__id, item_2.__id].sort(),
+        );
+        expect((loadedImage2?._item_collection_ids as any).sort()).toEqual(
+          [collection_1.__id].sort(),
+        );
+      });
+    });
+
+    it('updating item will update info on item_image and image', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const imageD = {
+          __type: 'image',
+          __id: '1',
+        } as const;
+
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-128',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-1024',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'image-2048',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+
+        const image = await d.saveDatum(imageD);
+
+        const collection_1 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-1',
+          name: 'Collection 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const collection_2 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-2',
+          name: 'Collection 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        });
+
+        const item_1 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-1',
+          collection_id: collection_1.__id,
+          name: 'Item 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_1 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_1.__id,
+          image_id: image.__id,
+        });
+
+        const item_2 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-2',
+          collection_id: collection_1.__id,
+          name: 'Item 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_2 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_2.__id,
+          image_id: image.__id,
+        });
+
+        expect(
+          (await d.getDatum(item_image_1.__type, item_image_1.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_1.__id);
+        expect(
+          (await d.getDatum(item_image_2.__type, item_image_2.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_1.__id);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_1.__id, item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_1.__id].sort());
+
+        await d.saveDatum({
+          ...item_1,
+          collection_id: collection_2.__id,
+        });
+
+        expect(
+          (await d.getDatum(item_image_1.__type, item_image_1.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_2.__id);
+        expect(
+          (await d.getDatum(item_image_2.__type, item_image_2.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_1.__id);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_1.__id, item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_1.__id, collection_2.__id].sort());
+
+        await d.saveDatum({
+          ...item_2,
+          collection_id: collection_2.__id,
+        });
+
+        expect(
+          (await d.getDatum(item_image_1.__type, item_image_1.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_2.__id);
+        expect(
+          (await d.getDatum(item_image_2.__type, item_image_2.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_2.__id);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_1.__id, item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_2.__id].sort());
+      });
+    });
+
+    it('deleting item_image will update info on image', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const imageD = {
+          __type: 'image',
+          __id: '1',
+        } as const;
+
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-128',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-1024',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'image-2048',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+
+        const image = await d.saveDatum(imageD);
+
+        const collection_1 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-1',
+          name: 'Collection 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const collection_2 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-2',
+          name: 'Collection 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        });
+
+        const item_1 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-1',
+          collection_id: collection_1.__id,
+          name: 'Item 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_1 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_1.__id,
+          image_id: image.__id,
+        });
+
+        const item_2 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-2',
+          collection_id: collection_2.__id,
+          name: 'Item 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_2 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_2.__id,
+          image_id: image.__id,
+        });
+
+        expect(
+          (await d.getDatum(item_image_1.__type, item_image_1.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_1.__id);
+        expect(
+          (await d.getDatum(item_image_2.__type, item_image_2.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_2.__id);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_1.__id, item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_1.__id, collection_2.__id].sort());
+
+        await d.saveDatum(
+          {
+            __type: item_image_1.__type,
+            __id: item_image_1.__id,
+            __deleted: true,
+          },
+          { ignoreConflict: true },
+        );
+
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_2.__id].sort());
+
+        await d.saveDatum(
+          {
+            __type: item_image_2.__type,
+            __id: item_image_2.__id,
+            __deleted: true,
+          },
+          { ignoreConflict: true },
+        );
+
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([].sort());
+      });
+    });
+
+    it('deleting item will update info on item_image and image', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        const imageD = {
+          __type: 'image',
+          __id: '1',
+        } as const;
+
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-128',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'thumbnail-1024',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+        await d.attachAttachmentToDatum(
+          imageD,
+          'image-2048',
+          NYAN_CAT_PNG.content_type,
+          NYAN_CAT_PNG.data,
+        );
+
+        const image = await d.saveDatum(imageD);
+
+        const collection_1 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-1',
+          name: 'Collection 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '1',
+        });
+
+        const collection_2 = await d.saveDatum({
+          __type: 'collection',
+          __id: 'c-2',
+          name: 'Collection 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+          collection_reference_number: '2',
+        });
+
+        const item_1 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-1',
+          collection_id: collection_1.__id,
+          name: 'Item 1',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_1 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_1.__id,
+          image_id: image.__id,
+        });
+
+        const item_2 = await d.saveDatum({
+          __type: 'item',
+          __id: 'i-2',
+          collection_id: collection_2.__id,
+          name: 'Item 2',
+          icon_name: 'box',
+          icon_color: 'gray',
+        });
+
+        const item_image_2 = await d.saveDatum({
+          __type: 'item_image',
+          item_id: item_2.__id,
+          image_id: image.__id,
+        });
+
+        expect(
+          (await d.getDatum(item_image_1.__type, item_image_1.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_1.__id);
+        expect(
+          (await d.getDatum(item_image_2.__type, item_image_2.__id || ''))
+            ?._item_collection_id,
+        ).toEqual(collection_2.__id);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_1.__id, item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_1.__id, collection_2.__id].sort());
+
+        await d.saveDatum(
+          {
+            __type: item_1.__type,
+            __id: item_1.__id,
+            __deleted: true,
+          },
+          { ignoreConflict: true },
+        );
+
+        expect(
+          await d.getDatum(item_image_1.__type, item_image_1.__id || ''),
+        ).toBe(null);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([item_2.__id].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([collection_2.__id].sort());
+
+        await d.saveDatum(
+          {
+            __type: item_2.__type,
+            __id: item_2.__id,
+            __deleted: true,
+          },
+          { ignoreConflict: true },
+        );
+
+        expect(
+          await d.getDatum(item_image_2.__type, item_image_2.__id || ''),
+        ).toBe(null);
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))?._item_ids as any
+          ).sort(),
+        ).toEqual([].sort());
+        expect(
+          (
+            (await d.getDatum(image.__type, image.__id || ''))
+              ?._item_collection_ids as any
+          ).sort(),
+        ).toEqual([].sort());
+      });
+    });
+  });
+});
+
+describe('attachAttachmentToDatum', () => {
+  it('attach an attachment that can be saved with saveDatum', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      // Attach to object from getDatum
+      await d.saveDatum(
+        { __type: 'image', __id: '1' },
+        { skipValidation: true },
+      );
+      const image_1 = await d.getDatum('image', '1');
+      if (!image_1) throw new Error('image_1 is null');
+
+      await d.attachAttachmentToDatum(
+        image_1,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.saveDatum(image_1, { skipValidation: true });
+
+      const image_1_doc = await (context.db as any).get(
+        getCouchDbId(image_1.__type, image_1.__id || ''),
+      );
+
+      expect(image_1_doc._attachments['thumbnail-128'].content_type).toBe(
+        'image/png',
+      );
+      expect(image_1_doc._attachments['thumbnail-128'].length).toBe(271);
+
+      // Attach to object literal
+      const image_2 = { __type: 'image', __id: '2' } as const;
+      d.attachAttachmentToDatum(
+        image_2,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.saveDatum(image_2, { skipValidation: true });
+
+      const image_2_doc = await (context.db as any).get(
+        getCouchDbId(image_2.__type, image_2.__id || ''),
+      );
+
+      expect(image_2_doc._attachments['thumbnail-128'].content_type).toBe(
+        'image/png',
+      );
+      expect(image_2_doc._attachments['thumbnail-128'].length).toBe(271);
+    });
+  });
+});
+
+describe('getAllAttachmentInfoFromDatum', () => {
+  it('works', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const image = {
+        __type: 'image',
+        __id: '1',
+      } as const;
+
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-1024',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'image-2048',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+
+      await d.saveDatum(image);
+
+      const loadedImage = await d.getDatum(image.__type, image.__id);
+      if (!loadedImage) throw new Error('loadedImage is null');
+
+      const allAttachmentInfo = await d.getAllAttachmentInfoFromDatum(
+        loadedImage,
+      );
+
+      expect(allAttachmentInfo).toMatchSnapshot();
+    });
+  });
+});
+
+describe('getAttachmentFromDatum', () => {
+  it('works', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const image = {
+        __type: 'image',
+        __id: '1',
+      } as const;
+
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-128',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'thumbnail-1024',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+      await d.attachAttachmentToDatum(
+        image,
+        'image-2048',
+        NYAN_CAT_PNG.content_type,
+        NYAN_CAT_PNG.data,
+      );
+
+      await d.saveDatum(image);
+
+      const loadedImage = await d.getDatum(image.__type, image.__id);
+      if (!loadedImage) throw new Error('loadedImage is null');
+
+      const attachment = await d.getAttachmentFromDatum(
+        loadedImage,
+        'thumbnail-128',
+      );
+
+      expect(attachment?.content_type).toBe('image/png');
+      expect(attachment?.size).toBe(271);
+      expect(attachment?.data).toBeTruthy();
     });
   });
 });

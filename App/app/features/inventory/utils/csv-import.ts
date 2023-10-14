@@ -2,10 +2,12 @@ import appLogger from '@app/logger';
 
 import getCallbacks from '@app/data/callbacks';
 import {
+  getGetAllAttachmentInfoFromDatum,
   getGetConfig,
   getGetData,
   getGetDatum,
   getGetRelated,
+  getSaveDatum,
 } from '@app/data/functions';
 import { InvalidDataTypeWithID, ValidDataTypeWithID } from '@app/data/types';
 import getValidation, { ValidationResults } from '@app/data/validation';
@@ -44,12 +46,19 @@ export async function processItems(
   const getDatum = getGetDatum({ db, logger });
   const getData = getGetData({ db, logger });
   const getRelated = getGetRelated({ db, logger });
+  const saveDatum = getSaveDatum({ db, logger });
+  const getAllAttachmentInfoFromDatum = getGetAllAttachmentInfoFromDatum({
+    db,
+    logger,
+  });
 
   const { beforeSave } = getCallbacks({
     getConfig,
     getDatum,
     getData,
     getRelated,
+    saveDatum,
+    getAllAttachmentInfoFromDatum,
   });
 
   const { validate } = getValidation({

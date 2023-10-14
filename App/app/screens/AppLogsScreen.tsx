@@ -11,6 +11,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  View,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -28,6 +29,7 @@ import useColors from '@app/hooks/useColors';
 import ScreenContent from '@app/components/ScreenContent';
 import TimeAgo from '@app/components/TimeAgo';
 import UIGroup from '@app/components/UIGroup';
+import UIGroupPaginator from '@app/components/UIGroupPaginator';
 
 function AppLogsScreen({
   navigation,
@@ -41,8 +43,7 @@ function AppLogsScreen({
     showOptions = true,
   } = route.params || {};
 
-  const numberOfItemsPerPageList = [20, 50, 100, 500];
-  const [perPage, setPerPage] = React.useState(numberOfItemsPerPageList[1]);
+  const [perPage, setPerPage] = React.useState(50);
   const [page, setPage] = React.useState<number>(1);
   const [filterLevels, setFilterLevels] = useState<ReadonlyArray<LogLevel>>([]);
   const [filterModule, setFilterModule] = useState<string | undefined>(
@@ -58,7 +59,7 @@ function AppLogsScreen({
   const [searchText, setSearchText] = useState('');
 
   const [logs, setLogs] = useState<ReadonlyArray<Log> | null>(null);
-  const [logsCount, setLogsCount] = useState(22);
+  const [logsCount, setLogsCount] = useState(0);
   const numberOfPages = Math.ceil(logsCount / perPage);
 
   const offset = perPage * (page - 1);
@@ -301,119 +302,61 @@ function AppLogsScreen({
             logs.length > 0 &&
             UIGroup.ListItemSeparator.insertBetween(
               logs.map((log, i) => (
-                <UIGroup.ListItem
+                <View
                   key={i}
-                  label={log.message}
-                  // eslint-disable-next-line react/no-unstable-nested-components
-                  detail={({ textProps }) => (
-                    <Text {...textProps}>
-                      {[
-                        (log.module || log.function) &&
-                          `[${[log.module, log.function]
-                            .filter(s => s)
-                            .join('/')}]`,
-                        log.timestamp && (
-                          <TimeAgo key="timeago" date={log.timestamp} />
-                        ),
-                      ]
-                        .filter(d => d)
-                        .flatMap(e => [e, ' '])
-                        .slice(0, -1)}
-                    </Text>
-                  )}
-                  verticalArrangedIOS
-                  navigable
-                  labelTextStyle={styles.smallText}
-                  detailTextStyle={styles.smallText}
-                  onPress={() => navigation.push('AppLogDetail', { log })}
                   style={[
-                    styles.logListItem,
+                    styles.logListItemContainer,
                     {
                       borderLeftColor: levelColor(log.level),
                     },
                   ]}
-                />
+                >
+                  <UIGroup.ListItem
+                    label={log.message}
+                    // eslint-disable-next-line react/no-unstable-nested-components
+                    detail={({ textProps }) => (
+                      <Text {...textProps}>
+                        {[
+                          (log.module || log.function) &&
+                            `[${[log.module, log.function]
+                              .filter(s => s)
+                              .join('/')}]`,
+                          log.timestamp && (
+                            <TimeAgo key="timeago" date={log.timestamp} />
+                          ),
+                        ]
+                          .filter(d => d)
+                          .flatMap(e => [e, ' '])
+                          .slice(0, -1)}
+                      </Text>
+                    )}
+                    verticalArrangedIOS
+                    navigable
+                    labelTextStyle={styles.smallText}
+                    detailTextStyle={styles.smallText}
+                    onPress={() => navigation.push('AppLogDetail', { log })}
+                  />
+                </View>
               )),
             )}
         </UIGroup>
 
-        <UIGroup footer={`Offset: ${offset}, limit: ${limit}.`}>
-          <UIGroup.ListTextInputItem
-            label="Page"
-            horizontalLabel
-            keyboardType="number-pad"
-            returnKeyType="done"
-            value={page.toString()}
-            unit={`/ ${numberOfPages}`}
-            onChangeText={t => {
-              const n = parseInt(t, 10);
-              if (isNaN(n)) return;
-              if (n <= 0) return;
-
-              setPage(n);
-            }}
-            selectTextOnFocus
-            controlElement={
-              <>
-                <UIGroup.ListTextInputItem.Button
-                  onPress={() =>
-                    setPage(i => {
-                      if (i <= 1) return i;
-                      if (i > numberOfPages) return numberOfPages;
-                      return i - 1;
-                    })
-                  }
-                  disabled={page <= 1}
-                >
-                  ‹ Prev
-                </UIGroup.ListTextInputItem.Button>
-                <UIGroup.ListTextInputItem.Button
-                  onPress={() => setPage(i => i + 1)}
-                  disabled={page >= numberOfPages}
-                >
-                  Next ›
-                </UIGroup.ListTextInputItem.Button>
-              </>
-            }
-            {...kiaTextInputProps}
-          />
-          <UIGroup.ListItemSeparator />
-          <UIGroup.ListTextInputItem
-            label="Per Page"
-            horizontalLabel
-            keyboardType="number-pad"
-            returnKeyType="done"
-            value={perPage.toString()}
-            onChangeText={t => {
-              const n = parseInt(t, 10);
-              if (isNaN(n)) return;
-              if (n <= 0) return;
-
-              setPerPage(n);
-            }}
-            selectTextOnFocus
-            controlElement={
-              <>
-                {numberOfItemsPerPageList.map((n, i) => (
-                  <UIGroup.ListTextInputItem.Button
-                    key={i}
-                    onPress={() => setPerPage(n)}
-                  >
-                    {n.toString()}
-                  </UIGroup.ListTextInputItem.Button>
-                ))}
-              </>
-            }
-            {...kiaTextInputProps}
-          />
-        </UIGroup>
+        <UIGroupPaginator
+          perPage={perPage}
+          page={page}
+          numberOfPages={numberOfPages}
+          setPerPage={setPerPage}
+          setPage={setPage}
+          footer={`Offset: ${offset}, limit: ${limit}.`}
+          textInputProps={kiaTextInputProps}
+        />
       </ScreenContent.ScrollView>
     </ScreenContent>
   );
 }
 
 const styles = StyleSheet.create({
-  logListItem: {
+  logListItemContainer: {
     borderLeftWidth: 4,
   },
   smallText: {

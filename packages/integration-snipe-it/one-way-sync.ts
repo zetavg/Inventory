@@ -16,6 +16,10 @@ import fetch from 'node-fetch';
 import getCallbacks from '@deps/data/callbacks';
 import { DataTypeWithID, InvalidDataTypeWithID } from '@deps/data/types';
 import getValidation from '@deps/data/validation';
+import {
+  getGetAllAttachmentInfoFromDatum,
+  getSaveDatum,
+} from '@deps/data-storage-couchdb';
 import { getDocFromDatum } from '@deps/data-storage-couchdb/functions/couchdb-utils';
 import getGetConfig from '@deps/data-storage-couchdb/functions/getGetConfig';
 import getGetData from '@deps/data-storage-couchdb/functions/getGetData';
@@ -107,12 +111,18 @@ const getConfig = getGetConfig({ db });
 const getDatum = getGetDatum({ db });
 const getData = getGetData({ db });
 const getRelated = getGetRelated({ db });
+const saveDatum = getSaveDatum({ db });
+const getAllAttachmentInfoFromDatum = getGetAllAttachmentInfoFromDatum({
+  db,
+});
 
 const { beforeSave } = getCallbacks({
   getConfig,
   getDatum,
   getData,
   getRelated,
+  saveDatum,
+  getAllAttachmentInfoFromDatum,
 });
 const { validate } = getValidation({
   getConfig,

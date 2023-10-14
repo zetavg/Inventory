@@ -8,10 +8,43 @@
 
 import {
   flattenSelector,
+  getCouchDbId,
+  getDataIdFromCouchDbId,
   getDatumFromDoc,
   getDocFromDatum,
+  getTypeIdStartAndEndKey,
   sortObjectKeys,
 } from '../couchdb-utils';
+
+describe('getCouchDbId & getDataIdFromCouchDbId & getTypeIdStartAndEndKey', () => {
+  it('works', () => {
+    const couchdbId = getCouchDbId('item', 'test-id');
+    expect(couchdbId).toBe('item-test-id');
+
+    const { type, id } = getDataIdFromCouchDbId(couchdbId);
+    expect(type).toBe('item');
+    expect(id).toBe('test-id');
+
+    expect(getTypeIdStartAndEndKey('item')).toStrictEqual([
+      'item-',
+      'item-\uffff',
+    ]);
+  });
+
+  it('handles data type prefixes', () => {
+    const couchdbImageId = getCouchDbId('image', 'test-id');
+    expect(couchdbImageId).toBe('zz20-image-test-id');
+
+    const { type, id } = getDataIdFromCouchDbId(couchdbImageId);
+    expect(type).toBe('image');
+    expect(id).toBe('test-id');
+
+    expect(getTypeIdStartAndEndKey('image')).toStrictEqual([
+      'zz20-image-',
+      'zz20-image-\uffff',
+    ]);
+  });
+});
 
 describe('getDatumFromDoc & getDocFromDatum', () => {
   it('works', () => {

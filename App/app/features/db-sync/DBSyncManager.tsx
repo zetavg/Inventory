@@ -15,7 +15,8 @@ import useLogger from '@app/hooks/useLogger';
 
 import { DBSyncServerEditableData } from './slice';
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 2;
+const BATCHES_LIMIT = 2;
 
 type ServerData = DBSyncServerEditableData & {
   id: string;
@@ -373,7 +374,11 @@ export default function DBSyncManager() {
           startupSyncHandler = _startSync(
             localDB,
             remoteDB,
-            { live: false, batch_size: BATCH_SIZE },
+            {
+              live: false,
+              batch_size: BATCH_SIZE,
+              batches_limit: BATCHES_LIMIT,
+            },
             server,
             {
               onChange: assignSeqs,
@@ -411,7 +416,11 @@ export default function DBSyncManager() {
             syncHandler = _startSync(
               localDB,
               remoteDB,
-              { live: true, batch_size: BATCH_SIZE },
+              {
+                live: true,
+                batch_size: BATCH_SIZE,
+                batches_limit: BATCHES_LIMIT,
+              },
               server,
               {
                 onChange: payload => {

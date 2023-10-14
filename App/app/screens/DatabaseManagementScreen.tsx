@@ -29,6 +29,13 @@ function DatabaseManagementScreen({
         </UIGroup>
         <UIGroup>
           <UIGroup.ListItem
+            label="Images"
+            navigable
+            onPress={() => navigation.push('Images')}
+          />
+        </UIGroup>
+        <UIGroup>
+          <UIGroup.ListItem
             label="Fix Data Consistency"
             navigable
             onPress={() => rootNavigation?.push('FixDataConsistency')}

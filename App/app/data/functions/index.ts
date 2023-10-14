@@ -1,6 +1,10 @@
 import {
   CouchDBDoc,
+  getAttachAttachmentToDatum as couchdbGetAttachAttachmentToDatum,
   getDatumFromDoc as couchdbGetDatumFromDoc,
+  getGetAllAttachmentInfoFromDatum as couchdbGetGetAllAttachmentInfoFromDatum,
+  getGetAttachmentFromDatum as couchdbGetGetAttachmentFromDatum,
+  getGetAttachmentInfoFromDatum as couchdbGetGetAttachmentInfoFromDatum,
   getGetConfig as couchdbGetGetConfig,
   getGetData as couchdbGetGetData,
   getGetDataCount as couchdbGetGetDataCount,
@@ -54,4 +58,20 @@ export function getSaveDatum(ctx: GetContextArgs) {
 
 export function getUpdateConfig(ctx: GetContextArgs) {
   return couchdbGetUpdateConfig(getContext(ctx));
+}
+
+export function getAttachAttachmentToDatum(ctx: GetContextArgs) {
+  return couchdbGetAttachAttachmentToDatum(getContext(ctx));
+}
+
+export function getGetAttachmentInfoFromDatum(ctx: GetContextArgs) {
+  return couchdbGetGetAttachmentInfoFromDatum(getContext(ctx));
+}
+
+export function getGetAttachmentFromDatum(ctx: GetContextArgs) {
+  return couchdbGetGetAttachmentFromDatum(getContext(ctx));
+}
+
+export function getGetAllAttachmentInfoFromDatum(ctx: GetContextArgs) {
+  return couchdbGetGetAllAttachmentInfoFromDatum(getContext(ctx));
 }

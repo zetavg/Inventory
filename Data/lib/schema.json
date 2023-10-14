@@ -124,6 +124,28 @@
       },
       "required": [],
       "additionalProperties": true
+    },
+    "item_image": {
+      "type": "object",
+      "properties": {
+        "item_id": { "type": "string" },
+        "image_id": { "type": "string" },
+        "order": { "type": "integer" },
+        "_item_collection_id": { "type": "string" }
+      },
+      "required": ["item_id", "image_id"],
+      "additionalProperties": true
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "filename": { "type": "string" },
+        "size": { "type": "number" },
+        "_item_ids": { "type": "array", "items": { "type": "string" } },
+        "_item_collection_ids": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": [],
+      "additionalProperties": true
     }
   }
 }

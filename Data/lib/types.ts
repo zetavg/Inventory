@@ -1,3 +1,4 @@
+import { AttachmentContentType, AttachmentNameOfDataType } from './attachments';
 import {
   DataRelationName,
   DataRelationType,
@@ -136,3 +137,32 @@ export type SaveDatum = <T extends DataTypeName>(
     skipCallbacks?: boolean;
   },
 ) => Promise<DataMeta<T> & { [key: string]: unknown }>;
+
+export type AttachAttachmentToDatum = <
+  T extends DataTypeName,
+  N extends AttachmentNameOfDataType<T>,
+>(
+  d: DataMeta<T>,
+  attachmentName: N,
+  contentType: AttachmentContentType<T, N>,
+  data: string,
+) => Promise<DataType<T>>;
+
+export type GetAttachmentInfoFromDatum = <T extends DataTypeName>(
+  d: DataMeta<T>,
+  attachmentName: AttachmentNameOfDataType<T>,
+) => Promise<null | { content_type: string; size: number; digest?: string }>;
+export type GetAttachmentFromDatum = <T extends DataTypeName>(
+  d: DataMeta<T>,
+  attachmentName: AttachmentNameOfDataType<T>,
+) => Promise<null | {
+  content_type: string;
+  size: number;
+  digest?: string;
+  data: string | Blob | Buffer;
+}>;
+export type GetAllAttachmentInfoFromDatum = <T extends DataTypeName>(
+  d: DataMeta<T>,
+) => Promise<{
+  [name: string]: { content_type: string; size: number; digest?: string };
+}>;

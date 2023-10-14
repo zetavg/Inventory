@@ -3,16 +3,14 @@ import {
   Alert,
   LayoutAnimation,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import RNPickerSelect from 'react-native-picker-select';
 
-import { ZodError } from 'zod';
+import { v4 as uuid } from 'uuid';
 
 import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
@@ -33,9 +31,7 @@ import useColors from '@app/hooks/useColors';
 import useDeepCompare from '@app/hooks/useDeepCompare';
 import useLogger from '@app/hooks/useLogger';
 
-import DatePicker from '@app/components/DatePicker';
 import Icon, {
-  verifyIconColor,
   verifyIconColorWithDefault,
   verifyIconName,
   verifyIconNameWithDefault,
@@ -44,6 +40,7 @@ import ModalContent from '@app/components/ModalContent';
 import { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
+import EditImagesUI, { SaveImagesFn } from '../components/EditImagesUI';
 import IconInputUIGroup from '../components/IconInputUIGroup';
 import PlusAndMinusButtons from '../components/PlusAndMinusButtons';
 
@@ -88,6 +85,7 @@ function SaveItemScreen({
   >(
     () => ({
       __type: 'item',
+      __id: initialDataFromParams?.__id ? initialDataFromParams.__id : uuid(),
       icon_name: 'cube-outline',
       icon_color: 'gray',
       ...initialDataFromParams,
@@ -97,7 +95,10 @@ function SaveItemScreen({
   const [data, setData] = useState<
     DataMeta<'item'> & Partial<DataTypeWithID<'item'>>
   >(initialData);
-  const hasChanges = !useDeepCompare(initialData, data);
+
+  const editImagesUiHasChanges = useRef(false);
+  const hasChanges =
+    !useDeepCompare(initialData, data) || editImagesUiHasChanges.current;
 
   // const [selectedCollectionData, setSelectedCollectionData] = useState<
   //   null | string | { name: string; iconName: string; iconColor: string }
@@ -241,14 +242,43 @@ function SaveItemScreen({
   // );
 
   const isDone = useRef(false);
+  const [saveWorking, setSaveWorking] = useState(false);
+  const saveImagesFnRef = useRef<null | SaveImagesFn>(null);
   const handleSave = useCallback(async () => {
-    const savedData = await save(data);
+    setSaveWorking(true);
+    await new Promise(r => setTimeout(r, 10));
+    const savedData = await save(data, {
+      forceTouch: true,
+      ignoreConflict: true,
+    });
     if (savedData) {
-      isDone.current = true;
-      if (route.params.afterSave) {
-        route.params.afterSave(savedData);
+      if (!saveImagesFnRef.current) {
+        Alert.alert('Error', 'Cannot save item images: UI is not ready.');
+        setSaveWorking(false);
+        return;
       }
-      navigation.goBack();
+      if (!savedData.__id) {
+        Alert.alert(
+          'Error',
+          'Cannot save item images: Cannot get ID from item.',
+        );
+        setSaveWorking(false);
+        return;
+      }
+
+      const imagesSaved = await saveImagesFnRef.current({
+        savedItemId: savedData.__id,
+      });
+
+      if (imagesSaved) {
+        isDone.current = true;
+        if (route.params.afterSave) {
+          route.params.afterSave(savedData);
+        }
+        navigation.goBack();
+      }
+
+      setSaveWorking(false);
     }
   }, [data, navigation, route.params, save]);
 
@@ -497,7 +527,7 @@ function SaveItemScreen({
     >
       <ModalContent.ScrollView ref={scrollViewRef}>
         <UIGroup.FirstGroupSpacing />
-        <UIGroup>
+        <UIGroup loading={saveWorking}>
           <UIGroup.ListTextInputItem
             ref={nameInputRef}
             label="Name"
@@ -670,7 +700,7 @@ function SaveItemScreen({
         </UIGroup>
 
         {data.item_type === 'consumable' && (
-          <UIGroup>
+          <UIGroup loading={saveWorking}>
             <UIGroup.ListTextInputItem
               label="Stock Quantity"
               horizontalLabel
@@ -729,6 +759,7 @@ function SaveItemScreen({
         )}
 
         <UIGroup
+          loading={saveWorking}
           footer={(() => {
             if (isFromSharedDb) {
               return 'You can not edit the reference number of a shared item.';
@@ -821,6 +852,7 @@ function SaveItemScreen({
         </UIGroup>
 
         <UIGroup
+          loading={saveWorking}
           footer={(() => {
             if (uiShowDetailedInstructions && !data.container_id) {
               return 'Select a container to let this item be a part of another item, or to be stored fixedly in a certain container, such as a toolbox.';
@@ -871,7 +903,14 @@ function SaveItemScreen({
           }}
         />
 
-        <UIGroup>
+        <EditImagesUI
+          itemId={data.__id}
+          loading={saveWorking}
+          saveFnRef={saveImagesFnRef}
+          hasChangesRef={editImagesUiHasChanges}
+        />
+
+        <UIGroup loading={saveWorking}>
           <UIGroup.ListTextInputItem
             label="Notes"
             placeholder="Enter Notes..."
@@ -888,7 +927,7 @@ function SaveItemScreen({
           />
         </UIGroup>
 
-        <UIGroup>
+        <UIGroup loading={saveWorking}>
           <UIGroup.ListTextInputItem
             label="Model Name"
             placeholder="Enter Model Name"
@@ -1037,7 +1076,7 @@ function SaveItemScreen({
             {...kiaTextInputProps}
           />
         </UIGroup>
-        <UIGroup>
+        <UIGroup loading={saveWorking}>
           <UIGroup.ListTextInputItem
             label="Expiry Date"
             horizontalLabel
@@ -1111,6 +1150,7 @@ function SaveItemScreen({
         {showAdvanced && (
           <>
             <UIGroup
+              loading={saveWorking}
               footer={
                 uiShowDetailedInstructions
                   ? `By default, the Individual Asset Reference will be generated by connecting the collection reference number, the item reference number, and the item's serial${
@@ -1190,6 +1230,7 @@ function SaveItemScreen({
               />
             </UIGroup>
             <UIGroup
+              loading={saveWorking}
               footer={
                 uiShowDetailedInstructions
                   ? `By default, the RFID EPC Tag URI will be generated with the IAR, prefixed with your IAR prefix and Company Prefix${
@@ -1244,6 +1285,7 @@ function SaveItemScreen({
               )}
             </UIGroup>
             <UIGroup
+              loading={saveWorking}
               footer={
                 uiShowDetailedInstructions
                   ? `The EPC Hex is the actual value that will be written into the EPC bank of the RFID tag. By default, it's the hex-encoded EPC Tag URI${
@@ -1304,7 +1346,7 @@ function SaveItemScreen({
         )}
 
         {!!initialData.__id && (
-          <UIGroup>
+          <UIGroup loading={saveWorking}>
             <UIGroup.ListItem
               button
               destructive

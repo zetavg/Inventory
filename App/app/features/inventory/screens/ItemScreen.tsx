@@ -58,6 +58,7 @@ import ScreenContent from '@app/components/ScreenContent';
 import Text from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
+import ImagesSliderBox from '../components/ImagesSliderBox';
 import ItemListItem from '../components/ItemListItem';
 import PlusAndMinusButtons from '../components/PlusAndMinusButtons';
 import StockStatusIcon from '../components/StockStatusIcon';
@@ -111,6 +112,22 @@ function ItemScreen({
     refresh: refreshContainer,
     refreshing: containerRefreshing,
   } = useRelated(data, 'container');
+  const {
+    data: itemImages,
+    loading: itemImagesLoading,
+    refresh: refreshItemImages,
+    refreshing: itemImagesRefreshing,
+  } = useRelated(data, 'item_images', { sort: [{ order: 'asc' }] });
+  const imageIds = useMemo(
+    () =>
+      (itemImages || [])
+        .map(ii => ii.image_id)
+        .filter((imgId): imgId is string => typeof imgId === 'string'),
+    [itemImages],
+  );
+  useEffect(() => {
+    LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+  }, [imageIds]);
   const isFromSharedDb =
     !config || !data
       ? null
@@ -145,14 +162,21 @@ function ItemScreen({
     refreshCollection();
     refreshContainer();
     refreshContents();
+    refreshItemImages();
     setReloadCounter(v => v + 1);
-  }, [refreshCollection, refreshData, refreshContainer, refreshContents]);
+  }, [
+    refreshData,
+    refreshCollection,
+    refreshContainer,
+    refreshContents,
+    refreshItemImages,
+  ]);
   const refreshing =
     dataRefreshing ||
     collectionRefreshing ||
     containerRefreshing ||
-    contentsRefreshing;
-
+    contentsRefreshing ||
+    itemImagesRefreshing;
   useFocusEffect(
     useCallback(() => {
       setReloadCounter(v => v + 1);
@@ -323,6 +347,12 @@ function ItemScreen({
         return 'Contents';
     }
   })();
+
+  const canContainItems =
+    typeof data?.item_type === 'string' &&
+    ['container', 'generic_container', 'item_with_parts'].includes(
+      data.item_type,
+    );
 
   // Cannot write RFID tag for shared item because we don't know the password
   const canWriteRfidTag = isFromSharedDb !== null && !isFromSharedDb;
@@ -814,81 +844,88 @@ function ItemScreen({
           </UIGroup>
         )}
 
-        {typeof data?.item_type === 'string' &&
-          ['container', 'generic_container', 'item_with_parts'].includes(
-            data.item_type,
-          ) && (
-            <>
-              {(orderedContents || []).length > 0 && (
-                <UIGroup transparentBackground>
-                  <Button
-                    mode={Platform.OS === 'ios' ? 'text' : 'contained-tonal'}
-                    onPress={handleCheckContents}
-                  >
-                    {({ textProps, iconProps }) => (
-                      <>
-                        <Icon {...iconProps} name="checklist" />
-                        <Text {...textProps}>Check {dedicatedItemsName}</Text>
-                      </>
-                    )}
-                  </Button>
-                </UIGroup>
-              )}
-              <UIGroup
-                largeTitle
-                header={dedicatedItemsName}
-                loading={contentsLoading}
-                placeholder={contentsLoading ? undefined : 'No items'}
-                headerRight={
-                  <>
-                    {!!orderedContents && (
-                      <UIGroup.TitleButton
-                        onPress={() =>
-                          rootNavigation?.push('OrderItems', {
-                            orderedItems: orderedContents,
-                            onSaveFunctionRef: handleUpdateContentsOrderFnRef,
-                          })
-                        }
-                      >
-                        {({ iconProps }) => (
-                          <Icon {...iconProps} name="app-reorder" />
-                        )}
-                      </UIGroup.TitleButton>
-                    )}
-                    <UIGroup.TitleButton primary onPress={handleNewContent}>
-                      {({ iconProps, textProps }) => (
-                        <>
-                          <Icon {...iconProps} name="add" />
-                          <Text {...textProps}>New</Text>
-                        </>
+        {canContainItems && (
+          <>
+            {(orderedContents || []).length > 0 && (
+              <UIGroup transparentBackground>
+                <Button
+                  mode={Platform.OS === 'ios' ? 'text' : 'contained-tonal'}
+                  onPress={handleCheckContents}
+                >
+                  {({ textProps, iconProps }) => (
+                    <>
+                      <Icon {...iconProps} name="checklist" />
+                      <Text {...textProps}>Check {dedicatedItemsName}</Text>
+                    </>
+                  )}
+                </Button>
+              </UIGroup>
+            )}
+            <UIGroup
+              largeTitle
+              header={dedicatedItemsName}
+              loading={contentsLoading}
+              placeholder={contentsLoading ? undefined : 'No items'}
+              headerRight={
+                <>
+                  {!!orderedContents && (
+                    <UIGroup.TitleButton
+                      onPress={() =>
+                        rootNavigation?.push('OrderItems', {
+                          orderedItems: orderedContents,
+                          onSaveFunctionRef: handleUpdateContentsOrderFnRef,
+                        })
+                      }
+                    >
+                      {({ iconProps }) => (
+                        <Icon {...iconProps} name="app-reorder" />
                       )}
                     </UIGroup.TitleButton>
-                  </>
-                }
-              >
-                {!!orderedContents &&
-                  orderedContents.length > 0 &&
-                  UIGroup.ListItemSeparator.insertBetween(
-                    orderedContents.map(i => (
-                      <ItemListItem
-                        key={i.__id}
-                        item={i}
-                        onPress={() =>
-                          navigation.push('Item', {
-                            id: i.__id || '',
-                            preloadedTitle: i.name,
-                          })
-                        }
-                        hideContainerDetails
-                        hideCollectionDetails={
-                          i.collection_id === data.collection_id
-                        }
-                      />
-                    )),
                   )}
-              </UIGroup>
-            </>
-          )}
+                  <UIGroup.TitleButton primary onPress={handleNewContent}>
+                    {({ iconProps, textProps }) => (
+                      <>
+                        <Icon {...iconProps} name="add" />
+                        <Text {...textProps}>New</Text>
+                      </>
+                    )}
+                  </UIGroup.TitleButton>
+                </>
+              }
+            >
+              {!!orderedContents &&
+                orderedContents.length > 0 &&
+                UIGroup.ListItemSeparator.insertBetween(
+                  orderedContents.map(i => (
+                    <ItemListItem
+                      key={i.__id}
+                      item={i}
+                      onPress={() =>
+                        navigation.push('Item', {
+                          id: i.__id || '',
+                          preloadedTitle: i.name,
+                        })
+                      }
+                      hideContainerDetails
+                      hideCollectionDetails={
+                        i.collection_id === data.collection_id
+                      }
+                    />
+                  )),
+                )}
+            </UIGroup>
+          </>
+        )}
+
+        {!!imageIds && imageIds.length > 0 && (
+          <UIGroup
+            header={canContainItems ? 'Pictures' : undefined}
+            largeTitle
+            style={styles.picturesBox}
+          >
+            <ImagesSliderBox imageIds={imageIds} ratio={0.8} />
+          </UIGroup>
+        )}
 
         {typeof data?.notes === 'string' && !!data?.notes && (
           <UIGroup header="Notes" largeTitle>
@@ -1364,6 +1401,9 @@ const styles = StyleSheet.create({
   unitText: {
     opacity: 0.5,
     fontSize: 14,
+  },
+  picturesBox: {
+    minHeight: 0,
   },
 });
 

@@ -361,6 +361,30 @@ export default function getValidation({
 
           break;
         }
+
+        case 'item_image': {
+          if (typeof datum.item_id === 'string') {
+            const item = await getDatum('item', datum.item_id);
+            if (!item) {
+              issues.push({
+                code: 'custom',
+                path: ['item_id'],
+                message: `Can't find item with ID "${datum.item_id}"`,
+              });
+            }
+          }
+
+          if (typeof datum.image_id === 'string') {
+            const image = await getDatum('image', datum.image_id);
+            if (!image) {
+              issues.push({
+                code: 'custom',
+                path: ['image_id'],
+                message: `Can't find image with ID "${datum.image_id}"`,
+              });
+            }
+          }
+        }
       }
 
       return issues;
