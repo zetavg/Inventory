@@ -41,6 +41,8 @@ target 'Inventory' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Nightly', 'Release']
+
   target 'InventoryTests' do
     inherit! :complete
     # Pods for testing
