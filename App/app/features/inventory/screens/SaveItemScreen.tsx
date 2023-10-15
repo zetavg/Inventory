@@ -80,6 +80,8 @@ function SaveItemScreen({
 
   const { contentTextColor, contentSecondaryTextColor } = useColors();
 
+  const isExistingItem = !!initialDataFromParams?.__id;
+
   const initialData = useMemo<
     DataMeta<'item'> & Partial<DataTypeWithID<'item'>>
   >(
@@ -522,7 +524,7 @@ function SaveItemScreen({
       navigation={navigation}
       preventClose={hasChanges}
       confirmCloseFn={handleLeave}
-      title={`${initialData.__id ? 'Edit' : 'New'} Item`}
+      title={`${isExistingItem ? 'Edit' : 'New'} Item`}
       action1Label="Save"
       action1MaterialIconName="check"
       action1Variant="strong"
@@ -1371,7 +1373,7 @@ function SaveItemScreen({
           </>
         )}
 
-        {!!initialData.__id && (
+        {isExistingItem && (
           <UIGroup loading={saveWorking}>
             <UIGroup.ListItem
               button
