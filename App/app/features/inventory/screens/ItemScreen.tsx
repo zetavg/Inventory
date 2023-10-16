@@ -1330,7 +1330,7 @@ function StockQuantityInputs({
   return (
     <>
       <UIGroup.ListTextInputItem
-        label="Stock Quantity"
+        label="Stock Qty"
         horizontalLabel
         keyboardType="number-pad"
         selectTextOnFocus
@@ -1342,6 +1342,11 @@ function StockQuantityInputs({
                 ? consumableStockQuantity
                 : 1
               ).toString()
+        }
+        unit={
+          typeof item.consumable_stock_quantity_unit === 'string'
+            ? item.consumable_stock_quantity_unit || 'units'
+            : 'units'
         }
         onChangeText={setStockQuantityTextInputValue}
         onBlur={updateStockQuantityFromInput}

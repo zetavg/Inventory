@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   LayoutAnimation,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -709,12 +710,12 @@ function SaveItemScreen({
         {data.item_type === 'consumable' && (
           <UIGroup loading={saveWorking}>
             <UIGroup.ListTextInputItem
-              label="Stock Quantity"
+              label="Stock Qty"
               horizontalLabel
               keyboardType="number-pad"
               placeholder="1"
               returnKeyType="done"
-              clearButtonMode="while-editing"
+              // clearButtonMode="while-editing"
               selectTextOnFocus
               value={data.consumable_stock_quantity?.toString()}
               onChangeText={t => {
@@ -725,6 +726,38 @@ function SaveItemScreen({
                   consumable_stock_quantity: n,
                 }));
               }}
+              unit={
+                typeof data.consumable_stock_quantity_unit === 'string'
+                  ? data.consumable_stock_quantity_unit || 'units'
+                  : 'units'
+              }
+              onUnitPress={
+                Platform.OS === 'ios'
+                  ? () => {
+                      Alert.prompt(
+                        'Set Unit',
+                        'Enter the stock quantity unit:',
+                        [
+                          {
+                            text: 'Ok',
+                            onPress: unit => {
+                              setData(d => ({
+                                ...d,
+                                consumable_stock_quantity_unit:
+                                  unit?.trim() || undefined,
+                              }));
+                            },
+                            isPreferred: true,
+                            style: 'default',
+                          },
+                          { text: 'Cancel', style: 'cancel' },
+                        ],
+                        'plain-text',
+                        data.consumable_stock_quantity_unit,
+                      );
+                    }
+                  : undefined // TODO: Android support
+              }
               controlElement={
                 <View style={commonStyles.ml8}>
                   <PlusAndMinusButtons

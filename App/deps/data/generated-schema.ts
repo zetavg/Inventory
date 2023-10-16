@@ -88,6 +88,7 @@ export const schema = {
       purchase_date: z.number().optional(),
       expiry_date: z.number().optional(),
       consumable_stock_quantity: z.number().optional(),
+      consumable_stock_quantity_unit: z.string().optional(),
       consumable_will_not_restock: z.boolean().optional(),
       use_first_image_as_icon: z.boolean().optional(),
       contents_order: z.array(z.string()).optional(),
