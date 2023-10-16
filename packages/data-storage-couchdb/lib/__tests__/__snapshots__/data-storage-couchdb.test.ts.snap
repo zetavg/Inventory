@@ -19,6 +19,7 @@ exports[`fixDataConsistency works: fixDataConsistencyResults-item 1`] = `
 {
   "done": 11,
   "total": 11,
+  "updated": 1,
 }
 `;
 

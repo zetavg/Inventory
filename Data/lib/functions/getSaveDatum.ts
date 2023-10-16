@@ -42,7 +42,7 @@ export default function getSaveDatum({
       | ValidDataTypeWithID<DataTypeName>
       | InvalidDataTypeWithID<DataTypeName>
       | null,
-  ) => Promise<void>;
+  ) => Promise<DataMeta<DataTypeName> & { [key: string]: unknown }>;
   deleteDatum: (
     d: DataMeta<DataTypeName> & { [key: string]: unknown },
   ) => Promise<void>;
@@ -118,7 +118,11 @@ export default function getSaveDatum({
           dataToSave.__updated_at = new Date().getTime();
         }
 
-        await writeDatum(dataToSave, existingData);
+        const newData = await writeDatum(dataToSave, existingData);
+        dataToSave = {
+          ...dataToSave,
+          ...(newData as any),
+        };
       } else {
         // Delete
         if (typeof dataToSave.__id !== 'string') {

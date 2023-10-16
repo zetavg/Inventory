@@ -223,6 +223,19 @@ function MainScreen({
   if (progressRef) {
     progressRef.current = progress;
   }
+  const progressUpdatedEntries = useMemo(() => {
+    if (progress === null) return [];
+
+    const entries = Object.entries(progress).filter(([_, p]) => p.updated);
+
+    if (entries.length !== prevProgressUpdatedEntries?.current.length) {
+      LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+    }
+
+    return entries;
+  }, [progress]);
+  const prevProgressUpdatedEntries = useRef(progressUpdatedEntries);
+  prevProgressUpdatedEntries.current = progressUpdatedEntries;
   const progressErroredEntries = useMemo(() => {
     if (progress === null) return [];
 
@@ -377,6 +390,24 @@ function MainScreen({
                   key={type}
                   label={getHumanName(type, { titleCase: true, plural: true })}
                   detail={`${p.done}/${p.total}`}
+                />
+              )),
+              { color: listItemSeparatorColor },
+            )}
+          </UIGroup>
+        )}
+
+        {progressUpdatedEntries.length > 0 && (
+          <UIGroup
+            header="Updated Items"
+            style={{ backgroundColor: contentBackgroundColor }}
+          >
+            {UIGroup.ListItemSeparator.insertBetween(
+              progressUpdatedEntries.map(([type, p]) => (
+                <UIGroup.ListItem
+                  key={type}
+                  label={getHumanName(type, { titleCase: true, plural: true })}
+                  detail={p.updated}
                 />
               )),
               { color: listItemSeparatorColor },

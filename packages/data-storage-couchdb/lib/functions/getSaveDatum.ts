@@ -82,9 +82,17 @@ export default function getSaveDatum(context: Context): SaveDatum {
       const rawDoc = d?.__raw || {};
 
       if (dbType === 'pouchdb') {
-        await db.put({ ...origDoc, ...rawDoc, ...doc });
+        const { rev } = await db.put({ ...origDoc, ...rawDoc, ...doc });
+        return {
+          ...d,
+          __rev: rev,
+        };
       } else {
-        await db.insert({ ...origDoc, ...rawDoc, ...doc });
+        const { rev } = await db.insert({ ...origDoc, ...rawDoc, ...doc });
+        return {
+          ...d,
+          __rev: rev,
+        };
       }
     },
     deleteDatum: async d => {

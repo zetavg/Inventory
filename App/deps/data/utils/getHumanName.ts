@@ -18,8 +18,6 @@ export default function getHumanName(
     titleCase: false,
   },
 ) {
-  // const typeParts = type.split('-');
-  // let name = typeParts[typeParts.length - 1];
   let name = type;
 
   if (plural) {

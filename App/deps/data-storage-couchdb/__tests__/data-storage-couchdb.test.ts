@@ -910,6 +910,31 @@ describe('getDataCount', () => {
 });
 
 describe('saveDatum', () => {
+  it('returns the data with new __rev', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const d1 = await d.saveDatum({
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      expect(d1.__rev).toBeTruthy();
+
+      const d2 = await d.saveDatum(d1);
+      expect(d2.__rev).toEqual(d1.__rev); // Nothing changes
+
+      const d3 = await d.saveDatum({
+        ...d2,
+        name: 'Collection Updated',
+      });
+      expect(d3.__rev).not.toEqual(d2.__rev);
+    });
+  });
+
   it('validates the data', async () => {
     await withContext(async context => {
       const d = new CouchDBData(context);

@@ -14,6 +14,7 @@ export type Progress = Record<
   {
     total: number;
     done: number;
+    updated?: number;
     errored?: number;
     errors?: Array<{ type: string; id: string; error: unknown }>;
   }
@@ -36,7 +37,9 @@ export default async function* fixDataConsistency({
   for (const typeName of DATA_TYPE_NAMES) {
     const dataCount = await getDataCount(typeName);
     progress[typeName].total = dataCount;
+  }
 
+  for (const typeName of DATA_TYPE_NAMES) {
     let ended = false;
     let batch = 0;
     while (!ended) {
@@ -53,7 +56,10 @@ export default async function* fixDataConsistency({
 
       for (const d of data) {
         try {
-          await saveDatum(d, { noTouch: true });
+          const nd = await saveDatum(d, { noTouch: true });
+          if (nd.__rev !== d.__rev) {
+            progress[typeName].updated = (progress[typeName].updated || 0) + 1;
+          }
         } catch (e) {
           progress[typeName].errored = (progress[typeName].errored || 0) + 1;
           if (!Array.isArray(progress[typeName].errors)) {
