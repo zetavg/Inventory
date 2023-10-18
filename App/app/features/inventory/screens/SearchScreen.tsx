@@ -262,6 +262,19 @@ function SearchScreen({
                     )),
                     { forItemWithIcon: true },
                   )}
+                  <UIGroup.ListItemSeparator />
+                  <UIGroup.ListItem
+                    label="View More"
+                    navigable
+                    onPress={() =>
+                      navigation.push('Items', {
+                        conditions: {},
+                        sortOptions: {
+                          'Date Modified': [{ __updated_at: 'desc' }],
+                        },
+                      })
+                    }
+                  />
                 </UIGroup>
               )}
             </>
