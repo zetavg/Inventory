@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { LayoutAnimation } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
@@ -9,6 +9,7 @@ import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 import { selectors, useAppSelector } from '@app/redux';
 
 import { useDataCount } from '@app/data';
+import useView from '@app/data/hooks/useView';
 
 import commonStyles from '@app/utils/commonStyles';
 import humanFileSize from '@app/utils/humanFileSize';
@@ -35,6 +36,17 @@ function StatisticsScreen({
     {},
     {},
   );
+
+  const { data: purchasePriceSumsData } = useView('purchase_price_sums', {});
+  const purchasePriceSums = useMemo(() => {
+    if (!purchasePriceSumsData) return null;
+    if (typeof purchasePriceSumsData !== 'object') return null;
+    const rows = (purchasePriceSumsData as any).rows;
+    if (!Array.isArray(rows)) return null;
+    if (!rows[0]) return null;
+    if (typeof rows[0].value !== 'object') return null;
+    return rows[0].value;
+  }, [purchasePriceSumsData]);
 
   const [dbSizeInfo, setDbSizeInfo] = useState<null | {
     db: number;
@@ -111,7 +123,7 @@ function StatisticsScreen({
           </TableView.Item>
         </TableView.Section>
 
-        <TableView.Section label="Item Count">
+        <TableView.Section label="Data Count">
           <TableView.Item
             detail={
               typeof collectionsCount === 'number'
@@ -140,6 +152,36 @@ function StatisticsScreen({
             Images
           </TableView.Item>
         </TableView.Section>
+
+        {!!purchasePriceSums && typeof purchasePriceSums === 'object' && (
+          <TableView.Section label="Item Purchased Total Value">
+            {Object.entries(purchasePriceSums).map(([currency, value]) => (
+              <TableView.Item
+                key={currency}
+                detail={
+                  typeof value === 'number'
+                    ? (value / 1000).toLocaleString()
+                    : 'Error'
+                }
+                arrow
+                onPress={() =>
+                  navigation.push('Items', {
+                    conditions: { purchase_price_currency: currency },
+                    sortOptions: {
+                      'Unit Price': [{ purchase_price_x1000: 'asc' }],
+                    },
+                    getItemDetailText: item =>
+                      `${item.purchase_price_currency} ${(
+                        (item.purchase_price_x1000 || 0) / 1000
+                      ).toLocaleString()}`,
+                  })
+                }
+              >
+                {currency}
+              </TableView.Item>
+            ))}
+          </TableView.Section>
+        )}
       </TableView>
     </ScreenContent>
   );

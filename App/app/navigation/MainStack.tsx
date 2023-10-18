@@ -21,12 +21,14 @@ import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
 import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
 import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
+import ItemsScreen from '@app/features/inventory/screens/ItemsScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import StatisticsScreen from '@app/features/inventory/screens/StatisticsScreen';
 import LabelPrintersScreen from '@app/features/label-printers/screens/LabelPrintersScreen';
 import UIAndAppearanceSettingsScreen from '@app/features/settings/screens/UIAndAppearanceSettingsScreen';
 
-import { DataTypeName } from '@app/data';
+import { DataType, DataTypeName } from '@app/data';
+import { GetDataConditions, SortOption } from '@app/data/types';
 
 import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
@@ -75,6 +77,11 @@ export type StackParamList = {
   Collections: undefined;
   Collection: { id: string; preloadedTitle?: string };
   Item: { id: string; preloadedTitle?: string };
+  Items: {
+    conditions: Partial<DataType<'item'>>;
+    sortOptions: { [shownName: string]: SortOption<DataType<'item'>> };
+    getItemDetailText?: (item: DataType<'item'>) => string;
+  };
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
@@ -298,6 +305,7 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Collections" component={CollectionsScreen} />
       <Stack.Screen name="Collection" component={CollectionScreen} />
       <Stack.Screen name="Item" component={ItemScreen} />
+      <Stack.Screen name="Items" component={ItemsScreen} />
       <Stack.Screen name="Checklists" component={ChecklistsScreen} />
       <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />
