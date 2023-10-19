@@ -1,97 +1,76 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+
+import { diff } from 'deep-object-diff';
+
+import {
+  GetViewDataOptions,
+  ViewDataType,
+  ViewName,
+} from '@deps/data-storage-couchdb';
 
 import { useDB } from '@app/db';
 
 import useLogger from '@app/hooks/useLogger';
 
-import DB_VIEWS, { DB_VIEWS_PREFIX } from '../db_views';
-import { DataTypeName } from '../schema';
-import {
-  GetDataConditions,
-  InvalidDataTypeWithID,
-  ValidDataTypeWithID,
-} from '../types';
+import { getGetViewData } from '../functions';
 
-export default function useView<
-  T extends DataTypeName,
-  CT extends GetDataConditions<T> | string,
->(
-  viewName: keyof typeof DB_VIEWS,
-  {
-    key,
-    disable,
-    startWithLoadingState,
-    showAlertOnError,
-  }: {
-    key?: string | ReadonlyArray<string>;
+export default function useView<T extends ViewName>(
+  viewName: T,
+  options: GetViewDataOptions & {
     disable?: boolean;
     startWithLoadingState?: boolean;
     showAlertOnError?: boolean;
   } = {},
 ): {
   loading: boolean;
-  data: unknown;
+  data: null | ViewDataType<T>;
   reload: () => Promise<void>;
   refresh: () => Promise<void>;
   refreshing: boolean;
 } {
+  const [cachedOptions, setCachedOptions] = useState(options);
+  useEffect(() => {
+    if (
+      Object.keys(diff(options as any, cachedOptionsRef.current as any))
+        .length > 0
+    ) {
+      setCachedOptions(options);
+    }
+  }, [options]);
+  const cachedOptionsRef = useRef(cachedOptions);
+  cachedOptionsRef.current = cachedOptions;
+
   const logger = useLogger('useView', viewName);
   const { db } = useDB();
 
-  const [loading, setLoading] = useState(!disable || !!startWithLoadingState);
+  const [loading, setLoading] = useState(
+    !cachedOptions.disable || !!cachedOptions.startWithLoadingState,
+  );
 
-  const [data, setData] = useState<unknown | null>(null);
+  const [data, setData] = useState<null | ViewDataType<T>>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
 
   const hasLoaded = useRef(false);
   const loadData = useCallback(async () => {
     if (!db) return;
+    const getViewData = getGetViewData({ db, logger });
 
     try {
-      let retries = 0;
-      while (true) {
-        try {
-          const results = await db.query(`${DB_VIEWS_PREFIX}_${viewName}`, {
-            key,
-            include_docs: false,
-          });
-          setData(results);
-          return;
-        } catch (e) {
-          if (retries > 3) {
-            throw e;
-          }
-
-          if (e instanceof Error && e.message === 'missing') {
-            try {
-              await db.put({
-                _id: `_design/${DB_VIEWS_PREFIX}_${viewName}`,
-                views: {
-                  [`${DB_VIEWS_PREFIX}_${viewName}`]: DB_VIEWS[viewName],
-                },
-              });
-            } catch (ee) {
-              logger.error(ee);
-            }
-          } else {
-            throw e;
-          }
-          retries += 1;
-        }
-      }
+      const d = await getViewData(viewName, cachedOptions);
+      setData(d);
     } catch (e) {
-      logger.error(e, { showAlert: showAlertOnError });
+      logger.error(e, { showAlert: cachedOptions.showAlertOnError });
     } finally {
       setLoading(false);
       hasLoaded.current = true;
     }
-  }, [db, logger, showAlertOnError, viewName]);
+  }, [db, logger, cachedOptions, viewName]);
 
   useFocusEffect(
     useCallback(() => {
-      if (disable) return;
+      if (cachedOptions.disable) return;
 
       if (!dataRef.current) {
         loadData();
@@ -100,7 +79,7 @@ export default function useView<
           loadData();
         }, 0);
       }
-    }, [disable, loadData]),
+    }, [cachedOptions.disable, loadData]),
   );
 
   const [refreshing, setRefreshing] = useState(false);

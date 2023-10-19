@@ -29,6 +29,7 @@ import UIGroup from '@app/components/UIGroup';
 import CollectionListItem from '../components/CollectionListItem';
 import ItemListItem from '../components/ItemListItem';
 import SEARCH_OPTIONS from '../consts/SEARCH_OPTIONS';
+import ItemListItemById from '../components/ItemListItemById';
 
 type SearchResultItem = {
   highlight: React.ComponentProps<typeof UIGroup.ListItem>['detail'] | null;
@@ -323,33 +324,6 @@ function SearchScreen({
       </ScreenContent.ScrollView>
     </ScreenContent>
   );
-}
-
-function ItemListItemById({
-  id,
-  onPress,
-}: {
-  id: string;
-  onPress: () => void;
-}) {
-  const { data } = useData('item', id);
-
-  if (!data) {
-    return (
-      <UIGroup.ListItem
-        disabled
-        label="Loading..."
-        icon="cube-outline"
-        iconColor="transparent"
-      />
-    );
-  }
-
-  if (!data.__valid) {
-    return <UIGroup.ListItem disabled label={id} />;
-  }
-
-  return <ItemListItem item={data} onPress={onPress} hideContentDetails />;
 }
 
 function getHighlightFromStr(

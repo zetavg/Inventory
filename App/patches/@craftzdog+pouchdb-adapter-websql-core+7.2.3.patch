@@ -22,3 +22,27 @@ index ad8445d..8454316 100644
        ' (digest, body, escaped) VALUES (?,?,1)';
        tx.executeSql(sql, [digest, escapeBlob(data)], function () {
          callback();
+diff --git a/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/index.js b/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/index.js
+index 16620cd..dd3b47e 100644
+--- a/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/index.js
++++ b/node_modules/@craftzdog/pouchdb-adapter-websql-core/src/index.js
+@@ -226,7 +226,8 @@ function WebSqlPouch(opts, callback) {
+           }
+           var row = rows.shift();
+           var rev = JSON.parse(row.data)._rev;
+-          tx.executeSql('INSERT INTO ' + LOCAL_STORE +
++          // Use 'INSERT OR REPLACE INTO' to fix "UNIQUE constraint failed" error
++          tx.executeSql('INSERT OR REPLACE INTO ' + LOCAL_STORE +
+               ' (id, rev, json) VALUES (?,?,?)',
+               [row.id, rev, row.data], function (tx) {
+             tx.executeSql('DELETE FROM ' + DOC_STORE + ' WHERE id=?',
+@@ -1090,7 +1091,8 @@ function WebSqlPouch(opts, callback) {
+           'WHERE id=? AND rev=?';
+         values = [newRev, json, id, oldRev];
+       } else {
+-        sql = 'INSERT INTO ' + LOCAL_STORE + ' (id, rev, json) VALUES (?,?,?)';
++        // Use 'INSERT OR REPLACE INTO' to fix "UNIQUE constraint failed" error
++        sql = 'INSERT OR REPLACE INTO ' + LOCAL_STORE + ' (id, rev, json) VALUES (?,?,?)';
+         values = [id, newRev, json];
+       }
+       tx.executeSql(sql, values, function (tx, res) {

@@ -87,6 +87,7 @@ function InsetGroup(
                   case 'large':
                     return [
                       styles.groupTitleLarge,
+                      styles.groupTitleLargeText,
                       { color: contentTextColor },
                     ];
 
@@ -684,6 +685,8 @@ export const styles = StyleSheet.create({
   groupTitleLarge: {
     marginRight: 4,
     flex: 1,
+  },
+  groupTitleLargeText: {
     fontSize: 20,
     fontWeight: '700',
   },

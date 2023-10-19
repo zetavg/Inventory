@@ -21,7 +21,10 @@ function SelectCurrencyModalScreen({
   const [value, setValue] = useState(defaultValue);
   const [search, setSearch] = useState('');
 
-  const currencies = useMemo(() => ['USD', 'TWD'], []);
+  const currencies = useMemo(
+    () => ['USD', 'TWD', 'EUR', 'GBP', 'JPY', 'KRW', 'CNY'],
+    [],
+  );
 
   const currenciesToShow = useMemo(() => {
     if (search) {

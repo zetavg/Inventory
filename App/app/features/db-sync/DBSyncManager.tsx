@@ -363,7 +363,7 @@ export default function DBSyncManager() {
 
       return syncHandler;
     },
-    [dispatch, logger],
+    [dispatch, logger, updateSyncProgress],
   );
 
   const startSync = useCallback(

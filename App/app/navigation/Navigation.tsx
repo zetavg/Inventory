@@ -490,7 +490,7 @@ function TabNavigator() {
       >
         <Tab.Screen
           name="DashboardTab"
-          children={() => <MainStack initialRouteName="More" />}
+          children={() => <MainStack initialRouteName="Dashboard" />}
           options={{
             title: 'Dashboard',
             // eslint-disable-next-line react/no-unstable-nested-components

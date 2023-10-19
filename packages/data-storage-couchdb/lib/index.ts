@@ -8,9 +8,16 @@ import getGetData from './functions/getGetData';
 import getGetDataCount from './functions/getGetDataCount';
 import getGetDatum from './functions/getGetDatum';
 import getGetRelated from './functions/getGetRelated';
+import getGetViewData from './functions/getGetViewData';
 import getSaveDatum from './functions/getSaveDatum';
 import getUpdateConfig from './functions/getUpdateConfig';
 import CouchDBData from './CouchDBData';
+export type {
+  GetViewData,
+  GetViewDataOptions,
+  ViewDataType,
+  ViewName,
+} from './functions/getGetViewData';
 export type { Context, CouchDBDoc, Logger } from './functions/types';
 export {
   CouchDBData,
@@ -24,6 +31,7 @@ export {
   getGetDataCount,
   getGetDatum,
   getGetRelated,
+  getGetViewData,
   getSaveDatum,
   getUpdateConfig,
 };

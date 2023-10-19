@@ -22,11 +22,12 @@ export type UIGroupProps = {
   header?: string | JSX.Element;
   footer?: string | JSX.Element;
   largeTitle?: boolean;
-  headerRight?: JSX.Element;
+  headerRight?: string | JSX.Element;
   transparentBackground?: boolean;
   loading?: boolean;
   placeholder?: string;
   asSectionHeader?: boolean;
+  asPlaceholderContent?: boolean;
 } & React.ComponentProps<typeof View>;
 
 export type UIGroupTitleButtonProps = {

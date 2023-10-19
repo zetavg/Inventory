@@ -37,16 +37,7 @@ function StatisticsScreen({
     {},
   );
 
-  const { data: purchasePriceSumsData } = useView('purchase_price_sums', {});
-  const purchasePriceSums = useMemo(() => {
-    if (!purchasePriceSumsData) return null;
-    if (typeof purchasePriceSumsData !== 'object') return null;
-    const rows = (purchasePriceSumsData as any).rows;
-    if (!Array.isArray(rows)) return null;
-    if (!rows[0]) return null;
-    if (typeof rows[0].value !== 'object') return null;
-    return rows[0].value;
-  }, [purchasePriceSumsData]);
+  const { data: purchasePriceSums } = useView('purchase_price_sums');
 
   const [dbSizeInfo, setDbSizeInfo] = useState<null | {
     db: number;
@@ -82,9 +73,11 @@ function StatisticsScreen({
     });
   }, [dbName]);
 
-  useFocusEffect(() => {
-    calculateDbSize();
-  });
+  useFocusEffect(
+    useCallback(() => {
+      calculateDbSize();
+    }, [calculateDbSize]),
+  );
 
   return (
     <ScreenContent
@@ -154,13 +147,30 @@ function StatisticsScreen({
         </TableView.Section>
 
         {!!purchasePriceSums && typeof purchasePriceSums === 'object' && (
-          <TableView.Section label="Item Purchased Total Value">
+          <TableView.Section label="Total Purchased Cost">
             {Object.entries(purchasePriceSums).map(([currency, value]) => (
               <TableView.Item
                 key={currency}
                 detail={
                   typeof value === 'number'
-                    ? (value / 1000).toLocaleString()
+                    ? (() => {
+                        switch (currency) {
+                          case 'EUR':
+                            return '€';
+                          case 'GBP':
+                            return '£';
+                          case 'JPY':
+                            return '¥';
+                          case 'KRW':
+                            return '₩';
+                          case 'CNY':
+                            return '¥';
+                          default:
+                            return '$';
+                        }
+                      })() +
+                      ' ' +
+                      (value / 1000).toLocaleString()
                     : 'Error'
                 }
                 arrow

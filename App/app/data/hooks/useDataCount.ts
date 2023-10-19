@@ -11,10 +11,11 @@ import LPJQ from '@app/LPJQ';
 
 import { getGetDataCount } from '../functions';
 import { DataType, DataTypeName } from '../schema';
+import { ConditionsObject } from '../types';
 
 export default function useDataCount<T extends DataTypeName>(
   type: T,
-  cond?: Partial<DataType<T>>,
+  cond?: ConditionsObject<T>,
   {
     showAlertOnError = true,
     disable = false,

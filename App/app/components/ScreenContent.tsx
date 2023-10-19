@@ -60,6 +60,8 @@ type Props = {
   action3MaterialIconName?: string;
   onAction3Press?: () => void;
 
+  headerRight?: JSX.Element;
+
   overlay?: JSX.Element;
 
   route?: unknown;
@@ -92,6 +94,7 @@ function ScreenContent({
   action3SFSymbolName,
   action3MaterialIconName,
   onAction3Press,
+  headerRight,
   overlay,
   route,
 }: Props) {
@@ -227,6 +230,8 @@ function ScreenContent({
               )}
             </TouchableOpacity>
           )}
+
+          {headerRight}
         </View>
       ),
     });
@@ -238,7 +243,6 @@ function ScreenContent({
     action2SFSymbolName,
     action3Label,
     action3SFSymbolName,
-    // autoFocusSearch,
     iosHeaderTintColor,
     navigation,
     onAction1Press,
@@ -253,6 +257,7 @@ function ScreenContent({
     headerLargeTitle,
     searchPlaceholder,
     onSearchFocus,
+    headerRight,
   ]);
 
   const verifiedAction1MaterialIconName = verifyMaterialCommunityIconName(

@@ -20,15 +20,23 @@ import ChecklistScreen from '@app/features/inventory/screens/ChecklistScreen';
 import ChecklistsScreen from '@app/features/inventory/screens/ChecklistsScreen';
 import CollectionScreen from '@app/features/inventory/screens/CollectionScreen';
 import CollectionsScreen from '@app/features/inventory/screens/CollectionsScreen';
+import DashboardScreen from '@app/features/inventory/screens/DashboardScreen';
+import ExpiredItemsScreen from '@app/features/inventory/screens/ExpiredItemsScreen';
 import ItemScreen from '@app/features/inventory/screens/ItemScreen';
 import ItemsScreen from '@app/features/inventory/screens/ItemsScreen';
+import LowOrOutOfStockItemsScreen from '@app/features/inventory/screens/LowOrOutOfStockItemsScreen';
+import RFIDUntaggedItemsScreen from '@app/features/inventory/screens/RFIDUntaggedItemsScreen';
 import SearchScreen from '@app/features/inventory/screens/SearchScreen';
 import StatisticsScreen from '@app/features/inventory/screens/StatisticsScreen';
 import LabelPrintersScreen from '@app/features/label-printers/screens/LabelPrintersScreen';
 import UIAndAppearanceSettingsScreen from '@app/features/settings/screens/UIAndAppearanceSettingsScreen';
 
 import { DataType, DataTypeName } from '@app/data';
-import { GetDataConditions, SortOption } from '@app/data/types';
+import {
+  ConditionsObject,
+  GetDataConditions,
+  SortOption,
+} from '@app/data/types';
 
 import AboutScreen from '@app/screens/AboutScreen';
 import AppLogDetailScreen from '@app/screens/AppLogDetailScreen';
@@ -73,15 +81,19 @@ import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 
 export type StackParamList = {
+  Dashboard: undefined;
   More: undefined;
   Collections: undefined;
   Collection: { id: string; preloadedTitle?: string };
   Item: { id: string; preloadedTitle?: string };
   Items: {
-    conditions: Partial<DataType<'item'>>;
+    conditions: ConditionsObject<'item'>;
     sortOptions: { [shownName: string]: SortOption<DataType<'item'>> };
     getItemDetailText?: (item: DataType<'item'>) => string;
   };
+  LowOrOutOfStockItems: undefined;
+  ExpiredItems: undefined;
+  RFIDUntaggedItems: undefined;
   Checklists: undefined;
   Checklist: { id: string; initialTitle?: string };
   Search: { query?: string } | undefined;
@@ -224,6 +236,7 @@ function MainStack({ initialRouteName }: Props) {
       initialRouteName={initialRouteName}
       screenOptions={screenOptions}
     >
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="More" component={MoreScreen} />
 
       <Stack.Screen name="Settings" component={SettingsScreen} />
@@ -306,6 +319,15 @@ function MainStack({ initialRouteName }: Props) {
       <Stack.Screen name="Collection" component={CollectionScreen} />
       <Stack.Screen name="Item" component={ItemScreen} />
       <Stack.Screen name="Items" component={ItemsScreen} />
+      <Stack.Screen
+        name="LowOrOutOfStockItems"
+        component={LowOrOutOfStockItemsScreen}
+      />
+      <Stack.Screen name="ExpiredItems" component={ExpiredItemsScreen} />
+      <Stack.Screen
+        name="RFIDUntaggedItems"
+        component={RFIDUntaggedItemsScreen}
+      />
       <Stack.Screen name="Checklists" component={ChecklistsScreen} />
       <Stack.Screen name="Checklist" component={ChecklistScreen} />
       <Stack.Screen name="Search" component={SearchScreen} />

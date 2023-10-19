@@ -34,14 +34,18 @@ export const currentCachedDbSelector = (s: RootState) =>
 /**
  * Get the current application database.
  */
-export async function getCurrentAppDB() {
+export async function getCurrentAppDB({
+  forceReload,
+}: { forceReload?: boolean } = {}) {
   const logger = appLogger.for({
     module: 'app_db',
     function: 'getCurrentAppDB',
   });
 
-  const cachedDB = currentCachedDbSelector(store.getState());
-  if (cachedDB) return cachedDB;
+  if (!forceReload) {
+    const cachedDB = currentCachedDbSelector(store.getState());
+    if (cachedDB) return cachedDB;
+  }
 
   const dbName = getCurrentDbName();
   if (!dbName) {

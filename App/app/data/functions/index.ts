@@ -10,6 +10,7 @@ import {
   getGetDataCount as couchdbGetGetDataCount,
   getGetDatum as couchdbGetGetDatum,
   getGetRelated as couchdbGetGetRelated,
+  getGetViewData as couchdbGetGetViewData,
   getSaveDatum as couchdbGetSaveDatum,
   getUpdateConfig as couchdbGetUpdateConfig,
   Logger,
@@ -74,4 +75,8 @@ export function getGetAttachmentFromDatum(ctx: GetContextArgs) {
 
 export function getGetAllAttachmentInfoFromDatum(ctx: GetContextArgs) {
   return couchdbGetGetAllAttachmentInfoFromDatum(getContext(ctx));
+}
+
+export function getGetViewData(ctx: GetContextArgs) {
+  return couchdbGetGetViewData(getContext(ctx));
 }

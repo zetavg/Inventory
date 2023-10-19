@@ -948,6 +948,11 @@ export const ICONS = {
     fa5IconName: 'calendar-alt',
     keywords: 'time date',
   },
+  'app-calender': {
+    sfSymbolName: 'calendar.circle.fill',
+    fa5IconName: 'calendar-alt',
+    keywords: 'time date',
+  },
 
   // Things for making things, tools
   camera: {
@@ -1124,6 +1129,10 @@ export const ICONS = {
     sfSymbolName: 'exclamationmark.triangle.fill',
     materialIconName: 'exclamation-thick',
   },
+  'app-exclamation-circle': {
+    sfSymbolName: 'exclamationmark.circle.fill',
+    materialIconName: 'exclamation-thick',
+  },
   'app-info': {
     sfSymbolName: 'info.circle.fill',
     materialIconName: 'information',
@@ -1135,6 +1144,10 @@ export const ICONS = {
   'app-questionmark': {
     sfSymbolName: 'questionmark',
     materialIconName: 'help',
+  },
+  'app-untagged': {
+    sfSymbolName: 'rectangle.slash.fill',
+    materialIconName: 'slash-forward-box',
   },
   'app-rfid-scan': {
     sfSymbolName: 'dot.radiowaves.forward',

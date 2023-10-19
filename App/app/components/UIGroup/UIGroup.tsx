@@ -3,7 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import useColors from '@app/hooks/useColors';
 
-import InsetGroup from '@app/components/InsetGroup';
+import InsetGroup, {
+  styles as insetGroupStyles,
+} from '@app/components/InsetGroup';
 
 import { useStyles } from './hooks';
 import { UIGroupProps, UIGroupTitleButtonProps } from './types';
@@ -28,6 +30,7 @@ export function UIGroup(
     placeholder,
     style,
     asSectionHeader,
+    asPlaceholderContent,
     ...restProps
   } = props;
   return (
@@ -38,14 +41,31 @@ export function UIGroup(
       labelVariant={largeTitle ? 'large' : 'normal'}
       labelRight={
         headerRight ? (
-          <View style={styles.iosHeaderRightContainer}>{headerRight}</View>
+          <View style={styles.iosHeaderRightContainer}>
+            {typeof headerRight === 'string' ? (
+              <Text
+                style={[
+                  insetGroupStyles.groupTitleLargeText,
+                  { color: contentSecondaryTextColor },
+                ]}
+              >
+                {headerRight}
+              </Text>
+            ) : (
+              headerRight
+            )}
+          </View>
         ) : undefined
       }
-      backgroundTransparent={transparentBackground}
+      backgroundTransparent={transparentBackground || asPlaceholderContent}
       loading={loading}
       hideContent={asSectionHeader}
       {...restProps}
-      style={[loading && !!children && styles.iosNonEmptyLoading, style]}
+      style={[
+        loading && !!children && styles.iosNonEmptyLoading,
+        asPlaceholderContent && styles.noMargin,
+        style,
+      ]}
     >
       {children ? (
         children
@@ -136,6 +156,10 @@ const styles = StyleSheet.create({
   },
   sectionSeparatorComponent: {
     height: 35,
+  },
+  noMargin: {
+    margin: 0,
+    marginBottom: 0,
   },
 });
 

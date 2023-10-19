@@ -21,6 +21,7 @@ import getGetData from './functions/getGetData';
 import getGetDataCount from './functions/getGetDataCount';
 import getGetDatum from './functions/getGetDatum';
 import getGetRelated from './functions/getGetRelated';
+import getGetViewData, { GetViewData } from './functions/getGetViewData';
 import getSaveDatum from './functions/getSaveDatum';
 import getUpdateConfig from './functions/getUpdateConfig';
 import { Context } from './functions/types';
@@ -37,6 +38,7 @@ export default class CouchDBData {
   public getAttachmentInfoFromDatum: GetAttachmentInfoFromDatum;
   public getAttachmentFromDatum: GetAttachmentFromDatum;
   public getAllAttachmentInfoFromDatum: GetAllAttachmentInfoFromDatum;
+  public getViewData: GetViewData;
 
   constructor(context: Context) {
     this.getConfig = getGetConfig(context);
@@ -51,5 +53,6 @@ export default class CouchDBData {
     this.getAttachmentFromDatum = getGetAttachmentFromDatum(context);
     this.getAllAttachmentInfoFromDatum =
       getGetAllAttachmentInfoFromDatum(context);
+    this.getViewData = getGetViewData(context);
   }
 }

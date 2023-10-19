@@ -50,8 +50,14 @@ function SelectIconScreen({
   const [value, setValue] = useState(defaultValue);
   const [search, setSearch] = useState('');
 
+  const usableIcons = useMemo<typeof ICONS>(() => {
+    return Object.fromEntries(
+      Object.entries(ICONS).filter(([name]) => !name.startsWith('app-')),
+    ) as any;
+  }, []);
+
   const iconNames = useMemo(() => {
-    let iconEntries = objectEntries(ICONS);
+    let iconEntries = objectEntries(usableIcons);
 
     if (search) {
       const searchTerm = search.toLowerCase();
@@ -63,7 +69,7 @@ function SelectIconScreen({
     LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
 
     return iconEntries.map(([k]) => k);
-  }, [search]);
+  }, [search, usableIcons]);
 
   const scrollViewRef = useRef<ScrollView>(null);
   useScrollViewContentInsetFix(scrollViewRef);

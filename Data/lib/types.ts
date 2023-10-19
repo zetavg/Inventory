@@ -48,11 +48,17 @@ export type GetDatum = <T extends DataTypeName>(
   id: string,
 ) => Promise<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null>;
 
-type PartialWithExists<T> = {
-  [K in keyof T]?: T[K] | { $exists: boolean };
+type PartialWithCond<T> = {
+  [K in keyof T]?:
+    | T[K]
+    | { $exists: boolean }
+    | { $lt: T[K] }
+    | { $gt: T[K] }
+    | { $lte: T[K] }
+    | { $gte: T[K] };
 };
 
-export type ConditionsObject<T extends DataTypeName> = PartialWithExists<
+export type ConditionsObject<T extends DataTypeName> = PartialWithCond<
   DataType<T>
 >;
 
@@ -84,7 +90,7 @@ export type GetData = <T extends DataTypeName>(
 
 export type GetDataCount = <T extends DataTypeName>(
   type: T,
-  conditions?: Partial<DataType<T>>,
+  conditions?: ConditionsObject<T>,
 ) => Promise<number>;
 
 export type GetRelated = <

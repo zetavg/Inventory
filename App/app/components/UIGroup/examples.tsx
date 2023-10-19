@@ -37,6 +37,8 @@ export function Basic() {
 
       <UIGroup header="Large Title" largeTitle />
 
+      <UIGroup header="Large Title With" largeTitle headerRight="headerRight" />
+
       <UIGroup
         header="Large Title With"
         largeTitle
@@ -689,6 +691,10 @@ const SECTION_VIEW_DATA = [
     data: ['Water', 'Coke', 'Beer'],
   },
   {
+    title: 'Cats',
+    data: ['null'],
+  },
+  {
     title: 'Desserts',
     data: ['Cheese Cake', 'Ice Cream'],
   },
@@ -702,7 +708,7 @@ export function WithListItemsInListView() {
       // eslint-disable-next-line react/no-unstable-nested-components
       ListHeaderComponent={() => <UIGroup.FirstGroupSpacing />}
       sections={SECTION_VIEW_DATA}
-      keyExtractor={(item, index) => item + index}
+      keyExtractor={(item, index) => (item || 'null') + index}
       renderSectionHeader={({ section: { title } }) => (
         <UIGroup asSectionHeader header={title} />
       )}
@@ -711,7 +717,11 @@ export function WithListItemsInListView() {
           isFirst={index === 0}
           isLast={index === section.data.length - 1}
         >
-          <UIGroup.ListItem label={item} />
+          {item !== 'null' ? (
+            <UIGroup.ListItem label={item} />
+          ) : (
+            <UIGroup placeholder="No Items" asPlaceholderContent />
+          )}
         </UIGroup.ListItem.RenderItemContainer>
       )}
       SectionSeparatorComponent={UIGroup.SectionSeparatorComponent}
