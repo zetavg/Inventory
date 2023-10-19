@@ -37,6 +37,9 @@ import { DBSyncServerEditableData } from '@app/features/db-sync/slice';
 import { getTagAccessPassword } from '@app/features/rfid/utils';
 
 import { useConfig } from '@app/data';
+import { getGetConfig } from '@app/data/functions';
+
+import { useDB } from '@app/db';
 
 import cs from '@app/utils/commonStyles';
 import commonStyles from '@app/utils/commonStyles';
@@ -45,6 +48,7 @@ import { RootStackParamList } from '@app/navigation';
 
 import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
+import useLogger from '@app/hooks/useLogger';
 import useScrollViewAutomaticallyAdjustKeyboardInsetsFix from '@app/hooks/useScrollViewAutomaticallyAdjustKeyboardInsetsFix';
 
 import Button from '@app/components/Button';
@@ -109,10 +113,14 @@ function useSyncServerID() {
 function OnboardingScreen({
   navigation,
 }: StackScreenProps<RootStackParamList, 'Onboarding'>) {
+  const logger = useLogger('OnboardingScreen');
+  const { db } = useDB();
   const dispatch = useAppDispatch();
 
   const profiles = useAppSelector(selectors.profiles.profiles);
   const hasOtherProfiles = Object.keys(profiles).length > 1;
+
+  const dbSyncServers = useAppSelector(selectors.dbSync.servers);
 
   const { config, updateConfig } = useConfig();
 
@@ -190,7 +198,7 @@ function OnboardingScreen({
               style={commonStyles.alignSelfStretch}
               onPress={() => {
                 // If we already have a saved config, that means we should continue the previous setup.
-                if (config?._id) {
+                if (config?._id && Object.keys(dbSyncServers).length <= 0) {
                   props.navigation.navigate('Setup');
                 } else {
                   props.navigation.navigate('NewOrRestore');
@@ -236,6 +244,7 @@ function OnboardingScreen({
     [
       backgroundColor,
       config?._id,
+      dbSyncServers,
       hasOtherProfiles,
       navigation,
       scrollViewContentContainerPaddingTop,
@@ -1028,7 +1037,7 @@ function OnboardingScreen({
     return () => {
       clearTimeout(timer);
     };
-  });
+  }, [delayConfirmAndProceedSeconds]);
 
   const setupRfidTagPasswordUI = useCallback(
     (props: StackScreenProps<any>) => {
@@ -1437,15 +1446,17 @@ function OnboardingScreen({
     return 'ERROR';
   }, [syncServerStatus.lastSyncedAt, syncServerStatus.status]);
   const [initialPullLastSeq, setInitialPullLastSeq] = useState(-1);
+  const initialPullLastSeqRef = useRef(initialPullLastSeq);
+  initialPullLastSeqRef.current = initialPullLastSeq;
   useEffect(() => {
-    if (initialPullLastSeq >= 0) {
+    if (initialPullLastSeqRef.current >= 0) {
       return;
     }
 
     if (typeof syncServerStatus.pullLastSeq === 'number') {
       setInitialPullLastSeq(syncServerStatus.pullLastSeq);
     }
-  }, [initialPullLastSeq, syncServerStatus.pullLastSeq]);
+  }, [syncServerStatus.pullLastSeq]);
   const initialSyncDoneProgress =
     initialPullLastSeq >= 0
       ? (syncServerStatus.pullLastSeq || 0) - initialPullLastSeq
@@ -1620,12 +1631,16 @@ function OnboardingScreen({
                       {initialSyncDoneProgress}/{initialSyncRemainingProgress}{' '}
                       documents synced
                     </Text>
-                    {initialSyncDoneProgress > 100 && (
+                    {!isSetupNotDone && (
                       <View style={commonStyles.mt8}>
                         <Text style={styles.smallerText}>
                           While it's recommended to wait until the initial sync
                           to be completed, you can still{' '}
-                          <Link onPress={() => navigation.goBack()}>
+                          <Link
+                            onPress={() => {
+                              navigation.goBack();
+                            }}
+                          >
                             skip waiting and start using the app now
                           </Link>
                           .
@@ -1678,6 +1693,7 @@ function OnboardingScreen({
       dbSyncHasBeenSetupStatus,
       initialSyncDoneProgress,
       initialSyncRemainingProgress,
+      isSetupNotDone,
       navigation,
       scrollViewContentContainerPaddingTop,
       syncServerStatus.lastErrorMessage,
@@ -1685,32 +1701,51 @@ function OnboardingScreen({
   );
   const dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef = useRef(false);
   useEffect(() => {
-    if (!config?.uuid) return;
+    if (!db) return;
 
     if (dbSyncHasBeenSetupStatus === 'DONE') {
-      dispatch(
-        actions.profiles.markCurrentProfileAsSetupDone({
-          configUuid: config.uuid,
-        }),
-      );
+      const getConfig = getGetConfig({ db });
+      (async () => {
+        try {
+          const cfg = await getConfig({ ensureSaved: true });
+          dispatch(
+            actions.profiles.markCurrentProfileAsSetupDone({
+              configUuid: cfg.uuid,
+            }),
+          );
+        } catch (e) {
+          logger.error(e, { showAlert: true });
+        }
+      })();
     } else if (
       dbSyncHasBeenSetupStatus === 'WORKING' &&
       initialSyncDoneProgress > 100
     ) {
       if (dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current) return;
-      dispatch(
-        actions.profiles.markCurrentProfileAsSetupDone({
-          configUuid: config.uuid,
-        }),
-      );
-      dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current = true;
+      const getConfig = getGetConfig({ db });
+      (async () => {
+        try {
+          const cfg = await getConfig({
+            ensureSaved: true,
+          });
+          dispatch(
+            actions.profiles.markCurrentProfileAsSetupDone({
+              configUuid: cfg.uuid,
+            }),
+          );
+          dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current = true;
+        } catch (e) {
+          logger.error(e);
+        }
+      })();
     }
   }, [
+    db,
     dbSyncHasBeenSetupStatus,
     dispatch,
     navigation,
     initialSyncDoneProgress,
-    config?.uuid,
+    logger,
   ]);
 
   // Load form values from config

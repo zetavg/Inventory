@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import NetInfo from '@react-native-community/netinfo';
 
@@ -171,6 +171,53 @@ export default function DBSyncManager() {
     [db, dispatch, logger],
   );
 
+  const updateSyncProgressLastSentTimestamps = useRef<{
+    [serverId: string]: number | undefined;
+  }>({});
+  const updateSyncProgressNextSentTimers = useRef<{
+    [serverId: string]: NodeJS.Timeout | undefined;
+  }>({});
+  const updateSyncProgress = useCallback<
+    (...args: Parameters<typeof actions.dbSync.updateSyncProgress>) => void
+  >(
+    (...args) => {
+      const serverId = args[0][0];
+      const now = Date.now();
+      const lastDispatchedAt =
+        updateSyncProgressLastSentTimestamps.current[serverId];
+
+      // Function to dispatch the action
+      const sendUpdate = () => {
+        const action = actions.dbSync.updateSyncProgress(...args);
+        dispatch(action);
+        updateSyncProgressLastSentTimestamps.current[serverId] = now;
+      };
+
+      // Clear any existing timer for this serverId
+      if (updateSyncProgressNextSentTimers.current[serverId]) {
+        clearTimeout(updateSyncProgressNextSentTimers.current[serverId]);
+        updateSyncProgressNextSentTimers.current[serverId] = undefined;
+      }
+
+      // If we have sent an update for this serverId less than a second ago, delay this update until a second has passed
+      if (
+        updateSyncProgressLastSentTimestamps.current[serverId] &&
+        lastDispatchedAt &&
+        now - lastDispatchedAt < 1000
+      ) {
+        const timeToWait = 1000 - (now - lastDispatchedAt);
+        updateSyncProgressNextSentTimers.current[serverId] = setTimeout(
+          sendUpdate,
+          timeToWait,
+        );
+      } else {
+        // Otherwise, send the update now
+        sendUpdate();
+      }
+    },
+    [dispatch],
+  );
+
   const _startSync = useCallback(
     (
       localDB: PouchDB.Database,
@@ -234,7 +281,7 @@ export default function DBSyncManager() {
           ...(direction === 'pull' ? { remoteDBUpdateSeq } : {}),
           [direction === 'push' ? 'pushLastSeq' : 'pullLastSeq']: lastSeq,
         };
-        dispatch(actions.dbSync.updateSyncProgress([server.id, payload]));
+        updateSyncProgress([server.id, payload]);
         if (onChange) onChange(payload);
 
         fLogger.info('Event: change', {
@@ -274,7 +321,7 @@ export default function DBSyncManager() {
           pushLastSeq,
           pullLastSeq,
         };
-        dispatch(actions.dbSync.updateSyncProgress([server.id, payload]));
+        updateSyncProgress([server.id, payload]);
         if (onComplete) onComplete(payload);
         fLogger.info('Event: complete', {
           details: JSON.stringify({ ...logDetails1, ...logDetails2 }, null, 2),
