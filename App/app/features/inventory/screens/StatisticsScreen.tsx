@@ -146,52 +146,54 @@ function StatisticsScreen({
           </TableView.Item>
         </TableView.Section>
 
-        {!!purchasePriceSums && typeof purchasePriceSums === 'object' && (
-          <TableView.Section label="Total Purchased Cost">
-            {Object.entries(purchasePriceSums).map(([currency, value]) => (
-              <TableView.Item
-                key={currency}
-                detail={
-                  typeof value === 'number'
-                    ? (() => {
-                        switch (currency) {
-                          case 'EUR':
-                            return '€';
-                          case 'GBP':
-                            return '£';
-                          case 'JPY':
-                            return '¥';
-                          case 'KRW':
-                            return '₩';
-                          case 'CNY':
-                            return '¥';
-                          default:
-                            return '$';
-                        }
-                      })() +
-                      ' ' +
-                      (value / 1000).toLocaleString()
-                    : 'Error'
-                }
-                arrow
-                onPress={() =>
-                  navigation.push('Items', {
-                    conditions: { purchase_price_currency: currency },
-                    sortOptions: {
-                      'Unit Price': [{ purchase_price_x1000: 'asc' }],
-                    },
-                    getItemDetailText: item =>
-                      `${item.purchase_price_currency} ${(
-                        (item.purchase_price_x1000 || 0) / 1000
-                      ).toLocaleString()}`,
-                  })
-                }
-              >
-                {currency}
-              </TableView.Item>
-            ))}
-          </TableView.Section>
-        )}
+        {!!purchasePriceSums &&
+          typeof purchasePriceSums === 'object' &&
+          Object.keys(purchasePriceSums).length > 0 && (
+            <TableView.Section label="Total Purchased Cost">
+              {Object.entries(purchasePriceSums).map(([currency, value]) => (
+                <TableView.Item
+                  key={currency}
+                  detail={
+                    typeof value === 'number'
+                      ? (() => {
+                          switch (currency) {
+                            case 'EUR':
+                              return '€';
+                            case 'GBP':
+                              return '£';
+                            case 'JPY':
+                              return '¥';
+                            case 'KRW':
+                              return '₩';
+                            case 'CNY':
+                              return '¥';
+                            default:
+                              return '$';
+                          }
+                        })() +
+                        ' ' +
+                        (value / 1000).toLocaleString()
+                      : 'Error'
+                  }
+                  arrow
+                  onPress={() =>
+                    navigation.push('Items', {
+                      conditions: { purchase_price_currency: currency },
+                      sortOptions: {
+                        'Unit Price': [{ purchase_price_x1000: 'asc' }],
+                      },
+                      getItemDetailText: item =>
+                        `${item.purchase_price_currency} ${(
+                          (item.purchase_price_x1000 || 0) / 1000
+                        ).toLocaleString()}`,
+                    })
+                  }
+                >
+                  {currency}
+                </TableView.Item>
+              ))}
+            </TableView.Section>
+          )}
       </TableView>
     </ScreenContent>
   );
