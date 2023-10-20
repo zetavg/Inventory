@@ -196,6 +196,12 @@ jobs:
         filters: |
           app:
             - 'App/**'
+          data:
+            - 'Data/**'
+          data-storage-couchdb:
+            - 'packages/data-storage-couchdb/**'
+          epc-utils:
+            - 'packages/epc-utils/**'
 
   build:
     name: "Build App"
@@ -203,7 +209,7 @@ jobs:
     - test-app
     - paths-filter
     # Build if the app has changes, and event is not a pull request, or if the pull request is not a draft and the pull request is not from a fork (runs of fork PRs will not have access to secrets that are required for building the app).
-    if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
+    if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true' || needs.paths-filter.outputs.data == 'true' || needs.paths-filter.outputs.data-storage-couchdb == 'true' || needs.paths-filter.outputs.epc-utils == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     uses: ./.github/workflows/build_app.yml
     with:
       build-release: ${{ github.event_name == 'release' }}

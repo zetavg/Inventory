@@ -44,6 +44,10 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# deps
+#
+deps/
+
 # PouchDB
 #
 /.temp_dbs/pouchdb*
