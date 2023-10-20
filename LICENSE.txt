@@ -1,0 +1,12 @@
+All rights reserved. Any usage of this source code will require further approval, with the following exceptions allowed:
+
+  1) Modifying or compiling the source code for non-commercial and personal usage.
+  2) Modifying or compiling the source code for internal usage in your own business.
+  3) Redistributing the non-executable source code or a modified and non-executable version of the source code by forking the project on GitHub.
+
+For example, you may not do the following without authorization:
+
+  * Redistribute the executable software or any modified version of the executable software.
+  * Re-upload the software to App Store, Google Play or any other platforms.
+  * Sell the executable software or provide building the app as a service.
+  * Provide the software as a part of your product or service.
