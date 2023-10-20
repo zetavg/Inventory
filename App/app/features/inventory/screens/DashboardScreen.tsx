@@ -319,7 +319,7 @@ function DashboardScreen({
       }
       // headerRight={<IOSCloudSyncingIcon />}
     >
-      <ScreenContent.ScrollView>
+      <ScreenContent.ScrollView automaticallyAdjustKeyboardInsets={false}>
         <UIGroup.FirstGroupSpacing iosLargeTitle />
         <UIGroup
           transparentBackground
