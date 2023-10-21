@@ -105,7 +105,7 @@
     "redux-persist-sensitive-storage": "^1.0.0",
     "stream": "^0.0.2",
     "uuid": "^8.3.2",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
