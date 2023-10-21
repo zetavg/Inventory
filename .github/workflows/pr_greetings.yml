@@ -11,6 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     name: Greetings
     steps:
+    - name: Comment on PR from dependabot[bot]
+      if: ${{ github.actor == 'dependabot[bot]' }}
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        message: |
+          Note that this is a PR from `@dependabot`, so the app will not be built with the CI workflow. A maintainer is needed to trigger a build manually.
+
+          If you are a maintainer, once you've confirmed that the changes are safe[^1], you can run the [Build App workflow](${{ github.server_url }}/${{ github.repository }}/actions/workflows/build_app.yml) with `pr/${{ github.event.pull_request.number }}` to start a build for this PR.
+
+          [^1]: Check the updated dependencies' releases and ensure they do not contain malicious scripts. For example, Attacks like [eslint-scope](https://eslint.org/blog/2018/07/postmortem-for-malicious-package-publishes), which [included a malicious postinstall script](https://gist.github.com/hzoo/51cb84afdc50b14bffa6c6dc49826b3e), could end up exfiltrating credentials.
+
     - name: Comment on PR from a fork
       if: ${{ github.event.pull_request.head.repo.clone_url != github.event.pull_request.base.repo.clone_url }}
       uses: thollander/actions-comment-pull-request@v2
