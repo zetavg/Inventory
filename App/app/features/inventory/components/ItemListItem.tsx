@@ -7,6 +7,10 @@ import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIc
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  getDefaultItemIconName,
+} from '@app/consts/default-icons';
+import {
   verifyIconColorWithDefault,
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
@@ -146,7 +150,9 @@ function ItemListItem({
     reloadItemImages,
   ]);
 
-  const iconName = verifyIconNameWithDefault(item.icon_name);
+  const iconName = verifyIconNameWithDefault(
+    item.icon_name || getDefaultItemIconName(item),
+  );
 
   const stockQuantity =
     typeof item.consumable_stock_quantity === 'number'
@@ -177,6 +183,7 @@ function ItemListItem({
           />
         );
       }
+
       return (
         <Animated.View exiting={FadeOut.duration(200)}>
           <Icon {...iconProps} name={iconName} />
@@ -271,7 +278,8 @@ function ItemListItem({
                       // Do not let this icon to be animated with LayoutAnimation.
                       // key={uuidv4()}
                       name={verifyIconNameWithDefault(
-                        validatedCollection.icon_name,
+                        validatedCollection.icon_name ||
+                          DEFAULT_COLLECTION_ICON_NAME,
                       )}
                       {...iconProps}
                     />{' '}
@@ -284,7 +292,8 @@ function ItemListItem({
                       // Do not let this icon to be animated with LayoutAnimation.
                       // key={uuidv4()}
                       name={verifyIconNameWithDefault(
-                        validatedContainer.icon_name,
+                        validatedContainer.icon_name ||
+                          getDefaultItemIconName(item),
                       )}
                       {...iconProps}
                     />{' '}

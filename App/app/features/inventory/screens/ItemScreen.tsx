@@ -26,6 +26,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { ValidationError } from '@deps/data/validation';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  DEFAULT_ICON_COLOR,
+  getDefaultItemIconName,
+} from '@app/consts/default-icons';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 import { getTagAccessPassword } from '@app/features/rfid/utils';
@@ -530,6 +535,10 @@ function ItemScreen({
             const item = data && onlyValid(data);
             if (!item) return null;
 
+            const iconName = verifyIconNameWithDefault(
+              item.icon_name || getDefaultItemIconName(item),
+            );
+
             const validContainer = container && onlyValid(container);
             const validCollection = collection && onlyValid(collection);
 
@@ -565,8 +574,8 @@ function ItemScreen({
                           return (
                             <View>
                               <Icon
-                                name={verifyIconNameWithDefault(item.icon_name)}
-                                color={item.icon_color}
+                                name={iconName}
+                                color={item.icon_color || DEFAULT_ICON_COLOR}
                                 {...iconProps}
                               />
                               <StockStatusIcon
@@ -579,8 +588,8 @@ function ItemScreen({
                         default:
                           return (
                             <Icon
-                              name={verifyIconNameWithDefault(item.icon_name)}
-                              color={item.icon_color}
+                              name={iconName}
+                              color={item.icon_color || DEFAULT_ICON_COLOR}
                               {...iconProps}
                             />
                           );
@@ -641,9 +650,12 @@ function ItemScreen({
                         rightElement={({ iconProps }) => (
                           <Icon
                             name={verifyIconNameWithDefault(
-                              validContainer.icon_name,
+                              validContainer.icon_name ||
+                                getDefaultItemIconName(validContainer),
                             )}
-                            color={validContainer.icon_color}
+                            color={
+                              validContainer.icon_color || DEFAULT_ICON_COLOR
+                            }
                             {...iconProps}
                           />
                         )}
@@ -669,9 +681,10 @@ function ItemScreen({
                     rightElement={({ iconProps }) => (
                       <Icon
                         name={verifyIconNameWithDefault(
-                          validCollection.icon_name,
+                          validCollection.icon_name ||
+                            DEFAULT_COLLECTION_ICON_NAME,
                         )}
-                        color={validCollection.icon_color}
+                        color={validCollection.icon_color || DEFAULT_ICON_COLOR}
                         {...iconProps}
                       />
                     )}

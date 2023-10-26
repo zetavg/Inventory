@@ -17,6 +17,10 @@ import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
+import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  getDefaultItemIconName,
+} from '@app/consts/default-icons';
 
 import { selectors, useAppSelector } from '@app/redux';
 
@@ -89,7 +93,6 @@ function SaveItemScreen({
     () => ({
       __type: 'item',
       __id: initialDataFromParams?.__id ? initialDataFromParams.__id : uuid(),
-      icon_name: 'cube-outline',
       icon_color: 'gray',
       ...initialDataFromParams,
     }),
@@ -416,7 +419,8 @@ function SaveItemScreen({
                     <Icon
                       {...iconProps}
                       name={verifyIconNameWithDefault(
-                        selectedContainer.icon_name,
+                        selectedContainer.icon_name ||
+                          getDefaultItemIconName(selectedContainer),
                       )}
                       color={verifyIconColorWithDefault(
                         selectedContainer.icon_color,
@@ -555,7 +559,9 @@ function SaveItemScreen({
             rightElement={({ iconProps }) => (
               <TouchableOpacity onPress={handleOpenSelectIcon}>
                 <Icon
-                  name={verifyIconNameWithDefault(data.icon_name)}
+                  name={verifyIconNameWithDefault(
+                    data.icon_name || getDefaultItemIconName(data),
+                  )}
                   color={verifyIconColorWithDefault(data.icon_color)}
                   {...iconProps}
                 />
@@ -599,7 +605,8 @@ function SaveItemScreen({
                           <Icon
                             {...iconProps}
                             name={verifyIconNameWithDefault(
-                              selectedCollection.icon_name,
+                              selectedCollection.icon_name ||
+                                DEFAULT_COLLECTION_ICON_NAME,
                             )}
                             color={verifyIconColorWithDefault(
                               selectedCollection.icon_color,
@@ -929,6 +936,7 @@ function SaveItemScreen({
           navigation={navigation}
           iconName={data.icon_name}
           iconColor={data.icon_color}
+          defaultIconName={getDefaultItemIconName(data)}
           onChangeIconName={n => {
             setData(d => ({
               ...d,

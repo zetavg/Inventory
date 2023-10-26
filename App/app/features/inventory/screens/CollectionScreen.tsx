@@ -15,6 +15,10 @@ import {
   DEFAULT_LAYOUT_ANIMATION_CONFIG_SLOWER,
 } from '@app/consts/animations';
 import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  DEFAULT_ICON_COLOR,
+} from '@app/consts/default-icons';
+import {
   verifyIconColorWithDefault,
   verifyIconNameWithDefault,
 } from '@app/consts/icons';
@@ -359,10 +363,11 @@ function CollectionScreen({
                           rightElement={({ iconProps }) => (
                             <Icon
                               name={verifyIconNameWithDefault(
-                                collection.icon_name,
+                                collection.icon_name ||
+                                  DEFAULT_COLLECTION_ICON_NAME,
                               )}
                               color={verifyIconColorWithDefault(
-                                collection.icon_color,
+                                collection.icon_color || DEFAULT_ICON_COLOR,
                               )}
                               {...iconProps}
                             />

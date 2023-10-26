@@ -14,6 +14,7 @@ import IconSelectInput from './IconSelectInput';
 type Props = {
   iconName: string | undefined;
   iconColor: string | undefined;
+  defaultIconName?: string | undefined;
   onChangeIconName: (iconName: IconName) => void;
   onChangeIconColor: (iconColor: IconColor) => void;
   navigation: StackScreenProps<
@@ -25,6 +26,7 @@ type Props = {
 function IconInputUIGroup({
   iconName,
   iconColor,
+  defaultIconName,
   onChangeIconName,
   onChangeIconColor,
   navigation,
@@ -49,6 +51,7 @@ function IconInputUIGroup({
           <IconSelectInput
             iconName={verifyIconName(iconName)}
             iconColor={verifyIconColor(iconColor)}
+            defaultIconName={defaultIconName}
             onPress={handleOpenSelectIcon}
           />
         }

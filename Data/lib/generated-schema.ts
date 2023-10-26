@@ -21,8 +21,8 @@ export const schema = {
   collection: z
     .object({
       name: z.string().min(1),
-      icon_name: z.string(),
-      icon_color: z.string(),
+      icon_name: z.string().optional(),
+      icon_color: z.string().optional(),
       collection_reference_number: z.string().regex(new RegExp('^[0-9]{2,4}$')),
       item_default_icon_name: z.string().optional(),
       items_order: z.array(z.string()).optional(),
@@ -33,8 +33,8 @@ export const schema = {
   item: z
     .object({
       name: z.string().min(1),
-      icon_name: z.string(),
-      icon_color: z.string(),
+      icon_name: z.string().optional(),
+      icon_color: z.string().optional(),
       collection_id: z.string(),
       item_reference_number: z
         .string()
