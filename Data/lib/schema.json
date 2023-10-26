@@ -45,8 +45,6 @@
       },
       "required": [
         "name",
-        "icon_name",
-        "icon_color",
         "collection_reference_number",
         "config_uuid"
       ],
@@ -106,8 +104,6 @@
       },
       "required": [
         "name",
-        "icon_name",
-        "icon_color",
         "collection_id",
         "config_uuid"
       ],

@@ -1,6 +1,11 @@
 import React, { useEffect } from 'react';
 import { Text } from 'react-native';
 
+import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  DEFAULT_ICON_COLOR,
+} from '@app/consts/default-icons';
+
 import { DataTypeWithID, useDataCount } from '@app/data';
 
 import { IconName } from '@app/components/Icon';
@@ -41,8 +46,8 @@ export default function CollectionListItem({
       key={collection.__id}
       verticalArrangedNormalLabelIOS={!hideDetails}
       label={collection.name}
-      icon={collection.icon_name as IconName}
-      iconColor={collection.icon_color}
+      icon={(collection.icon_name || DEFAULT_COLLECTION_ICON_NAME) as IconName}
+      iconColor={collection.icon_color || DEFAULT_ICON_COLOR}
       onPress={onPress}
       navigable={!!onPress}
       detail={

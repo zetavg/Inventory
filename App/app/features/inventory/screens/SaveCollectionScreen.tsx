@@ -14,6 +14,10 @@ import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
 
 import {
+  DEFAULT_COLLECTION_ICON_NAME,
+  DEFAULT_ITEM_ICON_NAME,
+} from '@app/consts/default-icons';
+import {
   verifyIconColor,
   verifyIconColorWithDefault,
   verifyIconName,
@@ -80,9 +84,7 @@ function SaveCollectionScreen({
   >(
     () => ({
       __type: 'collection',
-      icon_name: 'box',
       icon_color: 'gray',
-      item_default_icon_name: 'cube-outline',
       ...initialDataFromParams,
     }),
     [initialDataFromParams],
@@ -261,7 +263,9 @@ function SaveCollectionScreen({
             rightElement={({ iconProps }) => (
               <TouchableOpacity onPress={handleOpenSelectIcon}>
                 <Icon
-                  name={verifyIconNameWithDefault(data.icon_name)}
+                  name={verifyIconNameWithDefault(
+                    data.icon_name || DEFAULT_COLLECTION_ICON_NAME,
+                  )}
                   color={verifyIconColorWithDefault(data.icon_color)}
                   {...iconProps}
                 />
@@ -316,6 +320,7 @@ function SaveCollectionScreen({
           navigation={navigation}
           iconName={data.icon_name}
           iconColor={data.icon_color}
+          defaultIconName={DEFAULT_COLLECTION_ICON_NAME}
           onChangeIconName={n => {
             setData(d => ({
               ...d,
@@ -336,16 +341,31 @@ function SaveCollectionScreen({
             inputElement={
               <IconSelectInput
                 iconName={verifyIconName(data.item_default_icon_name)}
+                defaultIconName={DEFAULT_ITEM_ICON_NAME}
                 iconColor="grey"
                 onPress={handleOpenSelectItemDefaultIcon}
               />
             }
             controlElement={
-              <UIGroup.ListTextInputItem.Button
-                onPress={handleOpenSelectItemDefaultIcon}
-              >
-                Select
-              </UIGroup.ListTextInputItem.Button>
+              <>
+                <UIGroup.ListTextInputItem.Button
+                  onPress={handleOpenSelectItemDefaultIcon}
+                >
+                  Select
+                </UIGroup.ListTextInputItem.Button>
+                {!!data.item_default_icon_name && (
+                  <UIGroup.ListTextInputItem.Button
+                    onPress={() =>
+                      setData(d => ({
+                        ...d,
+                        item_default_icon_name: undefined,
+                      }))
+                    }
+                  >
+                    Clear
+                  </UIGroup.ListTextInputItem.Button>
+                )}
+              </>
             }
           />
         </UIGroup>
