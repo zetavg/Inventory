@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`itemToCsvRow works 1`] = `
+{
+  "Always Show in Collection": undefined,
+  "Collection Ref. No.": "'0001",
+  "Container ID": "container-1",
+  "EPC Tag URI": "",
+  "Expiry Date": undefined,
+  "Icon Color": "gray",
+  "Icon Name": "cube-outline",
+  "Item Type": undefined,
+  "Model Name": "Model A",
+  "Name": "Item",
+  "Notes": undefined,
+  "Purchase Date": undefined,
+  "Purchase Price": "",
+  "Purchase Price Currency": undefined,
+  "Purchased From": undefined,
+  "RFID Tag EPC Memory Bank Contents": "",
+  "Reference No.": "",
+  "Serial": undefined,
+}
+`;

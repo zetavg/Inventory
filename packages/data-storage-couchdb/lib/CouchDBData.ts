@@ -1,5 +1,6 @@
 import {
   AttachAttachmentToDatum,
+  DataTypeWithID,
   GetAllAttachmentInfoFromDatum,
   GetAttachmentFromDatum,
   GetAttachmentInfoFromDatum,
@@ -8,9 +9,13 @@ import {
   GetDataCount,
   GetDatum,
   GetRelated,
+  InvalidDataTypeWithID,
   SaveDatum,
   UpdateConfig,
+  ValidDataTypeWithID,
 } from '@deps/data/types';
+import csvRowToItem from '@deps/data/utils/csv/csvRowToItem';
+import itemToCsvRow from '@deps/data/utils/csv/itemToCsvRow';
 
 import getAttachAttachmentToDatum from './functions/getAttachAttachmentToDatum';
 import getGetAllAttachmentInfoFromDatum from './functions/getGetAllAttachmentInfoFromDatum';
@@ -40,6 +45,13 @@ export default class CouchDBData {
   public getAllAttachmentInfoFromDatum: GetAllAttachmentInfoFromDatum;
   public getViewData: GetViewData;
 
+  public itemToCsvRow: (
+    item: DataTypeWithID<'item'>,
+  ) => ReturnType<typeof itemToCsvRow>;
+  public csvRowToItem: (
+    csvRow: Record<string, string>,
+  ) => Promise<ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>>;
+
   constructor(context: Context) {
     this.getConfig = getGetConfig(context);
     this.updateConfig = getUpdateConfig(context);
@@ -54,5 +66,13 @@ export default class CouchDBData {
     this.getAllAttachmentInfoFromDatum =
       getGetAllAttachmentInfoFromDatum(context);
     this.getViewData = getGetViewData(context);
+
+    this.itemToCsvRow = it => itemToCsvRow(it, { getDatum: this.getDatum });
+    this.csvRowToItem = csvRow =>
+      csvRowToItem(csvRow, {
+        getConfig: this.getConfig,
+        getDatum: this.getDatum,
+        getData: this.getData,
+      });
   }
 }
