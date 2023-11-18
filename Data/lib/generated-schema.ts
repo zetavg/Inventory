@@ -108,6 +108,22 @@ export const schema = {
       _item_collection_ids: z.array(z.string()).optional(),
     })
     .catchall(z.unknown()),
+  integration: z
+    .object({
+      integration_type: z.string().min(1),
+      name: z.string().min(1),
+      config: z.object({}).catchall(z.unknown()).optional(),
+      data: z.object({}).catchall(z.unknown()).optional(),
+    })
+    .catchall(z.unknown()),
+  integration_deleted_data: z
+    .object({
+      integration_id: z.string(),
+      type: z.string(),
+      id: z.string(),
+      data: z.object({}).catchall(z.unknown()).optional(),
+    })
+    .catchall(z.unknown()),
 };
 
 export default schema;

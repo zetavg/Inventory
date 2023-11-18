@@ -264,6 +264,28 @@ export default function getCallbacks({
       //   typeof datum.config_uuid === 'string' &&
       //   datum.config_uuid !== config.uuid;
 
+      // Create a record for integrations so that they'll know this record has been deleted
+      if (datum.__deleted && datum.__type && datum.__id) {
+        if (datum.integrations && typeof datum.integrations === 'object') {
+          for (const [integrationId, integrationData] of Object.entries(
+            datum.integrations,
+          )) {
+            if (integrationData && typeof integrationData === 'object') {
+              const integrationDeletedData: DataTypeWithID<'integration_deleted_data'> =
+                {
+                  __type: 'integration_deleted_data',
+                  __id: `${datum.__type}-${datum.__id}-${integrationId}`, // Prevent creating duplicated data
+                  type: datum.__type,
+                  id: datum.__id,
+                  integration_id: integrationId,
+                  data: integrationData,
+                };
+              await saveDatum(integrationDeletedData, { ignoreConflict: true });
+            }
+          }
+        }
+      }
+
       switch (datum.__type) {
         case 'item': {
           const itemImages = await getData('item_image', {
