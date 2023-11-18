@@ -26,6 +26,14 @@ import {
   selectors as dbSyncSelectors,
 } from '@app/features/db-sync/slice';
 import {
+  actions as integrationsSliceActions,
+  initialState as integrationsInitialState,
+  IntegrationsState,
+  name as integrationsSliceName,
+  reducer as integrationsReducer,
+  selectors as integrationsSelectors,
+} from '@app/features/integrations/slice';
+import {
   actions as inventorySliceActions,
   initialState as inventoryInitialState,
   InventoryState,
@@ -78,6 +86,7 @@ interface ProfileState {
   dbSync: DBSyncState;
   settings: SettingsState;
   inventory: InventoryState;
+  integrations: IntegrationsState;
   labelPrinters: LabelPrintersState;
   [cacheSliceName]: CacheState;
 }
@@ -96,6 +105,7 @@ const profileInitialState: ProfileState = {
   settings: settingsInitialState,
   inventory: inventoryInitialState,
   labelPrinters: labelPrintersInitialState,
+  integrations: integrationsInitialState,
   [cacheSliceName]: cacheInitialState,
 };
 
@@ -221,6 +231,20 @@ export const profilesSlice = createSlice({
       labelPrintersSliceName,
     ),
     mapActionReducers(
+      integrationsSliceActions.integrations,
+      actionCreator => (state: ProfilesState, action: any) => {
+        if (!state.currentProfile || !state.profiles[state.currentProfile]) {
+          return;
+        }
+
+        state.profiles[state.currentProfile].integrations = integrationsReducer(
+          state.profiles[state.currentProfile].integrations,
+          actionCreator(action.payload),
+        );
+      },
+      integrationsSliceName,
+    ),
+    mapActionReducers(
       cacheSliceActions.cache,
       actionCreator => (state: ProfilesState, action: any) => {
         if (!state.currentProfile || !state.profiles[state.currentProfile]) {
@@ -263,6 +287,11 @@ export const actions = {
     inventorySliceActions.inventory,
     profilesSlice.actions,
     inventorySliceName,
+  ),
+  integrations: overrideActions(
+    integrationsSliceActions.integrations,
+    profilesSlice.actions,
+    integrationsSliceName,
   ),
   cache: overrideActions(
     cacheSliceActions.cache,
@@ -318,6 +347,11 @@ export const selectors = {
     selector => (state: ProfilesState) =>
       selector(state.profiles[state.currentProfile || '']?.inventory),
   ),
+  integrations: mapSelectors(
+    integrationsSelectors.integrations,
+    selector => (state: ProfilesState) =>
+      selector(state.profiles[state.currentProfile || '']?.integrations),
+  ),
   cache: mapSelectors(
     cacheSelectors.cache,
     selector => (state: ProfilesState) =>
@@ -350,6 +384,9 @@ reducer.dehydrate = (state: ProfilesState) => {
       ...(labelPrintersReducer.dehydrate
         ? { labelPrinters: labelPrintersReducer.dehydrate(s.labelPrinters) }
         : {}),
+      ...(integrationsReducer.dehydrate
+        ? { integrations: integrationsReducer.dehydrate(s.integrations) }
+        : {}),
     })),
   };
 
@@ -374,6 +411,12 @@ reducer.rehydrate = (dehydratedState: DeepPartial<ProfilesState>) => {
         : {}),
       ...(inventoryReducer.rehydrate && s && s.inventory
         ? { inventory: inventoryReducer.rehydrate(s.inventory) }
+        : {}),
+      ...(labelPrintersReducer.rehydrate && s && s.labelPrinters
+        ? { labelPrinters: labelPrintersReducer.rehydrate(s.labelPrinters) }
+        : {}),
+      ...(integrationsReducer.rehydrate && s && s.integrations
+        ? { integrations: integrationsReducer.rehydrate(s.integrations) }
         : {}),
     })),
   };
@@ -412,6 +455,13 @@ reducer.dehydrateSensitive = (state: ProfilesState) => {
             ...(s.inventory && inventoryReducer.dehydrateSensitive
               ? { inventory: inventoryReducer.dehydrateSensitive(s.inventory) }
               : {}),
+            ...(s.integrations && integrationsReducer.dehydrateSensitive
+              ? {
+                  integrations: integrationsReducer.dehydrateSensitive(
+                    s.integrations,
+                  ),
+                }
+              : {}),
           })),
         }
       : {}),
@@ -430,14 +480,21 @@ reducer.rehydrateSensitive = dehydratedState => {
     ...(dehydratedState.profiles
       ? {
           profiles: mapObjectValues(dehydratedState.profiles, s => ({
-            ...(s.settings && settingsReducer.rehydrateSensitive
-              ? { settings: settingsReducer.rehydrateSensitive(s.settings) }
-              : {}),
             ...(s.dbSync && dbSyncReducer.rehydrateSensitive
               ? { dbSync: dbSyncReducer.rehydrateSensitive(s.dbSync) }
               : {}),
+            ...(s.settings && settingsReducer.rehydrateSensitive
+              ? { settings: settingsReducer.rehydrateSensitive(s.settings) }
+              : {}),
             ...(s.inventory && inventoryReducer.rehydrateSensitive
               ? { inventory: inventoryReducer.rehydrateSensitive(s.inventory) }
+              : {}),
+            ...(s.integrations && integrationsReducer.rehydrateSensitive
+              ? {
+                  integrations: integrationsReducer.rehydrateSensitive(
+                    s.integrations,
+                  ),
+                }
               : {}),
           })),
         }

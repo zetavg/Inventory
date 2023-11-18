@@ -43,6 +43,9 @@ import { IconName } from '@app/consts/icons';
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 // import DBSyncConfigUpdateScreen from '@app/features/db-sync/config/screens/DBSyncConfigUpdateScreen';
 import DBSyncNewOrEditServerModalScreen from '@app/features/db-sync/screens/DBSyncNewOrEditServerModalScreen';
+import AddIntegrationModalScreen from '@app/features/integrations/screens/AddIntegrationModalScreen';
+import AirtableIntegrationScreen from '@app/features/integrations/screens/AirtableIntegrationScreen';
+import NewOrEditAirtableIntegrationScreen from '@app/features/integrations/screens/NewOrEditAirtableIntegrationScreen';
 import ExportItemsToCsvScreen from '@app/features/inventory/screens/ExportItemsToCsvScreen';
 import ImportItemsFromCsvScreen from '@app/features/inventory/screens/ImportItemsFromCsvScreen';
 import OrderItemsScreen from '@app/features/inventory/screens/OrderItemsScreen';
@@ -77,6 +80,7 @@ import DemoModalScreen from '@app/screens/DemoModalScreen';
 import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
 import PouchDBPutDataModalScreen from '@app/screens/dev-tools/pouchdb/PouchDBPutDataModalScreen';
 import FixDataConsistencyScreen from '@app/screens/FixDataConsistencyScreen';
+import GetSecretsModalScreen from '@app/screens/GetSecretsModalScreen';
 import OnboardingScreen from '@app/screens/OnboardingScreen';
 import ReduxSelectActionScreen from '@app/screens/ReduxSelectActionScreen';
 import SampleModalScreen from '@app/screens/SampleModalScreen';
@@ -86,6 +90,8 @@ import useColors from '@app/hooks/useColors';
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useLogger from '@app/hooks/useLogger';
 import useTheme from '@app/hooks/useTheme';
+
+import { UIGroupProps } from '@app/components/UIGroup/types';
 
 import MainStack from './MainStack';
 import RootBottomSheetsContext from './RootBottomSheetsContext';
@@ -172,6 +178,22 @@ export type RootStackParamList = {
   DatePicker: {
     callback: (value: string) => void;
     defaultValue?: string;
+  };
+  AddIntegration: undefined;
+  AirtableIntegration: {
+    integrationId: string;
+  };
+  NewOrEditAirtableIntegration: {
+    integrationId?: string;
+    afterDelete?: () => void;
+  };
+  GetSecrets: {
+    secrets: ReadonlyArray<{
+      name: string;
+      key: string;
+      description: UIGroupProps['footer'];
+    }>;
+    callback: (secrets: { [key: string]: string } | null) => void;
   };
   AppLogsFilter: {
     initialState: {
@@ -349,6 +371,7 @@ function Navigation({
                 return null;
               }}
             </Stack.Screen>*/}
+            <Stack.Screen name="GetSecrets" component={GetSecretsModalScreen} />
             <Stack.Screen name="Onboarding" component={OnboardingScreen} />
             <Stack.Screen
               name="AppLogsFilter"
@@ -442,6 +465,18 @@ function Navigation({
             <Stack.Screen
               name="ExportItemsToCsv"
               component={ExportItemsToCsvScreen}
+            />
+            <Stack.Screen
+              name="AddIntegration"
+              component={AddIntegrationModalScreen}
+            />
+            <Stack.Screen
+              name="AirtableIntegration"
+              component={AirtableIntegrationScreen}
+            />
+            <Stack.Screen
+              name="NewOrEditAirtableIntegration"
+              component={NewOrEditAirtableIntegrationScreen}
             />
           </Stack.Navigator>
           <RFIDSheet

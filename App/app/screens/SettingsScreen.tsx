@@ -47,6 +47,14 @@ function SettingsScreen({
 
         <UIGroup>
           <UIGroup.ListItem
+            label="Integrations"
+            navigable
+            onPress={() => navigation.push('Integrations')}
+          />
+        </UIGroup>
+
+        <UIGroup>
+          <UIGroup.ListItem
             label="Configuration"
             navigable
             onPress={() => navigation.push('Configuration')}

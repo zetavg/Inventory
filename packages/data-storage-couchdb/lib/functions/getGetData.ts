@@ -154,6 +154,7 @@ export default function getGetData({
 
         const seenIndexFieldsSet = new Set();
         const indexFields = [
+          'type',
           ...Object.keys(flattenedSelector).sort(),
           ...sortKeys,
         ].filter(f => {
@@ -180,6 +181,7 @@ export default function getGetData({
         const query_ = {
           use_index: ddocName_,
           selector: {
+            type: type,
             ...(indexFields.length <= 0 ? { type } : {}),
             ...flattenedSelector,
           },

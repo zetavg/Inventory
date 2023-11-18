@@ -14,4 +14,10 @@ export const URLS = {
   what_is_giai: 'https://hackmd.io/@Inventory/what-is-giai',
   what_is_gs1_company_prefix:
     'https://hackmd.io/@Inventory/what-is-gs1-company-prefix',
+  airtable_integration_limitations:
+    'https://docs.inventory.z72.io/data/integrations/airtable-integration#limitations',
+  airtable_integration_setup_base_doc:
+    'https://docs.inventory.z72.io/data/integrations/airtable-integration#prepare-your-airtable-base-and-get-the-base-id',
+  airtable_integration_get_personal_access_token_doc:
+    'https://docs.inventory.z72.io/data/integrations/airtable-integration#get-a-personal-access-token',
 };

@@ -29,7 +29,12 @@ const INSET_GROUP_ITEM_PADDING_HORIZONTAL = 16;
 type Props = {
   children: React.ReactNode;
   label?: string | JSX.Element;
-  footerLabel?: string | JSX.Element;
+  footerLabel?:
+    | string
+    | JSX.Element
+    | ((context: {
+        textProps: React.ComponentProps<typeof Text>;
+      }) => React.ReactNode);
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
   labelContainerStyle?: React.ComponentProps<typeof View>['style'];
@@ -121,18 +126,32 @@ function InsetGroup(
           {loading && <LoadingOverlay show />}
         </View>
       )}
-      {footerLabel && (
-        <Text
-          style={[
-            styles.groupFooterLabel,
-            {
-              color: groupTitleColor,
+      {footerLabel &&
+        (typeof footerLabel === 'string' ? (
+          <Text
+            style={[
+              styles.groupFooterLabel,
+              {
+                color: groupTitleColor,
+              },
+            ]}
+          >
+            {footerLabel}
+          </Text>
+        ) : typeof footerLabel === 'function' ? (
+          footerLabel({
+            textProps: {
+              style: [
+                styles.groupFooterLabel,
+                {
+                  color: groupTitleColor,
+                },
+              ],
             },
-          ]}
-        >
-          {footerLabel}
-        </Text>
-      )}
+          })
+        ) : (
+          footerLabel
+        ))}
     </>
   );
 }
