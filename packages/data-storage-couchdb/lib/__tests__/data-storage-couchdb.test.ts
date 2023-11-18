@@ -37,9 +37,13 @@ const releaseContextID = (id: number) => {
   contextSet.delete(id);
 };
 
+const useRemoteDB = !!(COUCHDB_URI && COUCHDB_USERNAME && COUCHDB_PASSWORD);
+if (useRemoteDB) {
+  require('console').log(`Using CouchDB database: ${COUCHDB_URI}`);
+}
+
 async function withContext(fn: (c: Context) => Promise<void>) {
   const contextID = getContextID();
-  const useRemoteDB = !!(COUCHDB_URI && COUCHDB_USERNAME && COUCHDB_PASSWORD);
   const db = useRemoteDB
     ? new PouchDB(COUCHDB_URI, {
         skip_setup: true,
