@@ -258,6 +258,45 @@ describe('getData', () => {
       });
     });
 
+    it('will use index with sort', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+            __created_at: 11 - i,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            __created_at: 21 - i,
+          });
+        }
+
+        const collections = await d.getData(
+          'collection',
+          {},
+          { sort: [{ __created_at: 'desc' }], debug: true },
+        );
+        expect((collections as any).debug_info.explain.index.ddoc).toBeTruthy();
+
+        const items = await d.getData(
+          'item',
+          {},
+          { sort: [{ __created_at: 'asc' }], debug: true },
+        );
+        expect((items as any).debug_info.explain.index.ddoc).toBeTruthy();
+      });
+    });
+
     it('works with sort and limit and skip', async () => {
       await withContext(async context => {
         const d = new CouchDBData(context);
@@ -587,6 +626,66 @@ describe('getData', () => {
       });
     });
 
+    it('will use index', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            model_name: `Model ${i <= 5 ? 'A' : 'B'}`,
+          });
+        }
+
+        const modelAItems = await d.getData(
+          'item',
+          { model_name: 'Model A' },
+          { debug: true },
+        );
+        expect((modelAItems as any).debug_info.explain.index.ddoc).toBeTruthy();
+
+        const modelBItems = await d.getData(
+          'item',
+          { model_name: 'Model B' },
+          { debug: true },
+        );
+        expect((modelBItems as any).debug_info.explain.index.ddoc).toBeTruthy();
+
+        const itemsCreatedAfter0 = await d.getData(
+          'item',
+          {
+            __created_at: { $gt: 0 },
+          },
+          { debug: true },
+        );
+        expect(
+          (itemsCreatedAfter0 as any).debug_info.explain.index.ddoc,
+        ).toBeTruthy();
+
+        const collectionsCreatedAfter0 = await d.getData(
+          'collection',
+          {
+            __created_at: { $gt: 0 },
+          },
+          { debug: true },
+        );
+        expect(
+          (collectionsCreatedAfter0 as any).debug_info.explain.index.ddoc,
+        ).toBeTruthy();
+      });
+    });
+
     it('works with limit and skip', async () => {
       await withContext(async context => {
         const d = new CouchDBData(context);
@@ -690,6 +789,51 @@ describe('getData', () => {
             .map((_, i) => `Item #${i + 6}`)
             .reverse(),
         );
+      });
+    });
+
+    it('will use index with sort', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+        for (let i = 1; i <= 10; i++) {
+          const collection = await d.saveDatum({
+            __type: 'collection',
+            name: `Collection #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            collection_reference_number: `${i}`,
+          });
+
+          await d.saveDatum({
+            __type: 'item',
+            collection_id: collection.__id,
+            name: `Item #${i}`,
+            icon_name: 'box',
+            icon_color: 'gray',
+            model_name: `Model ${i <= 5 ? 'A' : 'B'}`,
+            purchase_price_x1000: Math.abs(6 - i) * 1000,
+          });
+        }
+
+        const items_a = await d.getData(
+          'item',
+          { model_name: 'Model A' },
+          { sort: [{ purchase_price_x1000: 'asc' }], debug: true },
+        );
+        expect((items_a as any).debug_info.explain.index.ddoc).toBeTruthy();
+
+        const items_b = await d.getData(
+          'item',
+          { model_name: 'Model B' },
+          {
+            sort: [
+              // { model_name: 'desc' }, // To prevent CouchDB error - { "error": "unsupported_mixed_sort", "reason": "Sorts currently only support a single direction for all fields.", "status": 400 } // This is now handled in getData
+              { purchase_price_x1000: 'desc' },
+            ],
+            debug: true,
+          },
+        );
+        expect((items_b as any).debug_info.explain.index.ddoc).toBeTruthy();
       });
     });
   });

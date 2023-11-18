@@ -26,7 +26,7 @@ export default function getGetData({
   const getData: GetData = async function getData(
     type,
     conditions = {},
-    { skip = 0, limit = undefined, sort } = {},
+    { skip = 0, limit = undefined, sort, debug } = {},
   ) {
     const logDebug = logLevels && logLevels().includes('debug');
 
@@ -223,7 +223,7 @@ export default function getGetData({
     })();
 
     // Since remote CouchDB server may not throw error if index not found
-    if (alwaysCreateIndexFirst && ddocName && index) {
+    if ((alwaysCreateIndexFirst || debug) && ddocName && index) {
       try {
         await db.createIndex({
           ddoc: ddocName,
@@ -233,25 +233,25 @@ export default function getGetData({
       } catch (e) {}
     }
 
-    if (logger && logDebug) {
-      let explain = '';
+    let explain: string | object = '';
+    if (debug || (logger && logDebug)) {
       try {
-        explain = `, explain: ${JSON.stringify(
-          await ((db as any).explain as any)(query),
-          null,
-          2,
-        )}`;
+        explain = await ((db as any).explain as any)(query);
       } catch (e) {
-        explain = `, explain: error on getting explain - ${
+        explain = `error on getting explain - ${
           e instanceof Error ? e.message : JSON.stringify(e)
         }`;
       }
+    }
+    if (logger && logDebug) {
       logger.debug(
         `getData query: ${JSON.stringify(
           query,
           null,
           2,
-        )}, index: ${JSON.stringify(index, null, 2)}` + explain,
+        )}, index: ${JSON.stringify(index, null, 2)}, explain: ${
+          typeof explain === 'string' ? explain : JSON.stringify(explain)
+        }`,
       );
     }
 
@@ -316,6 +316,12 @@ export default function getGetData({
           | InvalidDataTypeWithID<typeof type> =>
           dataMap.get(id) || { __type: type, __id: id, __valid: false },
       );
+    }
+
+    if (debug) {
+      data.debug_info = {
+        explain,
+      };
     }
 
     return data;

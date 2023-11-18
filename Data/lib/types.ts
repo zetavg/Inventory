@@ -85,6 +85,7 @@ export type GetData = <T extends DataTypeName>(
     skip?: number;
     limit?: number;
     sort?: SortOption<DataType<T>>;
+    debug?: boolean;
   },
 ) => Promise<Array<ValidDataTypeWithID<T> | InvalidDataTypeWithID<T>>>;
 
