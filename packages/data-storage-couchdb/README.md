@@ -61,3 +61,21 @@ await saveDatum({ __type: 'collection', __id: newCollection.__id, __deleted: tru
   getREPL().removeListener('SIGINT', onSEGINT);
 })();
 ```
+
+## Run Test Suits
+
+```bash
+yarn test
+```
+
+### Run data-storage-couchdb test with debug logging
+
+```bash
+DEBUG=true yarn test lib/__tests__/data-storage-couchdb.test.ts
+```
+
+### Run data-storage-couchdb test with remote database
+
+```bash
+COUCHDB_URI='http://127.0.0.1:5984/<db_name>' COUCHDB_USERNAME=<username> COUCHDB_PASSWORD=<password> yarn test lib/__tests__/data-storage-couchdb.test.ts --runInBand
+```

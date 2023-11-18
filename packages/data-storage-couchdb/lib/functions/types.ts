@@ -15,12 +15,16 @@ export type Context =
       db: nano.DocumentScope<unknown>;
       logger?: Logger | null;
       logLevels?: () => ReadonlyArray<string>;
+      /** Since remote CouchDB server may not throw error if index not found */
+      alwaysCreateIndexFirst?: boolean;
     }
   | {
       dbType: 'pouchdb';
       db: PouchDB.Database;
       logger?: Logger | null;
       logLevels?: () => ReadonlyArray<string>;
+      /** Since remote CouchDB server may not throw error if index not found */
+      alwaysCreateIndexFirst?: boolean;
     };
 
 export type CouchDBDoc = {
