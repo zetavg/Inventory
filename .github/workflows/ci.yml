@@ -15,9 +15,11 @@ on:
   release:
     types: [published]
   schedule:
-    # First Sunday of every month
-    # See: https://crontab.guru/#0_0_1-7_*_*/7
-    - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
+    # Every Monday
+    - cron: 0 0 * * 1
+    # # First Sunday of every month
+    # # See: https://crontab.guru/#0_0_1-7_*_*/7
+    # - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
