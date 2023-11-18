@@ -89,3 +89,84 @@ jobs:
       run: |
         cd packages/epc-utils
         yarn run lint
+
+  lint-data-storage-couchdb:
+    name: "Lint: data-storage-couchdb"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: data-storage-couchdb-node_modules
+      with:
+        path: packages/data-storage-couchdb/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/data-storage-couchdb
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/data-storage-couchdb
+        yarn run lint
+
+  lint-integration-airtable:
+    name: "Lint: integration-airtable"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: integration-airtable-node_modules
+      with:
+        path: packages/integration-airtable/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-airtable/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/integration-airtable
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/integration-airtable
+        yarn run lint
+
+  lint-integration-snipe-it:
+    name: "Lint: integration-snipe-it"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: integration-snipe-it-node_modules
+      with:
+        path: packages/integration-snipe-it/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-snipe-it/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/integration-snipe-it
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/integration-snipe-it
+        yarn run lint

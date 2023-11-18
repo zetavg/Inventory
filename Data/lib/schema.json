@@ -145,6 +145,50 @@
       },
       "required": [],
       "additionalProperties": true
+    },
+    "integration": {
+      "type": "object",
+      "properties": {
+        "integration_type": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "config": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": true
+        },
+        "data": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "integration_type",
+        "name"
+      ],
+      "additionalProperties": true
+    },
+    "integration_deleted_data": {
+      "type": "object",
+      "properties": {
+        "integration_id": { "type": "string" },
+        "type": { "type": "string" },
+        "id": { "type": "string" },
+        "data": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "integration_id",
+        "type",
+        "id"
+      ],
+      "additionalProperties": true
     }
   }
 }

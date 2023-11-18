@@ -12,6 +12,7 @@ import CounterScreen from '@app/features/counter/screens/CounterScreen';
 import CountersScreen from '@app/features/counters/screens/CountersScreen';
 import DBSyncScreen from '@app/features/db-sync/screens/DBSyncScreen';
 import DBSyncServerDetailScreen from '@app/features/db-sync/screens/DBSyncServerDetailScreen';
+import IntegrationsScreen from '@app/features/integrations/screens/IntegrationsScreen';
 // import DBSyncConfigScreen from '@app/features/db-sync/config/screens/DBSyncConfigScreen';
 // import PouchDBSyncDetailsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncDetailsScreen';
 // import PouchDBSyncLogsScreen from '@app/features/db-sync/manage/screens/PouchDBSyncLogsScreen';
@@ -102,6 +103,7 @@ export type StackParamList = {
   Statistics: undefined;
   Settings: undefined;
   LabelPrinters: undefined;
+  Integrations: undefined;
   UIAndAppearanceSettings: undefined;
   Configuration: undefined;
   HowToSwitchBetweenProfiles: undefined;
@@ -241,6 +243,7 @@ function MainStack({ initialRouteName }: Props) {
 
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="LabelPrinters" component={LabelPrintersScreen} />
+      <Stack.Screen name="Integrations" component={IntegrationsScreen} />
       <Stack.Screen
         name="UIAndAppearanceSettings"
         component={UIAndAppearanceSettingsScreen}

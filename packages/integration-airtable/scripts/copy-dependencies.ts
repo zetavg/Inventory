@@ -43,7 +43,11 @@ function copyFile(
   console.log(`Code written to "${path.join(...toPath)}".`);
 }
 
-function copyDepDir(source: Array<string>, target: Array<string>) {
+function copyDepDir(
+  source: Array<string>,
+  target: Array<string>,
+  options: { excludes?: Array<RegExp> } = {},
+) {
   const fullTargetPath = [__dirname, '..', 'deps', ...target];
   const fullTargetPathStr = path.join(...fullTargetPath);
   if (!fs.existsSync(fullTargetPathStr)) {
@@ -56,12 +60,21 @@ function copyDepDir(source: Array<string>, target: Array<string>) {
   const files = fs.readdirSync(fullSourcePathStr);
   for (const file of files) {
     const fileFullPath = [...fullSourcePath, file];
+    const localPathStr = [...source, file].join('/');
+
+    if (options.excludes) {
+      if (options.excludes.some(exclude => exclude.test(localPathStr))) {
+        console.log(`Skipping ${localPathStr}.`);
+        continue;
+      }
+    }
+
     const fileStats = fs.statSync(path.join(...fileFullPath));
 
     const fileTargetPath = [...fullTargetPath, file];
 
     if (fileStats.isDirectory()) {
-      copyDepDir([...source, file], [...target, file]);
+      copyDepDir([...source, file], [...target, file], options);
     } else if (
       file.endsWith('.js') ||
       file.endsWith('.jsx') ||
@@ -74,14 +87,12 @@ function copyDepDir(source: Array<string>, target: Array<string>) {
   }
 }
 
-copyDepDir(['Data', 'lib'], ['data']);
-copyDepDir(
-  ['packages', 'data-storage-couchdb', 'lib'],
-  ['data-storage-couchdb'],
-);
-copyDepDir(['packages', 'epc-utils', 'lib'], ['epc-utils']);
-copyDepDir(['packages', 'epc-utils', 'types'], ['types']);
-copyDepDir(
-  ['packages', 'integration-airtable', 'lib'],
-  ['integration-airtable'],
-);
+copyDepDir(['..', 'Data', 'lib'], ['data']);
+copyDepDir(['epc-utils', 'lib'], ['epc-utils']);
+copyDepDir(['epc-utils', 'types'], ['types']);
+copyDepDir(['data-storage-couchdb', 'lib'], ['data-storage-couchdb'], {
+  excludes: [
+    // Database integration tests
+    /^data-storage-couchdb\/lib\/__tests__/,
+  ],
+});

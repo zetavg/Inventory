@@ -20,7 +20,12 @@ type RenderFunctionProps = {
 export type UIGroupProps = {
   children?: React.ReactNode;
   header?: string | JSX.Element;
-  footer?: string | JSX.Element;
+  footer?:
+    | string
+    | JSX.Element
+    | ((context: {
+        textProps: React.ComponentProps<typeof Text>;
+      }) => React.ReactNode);
   largeTitle?: boolean;
   headerRight?: string | JSX.Element;
   transparentBackground?: boolean;
