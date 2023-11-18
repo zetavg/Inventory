@@ -17,6 +17,11 @@ const SQLiteAdapter = require('pouchdb-adapter-react-native-sqlite/lib')({
 });
 PouchDB.plugin(SQLiteAdapter);
 
+const DEBUG = process.env.DEBUG;
+const COUCHDB_URI = process.env.COUCHDB_URI;
+const COUCHDB_USERNAME = process.env.COUCHDB_USERNAME;
+const COUCHDB_PASSWORD = process.env.COUCHDB_PASSWORD;
+
 const contextSet = new Set();
 const getContextID = () => {
   let id = 1;
@@ -31,25 +36,51 @@ const getContextID = () => {
 const releaseContextID = (id: number) => {
   contextSet.delete(id);
 };
+
 async function withContext(fn: (c: Context) => Promise<void>) {
   const contextID = getContextID();
-  const db = new PouchDB(`.temp_dbs/pouchdb-test-${contextID}`, {
-    adapter: 'react-native-sqlite',
-  });
+  const useRemoteDB = !!(COUCHDB_URI && COUCHDB_USERNAME && COUCHDB_PASSWORD);
+  const db = useRemoteDB
+    ? new PouchDB(COUCHDB_URI, {
+        skip_setup: true,
+        auth: {
+          username: COUCHDB_USERNAME,
+          password: COUCHDB_PASSWORD,
+        },
+      })
+    : new PouchDB(`.temp_dbs/pouchdb-test-${contextID}`, {
+        adapter: 'react-native-sqlite',
+      });
 
   const context: Context = {
     dbType: 'pouchdb',
     db,
-    logger: null,
-    logLevels: () => [],
+    logger: DEBUG ? console : null,
+    logLevels: DEBUG ? () => ['debug'] : () => [],
+    alwaysCreateIndexFirst: useRemoteDB,
   };
 
   try {
+    if (useRemoteDB) {
+      await db
+        .allDocs({ include_docs: true })
+        .then(allDocs => {
+          return allDocs.rows.map(row => {
+            return { _id: row.id, _rev: row.doc?._rev, _deleted: true };
+          });
+        })
+        .then(deleteDocs => {
+          return db.bulkDocs(deleteDocs);
+        });
+    }
+
     const d = new CouchDBData(context);
     await d.updateConfig({});
     await fn(context);
   } finally {
-    await db.destroy();
+    if (!useRemoteDB) {
+      await db.destroy();
+    }
     releaseContextID(contextID);
   }
 }
@@ -157,6 +188,7 @@ describe('getData', () => {
           {},
           { limit: 3 },
         );
+
         expect(collectionsWithLimit).toHaveLength(3);
         expect(collectionsWithLimit.map(c => c.name)).toEqual(
           Array.from(new Array(3)).map((_, i) => `Collection #${i + 1}`),
@@ -536,6 +568,18 @@ describe('getData', () => {
             Array.from(new Array(5)).map((_, i) => `Item #${i + 6}`),
           ),
         );
+
+        const itemsCreatedAfter0 = await d.getData('item', {
+          __created_at: { $gt: 0 },
+        });
+        expect(
+          itemsCreatedAfter0.every(it => (it.__raw as any)?.type === 'item'),
+        ).toEqual(true);
+
+        const collectionsCreatedAfter0 = await d.getData('collection', {
+          __created_at: { $gt: 0 },
+        });
+        expect(collectionsCreatedAfter0.length).toEqual(10);
       });
     });
 
@@ -629,11 +673,18 @@ describe('getData', () => {
         const items_b = await d.getData(
           'item',
           { model_name: 'Model B' },
-          { sort: [{ purchase_price_x1000: 'desc' }] },
+          {
+            sort: [
+              // { model_name: 'desc' }, // To prevent CouchDB error - { "error": "unsupported_mixed_sort", "reason": "Sorts currently only support a single direction for all fields.", "status": 400 } // This is now handled in getData
+              { purchase_price_x1000: 'desc' },
+            ],
+          },
         );
         expect(items_b).toHaveLength(5);
         expect(items_b.map(it => it.name)).toEqual(
-          Array.from(new Array(5)).map((_, i) => `Item #${i + 6}`),
+          Array.from(new Array(5))
+            .map((_, i) => `Item #${i + 6}`)
+            .reverse(),
         );
       });
     });
@@ -1197,7 +1248,7 @@ describe('saveDatum', () => {
       });
       const doc = await (context.db as any).get('collection-1');
 
-      (context.db as any).put({
+      await (context.db as any).put({
         ...doc,
         additional_field: 'hello',
       });

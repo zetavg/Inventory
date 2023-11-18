@@ -47,6 +47,7 @@ program
     },
     'nano',
   )
+  .option('--ignore_config_missing_error', 'Ignore config missing error.')
   .option('--debug', 'Enable debug output.');
 
 program.parse(process.argv);
@@ -185,7 +186,9 @@ getPassword(async () => {
   })();
 
   try {
-    await (db as any).get('0000-config');
+    if (!options.ignore_config_missing_error) {
+      await (db as any).get('0000-config');
+    }
   } catch (e) {
     if (e instanceof Error && e.message === 'missing') {
       console.warn(

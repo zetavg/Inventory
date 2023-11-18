@@ -15,12 +15,13 @@ import { Context } from './types';
  * We will need to update this if we change the auto ddoc generation logic, so
  * that the app can generate the new and updated design docs.
  */
-const AUTO_DDOC_PREFIX = 'auto_get_data';
+const AUTO_DDOC_PREFIX = 'auto_get_data_v1';
 
 export default function getGetData({
   db,
   logger,
   logLevels,
+  alwaysCreateIndexFirst,
 }: Context): GetData {
   const getData: GetData = async function getData(
     type,
@@ -151,6 +152,8 @@ export default function getGetData({
         );
 
         const sortKeys = (couchdbSort || []).flatMap(s => Object.keys(s));
+        // CouchDB limitation: sorts currently only support a single direction for all fields
+        const shouldUseDesc = couchdbSort?.[0]?.[sortKeys[0]] === 'desc';
 
         const seenIndexFieldsSet = new Set();
         const indexFields = [
@@ -166,12 +169,18 @@ export default function getGetData({
 
         const ddocName_ =
           indexFields.length > 0
-            ? `${AUTO_DDOC_PREFIX}--type_${type}--${indexFields.join('-')}`
+            ? `${AUTO_DDOC_PREFIX}--type_${type}--${indexFields.join('-')}${
+                // shouldUseDesc ? '--desc' : ''
+                ''
+              }`
             : `${AUTO_DDOC_PREFIX}--type`;
         const index_ =
           indexFields.length > 0
             ? {
-                fields: [...indexFields],
+                // fields: ['type', ...indexFields].map(f =>
+                //   shouldUseDesc ? { [f]: 'desc' } : { [f]: 'asc' },
+                // ),
+                fields: ['type', ...indexFields],
                 partial_filter_selector: { type },
               }
             : {
@@ -180,7 +189,7 @@ export default function getGetData({
         const query_ = {
           use_index: ddocName_,
           selector: {
-            ...(indexFields.length <= 0 ? { type } : {}),
+            type,
             ...flattenedSelector,
           },
           sort: couchdbSort
@@ -192,9 +201,11 @@ export default function getGetData({
                   couchdbSort.flatMap(s => Object.keys(s)),
                 );
                 return [
-                  ...indexFields
+                  ...['type', ...indexFields]
                     .filter(f => !sortKeysSet.has(f))
-                    .map(k => ({ [k]: 'asc' as const })),
+                    .map(k => ({
+                      [k]: shouldUseDesc ? ('desc' as const) : ('asc' as const),
+                    })),
                   ...couchdbSort,
                 ];
               })()
@@ -211,17 +222,44 @@ export default function getGetData({
       }
     })();
 
+    // Since remote CouchDB server may not throw error if index not found
+    if (alwaysCreateIndexFirst && ddocName && index) {
+      try {
+        await db.createIndex({
+          ddoc: ddocName,
+          name: ddocName,
+          index,
+        });
+      } catch (e) {}
+    }
+
     if (logger && logDebug) {
+      let explain = '';
+      try {
+        explain = `, explain: ${JSON.stringify(
+          await ((db as any).explain as any)(query),
+          null,
+          2,
+        )}`;
+      } catch (e) {
+        explain = `, explain: error on getting explain - ${
+          e instanceof Error ? e.message : JSON.stringify(e)
+        }`;
+      }
       logger.debug(
         `getData query: ${JSON.stringify(
           query,
           null,
           2,
-        )}, index: ${JSON.stringify(index, null, 2)}`,
+        )}, index: ${JSON.stringify(index, null, 2)}` + explain,
       );
     }
 
     const response = await (async () => {
+      if (alwaysCreateIndexFirst) {
+        return await db.find(query);
+      }
+
       let retries = 0;
       while (true) {
         try {
