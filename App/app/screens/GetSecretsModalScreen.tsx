@@ -81,9 +81,12 @@ function GetSecretsModalScreen({
               placeholder="Enter Value"
               monospaced
               spellCheck={false}
+              secureTextEntry
               autoCapitalize="none"
               value={value[secret.key]}
-              onChangeText={text => setValue({ ...value, [secret.key]: text })}
+              onChangeText={text =>
+                setValue({ ...value, [secret.key]: text.trim() })
+              }
             />
           </UIGroup>
         ))}
