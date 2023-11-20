@@ -1,6 +1,7 @@
 import PouchDB from 'pouchdb';
 
 import { fixDataConsistency } from '@deps/data/utils';
+import getChildrenItems from '@deps/data/utils/getChildrenItems';
 import { ValidationError } from '@deps/data/validation';
 
 import { NYAN_CAT_PNG } from '../__fixtures__/sample-data';
@@ -2585,6 +2586,518 @@ describe('fixDataConsistency', () => {
       expect(fixDataConsistencyResults?.item).toMatchSnapshot(
         'fixDataConsistencyResults-item',
       );
+    });
+  });
+});
+
+describe('getChildrenItems', () => {
+  it('returns contents of each item ID provided', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __id: 'collection-a',
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-1',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-2',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-1',
+        collection_id: 'collection-a',
+        container_id: '2',
+        name: 'Item 2-1',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-2',
+        collection_id: 'collection-a',
+        container_id: '2',
+        name: 'Item 2-2',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-2',
+        collection_id: 'collection-a',
+        container_id: '2',
+        name: 'Item 2-3',
+      });
+
+      const results = await getChildrenItems(['1', '2'], {
+        getDatum: d.getDatum,
+        getData: d.getData,
+      });
+
+      const resultIds = Object.fromEntries(
+        Object.entries(results).map(([k, v]) => [k, v.map(it => it.__id)]),
+      );
+
+      expect(resultIds).toMatchObject({
+        '1': ['1-1', '1-2'],
+        '2': ['2-1', '2-2'],
+      });
+    });
+  });
+
+  it('returns IDs under nested containers', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __id: 'collection-a',
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        item_type: 'container',
+        name: 'Container 1-1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1-1',
+        collection_id: 'collection-a',
+        container_id: '1-1-1',
+        item_type: 'container',
+        name: 'Container 1-1-1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1-1-1',
+        collection_id: 'collection-a',
+        container_id: '1-1-1-1',
+        item_type: 'container',
+        name: 'Container 1-1-1-1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1-2',
+        collection_id: 'collection-a',
+        container_id: '1-1-1',
+        item_type: 'container',
+        name: 'Container 1-1-1-2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-2',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 1-2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-2-1',
+        collection_id: 'collection-a',
+        container_id: '1-2',
+        item_type: 'container',
+        name: 'Container 1-2-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-3',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 1-3',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-1',
+        collection_id: 'collection-a',
+        container_id: '2',
+        item_type: 'container',
+        name: 'Container 2-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-1-1',
+        collection_id: 'collection-a',
+        container_id: '2-1',
+        item_type: 'container',
+        name: 'Container 2-1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-1-2',
+        collection_id: 'collection-a',
+        container_id: '2-1',
+        item_type: 'container',
+        name: 'Container 2-1-2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2-2',
+        collection_id: 'collection-a',
+        container_id: '2',
+        item_type: 'container',
+        name: 'Container 2-2',
+      });
+
+      const results = await getChildrenItems(['1', '2', '3'], {
+        getDatum: d.getDatum,
+        getData: d.getData,
+      });
+
+      const resultIds = Object.fromEntries(
+        Object.entries(results).map(([k, v]) => [k, v.map(it => it.__id)]),
+      );
+
+      expect(resultIds).toMatchObject({
+        '1': ['1-1', '1-2', '1-3'],
+        '2': ['2-1', '2-2'],
+        '1-1': ['1-1-1'],
+        '1-1-1': ['1-1-1-1', '1-1-1-2'],
+        '1-1-1-1': ['1-1-1-1-1'],
+        '1-1-1-1-1': [],
+        '1-1-1-2': [],
+        '1-2': ['1-2-1'],
+        '1-2-1': [],
+        '1-3': [],
+        '2-1': ['2-1-1', '2-1-2'],
+        '2-1-1': [],
+        '2-1-2': [],
+        '2-2': [],
+      });
+    });
+  });
+
+  it('will not return ids for items that cannot contain items', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __id: 'collection-a',
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        name: 'Item 1-1-1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-2',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-2',
+      });
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: '1-2-1',
+          collection_id: 'collection-a',
+          container_id: '1-2-1',
+          name: 'Item 1-2-1',
+        },
+        { skipValidation: true },
+      );
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2',
+        collection_id: 'collection-a',
+        name: 'Item 2',
+      });
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: '2-1',
+          collection_id: 'collection-a',
+          container_id: '2',
+          name: 'Item 2-1',
+        },
+        { skipValidation: true },
+      );
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: '2-2',
+          collection_id: 'collection-a',
+          container_id: '2',
+          name: 'Item 2-2',
+        },
+        { skipValidation: true },
+      );
+
+      const results = await getChildrenItems(['1', '2'], {
+        getDatum: d.getDatum,
+        getData: d.getData,
+      });
+
+      const resultIds = Object.fromEntries(
+        Object.entries(results).map(([k, v]) => [k, v.map(it => it.__id)]),
+      );
+
+      expect(resultIds).toMatchObject({
+        '1': ['1-1', '1-2'],
+        '1-1': ['1-1-1'],
+      });
+    });
+  });
+
+  it('works with circular references', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __id: 'collection-a',
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      const container1 = await d.saveDatum({
+        __type: 'item',
+        __id: '1',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 1',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '2',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 2',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '3',
+        collection_id: 'collection-a',
+        container_id: '2',
+        item_type: 'container',
+        name: 'Container 3',
+      });
+      await d.saveDatum(
+        {
+          ...container1,
+          container_id: '3',
+        },
+        { skipValidation: true },
+      );
+
+      const results = await getChildrenItems(['1'], {
+        getDatum: d.getDatum,
+        getData: d.getData,
+      });
+
+      const resultIds = Object.fromEntries(
+        Object.entries(results).map(([k, v]) => [k, v.map(it => it.__id)]),
+      );
+
+      expect(resultIds).toMatchObject({
+        '1': ['2'],
+        '2': ['3'],
+        '3': ['1'],
+      });
+    });
+  });
+
+  it('sorts ids by contents_order then __created_at', async () => {
+    await withContext(async context => {
+      const d = new CouchDBData(context);
+
+      const collection = await d.saveDatum({
+        __id: 'collection-a',
+        __type: 'collection',
+        name: 'Collection',
+        icon_name: 'box',
+        icon_color: 'gray',
+        collection_reference_number: '1',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1',
+        collection_id: 'collection-a',
+        item_type: 'container',
+        name: 'Container 1',
+        contents_order: ['1-4', '1-3'],
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1',
+        collection_id: 'collection-a',
+        container_id: '1',
+        item_type: 'container',
+        name: 'Container 1-1',
+        contents_order: ['1-1-3', '1-1-4'],
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-1',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        name: 'Item 1-1-1',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-2',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        name: 'Item 1-1-2',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-3',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        name: 'Item 1-1-3',
+      });
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-1-4',
+        collection_id: 'collection-a',
+        container_id: '1-1',
+        name: 'Item 1-1-4',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-2',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-2',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-3',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-3',
+      });
+
+      await d.saveDatum({
+        __type: 'item',
+        __id: '1-4',
+        collection_id: 'collection-a',
+        container_id: '1',
+        name: 'Item 1-4',
+      });
+
+      const results = await getChildrenItems(['1'], {
+        getDatum: d.getDatum,
+        getData: d.getData,
+      });
+
+      const resultIds = Object.fromEntries(
+        Object.entries(results).map(([k, v]) => [k, v.map(it => it.__id)]),
+      );
+
+      expect(resultIds).toMatchObject({
+        '1': ['1-4', '1-3', '1-1', '1-2'],
+        '1-1': ['1-1-3', '1-1-4', '1-1-1', '1-1-2'],
+      });
     });
   });
 });
