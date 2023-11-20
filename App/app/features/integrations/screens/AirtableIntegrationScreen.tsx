@@ -24,6 +24,7 @@ import { DEFAULT_LAYOUT_ANIMATION_CONFIG } from '@app/consts/animations';
 import { URLS } from '@app/consts/info';
 
 import CollectionListItem from '@app/features/inventory/components/CollectionListItem';
+import ItemListItem from '@app/features/inventory/components/ItemListItem';
 
 import { onlyValid, useData } from '@app/data';
 import {
@@ -72,6 +73,10 @@ function AirtableIntegrationScreen({
   }, [data?.config]);
   const { data: collectionsToSync, loading: collectionsToSyncLoading } =
     useData('collection', config.collection_ids_to_sync || []);
+  const { data: containersToSync, loading: containersToSyncLoading } = useData(
+    'item',
+    config.container_ids_to_sync || [],
+  );
 
   const [syncing, setSyncing] = useState(false);
   const isSyncing = useRef(syncing);
@@ -318,27 +323,53 @@ function AirtableIntegrationScreen({
           <UIGroup.ListItem label="Integration Type" detail="Airtable" />
         </UIGroup>
 
-        {!!collectionsToSync && collectionsToSync.length > 0 && (
-          <UIGroup
-            header="Collections to Sync"
-            loading={loading || collectionsToSyncLoading}
-          >
-            {UIGroup.ListItemSeparator.insertBetween(
-              collectionsToSync.map(c =>
-                c.__valid ? (
-                  <CollectionListItem
-                    key={c.__id}
-                    collection={c}
-                    navigable={false}
-                    onPress={() => {}}
-                  />
-                ) : (
-                  <UIGroup.ListItem label={c.__id} />
+        {config.scope_type === 'collections' &&
+          !!collectionsToSync &&
+          collectionsToSync.length > 0 && (
+            <UIGroup
+              header="Collections to Sync"
+              loading={loading || collectionsToSyncLoading}
+            >
+              {UIGroup.ListItemSeparator.insertBetween(
+                collectionsToSync.map(c =>
+                  c.__valid ? (
+                    <CollectionListItem
+                      key={c.__id}
+                      collection={c}
+                      navigable={false}
+                      onPress={() => {}}
+                    />
+                  ) : (
+                    <UIGroup.ListItem label={c.__id} />
+                  ),
                 ),
-              ),
-            )}
-          </UIGroup>
-        )}
+              )}
+            </UIGroup>
+          )}
+
+        {config.scope_type === 'containers' &&
+          !!containersToSync &&
+          containersToSync.length > 0 && (
+            <UIGroup
+              header="containers to Sync"
+              loading={loading || containersToSyncLoading}
+            >
+              {UIGroup.ListItemSeparator.insertBetween(
+                containersToSync.map(it =>
+                  it.__valid ? (
+                    <ItemListItem
+                      key={it.__id}
+                      item={it}
+                      navigable={false}
+                      onPress={() => {}}
+                    />
+                  ) : (
+                    <UIGroup.ListItem label={it.__id} />
+                  ),
+                ),
+              )}
+            </UIGroup>
+          )}
 
         <UIGroup loading={loading || syncing}>
           <UIGroup.ListItem

@@ -30,6 +30,7 @@ import { DEFAULT_COLLECTION_ICON_NAME } from '@app/consts/default-icons';
 import { URLS } from '@app/consts/info';
 
 import CollectionListItem from '@app/features/inventory/components/CollectionListItem';
+import ItemListItem from '@app/features/inventory/components/ItemListItem';
 
 import { DataTypeWithID, useData, useSave } from '@app/data';
 
@@ -61,7 +62,7 @@ function NewOrEditAirtableIntegrationScreen({
 
   const [initialData, setInitialData] = useState<
     DataMeta<'integration'> & Partial<DataTypeWithID<'integration'>>
-  >({ __type: 'integration', integration_type: 'airtable' });
+  >({ __type: 'integration', integration_type: 'airtable', config: {} });
   const [data, setData] = useState<
     DataMeta<'integration'> & Partial<DataTypeWithID<'integration'>>
   >(initialData);
@@ -148,10 +149,71 @@ function NewOrEditAirtableIntegrationScreen({
     [showActionSheet],
   );
 
+  const { data: selectedContainers } = useData(
+    'item',
+    config?.container_ids_to_sync || [],
+    {
+      disable: !config?.container_ids_to_sync,
+    },
+  );
+  const handleAddContainer = useCallback(() => {
+    navigation.navigate('SelectItem', {
+      as: 'container',
+      callback: container_id => {
+        setData(d => ({
+          ...d,
+          config: {
+            ...d.config,
+            container_ids_to_sync: [
+              ...(Array.isArray(d.config?.container_ids_to_sync)
+                ? (d.config?.container_ids_to_sync as any)
+                : []),
+              container_id,
+            ].filter((v, i, a) => a.indexOf(v) === i),
+          },
+        }));
+      },
+    });
+  }, [navigation]);
+  const handleContainerPress = useCallback(
+    (it: ValidDataTypeWithID<'item'> | InvalidDataTypeWithID<'item'>) => {
+      showActionSheet([
+        {
+          name: it.__valid ? `Remove "${it.name}"` : 'Remove',
+          destructive: true,
+          onSelect: () => {
+            setData(d => ({
+              ...d,
+              config: {
+                ...d.config,
+                container_ids_to_sync: [
+                  ...(Array.isArray(d.config?.container_ids_to_sync)
+                    ? (d.config?.container_ids_to_sync as any)
+                    : []),
+                ].filter(v => v !== it.__id),
+              },
+            }));
+          },
+        },
+      ]);
+    },
+    [showActionSheet],
+  );
+
   const isDone = useRef(false);
   const handleSave = useCallback(async () => {
-    if ((config?.collection_ids_to_sync?.length || 0) <= 0) {
-      Alert.alert('Pleas at least select a collection to sync.');
+    if (
+      config.scope_type === 'collections' &&
+      (config?.collection_ids_to_sync?.length || 0) <= 0
+    ) {
+      Alert.alert('Pleas at least select one collection to sync.');
+      return;
+    }
+    if (
+      config.scope_type === 'containers' &&
+      (config?.container_ids_to_sync?.length || 0) <= 0
+    ) {
+      Alert.alert('Pleas at least select one container to sync.');
       return;
     }
 
@@ -172,7 +234,14 @@ function NewOrEditAirtableIntegrationScreen({
       isDone.current = true;
       navigation.goBack();
     }
-  }, [config?.collection_ids_to_sync?.length, data, navigation, save]);
+  }, [
+    config?.collection_ids_to_sync?.length,
+    config?.container_ids_to_sync?.length,
+    config.scope_type,
+    data,
+    navigation,
+    save,
+  ]);
 
   const handleLeave = useCallback(
     (confirm: () => void) => {
@@ -298,33 +367,104 @@ function NewOrEditAirtableIntegrationScreen({
 
         <UIGroup
           loading={initialDataLoading}
-          header="Collections to Sync"
-          footer="Select the collections to be synced to the Airtable base."
+          header="Items Scope"
+          footer={(() => {
+            switch (config.scope_type) {
+              case 'collections':
+                return 'Sync items in the selected collections.';
+              case 'containers':
+                return 'Sync items under the selected containers.';
+              default:
+                return undefined;
+            }
+          })()}
         >
-          {!!selectedCollections &&
-            selectedCollections.flatMap(c => [
-              c.__valid ? (
-                <CollectionListItem
-                  key={c.__id}
-                  collection={c}
-                  navigable={false}
-                  onPress={() => handleCollectionPress(c)}
-                />
-              ) : (
-                <UIGroup.ListItem
-                  key={c.__id}
-                  label={c.__id || ''}
-                  onPress={() => handleCollectionPress(c)}
-                />
-              ),
-              <UIGroup.ListItemSeparator />,
-            ])}
           <UIGroup.ListItem
-            button
-            label="Add Collection..."
-            onPress={handleAddCollection}
+            label="Collections"
+            selected={config.scope_type === 'collections'}
+            onPress={() =>
+              setData(d => ({
+                ...d,
+                config: { ...d.config, scope_type: 'collections' },
+              }))
+            }
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem
+            label="Containers"
+            selected={config.scope_type === 'containers'}
+            onPress={() =>
+              setData(d => ({
+                ...d,
+                config: { ...d.config, scope_type: 'containers' },
+              }))
+            }
           />
         </UIGroup>
+
+        {config.scope_type === 'collections' && (
+          <UIGroup
+            loading={initialDataLoading}
+            header="Collections to Sync"
+            footer="Select the collections to be synced to the Airtable base."
+          >
+            {!!selectedCollections &&
+              selectedCollections.flatMap(c => [
+                c.__valid ? (
+                  <CollectionListItem
+                    key={c.__id}
+                    collection={c}
+                    navigable={false}
+                    onPress={() => handleCollectionPress(c)}
+                  />
+                ) : (
+                  <UIGroup.ListItem
+                    key={c.__id}
+                    label={c.__id || ''}
+                    onPress={() => handleCollectionPress(c)}
+                  />
+                ),
+                <UIGroup.ListItemSeparator />,
+              ])}
+            <UIGroup.ListItem
+              button
+              label="Add Collection..."
+              onPress={handleAddCollection}
+            />
+          </UIGroup>
+        )}
+
+        {config.scope_type === 'containers' && (
+          <UIGroup
+            loading={initialDataLoading}
+            header="Containers to Sync"
+            footer="Select the containers to be synced to the Airtable base."
+          >
+            {!!selectedContainers &&
+              selectedContainers.flatMap(it => [
+                it.__valid ? (
+                  <ItemListItem
+                    key={it.__id}
+                    item={it}
+                    navigable={false}
+                    onPress={() => handleContainerPress(it)}
+                  />
+                ) : (
+                  <UIGroup.ListItem
+                    key={it.__id}
+                    label={it.__id || ''}
+                    onPress={() => handleContainerPress(it)}
+                  />
+                ),
+                <UIGroup.ListItemSeparator />,
+              ])}
+            <UIGroup.ListItem
+              button
+              label="Add Container..."
+              onPress={handleAddContainer}
+            />
+          </UIGroup>
+        )}
 
         <UIGroup
           loading={initialDataLoading}
