@@ -9,6 +9,7 @@ import {
   ValidDataTypeWithID,
 } from '@deps/data/types';
 import { hasChanges, onlyValid } from '@deps/data/utils';
+import getChildrenItems from '@deps/data/utils/getChildrenItems';
 
 import AirtableAPI, { AirtableAPIError, AirtableField } from './AirtableAPI';
 import {
@@ -741,24 +742,26 @@ export default async function* syncWithAirtable(
     //
 
     const { collection_ids_to_sync } = config;
-    for await (const p of syncData(
-      'collection',
-      collection_ids_to_sync,
-      'Collections',
-      {
-        datumToAirtableRecord: async c =>
-          collectionToAirtableRecord(c, { airtableCollectionsTableFields }),
-        airtableRecordToDatum: async r =>
-          airtableRecordToCollection(r, {
-            integrationId,
-            airtableCollectionsTableFields,
-            getData,
-          }),
-        existingRecordIdsForFullSync: fullSync_existingCollections,
-        airtableFields: ['Name', 'Ref. No.'],
-      },
-    )) {
-      yield p;
+    if (config.scope_type === 'collections' && collection_ids_to_sync) {
+      for await (const p of syncData(
+        'collection',
+        collection_ids_to_sync,
+        'Collections',
+        {
+          datumToAirtableRecord: async c =>
+            collectionToAirtableRecord(c, { airtableCollectionsTableFields }),
+          airtableRecordToDatum: async r =>
+            airtableRecordToCollection(r, {
+              integrationId,
+              airtableCollectionsTableFields,
+              getData,
+            }),
+          existingRecordIdsForFullSync: fullSync_existingCollections,
+          airtableFields: ['Name', 'Ref. No.'],
+        },
+      )) {
+        yield p;
+      }
     }
 
     yield progress;
@@ -889,31 +892,52 @@ export default async function* syncWithAirtable(
     // Sync Items
     //
 
-    for await (const p of syncData(
-      'item',
-      {
-        collection_id: { $in: collection_ids_to_sync } as any,
-      },
-      'Items',
-      {
-        datumToAirtableRecord: async it =>
-          itemToAirtableRecord(it, {
-            airtableItemsTableFields,
-            getAirtableRecordIdFromCollectionId,
-            getAirtableRecordIdFromItemId,
-          }),
-        airtableRecordToDatum: async r =>
-          airtableRecordToItem(r, {
-            integrationId,
-            airtableItemsTableFields,
-            getData,
-            recordIdCollectionMap,
-            recordIdItemMap,
-          }),
-        existingRecordIdsForFullSync: fullSync_existingItems,
-        dataIdsToSkipForCreation: createdItemIds,
-      },
-    )) {
+    const itemsScope = await (async () => {
+      switch (config.scope_type) {
+        case 'collections':
+          return {
+            collection_id: { $in: collection_ids_to_sync } as any,
+          };
+        case 'containers': {
+          const itemIdsSet = new Set<string>();
+          for (const id in config.container_ids_to_sync || []) {
+            itemIdsSet.add(id);
+          }
+          const itemsMap = await getChildrenItems(
+            config.container_ids_to_sync || [],
+            {
+              getDatum,
+              getData,
+            },
+          );
+          for (const items of Object.values(itemsMap)) {
+            for (const item of items) {
+              if (item.__id) itemIdsSet.add(item.__id);
+            }
+          }
+          return Array.from(itemIdsSet);
+        }
+      }
+    })();
+
+    for await (const p of syncData('item', itemsScope, 'Items', {
+      datumToAirtableRecord: async it =>
+        itemToAirtableRecord(it, {
+          airtableItemsTableFields,
+          getAirtableRecordIdFromCollectionId,
+          getAirtableRecordIdFromItemId,
+        }),
+      airtableRecordToDatum: async r =>
+        airtableRecordToItem(r, {
+          integrationId,
+          airtableItemsTableFields,
+          getData,
+          recordIdCollectionMap,
+          recordIdItemMap,
+        }),
+      existingRecordIdsForFullSync: fullSync_existingItems,
+      dataIdsToSkipForCreation: createdItemIds,
+    })) {
       yield p;
     }
 
