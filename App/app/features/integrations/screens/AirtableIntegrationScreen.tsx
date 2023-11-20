@@ -389,6 +389,7 @@ function AirtableIntegrationScreen({
 
         {(typeof syncProgress.toPush === 'number' ||
           typeof syncProgress.toPull === 'number' ||
+          typeof syncProgress.pullErrored === 'number' ||
           typeof syncProgress.apiCalls === 'number') && (
           <UIGroup header="Sync Status">
             {typeof syncProgress.toPush === 'number' && (
@@ -415,6 +416,16 @@ function AirtableIntegrationScreen({
                       ? syncProgress.pulled
                       : 0
                   }/${syncProgress.toPull}`}
+                />
+                <UIGroup.ListItemSeparator />
+              </>
+            )}
+            {typeof syncProgress.pullErrored === 'number' && (
+              <>
+                <UIGroup.ListItem
+                  label="Pull Errored"
+                  adjustsDetailFontSizeToFit
+                  detail={`${syncProgress.pullErrored}`}
                 />
                 <UIGroup.ListItemSeparator />
               </>

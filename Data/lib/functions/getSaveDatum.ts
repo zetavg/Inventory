@@ -104,6 +104,10 @@ export default function getSaveDatum({
           if (attachmentsError) throw attachmentsError;
         }
 
+        const changeLevel = existingData
+          ? hasChanges(existingData, dataToSave)
+          : 11;
+
         if (
           existingData &&
           !hasChanges(existingData, dataToSave) &&
@@ -114,7 +118,7 @@ export default function getSaveDatum({
           return dataToSave;
         }
 
-        if (!options.noTouch) {
+        if (!options.noTouch && (options.forceTouch || changeLevel > 10)) {
           dataToSave.__updated_at = new Date().getTime();
         }
 

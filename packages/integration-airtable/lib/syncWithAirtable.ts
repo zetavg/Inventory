@@ -8,7 +8,7 @@ import {
   SaveDatum,
   ValidDataTypeWithID,
 } from '@deps/data/types';
-import { onlyValid } from '@deps/data/utils';
+import { hasChanges, onlyValid } from '@deps/data/utils';
 
 import AirtableAPI, { AirtableAPIError, AirtableField } from './AirtableAPI';
 import {
@@ -27,6 +27,7 @@ export type SyncWithAirtableProgress = {
   toPull?: number;
   pushed?: number;
   pulled?: number;
+  pullErrored?: number;
   apiCalls?: number;
   last_synced_at?: number;
 };
@@ -407,7 +408,9 @@ export default async function* syncWithAirtable(
             await executeSequentially(
               dataChunk.map(d => () => datumToAirtableRecord(d)),
             )
-          ).filter(r => !createdItemIds.has((r.fields.ID as string) || ''));
+          ).filter(
+            r => !dataIdsToSkipForCreation?.has((r.fields.ID as string) || ''),
+          );
           const results = await api.createRecords(
             config.airtable_base_id,
             airtableTableNameOrId,
@@ -435,6 +438,8 @@ export default async function* syncWithAirtable(
             `Error occurred while creating Airtable record(s) from data of ${type}: ` +
             e.message;
         }
+
+        throw e;
       }
 
       yield progress;
@@ -447,136 +452,197 @@ export default async function* syncWithAirtable(
         fields: { [key: string]: any };
       }> = [];
       const recordIdsToDeleteAfterPull: Array<string> = [];
-      try {
-        let nextOffset: string | undefined;
-        while (true) {
-          const resp = await api.listRecords(
-            config.airtable_base_id,
-            airtableTableNameOrId,
-            {
-              sort: [{ field: 'Modified At', direction: 'desc' }],
-              offset: nextOffset,
-              fields: airtableFields
-                ? [
-                    ...airtableFields,
-                    'ID',
-                    'Modified At',
-                    'Delete',
-                    'Synchronization Error Message',
-                  ]
-                : undefined,
-            },
-          );
-          nextOffset = resp.offset;
 
-          progress.toPull = (progress.toPull || 0) + resp.records.length;
+      async function* doUpdateDataFromAirtableRecords({
+        isRetryErroredRecords,
+      }: { isRetryErroredRecords?: boolean } = {}) {
+        try {
+          let nextOffset: string | undefined;
+          while (true) {
+            const resp = await api.listRecords(
+              config.airtable_base_id,
+              airtableTableNameOrId,
+              {
+                // Now we use filterByFormula to filter updated items.
+                // Sort by # so new created items can remain the same order as in Airtable.
+                sort: [{ field: '#', direction: 'asc' }],
+                offset: nextOffset,
+                fields: airtableFields
+                  ? [
+                      ...airtableFields,
+                      'ID',
+                      'Modified At',
+                      'Delete',
+                      'Synchronization Error Message',
+                    ]
+                  : undefined,
+                filterByFormula: isRetryErroredRecords
+                  ? '{Synchronization Error Message}'
+                  : fullSync || !lastPull
+                  ? undefined
+                  : `IS_AFTER({Modified At}, '${new Date(
+                      lastPull,
+                    ).toISOString()}')`,
+              },
+            );
+            nextOffset = resp.offset;
 
-          yield progress;
+            progress.toPull = (progress.toPull || 0) + resp.records.length;
 
-          let i = 0;
-          for (const record of resp.records) {
-            i += 1;
-            const recordModifiedAt =
-              typeof record.fields['Modified At'] === 'string'
-                ? new Date(record.fields['Modified At']).getTime()
-                : null;
+            yield progress;
 
-            if (
-              !fullSync &&
-              recordModifiedAt &&
-              lastPull &&
-              recordModifiedAt < lastPull
-            ) {
-              nextOffset = undefined;
-              progress.toPull =
-                (progress.toPull || 0) - resp.records.length - 1 + i;
-              break;
-            }
+            // let i = 0;
+            for (const record of resp.records) {
+              // i += 1;
+              const recordModifiedAt =
+                typeof record.fields['Modified At'] === 'string'
+                  ? new Date(record.fields['Modified At']).getTime()
+                  : null;
 
-            if (recordIdsToDelete.has(record.id)) {
-              progress.pulled = (progress.pulled || 0) + 1;
-              continue;
-            }
+              // Now we use filterByFormula to filter updated items, no longer need this
+              // if (
+              //   !fullSync &&
+              //   !isRetryErroredRecords &&
+              //   recordModifiedAt &&
+              //   lastPull &&
+              //   recordModifiedAt < lastPull
+              // ) {
+              //   nextOffset = undefined;
+              //   progress.toPull =
+              //     (progress.toPull || 0) - resp.records.length - 1 + i;
+              //   break;
+              // }
 
-            const datum = await airtableRecordToDatum(record);
+              if (recordIdsToDelete.has(record.id)) {
+                progress.pulled = (progress.pulled || 0) + 1;
+                continue;
+              }
 
-            if (
-              datum.__updated_at &&
-              (!recordModifiedAt || datum.__updated_at > recordModifiedAt)
-            ) {
-              progress.pulled = (progress.pulled || 0) + 1;
-              continue;
-            }
+              const datum = await airtableRecordToDatum(record);
 
-            let savedDatum: undefined | DataMeta<T>;
-            let hasSaveError = false;
-            let saveError: undefined | Error;
-            if (datum.__id || !datum.__deleted) {
-              try {
-                savedDatum = await saveDatum(datum);
-              } catch (e) {
-                hasSaveError = true;
-                if (e instanceof Error) {
-                  saveError = e;
+              if (
+                datum.__updated_at &&
+                (!recordModifiedAt || datum.__updated_at > recordModifiedAt)
+              ) {
+                progress.pulled = (progress.pulled || 0) + 1;
+                continue;
+              }
+
+              let savedDatum: undefined | DataMeta<T>;
+              let hasSaveError = false;
+              let saveError: undefined | Error;
+              if (datum.__id || !datum.__deleted) {
+                try {
+                  savedDatum = await saveDatum(datum);
+
+                  if (datum.__id) {
+                    // For new created data, wait some time so that the creation date will differ between data within the same batch.
+                    await new Promise(resolve => setTimeout(resolve, 1));
+                  }
+                } catch (e) {
+                  hasSaveError = true;
+                  if (e instanceof Error) {
+                    saveError = e;
+                  }
                 }
               }
+
+              if (hasSaveError) {
+                progress.pullErrored = (progress.pullErrored || 0) + 1;
+              }
+
+              if (savedDatum?.__id || datum.__id) {
+                pulledDataIds.add(savedDatum?.__id || datum.__id || '');
+              }
+
+              if (datum.__deleted && !hasSaveError) {
+                recordIdsToDeleteAfterPull.push(record.id);
+                progress.toPush = (progress.toPush || 0) + 1;
+              } else {
+                if (saveError) {
+                  recordsToUpdateAfterPull.push({
+                    id: record.id,
+                    fields: {
+                      ID: savedDatum?.__id || datum.__id || '',
+                      'Synchronization Error Message': saveError?.message || '',
+                    },
+                  });
+                  progress.toPush = (progress.toPush || 0) + 1;
+                } else if (!datum.__deleted && savedDatum) {
+                  const newRecord = await datumToAirtableRecord(
+                    savedDatum as any,
+                  );
+
+                  if (hasChanges(newRecord.fields, record.fields)) {
+                    recordsToUpdateAfterPull.push({
+                      id: record.id,
+                      fields: {
+                        ...newRecord.fields,
+                        'Synchronization Error Message': '',
+                      },
+                    });
+                    progress.toPush = (progress.toPush || 0) + 1;
+                  }
+                }
+              }
+
+              progress.pulled = (progress.pulled || 0) + 1;
+              yield progress;
             }
 
-            if (savedDatum?.__id || datum.__id) {
-              pulledDataIds.add(savedDatum?.__id || datum.__id || '');
-            }
-
-            if (datum.__deleted && !hasSaveError) {
-              recordIdsToDeleteAfterPull.push(record.id);
-            } else {
-              if (
-                saveError ||
-                !!record.fields['Synchronization Error Message'] ||
-                record.fields.ID !== (savedDatum?.__id || datum.__id)
-              ) {
-                recordsToUpdateAfterPull.push({
-                  id: record.id,
-                  fields: {
-                    ID: savedDatum?.__id || datum.__id || '',
-                    'Synchronization Error Message': saveError?.message || '',
-                  },
-                });
+            if (!nextOffset) {
+              if (isRetryErroredRecords) {
+                break;
+              } else {
+                isRetryErroredRecords = true;
+                continue;
               }
             }
-
-            progress.pulled = (progress.pulled || 0) + 1;
-            yield progress;
+          }
+        } catch (e) {
+          if (e instanceof Error) {
+            e.message =
+              `Error occurred while updating ${type} data from Airtable record(s): ` +
+              e.message;
           }
 
-          if (!nextOffset) break;
+          throw e;
+        } finally {
+          for (let i = 0; i < recordIdsToDeleteAfterPull.length; i += 10) {
+            const recordIdsChunk = recordIdsToDeleteAfterPull.slice(i, i + 10);
+            await api.deleteRecords(
+              config.airtable_base_id,
+              airtableTableNameOrId,
+              recordIdsChunk,
+            );
+            progress.pushed = (progress.pushed || 0) + recordIdsChunk.length;
+          }
+          for (let i = 0; i < recordsToUpdateAfterPull.length; i += 10) {
+            const recordsChunk = recordsToUpdateAfterPull.slice(i, i + 10);
+            await api.updateRecords(
+              config.airtable_base_id,
+              airtableTableNameOrId,
+              {
+                records: recordsChunk.filter(
+                  // To prevent INVALID_RECORDS - You cannot update the same record multiple times in a single request.
+                  // (I don't know why this happens.)
+                  (r, ii, rc) => rc.findIndex(rr => rr.id === r.id) === ii,
+                ),
+              },
+            );
+            progress.pushed = (progress.pushed || 0) + recordsChunk.length;
+          }
         }
-      } catch (e) {
-        if (e instanceof Error) {
-          e.message =
-            `Error occurred while updating ${type} data from Airtable record(s): ` +
-            e.message;
-        }
+      }
 
-        throw e;
-      } finally {
-        for (let i = 0; i < recordIdsToDeleteAfterPull.length; i += 10) {
-          const recordIdsChunk = recordIdsToDeleteAfterPull.slice(i, i + 10);
-          await api.deleteRecords(
-            config.airtable_base_id,
-            airtableTableNameOrId,
-            recordIdsChunk,
-          );
-        }
-        for (let i = 0; i < recordsToUpdateAfterPull.length; i += 10) {
-          const recordsChunk = recordsToUpdateAfterPull.slice(i, i + 10);
-          await api.updateRecords(
-            config.airtable_base_id,
-            airtableTableNameOrId,
-            {
-              records: recordsChunk,
-            },
-          );
-        }
+      for await (const p of doUpdateDataFromAirtableRecords()) {
+        yield p;
+      }
+
+      for await (const p of doUpdateDataFromAirtableRecords({
+        isRetryErroredRecords: true,
+      })) {
+        yield p;
       }
 
       // Update Airtable records from data
@@ -586,7 +652,7 @@ export default async function* syncWithAirtable(
           dataToSync.filter(
             d =>
               !dataIdsToCreateSet.has(d.__id || '') &&
-              !pulledDataIds.has(d.__id || '') &&
+              (fullSync || !pulledDataIds.has(d.__id || '')) &&
               (fullSync ||
                 Math.max(d.__created_at || 0, d.__updated_at || 0) >
                   (lastPush || 0)),
@@ -683,7 +749,11 @@ export default async function* syncWithAirtable(
         datumToAirtableRecord: async c =>
           collectionToAirtableRecord(c, { airtableCollectionsTableFields }),
         airtableRecordToDatum: async r =>
-          airtableRecordToCollection(r, { integrationId, getData }),
+          airtableRecordToCollection(r, {
+            integrationId,
+            airtableCollectionsTableFields,
+            getData,
+          }),
         existingRecordIdsForFullSync: fullSync_existingCollections,
         airtableFields: ['Name', 'Ref. No.'],
       },
@@ -835,6 +905,7 @@ export default async function* syncWithAirtable(
         airtableRecordToDatum: async r =>
           airtableRecordToItem(r, {
             integrationId,
+            airtableItemsTableFields,
             getData,
             recordIdCollectionMap,
             recordIdItemMap,
