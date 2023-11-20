@@ -70,6 +70,35 @@ export async function itemToAirtableRecord(
       / With /gm,
       ' with ',
     ),
+    'Ref. No.': item.item_reference_number ? item.item_reference_number : '',
+    Serial: typeof item.serial === 'number' ? item.serial : undefined,
+    Notes: item.notes ? item.notes : '',
+    'Model Name': item.model_name ? item.model_name : '',
+    PPC: item.purchase_price_currency ? item.purchase_price_currency : '',
+    'Purchase Price':
+      typeof item.purchase_price_x1000 === 'number'
+        ? item.purchase_price_x1000 / 1000
+        : undefined,
+    'Purchased From': item.purchased_from ? item.purchased_from : '',
+    'Purchase Date':
+      typeof item.purchase_date === 'number'
+        ? new Date(item.purchase_date).toISOString()
+        : undefined,
+    'Expiry Date':
+      typeof item.expiry_date === 'number'
+        ? new Date(item.expiry_date).toISOString()
+        : undefined,
+    'Stock Quantity': item.consumable_stock_quantity,
+    'Stock Quantity Unit':
+      typeof item.consumable_stock_quantity_unit === 'string'
+        ? item.consumable_stock_quantity_unit
+        : '',
+    'Will Not Restock': item.consumable_will_not_restock || false,
+    'Icon Name': item.icon_name ? item.icon_name : '',
+    'Icon Color': item.icon_color ? item.icon_color : '',
+    'RFID EPC Hex': item.rfid_tag_epc_memory_bank_contents,
+    'Manually Set RFID EPC Hex':
+      item.rfid_tag_epc_memory_bank_contents_manually_set,
     'Updated At': item.__updated_at
       ? new Date(item.__updated_at).toISOString()
       : undefined,
@@ -100,7 +129,17 @@ export async function airtableRecordToCollection(
     id: string;
     fields: { [name: string]: unknown };
   },
-  { integrationId, getData }: { integrationId: string; getData: GetData },
+  {
+    integrationId,
+    airtableCollectionsTableFields,
+    getData,
+  }: {
+    integrationId: string;
+    airtableCollectionsTableFields: {
+      [name: string]: unknown;
+    };
+    getData: GetData;
+  },
 ) {
   const existingCollections = await getData('collection', {
     integrations: { [integrationId]: { id: record.id } },
@@ -118,11 +157,15 @@ export async function airtableRecordToCollection(
   if (typeof record.fields.Delete === 'boolean') {
     collection.__deleted = record.fields.Delete;
   }
-  if (typeof record.fields.Name === 'string') {
-    collection.name = record.fields.Name;
+
+  if (airtableCollectionsTableFields.Name) {
+    const value = record.fields.Name;
+    collection.name = typeof value === 'string' ? value : undefined;
   }
-  if (typeof record.fields['Ref. No.'] === 'string') {
-    collection.collection_reference_number = record.fields['Ref. No.'];
+  if (airtableCollectionsTableFields['Ref. No.']) {
+    const value = record.fields['Ref. No.'];
+    collection.collection_reference_number =
+      typeof value === 'string' ? value : undefined;
   }
 
   if (!collection.integrations || typeof collection.integrations !== 'object') {
@@ -156,11 +199,15 @@ export async function airtableRecordToItem(
   },
   {
     integrationId,
+    airtableItemsTableFields,
     getData,
     recordIdCollectionMap,
     recordIdItemMap,
   }: {
     integrationId: string;
+    airtableItemsTableFields: {
+      [name: string]: unknown;
+    };
     getData: GetData;
     recordIdCollectionMap: Map<string, DataMeta<'collection'>>;
     recordIdItemMap: Map<string, DataMeta<'item'>>;
@@ -181,12 +228,16 @@ export async function airtableRecordToItem(
   if (typeof record.fields.Delete === 'boolean') {
     item.__deleted = record.fields.Delete;
   }
-  if (typeof record.fields.Name === 'string') {
-    item.name = record.fields.Name;
+
+  if (airtableItemsTableFields.Name) {
+    const value = record.fields.Name;
+    item.name = typeof value === 'string' ? value : undefined;
   }
 
-  if (Array.isArray(record.fields.Collection)) {
-    const collectionRecordId = record.fields.Collection[0];
+  if (airtableItemsTableFields.Collection) {
+    const collectionRecordId = Array.isArray(record.fields.Collection)
+      ? record.fields.Collection[0]
+      : undefined;
     if (collectionRecordId) {
       const collectionFromCache = recordIdCollectionMap.get(collectionRecordId);
       if (collectionFromCache) {
@@ -205,8 +256,11 @@ export async function airtableRecordToItem(
     }
   }
 
-  if (typeof record.fields.Type === 'string') {
-    const itemType = record.fields.Type.toLowerCase().replace(/ /gm, '_');
+  if (airtableItemsTableFields.Type) {
+    const value = record.fields.Type;
+    const itemType = ((typeof value === 'string' ? value : '') || 'item')
+      .toLowerCase()
+      .replace(/ /gm, '_');
     switch (itemType) {
       case 'item':
         item.item_type = undefined;
@@ -216,8 +270,10 @@ export async function airtableRecordToItem(
     }
   }
 
-  if (Array.isArray(record.fields.Container)) {
-    const containerRecordId = record.fields.Container[0];
+  if (airtableItemsTableFields.Container) {
+    const containerRecordId = Array.isArray(record.fields.Container)
+      ? record.fields.Container[0]
+      : undefined;
     if (containerRecordId) {
       const itemFromCache = recordIdItemMap.get(containerRecordId);
       if (itemFromCache) {
@@ -234,6 +290,103 @@ export async function airtableRecordToItem(
     } else {
       item.container_id = undefined;
     }
+  }
+
+  if (airtableItemsTableFields['Ref. No.']) {
+    const value = record.fields['Ref. No.'];
+    item.item_reference_number = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields.Serial) {
+    const value = record.fields.Serial;
+    item.serial = typeof value === 'number' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields.Notes) {
+    const value = record.fields.Notes;
+    item.notes = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Model Name']) {
+    const value = record.fields['Model Name'];
+    item.model_name = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields.PPC) {
+    const value = record.fields.PPC;
+    item.purchase_price_currency =
+      typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Purchase Price']) {
+    const value = record.fields['Purchase Price'];
+    item.purchase_price_x1000 =
+      typeof value === 'number' ? value * 1000 : undefined;
+  }
+
+  if (airtableItemsTableFields['Purchased From']) {
+    const value = record.fields['Purchased From'];
+    item.purchased_from = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Purchase Date']) {
+    const value = record.fields['Purchase Date'];
+    item.purchase_date =
+      value && typeof value === 'string'
+        ? new Date(value).getTime()
+        : undefined;
+  }
+
+  if (airtableItemsTableFields['Expiry Date']) {
+    const value = record.fields['Expiry Date'];
+    item.expiry_date =
+      value && typeof value === 'string'
+        ? new Date(value).getTime()
+        : undefined;
+  }
+
+  if (airtableItemsTableFields['Stock Quantity']) {
+    const value = record.fields['Stock Quantity'];
+    item.consumable_stock_quantity =
+      typeof value === 'number'
+        ? value
+        : item.item_type === 'consumable'
+        ? 1
+        : undefined;
+  }
+
+  if (airtableItemsTableFields['Stock Quantity Unit']) {
+    const value = record.fields['Stock Quantity Unit'];
+    item.consumable_stock_quantity_unit =
+      typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Will Not Restock']) {
+    const value = record.fields['Will Not Restock'];
+    item.consumable_will_not_restock =
+      typeof value === 'boolean' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Icon Name']) {
+    const value = record.fields['Icon Name'];
+    item.icon_name = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Icon Color']) {
+    const value = record.fields['Icon Color'];
+    item.icon_color = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['RFID EPC Hex']) {
+    const value = record.fields['RFID EPC Hex'];
+    item.rfid_tag_epc_memory_bank_contents =
+      typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Manually Set RFID EPC Hex']) {
+    const value = record.fields['Manually Set RFID EPC Hex'];
+    item.rfid_tag_epc_memory_bank_contents_manually_set =
+      typeof value === 'boolean' ? value : undefined;
   }
 
   if (!item.integrations || typeof item.integrations !== 'object') {

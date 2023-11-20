@@ -13,6 +13,8 @@ import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 
 import { onlyValid, useData } from '@app/data';
 
+import titleCase from '@app/utils/titleCase';
+
 import type { StackParamList } from '@app/navigation/MainStack';
 import { useRootNavigation } from '@app/navigation/RootNavigationContext';
 
@@ -46,7 +48,14 @@ function IntegrationsScreen({
                   <UIGroup.ListItem
                     key={integration.__id || i}
                     label={integration.name}
-                    detail={integration.integration_type}
+                    detail={(() => {
+                      switch (integration.integration_type) {
+                        case 'airtable':
+                          return 'Airtable';
+                        default:
+                          return integration.integration_type;
+                      }
+                    })()}
                     verticalArrangedNormalLabelIOS
                     navigable
                     onPress={() => {

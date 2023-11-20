@@ -135,6 +135,7 @@ export default class AirtableAPI {
       offset?: string;
       sort?: ReadonlyArray<{ field: string; direction: 'asc' | 'desc' }>;
       fields?: ReadonlyArray<string>;
+      filterByFormula?: string;
     },
   ) => Promise<{
     offset?: string;
