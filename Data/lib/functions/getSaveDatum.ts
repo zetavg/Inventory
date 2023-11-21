@@ -171,7 +171,7 @@ export default function getSaveDatum({
           const existingData = await getDatum(type, id);
           if (!existingData) throw new Error(`Data not found: ${type} ${id}`);
 
-          const updatedData = updater(existingData);
+          const updatedData = updater(JSON.parse(JSON.stringify(existingData)));
           const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
             ...(existingData
               ? (Object.fromEntries(
