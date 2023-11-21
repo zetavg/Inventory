@@ -131,7 +131,9 @@ export type SaveDatum = <T extends DataTypeName>(
     | [
         T,
         string,
-        (d: DataMeta<T> & { [key: string]: unknown }) => Partial<DataType<T>>,
+        (
+          d: Readonly<DataMeta<T> & { [key: string]: unknown }>,
+        ) => Partial<DataType<T>>,
       ],
   options?: {
     /** Set to true to not update the `__updated_at` field. */
