@@ -54,7 +54,9 @@ export default function getSaveDatum({
       | [
           T,
           string,
-          (d: DataMeta<T> & { [key: string]: unknown }) => Partial<DataType<T>>,
+          (
+            d: Readonly<DataMeta<T> & { [key: string]: unknown }>,
+          ) => Partial<DataType<T>>,
         ],
     options: {
       noTouch?: boolean;
@@ -171,7 +173,7 @@ export default function getSaveDatum({
           const existingData = await getDatum(type, id);
           if (!existingData) throw new Error(`Data not found: ${type} ${id}`);
 
-          const updatedData = updater(JSON.parse(JSON.stringify(existingData)));
+          const updatedData = updater(existingData);
           const dataToSave: DataMeta<T> & { [key: string]: unknown } = {
             ...(existingData
               ? (Object.fromEntries(

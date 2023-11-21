@@ -1654,40 +1654,40 @@ describe('saveDatum', () => {
       });
     });
 
-    it('updates the datum while the updater function directly assigns new value to the datum', async () => {
-      await withContext(async context => {
-        const d = new CouchDBData(context);
+    // it('updates the datum while the updater function directly assigns new value to the datum', async () => {
+    //   await withContext(async context => {
+    //     const d = new CouchDBData(context);
 
-        const collection = await d.saveDatum({
-          __type: 'collection',
-          name: 'Collection',
-          icon_name: 'box',
-          icon_color: 'gray',
-          collection_reference_number: '1',
-        });
+    //     const collection = await d.saveDatum({
+    //       __type: 'collection',
+    //       name: 'Collection',
+    //       icon_name: 'box',
+    //       icon_color: 'gray',
+    //       collection_reference_number: '1',
+    //     });
 
-        const item = await d.saveDatum({
-          __type: 'item',
-          collection_id: collection.__id,
-          name: 'Item',
-          icon_name: 'cube-outline',
-          icon_color: 'gray',
-        });
+    //     const item = await d.saveDatum({
+    //       __type: 'item',
+    //       collection_id: collection.__id,
+    //       name: 'Item',
+    //       icon_name: 'cube-outline',
+    //       icon_color: 'gray',
+    //     });
 
-        await d.saveDatum([
-          'item',
-          item.__id || '',
-          datum => {
-            datum.name = 'Updated Item';
-            return datum;
-          },
-        ]);
+    //     await d.saveDatum([
+    //       'item',
+    //       item.__id || '',
+    //       datum => {
+    //         datum.name = 'Updated Item';
+    //         return datum;
+    //       },
+    //     ]);
 
-        expect((await d.getDatum('item', item.__id || ''))?.name).toBe(
-          'Updated Item',
-        );
-      });
-    });
+    //     expect((await d.getDatum('item', item.__id || ''))?.name).toBe(
+    //       'Updated Item',
+    //     );
+    //   });
+    // });
 
     it('returns the saved datum', async () => {
       await withContext(async context => {
