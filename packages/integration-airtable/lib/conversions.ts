@@ -277,7 +277,7 @@ export async function airtableRecordToItem(
     if (containerRecordId) {
       const itemFromCache = recordIdItemMap.get(containerRecordId);
       if (itemFromCache) {
-        item.item_id = itemFromCache.__id;
+        item.container_id = itemFromCache.__id;
       } else {
         const items = await getData('item', {
           integrations: { [integrationId]: { id: containerRecordId } },
@@ -387,6 +387,15 @@ export async function airtableRecordToItem(
     const value = record.fields['Manually Set RFID EPC Hex'];
     item.rfid_tag_epc_memory_bank_contents_manually_set =
       typeof value === 'boolean' ? value : undefined;
+  }
+
+  // For convenience, set the collection_id to container's collection_id if it's not set.
+  if (!item.collection && typeof item.container_id === 'string') {
+    const container = (await getData('item', [item.container_id]))[0];
+    const containerCollectionId = container?.collection_id;
+    if (typeof containerCollectionId === 'string') {
+      item.collection_id = containerCollectionId;
+    }
   }
 
   if (!item.integrations || typeof item.integrations !== 'object') {

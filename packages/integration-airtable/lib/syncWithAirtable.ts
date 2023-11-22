@@ -29,6 +29,48 @@ export type SyncWithAirtableProgress = {
   pushed?: number;
   pulled?: number;
   pullErrored?: number;
+  status?:
+    | 'initializing'
+    | 'syncing'
+    | 'syncing_collections'
+    | 'syncing_items'
+    | 'done';
+  recordsCreatedOnAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
+  recordsUpdatedOnAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
+  recordsRemovedFromAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
+  dataCreatedFromAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
+  dataUpdatedFromAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
+  dataUpdateErrors?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+    error_message?: string;
+  }>;
+  dataDeletedFromAirtable?: Array<{
+    type: string;
+    id?: string;
+    airtable_record_id: string;
+  }>;
   apiCalls?: number;
   last_synced_at?: number;
 };
@@ -76,6 +118,7 @@ export default async function* syncWithAirtable(
   },
 ) {
   let progress: SyncWithAirtableProgress = { apiCalls: 0 };
+  progress.status = 'initializing';
   let integration = await getDatum('integration', integrationId);
   if (!integration) {
     throw new Error(`Can't find integration with ID ${integrationId}`);
@@ -325,6 +368,7 @@ export default async function* syncWithAirtable(
         existingRecordIdsForFullSync,
         airtableFields,
         dataIdsToSkipForCreation,
+        dataIdsToSkip,
       }: {
         datumToAirtableRecord: (d: ValidDataTypeWithID<T>) => Promise<{
           id?: string;
@@ -337,6 +381,7 @@ export default async function* syncWithAirtable(
         existingRecordIdsForFullSync: Array<RecordWithID>;
         airtableFields?: ReadonlyArray<string>;
         dataIdsToSkipForCreation?: Set<string>;
+        dataIdsToSkip?: Set<string>;
       },
     ) {
       // Prepare data to delete
@@ -410,14 +455,14 @@ export default async function* syncWithAirtable(
               dataChunk.map(d => () => datumToAirtableRecord(d)),
             )
           ).filter(
-            r => !dataIdsToSkipForCreation?.has((r.fields.ID as string) || ''),
+            r =>
+              !dataIdsToSkipForCreation?.has((r.fields.ID as string) || '') &&
+              !dataIdsToSkip?.has((r.fields.ID as string) || ''),
           );
           const results = await api.createRecords(
             config.airtable_base_id,
             airtableTableNameOrId,
-            {
-              records: recordsToCreate,
-            },
+            recordsToCreate,
           );
 
           for (const rec of results.records) {
@@ -431,6 +476,15 @@ export default async function* syncWithAirtable(
           }
 
           progress.pushed = (progress.pushed || 0) + dataChunk.length;
+          if (!Array.isArray(progress.recordsCreatedOnAirtable))
+            progress.recordsCreatedOnAirtable = [];
+          progress.recordsCreatedOnAirtable.push(
+            ...results.records.map(rec => ({
+              type,
+              id: typeof rec.fields.ID === 'string' ? rec.fields.ID : undefined,
+              airtable_record_id: rec.id,
+            })),
+          );
           yield progress;
         }
       } catch (e) {
@@ -448,15 +502,16 @@ export default async function* syncWithAirtable(
       // Update data from Airtable records
 
       const pulledDataIds = new Set<string>();
-      const recordsToUpdateAfterPull: Array<{
-        id: string;
-        fields: { [key: string]: any };
-      }> = [];
-      const recordIdsToDeleteAfterPull: Array<string> = [];
 
       async function* doUpdateDataFromAirtableRecords({
         isRetryErroredRecords,
       }: { isRetryErroredRecords?: boolean } = {}) {
+        const recordsToUpdateAfterPull: Array<{
+          id: string;
+          fields: { [key: string]: any };
+        }> = [];
+        const recordIdsToDeleteAfterPull: Array<string> = [];
+
         try {
           let nextOffset: string | undefined;
           while (true) {
@@ -522,8 +577,10 @@ export default async function* syncWithAirtable(
               const datum = await airtableRecordToDatum(record);
 
               if (
-                datum.__updated_at &&
-                (!recordModifiedAt || datum.__updated_at > recordModifiedAt)
+                (datum.__updated_at &&
+                  (!recordModifiedAt ||
+                    datum.__updated_at > recordModifiedAt)) ||
+                (datum.__id && dataIdsToSkip?.has(datum.__id))
               ) {
                 progress.pulled = (progress.pulled || 0) + 1;
                 continue;
@@ -557,10 +614,20 @@ export default async function* syncWithAirtable(
               }
 
               if (datum.__deleted && !hasSaveError) {
+                // Deleted without error
                 recordIdsToDeleteAfterPull.push(record.id);
                 progress.toPush = (progress.toPush || 0) + 1;
+
+                if (!Array.isArray(progress.dataDeletedFromAirtable))
+                  progress.dataDeletedFromAirtable = [];
+                progress.dataDeletedFromAirtable.push({
+                  type,
+                  id: datum.__id,
+                  airtable_record_id: record.id,
+                });
               } else {
                 if (saveError) {
+                  // Errored
                   recordsToUpdateAfterPull.push({
                     id: record.id,
                     fields: {
@@ -569,12 +636,35 @@ export default async function* syncWithAirtable(
                     },
                   });
                   progress.toPush = (progress.toPush || 0) + 1;
+
+                  if (!Array.isArray(progress.dataUpdateErrors))
+                    progress.dataUpdateErrors = [];
+                  progress.dataUpdateErrors.push({
+                    type,
+                    id: datum.__id,
+                    airtable_record_id: record.id,
+                    error_message: saveError?.message,
+                  });
                 } else if (!datum.__deleted && savedDatum) {
+                  // Not deleted and no error
                   const newRecord = await datumToAirtableRecord(
                     savedDatum as any,
                   );
 
-                  if (hasChanges(newRecord.fields, record.fields)) {
+                  if (datum.__updated_at !== savedDatum.__updated_at) {
+                    if (!Array.isArray(progress.dataUpdatedFromAirtable))
+                      progress.dataUpdatedFromAirtable = [];
+                    progress.dataUpdatedFromAirtable.push({
+                      type,
+                      id: datum.__id,
+                      airtable_record_id: record.id,
+                    });
+                  }
+
+                  const { '#': _1, ...originalRecordFields } = record.fields;
+                  const { '#': _2, ...newRecordFields } = newRecord.fields;
+
+                  if (hasChanges(newRecordFields, originalRecordFields)) {
                     recordsToUpdateAfterPull.push({
                       id: record.id,
                       fields: {
@@ -617,21 +707,34 @@ export default async function* syncWithAirtable(
               recordIdsChunk,
             );
             progress.pushed = (progress.pushed || 0) + recordIdsChunk.length;
+            if (!Array.isArray(progress.recordsRemovedFromAirtable))
+              progress.recordsRemovedFromAirtable = [];
+            progress.recordsRemovedFromAirtable.push(
+              ...recordIdsChunk.map(id => ({ type, airtable_record_id: id })),
+            );
           }
           for (let i = 0; i < recordsToUpdateAfterPull.length; i += 10) {
             const recordsChunk = recordsToUpdateAfterPull.slice(i, i + 10);
             await api.updateRecords(
               config.airtable_base_id,
               airtableTableNameOrId,
-              {
-                records: recordsChunk.filter(
-                  // To prevent INVALID_RECORDS - You cannot update the same record multiple times in a single request.
-                  // (I don't know why this happens.)
-                  (r, ii, rc) => rc.findIndex(rr => rr.id === r.id) === ii,
-                ),
-              },
+              recordsChunk.filter(
+                // To prevent INVALID_RECORDS - You cannot update the same record multiple times in a single request.
+                // (I don't know why this happens.)
+                (r, ii, rc) => rc.findIndex(rr => rr.id === r.id) === ii,
+              ),
             );
             progress.pushed = (progress.pushed || 0) + recordsChunk.length;
+            if (!Array.isArray(progress.recordsUpdatedOnAirtable))
+              progress.recordsUpdatedOnAirtable = [];
+            progress.recordsUpdatedOnAirtable.push(
+              ...recordsChunk.map(rec => ({
+                type,
+                id:
+                  typeof rec.fields.ID === 'string' ? rec.fields.ID : undefined,
+                airtable_record_id: rec.id,
+              })),
+            );
           }
         }
       }
@@ -656,7 +759,8 @@ export default async function* syncWithAirtable(
               (fullSync || !pulledDataIds.has(d.__id || '')) &&
               (fullSync ||
                 Math.max(d.__created_at || 0, d.__updated_at || 0) >
-                  (lastPush || 0)),
+                  (lastPush || 0)) &&
+              (!d.__id || !dataIdsToSkip?.has(d.__id)),
           ) as any,
         ) as any;
         progress.toPush = (progress.toPush || 0) + dataToUpdate.length;
@@ -665,14 +769,12 @@ export default async function* syncWithAirtable(
           const results = await api.updateRecords(
             config.airtable_base_id,
             airtableTableNameOrId,
-            {
-              records: await executeSequentially(
-                dataChunk.map(d => async () => ({
-                  id: (d.integrations as any)[integrationId].id,
-                  ...(await datumToAirtableRecord(d)),
-                })),
-              ),
-            },
+            await executeSequentially(
+              dataChunk.map(d => async () => ({
+                id: (d.integrations as any)[integrationId].id,
+                ...(await datumToAirtableRecord(d)),
+              })),
+            ),
           );
 
           for (const rec of results.records) {
@@ -689,6 +791,15 @@ export default async function* syncWithAirtable(
           }
 
           progress.pushed = (progress.pushed || 0) + dataChunk.length;
+          if (!Array.isArray(progress.recordsUpdatedOnAirtable))
+            progress.recordsUpdatedOnAirtable = [];
+          progress.recordsUpdatedOnAirtable.push(
+            ...results.records.map(rec => ({
+              type,
+              id: typeof rec.fields.ID === 'string' ? rec.fields.ID : undefined,
+              airtable_record_id: rec.id,
+            })),
+          );
           yield progress;
         }
       } catch (e) {
@@ -713,6 +824,12 @@ export default async function* syncWithAirtable(
               airtableTableNameOrId,
               [recordId],
             );
+            if (!Array.isArray(progress.recordsRemovedFromAirtable))
+              progress.recordsRemovedFromAirtable = [];
+            progress.recordsRemovedFromAirtable.push({
+              type,
+              airtable_record_id: recordId,
+            });
           } catch (e) {
             if (
               e instanceof AirtableAPIError &&
@@ -740,6 +857,8 @@ export default async function* syncWithAirtable(
     //
     // Sync Collections
     //
+
+    progress.status = 'syncing_collections';
 
     const { collection_ids_to_sync } = config;
     if (config.scope_type === 'collections' && collection_ids_to_sync) {
@@ -794,15 +913,13 @@ export default async function* syncWithAirtable(
         const results = await api.createRecords(
           config.airtable_base_id,
           'Collections',
-          {
-            records: await Promise.all(
-              [collection].map(c =>
-                collectionToAirtableRecord(c, {
-                  airtableCollectionsTableFields,
-                }),
-              ),
+          await Promise.all(
+            [collection].map(c =>
+              collectionToAirtableRecord(c, {
+                airtableCollectionsTableFields,
+              }),
             ),
-          },
+          ),
         );
 
         for (const rec of results.records) {
@@ -816,6 +933,16 @@ export default async function* syncWithAirtable(
             return rec.id;
           }
         }
+
+        if (!Array.isArray(progress.recordsCreatedOnAirtable))
+          progress.recordsCreatedOnAirtable = [];
+        progress.recordsCreatedOnAirtable.push(
+          ...results.records.map(rec => ({
+            type: 'collection',
+            id: typeof rec.fields.ID === 'string' ? rec.fields.ID : undefined,
+            airtable_record_id: rec.id,
+          })),
+        );
 
         return;
       }
@@ -849,17 +976,15 @@ export default async function* syncWithAirtable(
         const results = await api.createRecords(
           config.airtable_base_id,
           'Items',
-          {
-            records: await Promise.all(
-              [item].map(c =>
-                itemToAirtableRecord(c, {
-                  airtableItemsTableFields,
-                  getAirtableRecordIdFromCollectionId,
-                  getAirtableRecordIdFromItemId,
-                }),
-              ),
+          await Promise.all(
+            [item].map(c =>
+              itemToAirtableRecord(c, {
+                airtableItemsTableFields,
+                getAirtableRecordIdFromCollectionId,
+                getAirtableRecordIdFromItemId,
+              }),
             ),
-          },
+          ),
         );
 
         if (item.__id) createdItemIds.add(item.__id);
@@ -875,6 +1000,17 @@ export default async function* syncWithAirtable(
             return rec.id;
           }
         }
+
+        if (!Array.isArray(progress.recordsCreatedOnAirtable))
+          progress.recordsCreatedOnAirtable = [];
+        progress.recordsCreatedOnAirtable.push(
+          ...results.records.map(rec => ({
+            type: 'collection',
+            id: typeof rec.fields.ID === 'string' ? rec.fields.ID : undefined,
+            airtable_record_id: rec.id,
+          })),
+        );
+
         return;
       }
 
@@ -891,6 +1027,8 @@ export default async function* syncWithAirtable(
     //
     // Sync Items
     //
+
+    progress.status = 'syncing_items';
 
     const itemsScope = await (async () => {
       switch (config.scope_type) {
@@ -910,6 +1048,9 @@ export default async function* syncWithAirtable(
               getData,
             },
           );
+          for (const itemId of Object.keys(itemsMap)) {
+            itemIdsSet.add(itemId);
+          }
           for (const items of Object.values(itemsMap)) {
             for (const item of items) {
               if (item.__id) itemIdsSet.add(item.__id);
@@ -919,6 +1060,46 @@ export default async function* syncWithAirtable(
         }
       }
     })();
+
+    const itemsScopeIdsSet = new Set(
+      (
+        await getData('item', itemsScope, {
+          limit: 99999,
+        })
+      )
+        .map(it => it.__id)
+        .filter((id): id is NonNullable<typeof id> => !!id),
+    );
+
+    const syncedIdsRecordIdsMap = new Map<string, string | null>(
+      (
+        await getData(
+          'item',
+          { integrations: { [integrationId]: { $exists: true } } },
+          {
+            limit: 99999,
+          },
+        )
+      ).map(
+        it =>
+          [
+            it.__id as string,
+            typeof ((it.integrations as any)?.[integrationId] as any)?.id ===
+            'string'
+              ? (((it.integrations as any)?.[integrationId] as any)
+                  ?.id as string)
+              : null,
+          ] as const,
+      ),
+    );
+
+    const itemsToRemoveFromAirtableIdsSet = new Set<string>();
+
+    for (const id of syncedIdsRecordIdsMap.keys()) {
+      if (!itemsScopeIdsSet.has(id)) {
+        itemsToRemoveFromAirtableIdsSet.add(id);
+      }
+    }
 
     for await (const p of syncData('item', itemsScope, 'Items', {
       datumToAirtableRecord: async it =>
@@ -937,8 +1118,77 @@ export default async function* syncWithAirtable(
         }),
       existingRecordIdsForFullSync: fullSync_existingItems,
       dataIdsToSkipForCreation: createdItemIds,
+      dataIdsToSkip: itemsToRemoveFromAirtableIdsSet,
     })) {
       yield p;
+    }
+
+    try {
+      for (const itemId of itemsToRemoveFromAirtableIdsSet) {
+        const recordId = syncedIdsRecordIdsMap.get(itemId);
+        if (recordId) {
+          try {
+            // Need to make sure that this item can be safely removed.
+            const possibleContents = await api.listRecords(
+              config.airtable_base_id,
+              'Items',
+              {
+                pageSize: 1,
+                filterByFormula: `{Container Record ID} = "${recordId}"`,
+              },
+            );
+            if (possibleContents.records.length > 0) continue;
+
+            await api.deleteRecords(config.airtable_base_id, 'Items', [
+              recordId,
+            ]);
+
+            if (!Array.isArray(progress.recordsRemovedFromAirtable))
+              progress.recordsRemovedFromAirtable = [];
+            progress.recordsRemovedFromAirtable.push({
+              type: 'item',
+              airtable_record_id: recordId,
+            });
+          } catch (e) {
+            if (
+              e instanceof AirtableAPIError &&
+              (e.type === 'NOT_FOUND' ||
+                e.type === 'INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND')
+            ) {
+              // Already deleted
+            } else {
+              throw e;
+            }
+          }
+
+          await saveDatum([
+            'item',
+            itemId,
+            it => {
+              return {
+                ...it,
+                integrations: {
+                  ...Object.fromEntries(
+                    Object.entries(
+                      it.integrations && typeof it.integrations === 'object'
+                        ? it.integrations
+                        : {},
+                    ).filter(([k]) => k !== integrationId),
+                  ),
+                },
+              };
+            },
+          ]);
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        e.message =
+          'Error occurred while deleting Airtable record(s) for items that should no longer be synced: ' +
+          e.message;
+      }
+
+      throw e;
     }
 
     yield progress;
@@ -951,6 +1201,7 @@ export default async function* syncWithAirtable(
     (integration.data as any).last_pull = syncStartedAt;
     (integration.data as any).last_synced_at = Date.now();
     progress.last_synced_at = (integration.data as any).last_synced_at;
+    progress.status = 'done';
     yield progress;
   } catch (e) {
     throw e;

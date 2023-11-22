@@ -78,8 +78,9 @@ export type AirtableTable = {
 export class AirtableAPIError extends Error {
   type: string;
   errorMessage: string;
+  details?: string;
 
-  constructor(error: unknown) {
+  constructor(error: unknown, details?: string) {
     var errorMessage = `Unknown Error: ${JSON.stringify(error)}`;
     var type = 'UNKNOWN';
     if (
@@ -92,9 +93,12 @@ export class AirtableAPIError extends Error {
       errorMessage = (error as any).message;
     }
 
-    super(`${type} - ${errorMessage}`);
+    super(
+      `${type} - ${errorMessage}${details ? ` (details: ${details})` : ''}`,
+    );
     this.type = type;
     this.errorMessage = errorMessage;
+    this.details = details;
 
     // Set the prototype explicitly to ValidationError, to make instanceof work
     Object.setPrototypeOf(this, AirtableAPIError.prototype);
@@ -149,16 +153,14 @@ export default class AirtableAPI {
   public createRecords: (
     baseId: string,
     tableId: string,
-    data: { records: ReadonlyArray<{ fields: { [key: string]: any } }> },
+    records: ReadonlyArray<{ fields: { [key: string]: any } }>,
   ) => Promise<{
     records: ReadonlyArray<{ id: string; fields: { [key: string]: unknown } }>;
   }>;
   public updateRecords: (
     baseId: string,
     tableId: string,
-    data: {
-      records: ReadonlyArray<{ id: string; fields: { [key: string]: any } }>;
-    },
+    records: ReadonlyArray<{ id: string; fields: { [key: string]: any } }>,
   ) => Promise<{
     records: ReadonlyArray<{ id: string; fields: { [key: string]: unknown } }>;
   }>;
@@ -355,6 +357,9 @@ export default class AirtableAPI {
       return json;
     };
     this.createRecords = async (baseId, tableId, records) => {
+      if (records.length <= 0) {
+        return [];
+      }
       const res = await this.fetchWithRateLimit(
         `https://api.airtable.com/v0/${baseId}/${tableId}`,
         {
@@ -363,16 +368,22 @@ export default class AirtableAPI {
             Authorization: `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(records),
+          body: JSON.stringify({ records }),
         },
       );
       const json = await res.json();
       if (json.error) {
-        throw new AirtableAPIError(json.error);
+        throw new AirtableAPIError(
+          json.error,
+          `createRecords: ${baseId} ${tableId} ${JSON.stringify(records)}`,
+        );
       }
       return json;
     };
     this.updateRecords = async (baseId, tableId, records) => {
+      if (records.length <= 0) {
+        return [];
+      }
       const res = await this.fetchWithRateLimit(
         `https://api.airtable.com/v0/${baseId}/${tableId}`,
         {
@@ -381,12 +392,15 @@ export default class AirtableAPI {
             Authorization: `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(records),
+          body: JSON.stringify({ records }),
         },
       );
       const json = await res.json();
       if (json.error) {
-        throw new AirtableAPIError(json.error);
+        throw new AirtableAPIError(
+          json.error,
+          `updateRecords: ${baseId} ${tableId} ${JSON.stringify(records)}`,
+        );
       }
       return json;
     };
@@ -405,10 +419,13 @@ export default class AirtableAPI {
         );
         const json = await res.json();
         if (json.error) {
-          throw new AirtableAPIError(json.error);
+          throw new AirtableAPIError(
+            json.error,
+            `deleteRecords: ${baseId} ${tableId} ${JSON.stringify(recordIds)}`,
+          );
         }
         return json;
-      } else {
+      } else if (recordIds.length === 1) {
         const res = await this.fetchWithRateLimit(
           `https://api.airtable.com/v0/${baseId}/${tableId}/${recordIds[0]}`,
           {
@@ -420,9 +437,14 @@ export default class AirtableAPI {
         );
         const json = await res.json();
         if (json.error) {
-          throw new AirtableAPIError(json.error);
+          throw new AirtableAPIError(
+            json.error,
+            `deleteRecords: ${baseId} ${tableId} ${JSON.stringify(recordIds)}`,
+          );
         }
         return { records: [json] };
+      } else {
+        return { records: [] };
       }
     };
   }

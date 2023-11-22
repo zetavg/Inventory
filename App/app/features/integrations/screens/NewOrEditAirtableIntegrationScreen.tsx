@@ -424,7 +424,7 @@ function NewOrEditAirtableIntegrationScreen({
                     onPress={() => handleCollectionPress(c)}
                   />
                 ),
-                <UIGroup.ListItemSeparator />,
+                <UIGroup.ListItemSeparator key={`${c.__id}-s`} />,
               ])}
             <UIGroup.ListItem
               button
@@ -456,7 +456,7 @@ function NewOrEditAirtableIntegrationScreen({
                     onPress={() => handleContainerPress(it)}
                   />
                 ),
-                <UIGroup.ListItemSeparator />,
+                <UIGroup.ListItemSeparator key={`${it.__id}-s`} />,
               ])}
             <UIGroup.ListItem
               button
