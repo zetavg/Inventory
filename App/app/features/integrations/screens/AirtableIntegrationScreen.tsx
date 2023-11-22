@@ -85,6 +85,9 @@ function AirtableIntegrationScreen({
   const [syncProgress, setSyncProgress] = useState<SyncWithAirtableProgress>(
     {},
   );
+  const syncProgressRef = useRef(syncProgress);
+  syncProgressRef.current = syncProgress;
+  const [syncErrored, setSyncErrored] = useState(false);
   // useEffect(() => {
   //   if (!syncProgress.base_id) return;
 
@@ -195,6 +198,7 @@ function AirtableIntegrationScreen({
     setShouldStop(false);
     setSyncing(true);
     setSyncProgress({});
+    setSyncErrored(false);
 
     try {
       const secretsText = await RNSInfo.getItem(integrationId, {
@@ -272,7 +276,16 @@ function AirtableIntegrationScreen({
           }
         }
       }
+      logger.info('Airtable sync completed', {
+        details: JSON.stringify({
+          progress: (() => {
+            const { base_schema: _, ...p } = syncProgressRef.current;
+            return p;
+          })(),
+        }),
+      });
     } catch (e) {
+      setSyncErrored(true);
       logger.error(e, { showAlert: true });
     } finally {
       setSyncing(false);
@@ -418,7 +431,7 @@ function AirtableIntegrationScreen({
           />
         </UIGroup>
 
-        {(typeof syncProgress.toPush === 'number' ||
+        {/*{(typeof syncProgress.toPush === 'number' ||
           typeof syncProgress.toPull === 'number' ||
           typeof syncProgress.pullErrored === 'number' ||
           typeof syncProgress.apiCalls === 'number') && (
@@ -472,14 +485,71 @@ function AirtableIntegrationScreen({
               </>
             )}
           </UIGroup>
-        )}
+        )}*/}
 
         <UIGroup
           loading={loading}
           // eslint-disable-next-line react/no-unstable-nested-components
           footer={({ textProps }) => (
             <Text {...textProps}>
-              Press "Start Synchronization" to start a synchronization.{'\n\n'}
+              {(() => {
+                if (syncProgress.status) {
+                  let statusStr: string = syncErrored
+                    ? 'Errored.'
+                    : (() => {
+                        switch (syncProgress.status) {
+                          case 'initializing':
+                            return 'Initializing...';
+                          case 'syncing':
+                            return 'Syncing...';
+                          case 'syncing_collections':
+                            return 'Syncing collections...';
+                          case 'syncing_items':
+                            return 'Syncing items...';
+                          case 'done':
+                            return 'Sync done.';
+                        }
+                      })();
+
+                  if (syncProgress.recordsCreatedOnAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.recordsCreatedOnAirtable.length} records created on Airtable.`;
+                  }
+                  if (syncProgress.recordsUpdatedOnAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.recordsUpdatedOnAirtable.length} records updated on Airtable.`;
+                  }
+                  if (syncProgress.recordsRemovedFromAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.recordsRemovedFromAirtable.length} records removed from Airtable.`;
+                  }
+                  if (syncProgress.dataCreatedFromAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.dataCreatedFromAirtable.length} items created.`;
+                  }
+                  if (syncProgress.dataUpdatedFromAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.dataUpdatedFromAirtable.length} items updated.`;
+                  }
+                  if (syncProgress.dataUpdateErrors) {
+                    statusStr += '\n';
+                    statusStr += `Cannot update ${syncProgress.dataUpdateErrors.length} items due to errors.`;
+                  }
+                  if (syncProgress.dataDeletedFromAirtable) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.dataDeletedFromAirtable.length} items deleted.`;
+                  }
+                  if (syncProgress.apiCalls) {
+                    statusStr += '\n';
+                    statusStr += `${syncProgress.apiCalls} Airtable API calls used.`;
+                  }
+
+                  return statusStr;
+                } else {
+                  return 'Press "Start Synchronization" to start a synchronization.';
+                }
+              })()}
+              {'\n\n'}
               By default, only modified records will be synced. If you want to
               sync all records (which may fix some synchronization errors),
               switch on "Full Sync".
