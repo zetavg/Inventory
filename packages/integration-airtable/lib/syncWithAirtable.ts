@@ -591,7 +591,12 @@ export default async function* syncWithAirtable(
               let saveError: undefined | Error;
               if (datum.__id || !datum.__deleted) {
                 try {
-                  savedDatum = await saveDatum(datum);
+                  savedDatum = await saveDatum(datum, {
+                    createHistory: {
+                      createdBy: `integration-${integrationId}`,
+                      batch: syncStartedAt,
+                    },
+                  });
 
                   if (datum.__id) {
                     // For new created data, wait some time so that the creation date will differ between data within the same batch.

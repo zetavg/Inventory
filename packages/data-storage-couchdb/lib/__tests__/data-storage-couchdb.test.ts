@@ -3270,11 +3270,16 @@ describe('data-histories', () => {
         await createMockData(d);
 
         expect(await d.listHistoryBatchesCreatedBy('updater-1')).toMatchObject([
-          4, 3, 2, 1,
+          { batch: 4 },
+          { batch: 3 },
+          { batch: 2 },
+          { batch: 1 },
         ]);
 
         expect(await d.listHistoryBatchesCreatedBy('updater-2')).toMatchObject([
-          5, 3, 1,
+          { batch: 5 },
+          { batch: 3 },
+          { batch: 1 },
         ]);
       });
     });
@@ -3286,50 +3291,55 @@ describe('data-histories', () => {
         await createMockData(d);
 
         expect(await d.listHistoryBatchesCreatedBy('updater-1')).toMatchObject([
-          4, 3, 2, 1,
+          { batch: 4 },
+          { batch: 3 },
+          { batch: 2 },
+          { batch: 1 },
         ]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-1', {
             limit: 2,
           }),
-        ).toMatchObject([4, 3]);
+        ).toMatchObject([{ batch: 4 }, { batch: 3 }]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-1', {
             after: 4,
             limit: 2,
           }),
-        ).toMatchObject([3, 2]);
+        ).toMatchObject([{ batch: 3 }, { batch: 2 }]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-1', {
             after: 3,
             limit: 2,
           }),
-        ).toMatchObject([2, 1]);
+        ).toMatchObject([{ batch: 2 }, { batch: 1 }]);
 
         expect(await d.listHistoryBatchesCreatedBy('updater-2')).toMatchObject([
-          5, 3, 1,
+          { batch: 5 },
+          { batch: 3 },
+          { batch: 1 },
         ]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-2', { limit: 1 }),
-        ).toMatchObject([5]);
+        ).toMatchObject([{ batch: 5 }]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-2', {
             after: 5,
             limit: 1,
           }),
-        ).toMatchObject([3]);
+        ).toMatchObject([{ batch: 3 }]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-2', {
             after: 3,
             limit: 1,
           }),
-        ).toMatchObject([1]);
+        ).toMatchObject([{ batch: 1 }]);
 
         expect(
           await d.listHistoryBatchesCreatedBy('updater-2', { after: 1 }),

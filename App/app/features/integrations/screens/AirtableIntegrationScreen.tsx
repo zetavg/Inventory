@@ -334,6 +334,8 @@ function AirtableIntegrationScreen({
 
         <UIGroup>
           <UIGroup.ListItem label="Integration Type" detail="Airtable" />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListItem label="Integration ID" detail={integrationId} />
         </UIGroup>
 
         {config.scope_type === 'collections' &&
@@ -582,6 +584,19 @@ function AirtableIntegrationScreen({
                 onValueChange={setFullSync}
                 disabled={syncing}
               />
+            }
+          />
+        </UIGroup>
+
+        <UIGroup footer="Review data updated by this integration.">
+          <UIGroup.ListItem
+            label="Data Updated By This Integration"
+            navigable
+            onPress={() =>
+              navigation.push('HistoryBatches', {
+                createdBy: `integration-${integrationId}`,
+                title: 'Data Changes',
+              })
             }
           />
         </UIGroup>

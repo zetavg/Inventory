@@ -75,6 +75,8 @@ import { useDB } from '@app/db';
 import commonStyles from '@app/utils/commonStyles';
 
 import AppLogsFilterScreen from '@app/screens/AppLogsFilterScreen';
+import HistoryBatchesModalScreen from '@app/screens/data-history/HistoryBatchesModalScreen';
+import HistoryBatchModalScreen from '@app/screens/data-history/HistoryBatchModalScreen';
 import DatePickerModalScreen from '@app/screens/DatePickerModalScreen';
 import DemoModalScreen from '@app/screens/DemoModalScreen';
 import SaveDataModalScreen from '@app/screens/dev-tools/data/SaveDataModalScreen';
@@ -163,6 +165,15 @@ export type RootStackParamList = {
     };
     // updateOrderFunctionRef?: { current: (newOrder: string[]) => void };
     // itemDeleteFunctionRef?: { current: (id: string) => Promise<boolean> };
+    title?: string;
+  };
+  HistoryBatches: {
+    createdBy: string;
+    title?: string;
+  };
+  HistoryBatch: {
+    batch: number;
+    createdBy?: string;
     title?: string;
   };
   SearchOptions: {
@@ -455,6 +466,14 @@ function Navigation({
               component={SaveChecklistScreen}
             />
             <Stack.Screen name="OrderItems" component={OrderItemsScreen} />
+            <Stack.Screen
+              name="HistoryBatches"
+              component={HistoryBatchesModalScreen}
+            />
+            <Stack.Screen
+              name="HistoryBatch"
+              component={HistoryBatchModalScreen}
+            />
             <Stack.Screen
               name="SearchOptions"
               component={SearchOptionsScreen}
