@@ -72,7 +72,9 @@ export default function getListHistoryBatchesCreatedBy({
       }
     })();
 
-    return results.rows.map(r => r.key[1]).filter(v => typeof v === 'number');
+    return results.rows
+      .map(r => ({ batch: r.key[1], count: r.value }))
+      .filter(v => typeof v.batch === 'number');
   };
 
   return listHistoryBatchesCreatedBy;

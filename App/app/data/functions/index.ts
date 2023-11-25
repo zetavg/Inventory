@@ -9,8 +9,12 @@ import {
   getGetData as couchdbGetGetData,
   getGetDataCount as couchdbGetGetDataCount,
   getGetDatum as couchdbGetGetDatum,
+  getGetDatumHistories as couchdbGetGetDatumHistories,
+  getGetHistoriesInBatch as couchdbGetGetHistoriesInBatch,
   getGetRelated as couchdbGetGetRelated,
   getGetViewData as couchdbGetGetViewData,
+  getListHistoryBatchesCreatedBy as couchdbGetListHistoryBatchesCreatedBy,
+  getRestoreHistory as couchdbGetRestoreHistory,
   getSaveDatum as couchdbGetSaveDatum,
   getUpdateConfig as couchdbGetUpdateConfig,
   Logger,
@@ -79,4 +83,20 @@ export function getGetAllAttachmentInfoFromDatum(ctx: GetContextArgs) {
 
 export function getGetViewData(ctx: GetContextArgs) {
   return couchdbGetGetViewData(getContext(ctx));
+}
+
+export function getGetDatumHistories(ctx: GetContextArgs) {
+  return couchdbGetGetDatumHistories(getContext(ctx));
+}
+
+export function getListHistoryBatchesCreatedBy(ctx: GetContextArgs) {
+  return couchdbGetListHistoryBatchesCreatedBy(getContext(ctx));
+}
+
+export function getGetHistoriesInBatch(ctx: GetContextArgs) {
+  return couchdbGetGetHistoriesInBatch(getContext(ctx));
+}
+
+export function getRestoreHistory(ctx: GetContextArgs) {
+  return couchdbGetRestoreHistory(getContext(ctx));
 }

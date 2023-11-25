@@ -200,7 +200,7 @@ export type GetDatumHistories = <T extends DataTypeName>(
 export type ListHistoryBatchesCreatedBy = (
   created_by: string,
   options?: { limit?: number; after?: number },
-) => Promise<Array<{ batch: number }>>;
+) => Promise<Array<{ batch: number; count?: number }>>;
 export type GetHistoriesInBatch = (
   batch: number,
   options?: { createdBy?: string },
