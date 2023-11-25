@@ -42,7 +42,7 @@ export default function getGetConfig({
     } catch (e) {
       if (
         typeof e === 'object' &&
-        (e as any).name === 'not_found' &&
+        ((e as any).name === 'not_found' || (e as any).message === 'missing') &&
         !ensureSaved
       ) {
         return getInitialConfig();

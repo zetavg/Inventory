@@ -8,8 +8,12 @@ import {
   GetData,
   GetDataCount,
   GetDatum,
+  GetDatumHistories,
+  GetHistoriesInBatch,
   GetRelated,
   InvalidDataTypeWithID,
+  ListHistoryBatchesCreatedBy,
+  RestoreHistory,
   SaveDatum,
   UpdateConfig,
   ValidDataTypeWithID,
@@ -25,8 +29,12 @@ import getGetConfig from './functions/getGetConfig';
 import getGetData from './functions/getGetData';
 import getGetDataCount from './functions/getGetDataCount';
 import getGetDatum from './functions/getGetDatum';
+import getGetDatumHistories from './functions/getGetDatumHistories';
+import getGetHistoriesInBatch from './functions/getGetHistoriesInBatch';
 import getGetRelated from './functions/getGetRelated';
 import getGetViewData, { GetViewData } from './functions/getGetViewData';
+import getListHistoryBatchesCreatedBy from './functions/getListHistoryBatchesCreatedBy';
+import getRestoreHistory from './functions/getRestoreHistory';
 import getSaveDatum from './functions/getSaveDatum';
 import getUpdateConfig from './functions/getUpdateConfig';
 import { Context } from './functions/types';
@@ -44,6 +52,11 @@ export default class CouchDBData {
   public getAttachmentFromDatum: GetAttachmentFromDatum;
   public getAllAttachmentInfoFromDatum: GetAllAttachmentInfoFromDatum;
   public getViewData: GetViewData;
+
+  public getDatumHistories: GetDatumHistories;
+  public listHistoryBatchesCreatedBy: ListHistoryBatchesCreatedBy;
+  public getHistoriesInBatch: GetHistoriesInBatch;
+  public restoreHistory: RestoreHistory;
 
   public itemToCsvRow: (
     item: DataTypeWithID<'item'>,
@@ -66,6 +79,11 @@ export default class CouchDBData {
     this.getAllAttachmentInfoFromDatum =
       getGetAllAttachmentInfoFromDatum(context);
     this.getViewData = getGetViewData(context);
+
+    this.getDatumHistories = getGetDatumHistories(context);
+    this.listHistoryBatchesCreatedBy = getListHistoryBatchesCreatedBy(context);
+    this.getHistoriesInBatch = getGetHistoriesInBatch(context);
+    this.restoreHistory = getRestoreHistory(context);
 
     this.itemToCsvRow = it => itemToCsvRow(it, { getDatum: this.getDatum });
     this.csvRowToItem = csvRow =>

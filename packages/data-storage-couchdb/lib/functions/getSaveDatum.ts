@@ -95,6 +95,25 @@ export default function getSaveDatum(context: Context): SaveDatum {
         };
       }
     },
+    writeHistory: async history => {
+      const doc = {
+        ...history,
+        _id: `zd-history-${history.created_by}-${history.batch}-${
+          history.data_type
+        }-${history.data_id}-${history.event_name}-${
+          history.timestamp
+        }-${Math.floor(Math.random() * 10000)
+          .toString()
+          .padStart(4, '0')}`,
+        type: '_history',
+      };
+
+      if (dbType === 'pouchdb') {
+        await db.put(doc);
+      } else {
+        await db.insert(doc);
+      }
+    },
     deleteDatum: async d => {
       const doc = getDocFromDatum(d);
       if (dbType === 'pouchdb') {

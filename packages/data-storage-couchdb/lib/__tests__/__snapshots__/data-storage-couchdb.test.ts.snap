@@ -1,5 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`data-histories restoreHistory throws error if restoring will cause an invalid datum: collection collection_reference_number already used 1`] = `
+[
+  {
+    "code": "custom",
+    "message": "Must be unique (reference number 1002 is already taken by collection "Collection to make collection_reference_number collision on restore")",
+    "path": [
+      "collection_reference_number",
+    ],
+  },
+]
+`;
+
 exports[`fixDataConsistency works: fixDataConsistencyResults-collection 1`] = `
 {
   "done": 2,

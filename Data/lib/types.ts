@@ -36,6 +36,17 @@ export type InvalidDataTypeWithID<T extends DataTypeName> = DataMeta<T> & {
   __error_details?: unknown;
 } & { [key: string]: unknown };
 
+export type DataHistory<T extends DataTypeName> = {
+  created_by?: string;
+  batch?: number;
+  event_name?: string;
+  data_type: T;
+  data_id: string;
+  timestamp: number;
+  original_data: { [key: string]: unknown };
+  new_data: { [key: string]: unknown };
+};
+
 export type GetConfig = (options?: {
   /** Set to true to not allow using the default, unsaved config. */
   ensureSaved?: boolean;
@@ -144,6 +155,11 @@ export type SaveDatum = <T extends DataTypeName>(
     forceTouch?: boolean;
     skipValidation?: boolean;
     skipCallbacks?: boolean;
+    createHistory?: {
+      createdBy?: string;
+      batch?: number;
+      eventName?: string;
+    };
   },
 ) => Promise<DataMeta<T> & { [key: string]: unknown }>;
 
@@ -175,3 +191,21 @@ export type GetAllAttachmentInfoFromDatum = <T extends DataTypeName>(
 ) => Promise<{
   [name: string]: { content_type: string; size: number; digest?: string };
 }>;
+
+export type GetDatumHistories = <T extends DataTypeName>(
+  type: T,
+  id: string,
+  options?: { limit?: number; after?: number },
+) => Promise<Array<DataHistory<T>>>;
+export type ListHistoryBatchesCreatedBy = (
+  created_by: string,
+  options?: { limit?: number; after?: number },
+) => Promise<Array<{ batch: number }>>;
+export type GetHistoriesInBatch = (
+  batch: number,
+  options?: { createdBy?: string },
+) => Promise<Array<DataHistory<DataTypeName>>>;
+export type RestoreHistory = <T extends DataTypeName>(
+  history: DataHistory<T>,
+  options?: { batch?: number },
+) => Promise<DataMeta<T> & { [key: string]: unknown }>;

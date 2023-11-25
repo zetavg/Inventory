@@ -22,6 +22,7 @@ export default function getGetDatum({
       (await dbGet(getCouchDbId(type, id)).catch(e => {
         if (
           e.message === 'not_found' /* nano */ ||
+          e.message === 'deleted' /* nano */ ||
           e.message ===
             'missing' /* pouchdb, note that `e instanceof Error` will be false */ ||
           e.name === 'not_found' /* also pouchdb */

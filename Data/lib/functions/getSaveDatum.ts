@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import getCallbacks from '../callbacks';
 import schema, { DataType, DataTypeName } from '../schema';
 import {
+  DataHistory,
   DataMeta,
   GetAllAttachmentInfoFromDatum,
   GetConfig,
@@ -14,6 +15,8 @@ import {
   ValidDataTypeWithID,
 } from '../types';
 import { hasChanges } from '../utils';
+import getDiff from '../utils/getDiff';
+import { metadataKeysSet } from '../utils/hasChanges';
 import { getValidationErrorFromZodSafeParseReturnValue } from '../utils/validation-utils';
 import getValidation, { getErrorFromValidationResults } from '../validation';
 
@@ -25,6 +28,7 @@ export default function getSaveDatum({
   getAllAttachmentInfoFromDatum,
   validateAttachments,
   writeDatum,
+  writeHistory,
   deleteDatum,
   skipSaveCallback,
 }: {
@@ -43,6 +47,7 @@ export default function getSaveDatum({
       | InvalidDataTypeWithID<DataTypeName>
       | null,
   ) => Promise<DataMeta<DataTypeName> & { [key: string]: unknown }>;
+  writeHistory: (history: DataHistory<DataTypeName>) => Promise<void>;
   deleteDatum: (
     d: DataMeta<DataTypeName> & { [key: string]: unknown },
   ) => Promise<void>;
@@ -64,6 +69,11 @@ export default function getSaveDatum({
       ignoreConflict?: boolean;
       skipValidation?: boolean;
       skipCallbacks?: boolean;
+      createHistory?: {
+        createdBy?: string;
+        batch?: number;
+        eventName?: string;
+      };
     } = {},
   ) => {
     /** A reusable function that run callbacks, do validation and save the provided data. */
@@ -71,12 +81,13 @@ export default function getSaveDatum({
       existingData: ValidDataTypeWithID<T> | InvalidDataTypeWithID<T> | null,
       dataToSave: DataMeta<T> & { [key: string]: unknown },
     ) => {
+      const timestamp = new Date().getTime();
       if (typeof dataToSave.__created_at !== 'number') {
-        dataToSave.__created_at = new Date().getTime();
+        dataToSave.__created_at = timestamp;
       }
 
       if (typeof dataToSave.__updated_at !== 'number') {
-        dataToSave.__updated_at = new Date().getTime();
+        dataToSave.__updated_at = timestamp;
       }
 
       const s = schema[dataToSave.__type];
@@ -121,7 +132,54 @@ export default function getSaveDatum({
         }
 
         if (!options.noTouch && (options.forceTouch || changeLevel > 10)) {
-          dataToSave.__updated_at = new Date().getTime();
+          dataToSave.__updated_at = timestamp;
+        }
+
+        if (options.createHistory && changeLevel > 10) {
+          const historyData = (() => {
+            const filterData = (dt: { [key: string]: unknown }) =>
+              Object.fromEntries(
+                Object.entries(dt).filter(
+                  ([k]) => !k.startsWith('__') && !metadataKeysSet.has(k),
+                ),
+              );
+
+            if (!existingData) {
+              // Data didn't exist, treat the original data as deleted.
+              return {
+                original_data: { __deleted: true },
+                new_data: filterData(dataToSave),
+              };
+            }
+
+            // Delete is handled in the "// Delete" section below
+            // if (dataToSave.__deleted) {
+            //   // Data will be deleted, save a full copy.
+            //   return {
+            //     original_data: filterData(dataToSave),
+            //     new_data: { __deleted: true },
+            //   };
+            // }
+
+            // Save only the only the changed fields.
+            const diff = getDiff(
+              filterData(existingData),
+              filterData(dataToSave),
+            );
+            return {
+              original_data: diff.original,
+              new_data: diff.new,
+            };
+          })();
+          await writeHistory({
+            created_by: options.createHistory.createdBy,
+            batch: options.createHistory.batch,
+            event_name: options.createHistory.eventName,
+            data_type: dataToSave.__type,
+            data_id: dataToSave.__id,
+            timestamp,
+            ...historyData,
+          });
         }
 
         const newData = await writeDatum(dataToSave, existingData);
@@ -146,6 +204,27 @@ export default function getSaveDatum({
           const validationError =
             getErrorFromValidationResults(validationResults);
           if (validationError) throw validationError;
+        }
+
+        if (options.createHistory) {
+          const historyData = (() => {
+            // Data will be deleted, save a full copy including metadata.
+            return {
+              original_data: Object.fromEntries(
+                Object.entries(dataToSave).filter(([k]) => !k.startsWith('__')),
+              ),
+              new_data: { __deleted: true },
+            };
+          })();
+          await writeHistory({
+            created_by: options.createHistory.createdBy,
+            batch: options.createHistory.batch,
+            event_name: options.createHistory.eventName,
+            data_type: dataToSave.__type,
+            data_id: dataToSave.__id,
+            timestamp,
+            ...historyData,
+          });
         }
 
         await deleteDatum(dataToSave);
