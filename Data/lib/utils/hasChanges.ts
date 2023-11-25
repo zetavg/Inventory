@@ -1,5 +1,5 @@
 // Keys to be treated as metadata.
-const metadataKeysSet = new Set(['integrations']);
+export const metadataKeysSet = new Set(['integrations']);
 
 export default function hasChanges(
   existingData: Record<string, unknown>,

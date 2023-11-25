@@ -2548,6 +2548,1337 @@ describe('getAttachmentFromDatum', () => {
   });
 });
 
+describe('data-histories', () => {
+  describe('saveDatum with createHistory', () => {
+    it('creates histories when creating data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('creates histories when updating data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection Updated',
+            collection_reference_number: '0002',
+          },
+          { createHistory: {}, ignoreConflict: true },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+            new_data: {
+              name: 'Collection Updated',
+              collection_reference_number: '0002',
+            },
+          },
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('creates histories when deleting data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            __deleted: true,
+          },
+          { createHistory: {}, ignoreConflict: true },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+            new_data: {
+              __deleted: true,
+            },
+          },
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('does not create history when updated data is unchanged', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('does not create history when updated data only has metadata changes', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+            // metadata
+            integrations: {
+              'a-integration': {
+                foo: 'bar',
+              },
+            },
+          },
+          { createHistory: {} },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('created history will not include metadata changes in normal cases', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+            // metadata
+            integrations: {
+              'a-integration': {
+                foo: 'bar',
+              },
+            },
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection Updated',
+            collection_reference_number: '0002',
+            // metadata
+            integrations: {
+              'a-integration': {
+                foo: 'bar',
+              },
+              'b-integration': {
+                foo: 'bar',
+              },
+            },
+          },
+          { createHistory: {} },
+        );
+
+        const histories = await d.getDatumHistories('collection', '1');
+        expect(histories).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+            new_data: {
+              name: 'Collection Updated',
+              collection_reference_number: '0002',
+            },
+          },
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+
+        expect(histories[0].original_data).not.toHaveProperty('integrations');
+        expect(histories[0].new_data).not.toHaveProperty('integrations');
+        expect(histories[1].original_data).not.toHaveProperty('integrations');
+        expect(histories[1].new_data).not.toHaveProperty('integrations');
+      });
+    });
+
+    it('histories created on deletion will include metadata', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+            // metadata
+            integrations: {
+              'a-integration': {
+                foo: 'bar',
+              },
+            },
+          },
+          { createHistory: {} },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            __deleted: true,
+          },
+          { createHistory: {}, ignoreConflict: true },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+              integrations: {
+                'a-integration': {
+                  foo: 'bar',
+                },
+              },
+            },
+            new_data: {
+              __deleted: true,
+            },
+          },
+          {
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+
+    it('creates histories that includes info', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 1,
+              eventName: 'test-creation',
+            },
+          },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection Updated',
+            collection_reference_number: '0002',
+          },
+          {
+            createHistory: {
+              createdBy: 'jest',
+              batch: 2,
+              eventName: 'test-update',
+            },
+            ignoreConflict: true,
+          },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            __deleted: true,
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 3,
+              eventName: 'test-deletion',
+            },
+            ignoreConflict: true,
+          },
+        );
+
+        expect(await d.getDatumHistories('collection', '1')).toMatchObject([
+          {
+            created_by: 'test',
+            batch: 3,
+            event_name: 'test-deletion',
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection Updated',
+              collection_reference_number: '0002',
+            },
+            new_data: {
+              __deleted: true,
+            },
+          },
+          {
+            created_by: 'jest',
+            batch: 2,
+            event_name: 'test-update',
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+            new_data: {
+              name: 'Collection Updated',
+              collection_reference_number: '0002',
+            },
+          },
+          {
+            created_by: 'test',
+            batch: 1,
+            event_name: 'test-creation',
+            data_type: 'collection',
+            data_id: '1',
+            original_data: {
+              __deleted: true,
+            },
+            new_data: {
+              name: 'Collection',
+              collection_reference_number: '0001',
+            },
+          },
+        ]);
+      });
+    });
+  });
+
+  describe('getDatumHistories', () => {
+    it('supports page and limit', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '2',
+            name: 'Collection',
+            collection_reference_number: '2000',
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 1,
+              eventName: 'test-creation',
+            },
+          },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'item',
+            __id: '1',
+            name: 'Item',
+            collection_id: '2',
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 1,
+              eventName: 'test-creation',
+            },
+          },
+        );
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection',
+            collection_reference_number: '0001',
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 1,
+              eventName: 'test-creation',
+            },
+          },
+        );
+        await new Promise(resolve => setTimeout(resolve, 2));
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection Updated',
+            collection_reference_number: '0002',
+          },
+          {
+            createHistory: {
+              createdBy: 'jest',
+              batch: 2,
+              eventName: 'test-update',
+            },
+            ignoreConflict: true,
+          },
+        );
+        await new Promise(resolve => setTimeout(resolve, 2));
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            name: 'Collection Updated',
+            collection_reference_number: '0003',
+          },
+          {
+            createHistory: {
+              createdBy: 'jest',
+              batch: 2,
+              eventName: 'test-update',
+            },
+            ignoreConflict: true,
+          },
+        );
+        await new Promise(resolve => setTimeout(resolve, 2));
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            __deleted: true,
+          },
+          {
+            createHistory: {
+              createdBy: 'test',
+              batch: 3,
+              eventName: 'test-deletion',
+            },
+            ignoreConflict: true,
+          },
+        );
+        await new Promise(resolve => setTimeout(resolve, 2));
+
+        const allHistories = await d.getDatumHistories('collection', '1', {
+          limit: 999,
+        });
+        expect(allHistories).toHaveLength(4);
+
+        const limitedHistories = await d.getDatumHistories('collection', '1', {
+          limit: 2,
+        });
+        expect(limitedHistories).toHaveLength(2);
+
+        const pagedHistories1 = await d.getDatumHistories('collection', '1', {
+          after: allHistories[1].timestamp,
+        });
+        expect(pagedHistories1).toHaveLength(2);
+
+        const pagedHistories2 = await d.getDatumHistories('collection', '1', {
+          after: allHistories[3].timestamp,
+        });
+        expect(pagedHistories2).toHaveLength(0);
+
+        const limitedAndPagedHistories = await d.getDatumHistories(
+          'collection',
+          '1',
+          {
+            after: allHistories[2].timestamp,
+            limit: 2,
+          },
+        );
+        expect(limitedAndPagedHistories).toHaveLength(1);
+      });
+    });
+  });
+
+  describe('listHistoryBatchesCreatedBy', () => {
+    async function createMockData(d: CouchDBData) {
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1',
+          collection_reference_number: '1000',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: '1',
+          name: 'Item 1',
+          collection_id: '1',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 2,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2',
+          collection_reference_number: '2000',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1002',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 3,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 4,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2 Updated',
+          collection_reference_number: '2002',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 3,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2 Updated',
+          collection_reference_number: '2003',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 5,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+    }
+
+    it('returns batch numbers created by specific creator', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.listHistoryBatchesCreatedBy('updater-1')).toMatchObject([
+          4, 3, 2, 1,
+        ]);
+
+        expect(await d.listHistoryBatchesCreatedBy('updater-2')).toMatchObject([
+          5, 3, 1,
+        ]);
+      });
+    });
+
+    it('supports limit and paging', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.listHistoryBatchesCreatedBy('updater-1')).toMatchObject([
+          4, 3, 2, 1,
+        ]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-1', {
+            limit: 2,
+          }),
+        ).toMatchObject([4, 3]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-1', {
+            after: 4,
+            limit: 2,
+          }),
+        ).toMatchObject([3, 2]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-1', {
+            after: 3,
+            limit: 2,
+          }),
+        ).toMatchObject([2, 1]);
+
+        expect(await d.listHistoryBatchesCreatedBy('updater-2')).toMatchObject([
+          5, 3, 1,
+        ]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-2', { limit: 1 }),
+        ).toMatchObject([5]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-2', {
+            after: 5,
+            limit: 1,
+          }),
+        ).toMatchObject([3]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-2', {
+            after: 3,
+            limit: 1,
+          }),
+        ).toMatchObject([1]);
+
+        expect(
+          await d.listHistoryBatchesCreatedBy('updater-2', { after: 1 }),
+        ).toMatchObject([]);
+      });
+    });
+  });
+
+  describe('getHistoriesInBatch', () => {
+    async function createMockData(d: CouchDBData) {
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1',
+          collection_reference_number: '1000',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'item',
+          __id: '1',
+          name: 'Item 1',
+          collection_id: '1',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2',
+          collection_reference_number: '2000',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1002',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 2,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2 Updated',
+          collection_reference_number: '2002',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 2,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection 2 Updated',
+          collection_reference_number: '2003',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-2',
+            batch: 3,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+    }
+
+    it('returns histories that have a specific batch number', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.getHistoriesInBatch(1)).toMatchObject([
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-creation',
+          },
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'item',
+            data_id: '1',
+            event_name: 'test-creation',
+          },
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-update',
+          },
+          {
+            batch: 1,
+            created_by: 'updater-2',
+            data_type: 'collection',
+            data_id: '2',
+            event_name: 'test-creation',
+          },
+        ]);
+
+        expect(await d.getHistoriesInBatch(2)).toMatchObject([
+          {
+            batch: 2,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-update',
+          },
+          {
+            batch: 2,
+            created_by: 'updater-2',
+            data_type: 'collection',
+            data_id: '2',
+            event_name: 'test-update',
+          },
+        ]);
+
+        expect(await d.getHistoriesInBatch(3)).toMatchObject([
+          {
+            batch: 3,
+            created_by: 'updater-2',
+            data_type: 'collection',
+            data_id: '2',
+            event_name: 'test-update',
+          },
+        ]);
+
+        expect(await d.getHistoriesInBatch(4)).toMatchObject([]);
+      });
+    });
+
+    it('returns histories that have a specific batch number and created_by value', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(
+          await d.getHistoriesInBatch(1, { createdBy: 'updater-1' }),
+        ).toMatchObject([
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-creation',
+          },
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'item',
+            data_id: '1',
+            event_name: 'test-creation',
+          },
+          {
+            batch: 1,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-update',
+          },
+        ]);
+
+        expect(
+          await d.getHistoriesInBatch(1, { createdBy: 'updater-2' }),
+        ).toMatchObject([
+          {
+            batch: 1,
+            created_by: 'updater-2',
+            data_type: 'collection',
+            data_id: '2',
+            event_name: 'test-creation',
+          },
+        ]);
+
+        expect(
+          await d.getHistoriesInBatch(2, { createdBy: 'updater-1' }),
+        ).toMatchObject([
+          {
+            batch: 2,
+            created_by: 'updater-1',
+            data_type: 'collection',
+            data_id: '1',
+            event_name: 'test-update',
+          },
+        ]);
+
+        expect(
+          await d.getHistoriesInBatch(3, { createdBy: 'updater-1' }),
+        ).toMatchObject([]);
+
+        expect(
+          await d.getHistoriesInBatch(4, { createdBy: 'updater-1' }),
+        ).toMatchObject([]);
+      });
+    });
+  });
+
+  describe('restoreHistory', () => {
+    async function createMockData(d: CouchDBData) {
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1',
+          collection_reference_number: '1000',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-creation',
+          },
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1002',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 1,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+
+      await d.saveDatum(
+        {
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        },
+        {
+          createHistory: {
+            createdBy: 'updater-1',
+            batch: 2,
+            eventName: 'test-update',
+          },
+          ignoreConflict: true,
+        },
+      );
+    }
+
+    it('can restore created data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+        });
+
+        const histories = await d.getDatumHistories('collection', '1');
+        const firstHistory = histories[histories.length - 1];
+        expect(firstHistory).toMatchObject({
+          original_data: {
+            __deleted: true,
+          },
+        });
+
+        await d.restoreHistory(firstHistory);
+
+        expect(await d.getDatum('collection', '1')).toBe(null);
+      });
+    });
+
+    it('can restore updated data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        });
+
+        const histories = await d.getDatumHistories('collection', '1');
+
+        expect(histories[0]).toMatchObject({
+          original_data: {
+            collection_reference_number: '1002',
+          },
+        });
+        await d.restoreHistory(histories[0]);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1002',
+        });
+
+        expect(histories[1]).toMatchObject({
+          original_data: {
+            name: 'Collection 1',
+            collection_reference_number: '1000',
+          },
+        });
+        await d.restoreHistory(histories[1]);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1',
+          collection_reference_number: '1000',
+        });
+      });
+    });
+
+    it('can restore deleted data', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        await d.saveDatum(
+          {
+            __type: 'collection',
+            __id: '1',
+            __deleted: true,
+          },
+          {
+            createHistory: {
+              createdBy: 'updater-1',
+              batch: 3,
+              eventName: 'test-delete',
+            },
+            ignoreConflict: true,
+          },
+        );
+
+        expect(await d.getDatum('collection', '1')).toBe(null);
+
+        const histories = await d.getDatumHistories('collection', '1');
+        const lastHistory = histories[0];
+        expect(lastHistory).toMatchObject({
+          original_data: {
+            name: 'Collection 1 Updated',
+            collection_reference_number: '1003',
+          },
+          new_data: {
+            __deleted: true,
+          },
+        });
+
+        await d.restoreHistory(lastHistory);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        });
+      });
+    });
+
+    it('throws error if restoring will cause an invalid datum', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        await d.saveDatum({
+          __type: 'collection',
+          __id: '2',
+          name: 'Collection to make collection_reference_number collision on restore',
+          collection_reference_number: '1002',
+        });
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        });
+
+        const histories = await d.getDatumHistories('collection', '1');
+
+        expect(histories[0]).toMatchObject({
+          original_data: {
+            collection_reference_number: '1002',
+          },
+        });
+
+        try {
+          // Should throw because collection_reference_number is used
+          await d.restoreHistory(histories[0]);
+          throw new NoErrorThrownError();
+        } catch (error) {
+          if (error instanceof NoErrorThrownError) {
+            throw new Error(
+              'Expects an error to be thrown, but none was thrown',
+            );
+          }
+
+          expect(error).toBeInstanceOf(ValidationError);
+          expect(
+            error instanceof ValidationError ? error.issues : [],
+          ).toMatchSnapshot(
+            'collection collection_reference_number already used',
+          );
+        }
+      });
+    });
+
+    it('creates new history on restore', async () => {
+      await withContext(async context => {
+        const d = new CouchDBData(context);
+
+        await createMockData(d);
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        });
+
+        const histories = await d.getDatumHistories('collection', '1');
+
+        expect(histories[0]).toMatchObject({
+          original_data: {
+            collection_reference_number: '1002',
+          },
+        });
+        await d.restoreHistory(histories[0], { batch: 1337 });
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1002',
+        });
+
+        const newHistories = await d.getDatumHistories('collection', '1');
+
+        expect(newHistories[0]).toMatchObject({
+          created_by: 'history_restore',
+          batch: 1337,
+          original_data: {
+            collection_reference_number: '1003',
+          },
+          new_data: {
+            collection_reference_number: '1002',
+          },
+        });
+        await d.restoreHistory(newHistories[0], { batch: 2048 });
+
+        expect(await d.getDatum('collection', '1')).toMatchObject({
+          __type: 'collection',
+          __id: '1',
+          name: 'Collection 1 Updated',
+          collection_reference_number: '1003',
+        });
+
+        expect((await d.getDatumHistories('collection', '1'))[0]).toMatchObject(
+          {
+            created_by: 'history_restore',
+            batch: 2048,
+            original_data: {
+              collection_reference_number: '1002',
+            },
+            new_data: {
+              collection_reference_number: '1003',
+            },
+          },
+        );
+      });
+    });
+  });
+});
+
 describe('fixDataConsistency', () => {
   it('works', async () => {
     await withContext(async context => {
