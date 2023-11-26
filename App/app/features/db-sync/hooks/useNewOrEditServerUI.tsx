@@ -251,6 +251,7 @@ export default function useNewOrEditServerUI({
           placeholder="https://0.0.0.0:5984/database_name"
           autoCapitalize="none"
           keyboardType="url"
+          autoCorrect={false}
           multiline
           blurOnSubmit
           value={state.uri}

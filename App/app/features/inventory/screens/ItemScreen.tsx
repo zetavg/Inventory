@@ -395,52 +395,54 @@ function ItemScreen({
         <UIGroup
           loading={dataLoading}
           // eslint-disable-next-line react/no-unstable-nested-components
-          footer={(() => {
+          footer={({ textProps }) => {
             if (!data?.__valid) return undefined;
 
             if (data?.rfid_tag_epc_memory_bank_contents && canWriteRfidTag) {
               if (!data?.actual_rfid_tag_epc_memory_bank_contents) {
                 return (
                   <>
-                    <Icon
-                      name="app-exclamation"
-                      color="yellow"
-                      size={16}
-                      style={commonStyles.mbm2}
-                    />
-                    <RNText> </RNText>
-                    <RNText>
-                      This item has an EPC number but it's not written on any
-                      RFID tag. Press the "Write Tag" button to write the EPC
-                      number onto a tag that is attached to the item.
+                    <RNText {...textProps}>
+                      <Icon
+                        name="app-exclamation"
+                        color="yellow"
+                        size={16}
+                        style={commonStyles.mbm2}
+                      />
+                      <RNText> </RNText>
+                      <RNText>
+                        This item has an EPC number but it's not written on any
+                        RFID tag. Press the "Write Tag" button to write the EPC
+                        number onto a tag that is attached to the item.
+                      </RNText>
+                      <RNText> </RNText>
+                      <RNText>You can also</RNText>
+                      <RNText> </RNText>
+                      <RNText
+                        onPress={() =>
+                          Alert.alert(
+                            'Confirm',
+                            "Do you want to treat this item as it's EPC has been written to the RFID tag?",
+                            [
+                              {
+                                text: 'No',
+                                style: 'cancel',
+                                onPress: () => {},
+                              },
+                              {
+                                text: 'Yes',
+                                // style: 'destructive',
+                                onPress: writeActualEpcContent,
+                              },
+                            ],
+                          )
+                        }
+                        style={{ color: iosTintColor }}
+                      >
+                        manually set this as done
+                      </RNText>
+                      <RNText>.</RNText>
                     </RNText>
-                    <RNText> </RNText>
-                    <RNText>You can also</RNText>
-                    <RNText> </RNText>
-                    <RNText
-                      onPress={() =>
-                        Alert.alert(
-                          'Confirm',
-                          "Do you want to treat this item as it's EPC has been written to the RFID tag?",
-                          [
-                            {
-                              text: 'No',
-                              style: 'cancel',
-                              onPress: () => {},
-                            },
-                            {
-                              text: 'Yes',
-                              // style: 'destructive',
-                              onPress: writeActualEpcContent,
-                            },
-                          ],
-                        )
-                      }
-                      style={{ color: iosTintColor }}
-                    >
-                      manually set this as done
-                    </RNText>
-                    <RNText>.</RNText>
                   </>
                 );
               }
@@ -450,7 +452,7 @@ function ItemScreen({
                 data?.rfid_tag_epc_memory_bank_contents
               ) {
                 return (
-                  <>
+                  <RNText {...textProps}>
                     <Icon
                       name="app-info"
                       color={groupTitleColor}
@@ -525,11 +527,11 @@ function ItemScreen({
                         <RNText>.</RNText>
                       </>
                     )}
-                  </>
+                  </RNText>
                 );
               }
             }
-          })()}
+          }}
         >
           {(() => {
             const item = data && onlyValid(data);

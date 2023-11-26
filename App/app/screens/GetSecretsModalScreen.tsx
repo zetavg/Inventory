@@ -2,6 +2,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import Clipboard from '@react-native-clipboard/clipboard';
+
 import { DataType } from '@app/data';
 
 import type { RootStackParamList } from '@app/navigation/Navigation';
@@ -86,6 +88,16 @@ function GetSecretsModalScreen({
               value={value[secret.key]}
               onChangeText={text =>
                 setValue({ ...value, [secret.key]: text.trim() })
+              }
+              controlElement={
+                <UIGroup.ListTextInputItem.Button
+                  onPress={async () => {
+                    const text = await Clipboard.getString();
+                    setValue({ ...value, [secret.key]: text.trim() });
+                  }}
+                >
+                  Paste
+                </UIGroup.ListTextInputItem.Button>
               }
             />
           </UIGroup>
