@@ -98,7 +98,7 @@ export default function getSaveDatum(context: Context): SaveDatum {
     writeHistory: async history => {
       const doc = {
         ...history,
-        _id: `zd-history-${history.created_by}-${history.batch}-${
+        _id: `zzd-history-${history.created_by}-${history.batch}-${
           history.data_type
         }-${history.data_id}-${history.event_name}-${
           history.timestamp
