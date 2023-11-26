@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
+
+import { useDataCount } from '@app/data';
 
 import type { StackParamList } from '@app/navigation/MainStack';
 
@@ -21,6 +23,23 @@ function UIAndAppearanceSettingsScreen({
   const uiShowDetailedInstructions = useAppSelector(
     selectors.settings.uiShowDetailedInstructions,
   );
+  const uiShowIntegrationsOnMoreScreen = useAppSelector(
+    selectors.settings.uiShowIntegrationsOnMoreScreen,
+  );
+
+  const { count: integrationsCount } = useDataCount('integration');
+  const integrationsCountCache = useAppSelector(
+    selectors.profiles.integrationsCountCache,
+  );
+  useEffect(() => {
+    if (typeof integrationsCount !== 'number') return;
+
+    if (integrationsCount !== integrationsCountCache) {
+      dispatch(
+        actions.profiles.updateIntegrationsCountCache(integrationsCount),
+      );
+    }
+  }, [dispatch, integrationsCountCache, integrationsCount]);
 
   return (
     <ScreenContent navigation={navigation} title="UI & Appearance">
@@ -64,6 +83,29 @@ function UIAndAppearanceSettingsScreen({
             }
           />
         </UIGroup>
+        {integrationsCountCache > 0 && (
+          <UIGroup
+            footer={
+              uiShowIntegrationsOnMoreScreen
+                ? 'Show "Integrations" directly on the "More" tab.'
+                : 'Do not show "Integrations" directly on the "More" tab.'
+            }
+          >
+            <UIGroup.ListItem
+              label="Show Integrations"
+              detail={
+                <UIGroup.ListItem.Switch
+                  value={uiShowIntegrationsOnMoreScreen}
+                  onValueChange={v => {
+                    dispatch(
+                      actions.settings.setUiShowIntegrationsOnMoreScreen(v),
+                    );
+                  }}
+                />
+              }
+            />
+          </UIGroup>
+        )}
       </ScreenContent.ScrollView>
     </ScreenContent>
   );
