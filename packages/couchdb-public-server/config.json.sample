@@ -1,0 +1,10 @@
+{
+  "couchdb": {
+    "url": "http://localhost:5984",
+    "username": "your_couchdb_user",
+    "password": "your_password"
+  },
+  "server": {
+    "port": 3000
+  }
+}
