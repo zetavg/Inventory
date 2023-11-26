@@ -128,27 +128,33 @@ function InsetGroup(
       )}
       {footerLabel &&
         (typeof footerLabel === 'string' ? (
-          <Text
-            style={[
-              styles.groupFooterLabel,
-              {
-                color: groupTitleColor,
-              },
-            ]}
-          >
-            {footerLabel}
-          </Text>
-        ) : typeof footerLabel === 'function' ? (
-          footerLabel({
-            textProps: {
-              style: [
+          <>
+            <Text
+              style={[
                 styles.groupFooterLabel,
                 {
                   color: groupTitleColor,
                 },
-              ],
-            },
-          })
+              ]}
+            >
+              {footerLabel}
+            </Text>
+            <View style={styles.groupFooterLabelAfter} />
+          </>
+        ) : typeof footerLabel === 'function' ? (
+          <>
+            {footerLabel({
+              textProps: {
+                style: [
+                  styles.groupFooterLabel,
+                  {
+                    color: groupTitleColor,
+                  },
+                ],
+              },
+            })}
+            <View style={styles.groupFooterLabelAfter} />
+          </>
         ) : (
           footerLabel
         ))}
@@ -712,7 +718,9 @@ export const styles = StyleSheet.create({
   groupFooterLabel: {
     marginHorizontal: 32,
     marginTop: 8,
-    marginBottom: 35,
+  },
+  groupFooterLabelAfter: {
+    height: 35,
   },
   insetGroupLeftElementContainer: {
     justifyContent: 'center',
