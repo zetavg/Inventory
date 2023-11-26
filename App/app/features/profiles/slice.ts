@@ -88,6 +88,7 @@ interface ProfileState {
   inventory: InventoryState;
   integrations: IntegrationsState;
   labelPrinters: LabelPrintersState;
+  integrationsCountCache?: number;
   [cacheSliceName]: CacheState;
 }
 
@@ -171,6 +172,17 @@ export const profilesSlice = createSlice({
 
         currentProfile.setupDone = true;
         currentProfile.configUuid = action.payload.configUuid;
+      },
+      updateIntegrationsCountCache: (
+        state: ProfilesState,
+        action: PayloadAction<number>,
+      ) => {
+        const currentProfile = state.currentProfile
+          ? state.profiles[state.currentProfile]
+          : null;
+        if (!currentProfile) return;
+
+        currentProfile.integrationsCountCache = action.payload;
       },
     },
     mapActionReducers(
@@ -326,6 +338,11 @@ export const selectors = {
       state.currentProfile
         ? !state.profiles[state.currentProfile || '']?.setupDone
         : false,
+    integrationsCountCache: (state: ProfilesState) =>
+      state.currentProfile
+        ? state.profiles[state.currentProfile || '']?.integrationsCountCache ||
+          0
+        : 0,
   },
   dbSync: mapSelectors(
     dbSyncSelectors.dbSync,
@@ -372,6 +389,7 @@ reducer.dehydrate = (state: ProfilesState) => {
       color: s.color,
       setupDone: s.setupDone,
       configUuid: s.configUuid,
+      integrationsCountCache: s.integrationsCountCache,
       ...(dbSyncReducer.dehydrate
         ? { dbSync: dbSyncReducer.dehydrate(s.dbSync) }
         : {}),

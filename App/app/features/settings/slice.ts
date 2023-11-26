@@ -14,6 +14,7 @@ export interface SettingsState {
   uiColorTheme: string;
   /** Show detailed instructions on the UI or not. */
   uiShowDetailedInstructions: boolean;
+  uiShowIntegrationsOnMoreScreen: boolean;
 }
 
 export const initialState: SettingsState = {
@@ -21,6 +22,7 @@ export const initialState: SettingsState = {
   devTestSensitiveValue: 0,
   uiColorTheme: 'blue',
   uiShowDetailedInstructions: true,
+  uiShowIntegrationsOnMoreScreen: true,
 };
 
 export const settingsSlice = createSlice({
@@ -50,6 +52,12 @@ export const settingsSlice = createSlice({
     ) => {
       state.uiShowDetailedInstructions = action.payload;
     },
+    setUiShowIntegrationsOnMoreScreen: (
+      state: SettingsState,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.uiShowIntegrationsOnMoreScreen = action.payload;
+    },
     reset: () => initialState,
   }),
 });
@@ -71,6 +79,8 @@ export const selectors = {
     uiColorTheme: (state: SettingsState | undefined) => state?.uiColorTheme,
     uiShowDetailedInstructions: (state: SettingsState) =>
       state.uiShowDetailedInstructions,
+    uiShowIntegrationsOnMoreScreen: (state: SettingsState) =>
+      state.uiShowIntegrationsOnMoreScreen,
   },
 };
 
@@ -78,6 +88,7 @@ reducer.dehydrate = (state: SettingsState) => ({
   devTestValue: state?.devTestValue,
   uiColorTheme: state?.uiColorTheme,
   uiShowDetailedInstructions: state?.uiShowDetailedInstructions,
+  uiShowIntegrationsOnMoreScreen: state?.uiShowIntegrationsOnMoreScreen,
 });
 reducer.rehydrate = dehydratedState => dehydratedState;
 

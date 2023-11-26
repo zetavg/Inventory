@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Linking } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import DeviceInfo from 'react-native-device-info';
@@ -8,6 +8,8 @@ import { USER_DOCUMENTS_URL } from '@app/consts/info';
 import { actions, selectors, useAppDispatch, useAppSelector } from '@app/redux';
 // import useOverallDBSyncStatus from '@app/features/db-sync/hooks/useOverallDBSyncStatus';
 import { OnScannedItemPressFn } from '@app/features/rfid/RFIDSheet';
+
+import { useDataCount } from '@app/data';
 
 import commonStyles from '@app/utils/commonStyles';
 
@@ -52,6 +54,26 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
         return colors.blue;
     }
   })();
+
+  const dispatch = useAppDispatch();
+
+  const { count: integrationsCount } = useDataCount('integration');
+  const integrationsCountCache = useAppSelector(
+    selectors.profiles.integrationsCountCache,
+  );
+  useEffect(() => {
+    if (typeof integrationsCount !== 'number') return;
+
+    if (integrationsCount !== integrationsCountCache) {
+      dispatch(
+        actions.profiles.updateIntegrationsCountCache(integrationsCount),
+      );
+    }
+  }, [dispatch, integrationsCountCache, integrationsCount]);
+
+  const uiShowIntegrationsOnMoreScreen = useAppSelector(
+    selectors.settings.uiShowIntegrationsOnMoreScreen,
+  );
 
   const { openRfidSheet, showRfidSheet, rfidSheet } = useRootBottomSheets();
 
@@ -157,6 +179,21 @@ function MoreScreen({ navigation }: StackScreenProps<StackParamList, 'More'>) {
             Checklists
           </TableView.Item>
         </TableView.Section>
+
+        {uiShowIntegrationsOnMoreScreen && integrationsCountCache > 0 && (
+          <TableView.Section>
+            <TableView.Item
+              arrow
+              icon="cellphone-wireless"
+              iosImage="ios-menu.integrations-orange.png"
+              detail={integrationsCountCache.toString()}
+              onPress={() => navigation.push('Integrations')}
+            >
+              Integrations
+            </TableView.Item>
+          </TableView.Section>
+        )}
+
         <TableView.Section label="RFID Tools">
           <TableView.Item
             arrow
