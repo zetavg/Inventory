@@ -312,7 +312,8 @@ function ItemScreen({
                         ([k]) =>
                           !k.startsWith('_') &&
                           k !== 'actual_rfid_tag_epc_memory_bank_contents' &&
-                          k !== 'rfid_tag_access_password',
+                          k !== 'rfid_tag_access_password' &&
+                          k !== 'integrations',
                       ),
                     ),
                   },
