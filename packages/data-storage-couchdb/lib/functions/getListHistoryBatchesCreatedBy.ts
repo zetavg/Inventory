@@ -9,7 +9,7 @@ const DESIGN_DOC = {
   _id: `_design/${DESIGN_DOC_NAME}`,
   views: {
     [VIEW_NAME]: {
-      map: "function (doc) { if (doc._id.startsWith('zd-history')) emit([doc.created_by, doc.batch], 1); }",
+      map: "function (doc) { if (doc.type === '_history') emit([doc.created_by, doc.batch], 1); }",
       reduce: '_sum',
     },
   },
