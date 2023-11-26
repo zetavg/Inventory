@@ -15,8 +15,8 @@ import useLogger from '@app/hooks/useLogger';
 
 import { DBSyncServerEditableData } from './slice';
 
-const BATCH_SIZE = 4;
-const BATCHES_LIMIT = 2;
+const BATCH_SIZE = 16;
+const BATCHES_LIMIT = 4;
 
 type ServerData = DBSyncServerEditableData & {
   id: string;
