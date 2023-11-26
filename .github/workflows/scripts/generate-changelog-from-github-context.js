@@ -193,10 +193,10 @@ function getCommitsBetween(startSHA, endSHA) {
 
   const commitsArray = commits.split('\n');
   return commitsArray.map(arr => {
-    const parts = arr.split(':', 2);
+    const [hash, ...messageParts] = arr.split(':');
     return {
-      hash: parts[0],
-      message: parts[1],
+      hash,
+      message: messageParts.join(':'),
     };
   });
 }
