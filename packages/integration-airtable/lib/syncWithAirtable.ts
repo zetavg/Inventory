@@ -1,5 +1,6 @@
 import {
   DataMeta,
+  GetAttachmentInfoFromDatum,
   GetData,
   GetDataConditions,
   GetDataCount,
@@ -11,7 +12,11 @@ import {
 import { hasChanges, onlyValid } from '@deps/data/utils';
 import getChildrenItems from '@deps/data/utils/getChildrenItems';
 
-import AirtableAPI, { AirtableAPIError, AirtableField } from './AirtableAPI';
+import AirtableAPI, {
+  AirtableAPIError,
+  AirtableField,
+  AirtableRecord,
+} from './AirtableAPI';
 import {
   airtableRecordToCollection,
   airtableRecordToItem,
@@ -69,7 +74,7 @@ export type SyncWithAirtableProgress = {
   dataDeletedFromAirtable?: Array<{
     type: string;
     id?: string;
-    airtable_record_id: string;
+    airtable_record_id?: string;
   }>;
   apiCalls?: number;
   last_synced_at?: number;
@@ -107,6 +112,7 @@ export default async function* syncWithAirtable(
     getData,
     getDataCount,
     saveDatum,
+    getAttachmentInfoFromDatum,
   }: // batchSize = 10,
   {
     fetch: Fetch;
@@ -114,6 +120,7 @@ export default async function* syncWithAirtable(
     getData: GetData;
     getDataCount: GetDataCount;
     saveDatum: SaveDatum;
+    getAttachmentInfoFromDatum: GetAttachmentInfoFromDatum;
     // batchSize?: number;
   },
 ) {
@@ -164,6 +171,9 @@ export default async function* syncWithAirtable(
     //
 
     const config = schema.config.parse(integration.config);
+
+    const shouldSyncItemImages =
+      !config.disable_uploading_item_images && !!config.images_public_endpoint;
 
     if (!integration.data) {
       integration.data = {};
@@ -369,6 +379,7 @@ export default async function* syncWithAirtable(
         airtableFields,
         dataIdsToSkipForCreation,
         dataIdsToSkip,
+        afterSave,
       }: {
         datumToAirtableRecord: (d: ValidDataTypeWithID<T>) => Promise<{
           id?: string;
@@ -382,6 +393,10 @@ export default async function* syncWithAirtable(
         airtableFields?: ReadonlyArray<string>;
         dataIdsToSkipForCreation?: Set<string>;
         dataIdsToSkip?: Set<string>;
+        afterSave?: (
+          savedData: DataMeta<T>,
+          record: AirtableRecord,
+        ) => Promise<void>;
       },
     ) {
       // Prepare data to delete
@@ -652,6 +667,10 @@ export default async function* syncWithAirtable(
                   });
                 } else if (!datum.__deleted && savedDatum) {
                   // Not deleted and no error
+                  if (afterSave) {
+                    await afterSave(savedDatum, record);
+                  }
+
                   const newRecord = await datumToAirtableRecord(
                     savedDatum as any,
                   );
@@ -666,10 +685,7 @@ export default async function* syncWithAirtable(
                     });
                   }
 
-                  const { '#': _1, ...originalRecordFields } = record.fields;
-                  const { '#': _2, ...newRecordFields } = newRecord.fields;
-
-                  if (hasChanges(newRecordFields, originalRecordFields)) {
+                  if (hasRecordFieldsChanges(record.fields, newRecord.fields)) {
                     recordsToUpdateAfterPull.push({
                       id: record.id,
                       fields: {
@@ -987,6 +1003,11 @@ export default async function* syncWithAirtable(
                 airtableItemsTableFields,
                 getAirtableRecordIdFromCollectionId,
                 getAirtableRecordIdFromItemId,
+                getData,
+                getAttachmentInfoFromDatum,
+                imagesPublicEndpoint: shouldSyncItemImages
+                  ? config.images_public_endpoint
+                  : undefined,
               }),
             ),
           ),
@@ -1112,6 +1133,11 @@ export default async function* syncWithAirtable(
           airtableItemsTableFields,
           getAirtableRecordIdFromCollectionId,
           getAirtableRecordIdFromItemId,
+          getData,
+          getAttachmentInfoFromDatum,
+          imagesPublicEndpoint: shouldSyncItemImages
+            ? config.images_public_endpoint
+            : undefined,
         }),
       airtableRecordToDatum: async r =>
         airtableRecordToItem(r, {
@@ -1124,6 +1150,121 @@ export default async function* syncWithAirtable(
       existingRecordIdsForFullSync: fullSync_existingItems,
       dataIdsToSkipForCreation: createdItemIds,
       dataIdsToSkip: itemsToRemoveFromAirtableIdsSet,
+      afterSave: async (savedDatum, record) => {
+        if (!shouldSyncItemImages) return;
+
+        const savedItemId = savedDatum.__id;
+        if (!savedItemId) return;
+
+        let recordImages = record.fields.Images;
+        if (Array.isArray(recordImages) && recordImages.length <= 0) {
+          // To prevent unexpected data deletion, clearing the "Images" field will not actually delete anything. One should check the "Remove All Images" checkbox to remove all images.
+          recordImages = undefined;
+        }
+
+        if (record.fields['Remove All Images']) {
+          recordImages = [];
+        }
+        if (!Array.isArray(recordImages)) return;
+
+        const recordImageFilenames = recordImages
+          .map(ri => ri?.filename)
+          .filter(f => typeof f === 'string');
+        const recordImageIds = recordImageFilenames.map(f => f.split('.')[0]);
+        const shouldHaveImages = onlyValid(
+          await getData('image', recordImageIds),
+        );
+        const shouldHaveImageIdsSet = new Set<string>(
+          shouldHaveImages
+            .map(img => img.__id)
+            .filter((id): id is NonNullable<typeof id> => !!id),
+        );
+        const currentItemImages = onlyValid(
+          await getData('item_image', {
+            item_id: savedDatum.__id,
+          }),
+        );
+        const itemImagesToDelete = currentItemImages.filter(
+          ii => !shouldHaveImageIdsSet.has(ii.image_id),
+        );
+        for (const ii of itemImagesToDelete) {
+          await saveDatum(
+            { ...ii, __deleted: true },
+            {
+              createHistory: {
+                createdBy: `integration-${integrationId}`,
+                batch: syncStartedAt,
+              },
+            },
+          );
+          if (!Array.isArray(progress.dataDeletedFromAirtable))
+            progress.dataDeletedFromAirtable = [];
+          progress.dataDeletedFromAirtable.push({
+            type: 'item_image',
+            id: ii.__id,
+          });
+        }
+
+        let i = 0;
+        for (const img of shouldHaveImages) {
+          await saveDatum(
+            {
+              __type: 'item_image',
+              // Use a non-random ID to let the save be retry-able.
+              __id: `${savedItemId}-${img.__id}`,
+              item_id: savedItemId,
+              image_id: img.__id,
+              order: i,
+            },
+            {
+              ignoreConflict: true,
+              createHistory: {
+                createdBy: `integration-${integrationId}`,
+                batch: syncStartedAt,
+              },
+            },
+          );
+          i += 1;
+        }
+
+        // const currentImageIdsSet = new Set<string>(
+        //   currentItemImages
+        //     .map(ii => ii.image_id)
+        //     .filter((id): id is NonNullable<typeof id> => !!id),
+        // );
+        // const itemImageImageIdsToCreate = Array.from(
+        //   shouldHaveImageIdsSet,
+        // ).filter(id => !currentImageIdsSet.has(id));
+        // let i = 0;
+        // const currentRemainingItemImages = currentItemImages.filter(ii =>
+        //   shouldHaveImageIdsSet.has(ii.image_id),
+        // );
+        // if (currentRemainingItemImages.length > 0) {
+        //   i =
+        //     Math.max(...currentRemainingItemImages.map(ii => ii.order || 0)) +
+        //     1;
+        // }
+        // for (const imgId of itemImageImageIdsToCreate) {
+        //   await saveDatum(
+        //     {
+        //       __type: 'item_image',
+        //       // Use a non-random ID to let the save be retry-able.
+        //       __id: `${savedItemId}-${imgId}`,
+        //       item_id: savedItemId,
+        //       image_id: imgId,
+        //       order: i,
+        //     },
+        //     {
+        //       ignoreConflict: true,
+        //       createHistory: {
+        //         createdBy: `integration-${integrationId}`,
+        //         batch: syncStartedAt,
+        //       },
+        //     },
+        //   );
+        //   i += 1;
+        // }
+      },
     })) {
       yield p;
     }
@@ -1230,4 +1371,63 @@ function getCurrentYearAndMonth() {
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Ensures two-digit format
   return `${year}-${month}`;
+}
+
+function hasRecordFieldsChanges(
+  fields1: Record<string, unknown>,
+  fields2: Record<string, unknown>,
+) {
+  const keys = Array.from(
+    new Set([...Object.keys(fields1), ...Object.keys(fields2)]),
+  );
+
+  for (const key of keys) {
+    if (
+      key === '#' ||
+      key === 'Modified At' ||
+      key === 'Record ID' ||
+      key === 'Container Record ID'
+    ) {
+      continue;
+    }
+
+    const f1Value = fields1[key];
+    const f2Value = fields2[key];
+
+    if (!!f1Value !== !!f2Value) {
+      if (Array.isArray(f1Value) && f1Value.length <= 0) {
+        continue;
+      }
+      if (Array.isArray(f2Value) && f2Value.length <= 0) {
+        continue;
+      }
+      return true;
+    }
+    if (!f1Value) continue;
+
+    if (typeof f1Value !== typeof f2Value) {
+      return true;
+    } else if (typeof f1Value === 'object' || Array.isArray(f1Value)) {
+      if (
+        key === 'Images' &&
+        Array.isArray(f1Value) &&
+        Array.isArray(f2Value)
+      ) {
+        const hasDifference =
+          JSON.stringify(f1Value.map(img => img.filename)) !==
+          JSON.stringify(f2Value.map(img => img.filename));
+        if (hasDifference) {
+          return true;
+        }
+      } else if (JSON.stringify(f1Value) !== JSON.stringify(f2Value)) {
+        return true;
+      }
+    } else {
+      if (f1Value !== f2Value) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }

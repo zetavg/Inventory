@@ -1,10 +1,12 @@
 import {
   DataMeta,
   DataTypeWithID,
+  GetAttachmentInfoFromDatum,
   GetData,
   InvalidDataTypeWithID,
   ValidDataTypeWithID,
 } from '@deps/data/types';
+import { onlyValid } from '@deps/data/utils';
 
 export async function collectionToAirtableRecord(
   collection: DataTypeWithID<'collection'>,
@@ -43,6 +45,9 @@ export async function itemToAirtableRecord(
     airtableItemsTableFields,
     getAirtableRecordIdFromCollectionId,
     getAirtableRecordIdFromItemId,
+    getData,
+    getAttachmentInfoFromDatum,
+    imagesPublicEndpoint,
   }: {
     airtableItemsTableFields: {
       [name: string]: unknown;
@@ -53,6 +58,9 @@ export async function itemToAirtableRecord(
     getAirtableRecordIdFromItemId: (
       itemId: string,
     ) => Promise<string | undefined>;
+    getData: GetData;
+    getAttachmentInfoFromDatum: GetAttachmentInfoFromDatum;
+    imagesPublicEndpoint?: string;
   },
 ) {
   const collectionRecordId = await getAirtableRecordIdFromCollectionId(
@@ -61,6 +69,33 @@ export async function itemToAirtableRecord(
   const containerRecordId =
     item.container_id &&
     (await getAirtableRecordIdFromItemId(item.container_id));
+  const imageIds = imagesPublicEndpoint
+    ? onlyValid(
+        await getData(
+          'item_image',
+          { item_id: item.__id },
+          { sort: [{ order: 'asc' }] },
+        ),
+      ).map(ii => ii.image_id)
+    : [];
+  const imageIdAndAttachmentInfo = imagesPublicEndpoint
+    ? (
+        await Promise.all(
+          imageIds.map(
+            async id =>
+              [
+                id,
+                await getAttachmentInfoFromDatum(
+                  { __type: 'image', __id: id },
+                  'image-1440',
+                ),
+              ] as const,
+          ),
+        )
+      ).filter(
+        (ii): ii is [(typeof ii)[0], NonNullable<(typeof ii)[1]>] => !!ii[1],
+      )
+    : [];
   const fields = {
     Name: item.name,
     ID: item.__id,
@@ -74,11 +109,13 @@ export async function itemToAirtableRecord(
     Serial: typeof item.serial === 'number' ? item.serial : undefined,
     Notes: item.notes ? item.notes : '',
     'Model Name': item.model_name ? item.model_name : '',
-    PPC: item.purchase_price_currency ? item.purchase_price_currency : '',
+    PPC: item.purchase_price_currency
+      ? item.purchase_price_currency
+      : undefined, // Will error 'INVALID_MULTIPLE_CHOICE_OPTIONS - Insufficient permissions to create new select option """"' if given an empty string.
     'Purchase Price':
       typeof item.purchase_price_x1000 === 'number'
         ? item.purchase_price_x1000 / 1000
-        : undefined,
+        : null,
     'Purchased From': item.purchased_from ? item.purchased_from : '',
     'Purchase Date':
       typeof item.purchase_date === 'number'
@@ -96,6 +133,27 @@ export async function itemToAirtableRecord(
     'Will Not Restock': item.consumable_will_not_restock || false,
     'Icon Name': item.icon_name ? item.icon_name : '',
     'Icon Color': item.icon_color ? item.icon_color : '',
+    ...(imagesPublicEndpoint
+      ? {
+          Images: imageIdAndAttachmentInfo.map(([id, info]) => {
+            const filename = `${id}.${(() => {
+              switch (info.content_type) {
+                case 'image/png':
+                  return 'png';
+                case 'image/jpeg':
+                case 'image/jpg':
+                default:
+                  return 'jpg';
+              }
+            })()}`;
+            return {
+              url: `${imagesPublicEndpoint}/${filename}`,
+              filename,
+            };
+          }),
+        }
+      : {}),
+    'Use First Image as Icon': item.use_first_image_as_icon,
     'RFID EPC Hex': item.rfid_tag_epc_memory_bank_contents,
     'Manually Set RFID EPC Hex':
       item.rfid_tag_epc_memory_bank_contents_manually_set,
@@ -105,6 +163,8 @@ export async function itemToAirtableRecord(
     'Created At': item.__created_at
       ? new Date(item.__created_at).toISOString()
       : undefined,
+    // Reset
+    'Remove All Images': false,
   };
 
   const filteredFields = Object.keys(fields)
@@ -112,7 +172,7 @@ export async function itemToAirtableRecord(
     .reduce((obj, key: any) => {
       const k: keyof typeof fields = key;
       const val = fields[k];
-      if (!val) return obj;
+      // if (typeof val === 'undefined') return obj; // Don't know why this is added at the first place.
       obj[k] = val as any;
       return obj;
     }, {} as Partial<typeof fields>);
@@ -375,6 +435,12 @@ export async function airtableRecordToItem(
   if (airtableItemsTableFields['Icon Color']) {
     const value = record.fields['Icon Color'];
     item.icon_color = typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Use First Image as Icon']) {
+    const value = record.fields['Use First Image as Icon'];
+    item.use_first_image_as_icon =
+      typeof value === 'boolean' ? value : undefined;
   }
 
   if (airtableItemsTableFields['RFID EPC Hex']) {

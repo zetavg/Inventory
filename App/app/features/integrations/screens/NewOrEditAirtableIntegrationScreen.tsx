@@ -9,6 +9,7 @@ import {
   Alert,
   Linking,
   ScrollView,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -509,6 +510,91 @@ function NewOrEditAirtableIntegrationScreen({
             selectTextOnFocus
             returnKeyType="done"
             monospaced
+            {...kiaTextInputProps}
+          />
+        </UIGroup>
+
+        <UIGroup
+          loading={initialDataLoading}
+          header="Images Public Endpoint (Optional)"
+          // eslint-disable-next-line react/no-unstable-nested-components
+          footer={({ textProps }) => (
+            <Text {...textProps}>
+              To sync item images to Airtable, you will need to have a public
+              images endpoint, which Airtable will use to download your images.
+              {'\n\n'}
+              The endpoint needs to be able to serve images via{' '}
+              <Text style={commonStyles.fontMonospaced}>
+                {'<endpoint>/<image_id>.<jpg|png>'}
+              </Text>
+              . For example, if you provide{' '}
+              <Text style={commonStyles.fontMonospaced}>
+                {'https://example.com/images'}
+              </Text>{' '}
+              as the endpoint, images should be accessible via URLs such as{' '}
+              <Text style={commonStyles.fontMonospaced}>
+                {'https://example.com/images/sample-image-id.jpg'}
+              </Text>
+              .{'\n\n'}
+              See{' '}
+              <Link
+                onPress={() =>
+                  Linking.openURL(
+                    URLS.airtable_integration_using_public_images_endpoint,
+                  )
+                }
+              >
+                the docs
+              </Link>{' '}
+              for more information
+            </Text>
+          )}
+        >
+          <UIGroup.ListTextInputItem
+            placeholder="e.g.: https://my.server/database/images"
+            value={
+              typeof data?.config?.images_public_endpoint === 'string'
+                ? data?.config?.images_public_endpoint
+                : ''
+            }
+            onChangeText={text =>
+              setData(d => ({
+                ...d,
+                config: {
+                  ...d.config,
+                  images_public_endpoint: text.trim(),
+                },
+              }))
+            }
+            autoCapitalize="none"
+            spellCheck={false}
+            selectTextOnFocus
+            returnKeyType="done"
+            monospaced
+            {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            horizontalLabel
+            label="Upload Item Images to Airtable"
+            inputElement={
+              <Switch
+                disabled={!config.images_public_endpoint}
+                value={
+                  !config.disable_uploading_item_images &&
+                  !!config.images_public_endpoint
+                }
+                onValueChange={v =>
+                  setData(d => ({
+                    ...d,
+                    config: {
+                      ...d.config,
+                      disable_uploading_item_images: !v,
+                    },
+                  }))
+                }
+              />
+            }
             {...kiaTextInputProps}
           />
         </UIGroup>
