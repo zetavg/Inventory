@@ -139,8 +139,8 @@ function HistoryBatchModalScreen({
   const restoreChanges = useCallback(
     async (h: DataHistory<DataTypeName>) => {
       Alert.alert(
-        'Restore Changes',
-        'Are you sure you want to restore this change?',
+        'Revert Changes',
+        'Are you sure you want to revert this change?',
         [
           {
             text: 'No',
@@ -163,7 +163,7 @@ function HistoryBatchModalScreen({
     (history: DataHistory<DataTypeName>) => {
       showActionSheet([
         {
-          name: 'Restore Changes',
+          name: 'Revert Changes',
           destructive: true,
           onSelect: () => {
             restoreChanges(history);
@@ -202,8 +202,8 @@ function HistoryBatchModalScreen({
 
   const restoreAllChanges = useCallback(async () => {
     Alert.alert(
-      'Restore All Changes',
-      `Are you sure you want to restore all ${histories.length} changes?`,
+      'Revert All Changes',
+      `Are you sure you want to revert all ${histories.length} changes?`,
       [
         {
           text: 'No',
@@ -258,7 +258,7 @@ function HistoryBatchModalScreen({
               />
             ) : (item as any) === 'restore_all' ? (
               <UIGroup.ListItem
-                label="Restore All Changes"
+                label="Revert All Changes"
                 button
                 destructive
                 onPress={restoreAllChanges}
