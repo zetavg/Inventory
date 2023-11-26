@@ -397,7 +397,7 @@ function ItemScreen({
           loading={dataLoading}
           // eslint-disable-next-line react/no-unstable-nested-components
           footer={({ textProps }) => {
-            if (!data?.__valid) return undefined;
+            if (!data?.__valid) return null;
 
             if (data?.rfid_tag_epc_memory_bank_contents && canWriteRfidTag) {
               if (!data?.actual_rfid_tag_epc_memory_bank_contents) {
