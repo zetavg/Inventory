@@ -10,6 +10,25 @@ const couchUrl = `${config.couchdb.url}`;
 const couchAuth = `${config.couchdb.username}:${config.couchdb.password}`;
 const couch = nano(`${couchUrl.replace('//', `//${couchAuth}@`)}`);
 
+app.get('/:database_name', async (req, res) => {
+  const { database_name } = req.params;
+  const db = couch.use(database_name);
+
+  try {
+    await db.get('0000-config');
+
+    res.status(200).send('It Works!');
+  } catch (error) {
+    if (error.message === 'not_found' || error.message === 'missing' || error.message === 'deleted') {
+      console.error('Error getting Inventory config:', error);
+      res.status(404).send('Not Found');
+    } else {
+      console.error('Error:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  }
+});
+
 app.get('/:database_name/images/:image_id.:ext', async (req, res) => {
   const { database_name, image_id } = req.params;
   const db = couch.use(database_name);
