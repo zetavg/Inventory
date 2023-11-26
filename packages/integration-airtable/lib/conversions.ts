@@ -381,7 +381,8 @@ export async function airtableRecordToItem(
 
   if (airtableItemsTableFields.Notes) {
     const value = record.fields.Notes;
-    item.notes = typeof value === 'string' ? value : undefined;
+    item.notes =
+      typeof value === 'string' ? value : !item.notes ? item.notes : undefined;
   }
 
   if (airtableItemsTableFields['Model Name']) {
