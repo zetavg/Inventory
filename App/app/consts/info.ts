@@ -20,4 +20,6 @@ export const URLS = {
     'https://docs.inventory.z72.io/integrations/i/airtable#prepare-your-airtable-base-and-get-the-base-id',
   airtable_integration_get_personal_access_token_doc:
     'https://docs.inventory.z72.io/integrations/i/airtable#get-a-personal-access-token',
+  airtable_integration_using_public_images_endpoint:
+    'https://docs.inventory.z72.io/integrations/i/airtable#using-a-public-images-endpoint',
 };

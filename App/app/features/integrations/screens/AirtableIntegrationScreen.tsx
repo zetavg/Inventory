@@ -28,6 +28,7 @@ import ItemListItem from '@app/features/inventory/components/ItemListItem';
 
 import { onlyValid, useData } from '@app/data';
 import {
+  getGetAttachmentInfoFromDatum,
   getGetData,
   getGetDataCount,
   getGetDatum,
@@ -232,6 +233,10 @@ function AirtableIntegrationScreen({
           const getData = getGetData({ db, logger });
           const getDataCount = getGetDataCount({ db, logger });
           const saveDatum = getSaveDatum({ db, logger });
+          const getAttachmentInfoFromDatum = getGetAttachmentInfoFromDatum({
+            db,
+            logger,
+          });
 
           for await (const p of syncWithAirtable(
             {
@@ -245,6 +250,7 @@ function AirtableIntegrationScreen({
               getData,
               getDataCount,
               saveDatum,
+              getAttachmentInfoFromDatum,
             },
           )) {
             if (!gotAirtableBaseSchema) {
@@ -511,7 +517,15 @@ function AirtableIntegrationScreen({
                           case 'done':
                             return 'Sync done.';
                         }
-                      })();
+                      })() +
+                      (syncProgress.status.startsWith('syncing')
+                        ? ' ' +
+                          `(push: ${syncProgress.pushed || 0}/${
+                            syncProgress.toPush || 0
+                          }, pull: ${syncProgress.pulled || 0}/${
+                            syncProgress.toPull || 0
+                          })`
+                        : '');
 
                   if (syncProgress.recordsCreatedOnAirtable) {
                     statusStr += '\n';
