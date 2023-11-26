@@ -473,7 +473,7 @@ export async function airtableRecordToItem(
   }
 
   // For convenience, set the collection_id to container's collection_id if it's not set.
-  if (!item.collection && typeof item.container_id === 'string') {
+  if (!item.collection_id && typeof item.container_id === 'string') {
     const container = (await getData('item', [item.container_id]))[0];
     const containerCollectionId = container?.collection_id;
     if (typeof containerCollectionId === 'string') {
