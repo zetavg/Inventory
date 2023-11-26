@@ -107,15 +107,13 @@ export async function itemToAirtableRecord(
     ),
     'Can Contain Items': item._can_contain_items,
     'Ref. No.': item.item_reference_number ? item.item_reference_number : '',
-    Serial: typeof item.serial === 'number' ? item.serial : undefined,
+    Serial: typeof item.serial === 'number' ? item.serial : null,
     'Individual Asset Ref.': item.individual_asset_reference,
     'Manually Set Individual Asset Ref.':
       item.individual_asset_reference_manually_set,
     Notes: item.notes ? item.notes : '',
     'Model Name': item.model_name ? item.model_name : '',
-    PPC: item.purchase_price_currency
-      ? item.purchase_price_currency
-      : undefined, // Will error 'INVALID_MULTIPLE_CHOICE_OPTIONS - Insufficient permissions to create new select option """"' if given an empty string.
+    PPC: item.purchase_price_currency ? item.purchase_price_currency : null, // Will error 'INVALID_MULTIPLE_CHOICE_OPTIONS - Insufficient permissions to create new select option """"' if given an empty string.
     'Purchase Price':
       typeof item.purchase_price_x1000 === 'number'
         ? item.purchase_price_x1000 / 1000
@@ -124,11 +122,11 @@ export async function itemToAirtableRecord(
     'Purchase Date':
       typeof item.purchase_date === 'number'
         ? new Date(item.purchase_date).toISOString()
-        : undefined,
+        : null,
     'Expiry Date':
       typeof item.expiry_date === 'number'
         ? new Date(item.expiry_date).toISOString()
-        : undefined,
+        : null,
     'Stock Quantity': item.consumable_stock_quantity,
     'Stock Quantity Unit':
       typeof item.consumable_stock_quantity_unit === 'string'
@@ -163,10 +161,10 @@ export async function itemToAirtableRecord(
       item.rfid_tag_epc_memory_bank_contents_manually_set,
     'Updated At': item.__updated_at
       ? new Date(item.__updated_at).toISOString()
-      : undefined,
+      : null,
     'Created At': item.__created_at
       ? new Date(item.__created_at).toISOString()
-      : undefined,
+      : null,
     // Reset
     'Remove All Images': false,
   };
