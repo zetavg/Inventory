@@ -105,8 +105,12 @@ export async function itemToAirtableRecord(
       / With /gm,
       ' with ',
     ),
+    'Can Contain Items': item._can_contain_items,
     'Ref. No.': item.item_reference_number ? item.item_reference_number : '',
     Serial: typeof item.serial === 'number' ? item.serial : undefined,
+    'Individual Asset Ref.': item.individual_asset_reference,
+    'Manually Set Individual Asset Ref.':
+      item.individual_asset_reference_manually_set,
     Notes: item.notes ? item.notes : '',
     'Model Name': item.model_name ? item.model_name : '',
     PPC: item.purchase_price_currency
@@ -222,6 +226,7 @@ export async function airtableRecordToCollection(
     const value = record.fields.Name;
     collection.name = typeof value === 'string' ? value : undefined;
   }
+
   if (airtableCollectionsTableFields['Ref. No.']) {
     const value = record.fields['Ref. No.'];
     collection.collection_reference_number =
@@ -360,6 +365,18 @@ export async function airtableRecordToItem(
   if (airtableItemsTableFields.Serial) {
     const value = record.fields.Serial;
     item.serial = typeof value === 'number' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Individual Asset Ref.']) {
+    const value = record.fields['Individual Asset Ref.'];
+    item.individual_asset_reference =
+      typeof value === 'string' ? value : undefined;
+  }
+
+  if (airtableItemsTableFields['Manually Set Individual Asset Ref.']) {
+    const value = record.fields['Manually Set Individual Asset Ref.'];
+    item.individual_asset_reference_manually_set =
+      typeof value === 'boolean' ? value : undefined;
   }
 
   if (airtableItemsTableFields.Notes) {
