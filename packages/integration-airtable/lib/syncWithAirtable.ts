@@ -609,6 +609,7 @@ export default async function* syncWithAirtable(
                   savedDatum = await saveDatum(datum, {
                     createHistory: {
                       createdBy: `integration-${integrationId}`,
+                      eventName: 'sync',
                       batch: syncStartedAt,
                     },
                   });
@@ -1195,6 +1196,7 @@ export default async function* syncWithAirtable(
             {
               createHistory: {
                 createdBy: `integration-${integrationId}`,
+                eventName: 'sync',
                 batch: syncStartedAt,
               },
             },
@@ -1222,6 +1224,7 @@ export default async function* syncWithAirtable(
               ignoreConflict: true,
               createHistory: {
                 createdBy: `integration-${integrationId}`,
+                eventName: 'sync',
                 batch: syncStartedAt,
               },
             },
@@ -1260,6 +1263,7 @@ export default async function* syncWithAirtable(
         //       ignoreConflict: true,
         //       createHistory: {
         //         createdBy: `integration-${integrationId}`,
+        //         eventName: 'sync',
         //         batch: syncStartedAt,
         //       },
         //     },
