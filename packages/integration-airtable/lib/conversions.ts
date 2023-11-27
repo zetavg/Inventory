@@ -8,6 +8,8 @@ import {
 } from '@deps/data/types';
 import { onlyValid } from '@deps/data/utils';
 
+type Fetch = (url: string | Request, opts?: RequestInit) => Promise<Response>;
+
 export async function collectionToAirtableRecord(
   collection: DataTypeWithID<'collection'>,
   {
@@ -48,6 +50,7 @@ export async function itemToAirtableRecord(
     getData,
     getAttachmentInfoFromDatum,
     imagesPublicEndpoint,
+    fetch,
   }: {
     airtableItemsTableFields: {
       [name: string]: unknown;
@@ -61,6 +64,7 @@ export async function itemToAirtableRecord(
     getData: GetData;
     getAttachmentInfoFromDatum: GetAttachmentInfoFromDatum;
     imagesPublicEndpoint?: string;
+    fetch: Fetch;
   },
 ) {
   const collectionRecordId = await getAirtableRecordIdFromCollectionId(
@@ -96,6 +100,38 @@ export async function itemToAirtableRecord(
         (ii): ii is [(typeof ii)[0], NonNullable<(typeof ii)[1]>] => !!ii[1],
       )
     : [];
+  const images = imageIdAndAttachmentInfo.map(([id, info]) => {
+    const filename = `${id}.${(() => {
+      switch (info.content_type) {
+        case 'image/png':
+          return 'png';
+        case 'image/jpeg':
+        case 'image/jpg':
+        default:
+          return 'jpg';
+      }
+    })()}`;
+    return {
+      url: `${imagesPublicEndpoint}/${filename}`,
+      filename,
+    };
+  });
+  // Check if all image URL works
+  for (const image of images) {
+    try {
+      const resp = await fetch(image.url, { method: 'HEAD' });
+      if (resp.status !== 200) {
+        throw new Error(`HEAD request to ${image.url} returns ${resp.status}`);
+      }
+    } catch (e) {
+      if (e instanceof Error) {
+        e.message = `Image URL ${image.url} for item "${item.name}" (ID: ${item.__id}) does not work: ${e.message}`;
+      }
+
+      throw e;
+    }
+  }
+
   const fields = {
     Name: item.name,
     ID: item.__id,
@@ -137,22 +173,7 @@ export async function itemToAirtableRecord(
     'Icon Color': item.icon_color ? item.icon_color : '',
     ...(imagesPublicEndpoint
       ? {
-          Images: imageIdAndAttachmentInfo.map(([id, info]) => {
-            const filename = `${id}.${(() => {
-              switch (info.content_type) {
-                case 'image/png':
-                  return 'png';
-                case 'image/jpeg':
-                case 'image/jpg':
-                default:
-                  return 'jpg';
-              }
-            })()}`;
-            return {
-              url: `${imagesPublicEndpoint}/${filename}`,
-              filename,
-            };
-          }),
+          Images: images,
         }
       : {}),
     'Use First Image as Icon': item.use_first_image_as_icon,

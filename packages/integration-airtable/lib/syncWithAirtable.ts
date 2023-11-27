@@ -1004,6 +1004,7 @@ export default async function* syncWithAirtable(
                 getAirtableRecordIdFromCollectionId,
                 getAirtableRecordIdFromItemId,
                 getData,
+                fetch,
                 getAttachmentInfoFromDatum,
                 imagesPublicEndpoint: shouldSyncItemImages
                   ? config.images_public_endpoint
@@ -1135,6 +1136,7 @@ export default async function* syncWithAirtable(
           getAirtableRecordIdFromItemId,
           getData,
           getAttachmentInfoFromDatum,
+          fetch,
           imagesPublicEndpoint: shouldSyncItemImages
             ? config.images_public_endpoint
             : undefined,
