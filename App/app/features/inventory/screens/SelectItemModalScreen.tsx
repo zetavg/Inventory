@@ -20,18 +20,19 @@ import type { RootStackParamList } from '@app/navigation/Navigation';
 
 import useIsDarkMode from '@app/hooks/useIsDarkMode';
 import useLogger from '@app/hooks/useLogger';
-import useOrdered from '@app/hooks/useOrdered';
 
 import InsetGroup from '@app/components/InsetGroup';
 import ModalContent from '@app/components/ModalContent';
 import UIGroup from '@app/components/UIGroup';
 
-import CollectionListItem from '../components/CollectionListItem';
 import ItemListItem from '../components/ItemListItem';
 import {
   SEARCH_ITEM_AS_CONTAINER_OPTIONS,
   SEARCH_ITEMS_OPTIONS,
 } from '../consts/SEARCH_OPTIONS';
+
+const MAX_SHOWN_ITEMS = 20;
+const SEARCH_MAX_SHOWN_ITEMS = 50;
 
 function SelectItemModalScreen({
   navigation,
@@ -53,7 +54,7 @@ function SelectItemModalScreen({
 
   const { data, loading: dataLoading } = useData('item', cond, {
     sort: [{ __updated_at: 'desc' }],
-    limit: 100,
+    limit: MAX_SHOWN_ITEMS + 1,
   });
   const orderedData = data && onlyValid(data);
 
@@ -82,7 +83,7 @@ function SelectItemModalScreen({
         ...searchOptions,
         include_docs: true,
         skip: 0,
-        limit: 100,
+        limit: SEARCH_MAX_SHOWN_ITEMS,
       });
 
       if (c?.canceled) return;
@@ -117,7 +118,7 @@ function SelectItemModalScreen({
       return searchResults;
     }
 
-    return orderedData;
+    return orderedData.slice(0, MAX_SHOWN_ITEMS);
   }, [orderedData, search, searchResults]);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -186,6 +187,11 @@ function SelectItemModalScreen({
           loading={loading}
           placeholder={
             search ? (loading ? undefined : 'No matching items') : undefined
+          }
+          footer={
+            !search && (orderedData?.length || 0) > MAX_SHOWN_ITEMS
+              ? `Only showing the first ${MAX_SHOWN_ITEMS} recently changed items. Please use search to find more items.`
+              : undefined
           }
         >
           {items &&
