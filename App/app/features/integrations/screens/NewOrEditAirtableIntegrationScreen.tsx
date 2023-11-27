@@ -562,12 +562,14 @@ function NewOrEditAirtableIntegrationScreen({
                 ...d,
                 config: {
                   ...d.config,
-                  images_public_endpoint: text.trim(),
+                  images_public_endpoint: text.replace(/[\r\n]/g, '').trim(),
                 },
               }))
             }
             autoCapitalize="none"
             spellCheck={false}
+            autoCorrect={false}
+            multiline
             selectTextOnFocus
             returnKeyType="done"
             monospaced
@@ -576,7 +578,7 @@ function NewOrEditAirtableIntegrationScreen({
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
             horizontalLabel
-            label="Upload Item Images to Airtable"
+            label="Upload Images to Airtable"
             inputElement={
               <Switch
                 disabled={!config.images_public_endpoint}
