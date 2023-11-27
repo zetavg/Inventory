@@ -51,6 +51,8 @@ import UIGroup from '@app/components/UIGroup';
 
 const DATE_DISPLAY_TYPES = ['time_ago', 'locale'] as const;
 
+const INITIALLY_MAX_SHOWN_ITEMS = 4;
+
 function AirtableIntegrationScreen({
   route,
   navigation,
@@ -324,6 +326,8 @@ function AirtableIntegrationScreen({
     // );
   }, []);
 
+  const [showAllItemsToSync, setShowAllItemsToSync] = useState(false);
+
   const scrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps } =
     ModalContent.ScrollView.useAutoAdjustKeyboardInsetsFix(scrollViewRef);
@@ -348,11 +352,14 @@ function AirtableIntegrationScreen({
           !!collectionsToSync &&
           collectionsToSync.length > 0 && (
             <UIGroup
-              header="Collections to Sync"
+              header={`${collectionsToSync.length} Collections to Sync`}
               loading={loading || collectionsToSyncLoading}
             >
               {UIGroup.ListItemSeparator.insertBetween(
-                collectionsToSync.map(c =>
+                (showAllItemsToSync
+                  ? collectionsToSync
+                  : collectionsToSync.slice(0, INITIALLY_MAX_SHOWN_ITEMS)
+                ).map(c =>
                   c.__valid ? (
                     <CollectionListItem
                       key={c.__id}
@@ -365,6 +372,17 @@ function AirtableIntegrationScreen({
                   ),
                 ),
               )}
+              {!showAllItemsToSync &&
+                collectionsToSync.length > INITIALLY_MAX_SHOWN_ITEMS && (
+                  <>
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      label={`Show All ${collectionsToSync.length} Collections`}
+                      button
+                      onPress={() => setShowAllItemsToSync(true)}
+                    />
+                  </>
+                )}
             </UIGroup>
           )}
 
@@ -372,11 +390,14 @@ function AirtableIntegrationScreen({
           !!containersToSync &&
           containersToSync.length > 0 && (
             <UIGroup
-              header="containers to Sync"
+              header={`${containersToSync.length} Containers to Sync`}
               loading={loading || containersToSyncLoading}
             >
               {UIGroup.ListItemSeparator.insertBetween(
-                containersToSync.map(it =>
+                (showAllItemsToSync
+                  ? containersToSync
+                  : containersToSync.slice(0, INITIALLY_MAX_SHOWN_ITEMS)
+                ).map(it =>
                   it.__valid ? (
                     <ItemListItem
                       key={it.__id}
@@ -389,6 +410,17 @@ function AirtableIntegrationScreen({
                   ),
                 ),
               )}
+              {!showAllItemsToSync &&
+                containersToSync.length > INITIALLY_MAX_SHOWN_ITEMS && (
+                  <>
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      label={`Show All ${containersToSync.length} Containers`}
+                      button
+                      onPress={() => setShowAllItemsToSync(true)}
+                    />
+                  </>
+                )}
             </UIGroup>
           )}
 
