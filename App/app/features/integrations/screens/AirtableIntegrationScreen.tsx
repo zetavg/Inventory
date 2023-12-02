@@ -275,7 +275,7 @@ function AirtableIntegrationScreen({
 
           if (
             e instanceof AirtableAPIError &&
-            e.type === 'AUTHENTICATION_REQUIRED'
+            (e.type === 'AUTHENTICATION_REQUIRED' || e.type === 'UNAUTHORIZED')
           ) {
             hasAuthError = true;
             retries += 1;

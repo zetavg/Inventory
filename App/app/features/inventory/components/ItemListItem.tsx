@@ -158,6 +158,14 @@ function ItemListItem({
     typeof item.consumable_stock_quantity === 'number'
       ? item.consumable_stock_quantity
       : 1;
+  const minStockLevel =
+    typeof item.consumable_min_stock_level === 'number'
+      ? item.consumable_min_stock_level
+      : undefined;
+  const stockWarning =
+    item.item_type === 'consumable' &&
+    !item.consumable_will_not_restock &&
+    (stockQuantity <= 0 || (minStockLevel && stockQuantity < minStockLevel));
 
   const { iconBackgroundColor } = useColors();
 
@@ -239,10 +247,23 @@ function ItemListItem({
                   </React.Fragment>
                 ),
                 item.item_type === 'consumable' && (
-                  <React.Fragment key="containerInfo">
+                  <React.Fragment key="consumableInfo">
                     {stockQuantity <= 0
                       ? 'Stock empty'
+                      : minStockLevel
+                      ? `Stock: ${stockQuantity}/${minStockLevel}`
                       : `Stock: ${stockQuantity}`}
+                    {stockWarning && (
+                      <>
+                        {' '}
+                        <Icon
+                          // Do not let this icon to be animated with LayoutAnimation.
+                          // key={uuidv4()}
+                          name="app-exclamation"
+                          {...iconProps}
+                        />
+                      </>
+                    )}
                   </React.Fragment>
                 ),
                 !hideContentDetails &&

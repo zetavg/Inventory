@@ -396,7 +396,7 @@ function ItemScreen({
         <UIGroup
           loading={dataLoading}
           // eslint-disable-next-line react/no-unstable-nested-components
-          footer={({ textProps }) => {
+          footer={({ textProps, iconProps }) => {
             if (!data?.__valid) return null;
 
             if (data?.rfid_tag_epc_memory_bank_contents && canWriteRfidTag) {
@@ -405,10 +405,9 @@ function ItemScreen({
                   <>
                     <RNText {...textProps}>
                       <Icon
+                        {...iconProps}
                         name="app-exclamation"
                         color="yellow"
-                        size={16}
-                        style={commonStyles.mbm2}
                       />
                       <RNText> </RNText>
                       <RNText>
@@ -454,12 +453,7 @@ function ItemScreen({
               ) {
                 return (
                   <RNText {...textProps}>
-                    <Icon
-                      name="app-info"
-                      color={groupTitleColor}
-                      size={16}
-                      style={commonStyles.mbm2}
-                    />
+                    <Icon {...iconProps} name="app-info" />
                     <RNText> </RNText>
                     {uiShowDetailedInstructions ? (
                       <>
@@ -855,7 +849,59 @@ function ItemScreen({
         </UIGroup>
 
         {data?.item_type === 'consumable' && (
-          <UIGroup loading={saving}>
+          <UIGroup
+            loading={saving}
+            // eslint-disable-next-line react/no-unstable-nested-components
+            footer={({ textProps, iconProps }) => {
+              if (!data?.__valid) return null;
+
+              if (!data.consumable_stock_quantity) {
+                if (data.consumable_will_not_restock) {
+                  return (
+                    <RNText {...textProps}>
+                      This item is out of stock and will not be restocked.
+                    </RNText>
+                  );
+                }
+                const shouldRestock = data.consumable_min_stock_level || 1;
+                return (
+                  <RNText {...textProps}>
+                    <Icon name="app-exclamation" {...iconProps} />{' '}
+                    {'This item is out of stock.'}{' '}
+                    {shouldRestock > 1
+                      ? `Restock ${shouldRestock} or more ${
+                          data.consumable_stock_quantity_unit || 'units'
+                        } to meet the min stock level.`
+                      : `Restock ${shouldRestock} or more ${
+                          data.consumable_stock_quantity_unit || 'units'
+                        } to resolve this matter.`}
+                  </RNText>
+                );
+              }
+
+              if (
+                data.consumable_min_stock_level &&
+                data.consumable_stock_quantity < data.consumable_min_stock_level
+              ) {
+                if (data.consumable_will_not_restock) {
+                  return null;
+                }
+
+                const shouldRestock =
+                  data.consumable_min_stock_level -
+                  data.consumable_stock_quantity;
+                return (
+                  <RNText {...textProps}>
+                    <Icon name="app-exclamation" {...iconProps} />{' '}
+                    {`Low stock (${data.consumable_stock_quantity}/${data.consumable_min_stock_level}).`}{' '}
+                    {`Restock ${shouldRestock} or more ${
+                      data.consumable_stock_quantity_unit || 'units'
+                    } to meet the min stock level.`}
+                  </RNText>
+                );
+              }
+            }}
+          >
             <StockQuantityInputs item={data} reloadData={reloadData} />
           </UIGroup>
         )}

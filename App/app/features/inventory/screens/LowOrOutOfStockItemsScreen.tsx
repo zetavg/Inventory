@@ -39,11 +39,29 @@ function LowOrOutOfStockItemsScreen({
     : outOfStockItemsData;
 
   const {
+    data: lowStockItemsData,
+    loading: lowStockItemsDataLoading,
+    refresh: refreshLowStockItemsData,
+    refreshing: lowStockItemsDataRefreshing,
+  } = useView('low_stock_items', {
+    includeDocs: true,
+  });
+  const lowStockItems = lowStockItemsData
+    ? lowStockItemsData
+        .map(d => d.data)
+        .filter((d): d is NonNullable<typeof d> => !!d)
+    : lowStockItemsData;
+
+  const {
     data: outOfStockItemsCount,
     refresh: refreshOutOfStockItemsCount,
-    refreshing: refreshOutOfStockItemsCountRefreshing,
+    refreshing: outOfStockItemsCountRefreshing,
   } = useView('out_of_stock_items_count');
-  const lowStockItemsCount = 0; // TODO
+  const {
+    data: lowStockItemsCount,
+    refresh: refreshLowStockItemsCount,
+    refreshing: lowStockItemsCountRefreshing,
+  } = useView('low_stock_items_count');
 
   const {
     count: willNotRestockItemsCount,
@@ -54,15 +72,21 @@ function LowOrOutOfStockItemsScreen({
   const refresh = useCallback(() => {
     refreshOutOfStockItemsData();
     refreshOutOfStockItemsCount();
+    refreshLowStockItemsData();
+    refreshLowStockItemsCount();
     refreshWillNotRestockItemsCount();
   }, [
+    refreshLowStockItemsCount,
+    refreshLowStockItemsData,
     refreshOutOfStockItemsCount,
     refreshOutOfStockItemsData,
     refreshWillNotRestockItemsCount,
   ]);
   const refreshing =
     outOfStockItemsDataRefreshing ||
-    refreshOutOfStockItemsCountRefreshing ||
+    outOfStockItemsCountRefreshing ||
+    lowStockItemsDataRefreshing ||
+    lowStockItemsCountRefreshing ||
     willNotRestockItemsCountRefreshing;
 
   const sections = useMemo(() => {
@@ -75,13 +99,20 @@ function LowOrOutOfStockItemsScreen({
             : (['null'] as const)
           : (['loading'] as const),
       },
-      { title: 'low-stock', data: ['null' as const] },
+      {
+        title: 'low-stock',
+        data: lowStockItems
+          ? lowStockItems.length > 0
+            ? lowStockItems
+            : (['null'] as const)
+          : (['loading'] as const),
+      },
       {
         title: 'will-not-restock',
         data: ['will-not-restock-placeholder' as const],
       },
     ];
-  }, [outOfStockItems]);
+  }, [lowStockItems, outOfStockItems]);
 
   const loading = outOfStockItemsDataLoading;
 
@@ -183,6 +214,9 @@ function LowOrOutOfStockItemsScreen({
                   return outOfStockItemsCount.toLocaleString();
                 }
                 case 'low-stock': {
+                  if (typeof lowStockItemsCount !== 'number') {
+                    return 'Loading';
+                  }
                   return lowStockItemsCount.toLocaleString();
                 }
                 case 'will-not-restock': {

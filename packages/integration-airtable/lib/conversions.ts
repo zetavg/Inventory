@@ -163,11 +163,12 @@ export async function itemToAirtableRecord(
       typeof item.expiry_date === 'number'
         ? new Date(item.expiry_date).toISOString()
         : null,
-    'Stock Quantity': item.consumable_stock_quantity,
+    'Stock Quantity': item.consumable_stock_quantity || null,
     'Stock Quantity Unit':
       typeof item.consumable_stock_quantity_unit === 'string'
         ? item.consumable_stock_quantity_unit
         : '',
+    'Min Stock Level': item.consumable_min_stock_level || null,
     'Will Not Restock': item.consumable_will_not_restock || false,
     'Icon Name': item.icon_name ? item.icon_name : '',
     'Icon Color': item.icon_color ? item.icon_color : '',
@@ -450,6 +451,12 @@ export async function airtableRecordToItem(
         : item.item_type === 'consumable'
         ? 1
         : undefined;
+  }
+
+  if (airtableItemsTableFields['Min Stock Level']) {
+    const value = record.fields['Min Stock Level'];
+    item.consumable_min_stock_level =
+      typeof value === 'number' ? value : undefined;
   }
 
   if (airtableItemsTableFields['Stock Quantity Unit']) {

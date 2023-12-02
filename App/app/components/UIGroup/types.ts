@@ -25,6 +25,7 @@ export type UIGroupProps = {
     | JSX.Element
     | ((context: {
         textProps: React.ComponentProps<typeof Text>;
+        iconProps: Partial<React.ComponentProps<typeof Icon>>;
       }) => React.ReactNode);
   largeTitle?: boolean;
   headerRight?: string | JSX.Element;

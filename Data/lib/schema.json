@@ -90,6 +90,7 @@
         "expiry_date": { "type": "number" },
         "consumable_stock_quantity": { "type": "number" },
         "consumable_stock_quantity_unit": { "type": "string" },
+        "consumable_min_stock_level": { "type": "number" },
         "consumable_will_not_restock": { "type": "boolean" },
         "use_first_image_as_icon": { "type": "boolean" },
         "contents_order": {
