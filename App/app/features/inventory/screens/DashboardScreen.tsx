@@ -44,7 +44,7 @@ function DashboardScreen({
   );
 
   const { data: outOfStockItemsCount } = useView('out_of_stock_items_count');
-  const lowStockItemsCount = 0; // TODO
+  const { data: lowStockItemsCount } = useView('low_stock_items_count');
 
   const [nowDate, setNowDate] = useState(Date.now());
   const { data: expiredItemsData } = useView('expiring_items', {
@@ -279,6 +279,7 @@ function DashboardScreen({
     itemsCount,
     navigation,
     outOfStockItemsCount,
+    lowStockItemsCount,
     rfidTagOutdatedItemsCount,
     rfidUntaggedItemsCount,
   ]);

@@ -34,6 +34,7 @@ type Props = {
     | JSX.Element
     | ((context: {
         textProps: React.ComponentProps<typeof Text>;
+        iconProps: Partial<React.ComponentProps<typeof Icon>>;
       }) => React.ReactNode);
   labelVariant?: 'normal' | 'large';
   labelRight?: JSX.Element;
@@ -151,6 +152,11 @@ function InsetGroup(
                     color: groupTitleColor,
                   },
                 ],
+              },
+              iconProps: {
+                color: groupTitleColor,
+                size: 16,
+                style: commonStyles.mbm2,
               },
             })}
             <View style={styles.groupFooterLabelAfter} />

@@ -65,6 +65,34 @@ export const VIEWS = {
       return value;
     },
   }),
+  low_stock_items_count: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          doc.data.item_type === 'consumable' &&
+          typeof doc.data.consumable_stock_quantity === 'number' &&
+          typeof doc.data.consumable_min_stock_level === 'number' &&
+          doc.data.consumable_stock_quantity < doc.data.consumable_min_stock_level &&
+          !doc.data.consumable_will_not_restock
+        ) {
+          emit(doc._id);
+        }
+      }
+    `,
+    reduce: '_count',
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      if (!rows[0]) return 0;
+      const value = rows[0].value;
+      if (typeof value !== 'number') return null;
+      return value;
+    },
+  }),
   out_of_stock_items: view_defn({
     version: 1,
     map: `
@@ -74,6 +102,45 @@ export const VIEWS = {
           doc.data.item_type === 'consumable' &&
           typeof doc.data.consumable_stock_quantity === 'number' &&
           doc.data.consumable_stock_quantity <= 0 &&
+          !doc.data.consumable_will_not_restock
+        ) {
+          emit([doc.data.collection_id, doc._id], { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
+  low_stock_items: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          doc.data.item_type === 'consumable' &&
+          typeof doc.data.consumable_stock_quantity === 'number' &&
+          typeof doc.data.consumable_min_stock_level === 'number' &&
+          doc.data.consumable_stock_quantity < doc.data.consumable_min_stock_level &&
           !doc.data.consumable_will_not_restock
         ) {
           emit([doc.data.collection_id, doc._id], { _id: doc._id });

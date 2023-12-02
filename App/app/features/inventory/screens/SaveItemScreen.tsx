@@ -715,7 +715,18 @@ function SaveItemScreen({
         </UIGroup>
 
         {data.item_type === 'consumable' && (
-          <UIGroup loading={saveWorking}>
+          <UIGroup
+            loading={saveWorking}
+            footer={(() => {
+              if (!uiShowDetailedInstructions) return undefined;
+
+              if (data.consumable_will_not_restock) {
+                return 'This item is marked as "Will Not Be Restocked". It will not be shown on the "Stock Empty" list or the "Low Stock" list.';
+              }
+
+              return 'This item will be shown on the "Stock Empty" list if the stock quantity is 0, or in the "Low Stock" list if the stock quantity is less than the minimum stock level.';
+            })()}
+          >
             <UIGroup.ListTextInputItem
               label="Stock Qty"
               horizontalLabel
@@ -784,7 +795,85 @@ function SaveItemScreen({
               }
               {...kiaTextInputProps}
             />
-            {data.consumable_stock_quantity === 0 && (
+            <UIGroup.ListItemSeparator />
+            <UIGroup.ListTextInputItem
+              label="Min Stock Level"
+              horizontalLabel
+              keyboardType="number-pad"
+              placeholder="1"
+              returnKeyType="done"
+              // clearButtonMode="while-editing"
+              selectTextOnFocus
+              value={data.consumable_min_stock_level?.toString()}
+              onChangeText={t => {
+                if (!t) {
+                  setData(d => ({
+                    ...d,
+                    consumable_min_stock_level: undefined,
+                  }));
+                }
+                const n = parseInt(t, 10);
+                if (isNaN(n)) return;
+                setData(d => ({
+                  ...d,
+                  consumable_min_stock_level: n,
+                }));
+              }}
+              unit={
+                typeof data.consumable_stock_quantity_unit === 'string'
+                  ? data.consumable_stock_quantity_unit || 'units'
+                  : 'units'
+              }
+              onUnitPress={
+                Platform.OS === 'ios'
+                  ? () => {
+                      Alert.prompt(
+                        'Set Unit',
+                        'Enter the stock quantity unit:',
+                        [
+                          {
+                            text: 'Ok',
+                            onPress: unit => {
+                              setData(d => ({
+                                ...d,
+                                consumable_stock_quantity_unit:
+                                  unit?.trim() || undefined,
+                              }));
+                            },
+                            isPreferred: true,
+                            style: 'default',
+                          },
+                          { text: 'Cancel', style: 'cancel' },
+                        ],
+                        'plain-text',
+                        data.consumable_stock_quantity_unit,
+                      );
+                    }
+                  : undefined // TODO: Android support
+              }
+              controlElement={
+                <View style={commonStyles.ml8}>
+                  <PlusAndMinusButtons
+                    value={
+                      typeof data.consumable_min_stock_level === 'number'
+                        ? data.consumable_min_stock_level
+                        : 1
+                    }
+                    onChangeValue={v =>
+                      setData(d => ({
+                        ...d,
+                        consumable_min_stock_level: v,
+                      }))
+                    }
+                  />
+                </View>
+              }
+              {...kiaTextInputProps}
+            />
+            {(!data.consumable_stock_quantity ||
+              (data.consumable_min_stock_level &&
+                data.consumable_stock_quantity <
+                  data.consumable_min_stock_level)) && (
               <>
                 <UIGroup.ListItemSeparator />
                 <UIGroup.ListTextInputItem
