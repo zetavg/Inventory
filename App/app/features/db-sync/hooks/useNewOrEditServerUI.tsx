@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { Alert, TextInput } from 'react-native';
+import { URL as PURL } from 'react-native-url-polyfill';
 
 import { diff } from 'deep-object-diff';
 
@@ -68,6 +69,25 @@ export default function useNewOrEditServerUI({
     () => Object.keys(diff(state, initialState)).length > 0,
     [initialState, state],
   );
+
+  const processUri = useCallback(() => {
+    try {
+      const url = new PURL(state.uri);
+      const { username, password } = url;
+
+      if (username && password && !state.username && !state.password) {
+        url.username = '';
+        url.password = '';
+        const uri = url.toString();
+
+        setState(s => ({ ...s, uri, username, password }));
+      }
+
+      if (!state.name) {
+        setState(s => ({ ...s, name: url.hostname }));
+      }
+    } catch (error) {}
+  }, [state]);
 
   const nameErrorMessage = useMemo(() => {
     if (!state.name) {
@@ -256,6 +276,7 @@ export default function useNewOrEditServerUI({
           blurOnSubmit
           value={state.uri}
           onChangeText={text => setState({ ...state, uri: text })}
+          onBlur={processUri}
           returnKeyType="next"
           onSubmitEditing={() => dbUsernameInputRef.current?.focus()}
           {...inputProps}
