@@ -37,6 +37,8 @@ export type DBSyncServerStatusObj = {
   remoteDBUpdateSeq?: number;
   pushLastSeq?: number;
   pullLastSeq?: number;
+  localDBDocCount?: number;
+  remoteDBDocCount?: number;
 };
 
 // Define a type for the slice state
@@ -159,6 +161,8 @@ export const dbSyncSlice = createSlice({
             remoteDBUpdateSeq?: number;
             pushLastSeq?: number;
             pullLastSeq?: number;
+            localDBDocCount?: number;
+            remoteDBDocCount?: number;
           },
         ]
       >,
@@ -311,6 +315,8 @@ reducer.dehydrateSensitive = (state: DBSyncState) => {
         remoteDBUpdateSeq: server.remoteDBUpdateSeq,
         pushLastSeq: server.pushLastSeq,
         pullLastSeq: server.pullLastSeq,
+        localDBDocCount: server.localDBDocCount,
+        remoteDBDocCount: server.remoteDBDocCount,
       }),
     ),
   };
