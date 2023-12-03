@@ -54,7 +54,6 @@ import useScrollViewAutomaticallyAdjustKeyboardInsetsFix from '@app/hooks/useScr
 import Button from '@app/components/Button';
 import Configuration from '@app/components/Configuration';
 import FullWidthImage from '@app/components/FullWidthImage';
-import Icon from '@app/components/Icon';
 import Text, { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
 
@@ -1445,33 +1444,6 @@ function OnboardingScreen({
 
     return 'ERROR';
   }, [syncServerStatus.lastSyncedAt, syncServerStatus.status]);
-  const [initialPullLastSeq, setInitialPullLastSeq] = useState(-1);
-  const initialPullLastSeqRef = useRef(initialPullLastSeq);
-  initialPullLastSeqRef.current = initialPullLastSeq;
-  useEffect(() => {
-    if (initialPullLastSeqRef.current >= 0) {
-      return;
-    }
-
-    if (typeof syncServerStatus.pullLastSeq === 'number') {
-      setInitialPullLastSeq(syncServerStatus.pullLastSeq);
-    }
-  }, [syncServerStatus.pullLastSeq]);
-  const initialSyncDoneProgress =
-    initialPullLastSeq >= 0
-      ? (syncServerStatus.pullLastSeq || 0) - initialPullLastSeq
-      : syncServerStatus.pullLastSeq || 0;
-  const initialSyncRemainingProgress =
-    initialPullLastSeq >= 0
-      ? (syncServerStatus.remoteDBUpdateSeq || 0) - initialPullLastSeq
-      : syncServerStatus.remoteDBUpdateSeq || 0;
-  const prevInitialSyncDoneProgress = useRef(0);
-  useEffect(() => {
-    if (initialSyncDoneProgress !== prevInitialSyncDoneProgress.current) {
-      LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
-      prevInitialSyncDoneProgress.current = initialSyncDoneProgress;
-    }
-  }, [initialSyncDoneProgress]);
 
   const restoreFromCouchDBScrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps: restoreFromCouchDBKiaTextInputProps } =
@@ -1605,15 +1577,12 @@ function OnboardingScreen({
             </Text>
             {(() => {
               if (dbSyncHasBeenSetupStatus === 'WORKING') {
-                // TODO: Show progress bar
                 return (
                   <>
                     <ProgressView
                       progress={
-                        initialSyncRemainingProgress > 0
-                          ? initialSyncDoneProgress /
-                            initialSyncRemainingProgress
-                          : 0
+                        (syncServerStatus.localDBDocCount || 0) /
+                        (syncServerStatus.remoteDBDocCount || 1)
                       }
                       style={[
                         commonStyles.alignSelfStretch,
@@ -1628,8 +1597,9 @@ function OnboardingScreen({
                         commonStyles.mt2,
                       ]}
                     >
-                      {initialSyncDoneProgress}/{initialSyncRemainingProgress}{' '}
-                      documents synced
+                      {syncServerStatus.localDBDocCount || '?'}/
+                      {syncServerStatus.remoteDBDocCount || '?'} documents
+                      synced
                     </Text>
                     {!isSetupNotDone && (
                       <View style={commonStyles.mt8}>
@@ -1690,13 +1660,13 @@ function OnboardingScreen({
     },
     [
       backgroundColor,
+      scrollViewContentContainerPaddingTop,
       dbSyncHasBeenSetupStatus,
-      initialSyncDoneProgress,
-      initialSyncRemainingProgress,
+      syncServerStatus.lastErrorMessage,
+      syncServerStatus.localDBDocCount,
+      syncServerStatus.remoteDBDocCount,
       isSetupNotDone,
       navigation,
-      scrollViewContentContainerPaddingTop,
-      syncServerStatus.lastErrorMessage,
     ],
   );
   const dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef = useRef(false);
@@ -1719,7 +1689,7 @@ function OnboardingScreen({
       })();
     } else if (
       dbSyncHasBeenSetupStatus === 'WORKING' &&
-      initialSyncDoneProgress > 100
+      (syncServerStatus.localDBDocCount || 0) > 100
     ) {
       if (dbSyncWorkingMarkCurrentProfileAsSetupDoneEffectRef.current) return;
       const getConfig = getGetConfig({ db });
@@ -1744,8 +1714,8 @@ function OnboardingScreen({
     dbSyncHasBeenSetupStatus,
     dispatch,
     navigation,
-    initialSyncDoneProgress,
     logger,
+    syncServerStatus.localDBDocCount,
   ]);
 
   // Load form values from config

@@ -15,6 +15,20 @@ import useLogger from '@app/hooks/useLogger';
 
 import { DBSyncServerEditableData } from './slice';
 
+const SYNC_FILTER_DDOC_NAME = 'app_sync_v0';
+const SYNC_ONLY_PRIMARY_FILTER_NAME = 'only_primary';
+const SYNC_ONLY_IMAGES_FILTER_NAME = 'only_images';
+
+const SYNC_FILTER_DDOC = {
+  _id: `_design/${SYNC_FILTER_DDOC_NAME}`,
+  filters: {
+    [SYNC_ONLY_PRIMARY_FILTER_NAME]:
+      "function (doc) { return !doc._id.startsWith('zz'); }",
+    [SYNC_ONLY_IMAGES_FILTER_NAME]:
+      "function (doc) { return doc._id.startsWith('zz20-image'); }",
+  },
+};
+
 const BATCH_SIZE = 16;
 const BATCHES_LIMIT = 4;
 
@@ -137,6 +151,24 @@ export default function DBSyncManager() {
             return null;
           }
         }
+
+        let createSyncFilterDDocRetries = 0;
+        while (true) {
+          try {
+            await remoteDB.get(`_design/${SYNC_FILTER_DDOC_NAME}`);
+            break;
+          } catch (e) {
+            if (createSyncFilterDDocRetries >= 5) throw e;
+            try {
+              await remoteDB.put(SYNC_FILTER_DDOC);
+            } catch (ee) {
+              if (createSyncFilterDDocRetries >= 5) throw ee;
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            createSyncFilterDDocRetries += 1;
+          }
+        }
+
         return remoteDB;
       } catch (e) {
         fLogger.error(
@@ -225,9 +257,11 @@ export default function DBSyncManager() {
       params: PouchDB.Replication.SyncOptions,
       server: ServerData,
       {
+        filter,
         onChange,
         onComplete,
       }: {
+        filter?: string;
         onChange?: (arg: {
           localDBUpdateSeq?: number | undefined;
           remoteDBUpdateSeq?: number | undefined;
@@ -247,6 +281,7 @@ export default function DBSyncManager() {
       const syncHandler = localDB.sync(remoteDB, {
         ...params,
         retry: true,
+        filter,
         // The patched PouchDB will accept a logger for logging during the sync
         ...({ logger: fLogger } as any),
       });
@@ -256,21 +291,27 @@ export default function DBSyncManager() {
         const lastSeq = getSeqValue(info.change.last_seq);
         let localDBUpdateSeq;
         let remoteDBUpdateSeq;
+        let localDBDocCount;
+        let remoteDBDocCount;
         const logDetails1: any = { info, lastSeq };
         const logDetails2: any = {};
         try {
           const localDBInfo = await localDB.info();
           localDBUpdateSeq = getSeqValue(localDBInfo.update_seq);
+          localDBDocCount = localDBInfo.doc_count;
           logDetails2.localDBInfo = localDBInfo;
           logDetails1.localDBUpdateSeq = localDBUpdateSeq;
+          logDetails1.localDBDocCount = localDBDocCount;
         } catch (e) {
           logDetails1.localDBInfoError = e;
         }
         try {
           const remoteDBInfo = await remoteDB.info();
           remoteDBUpdateSeq = getSeqValue(remoteDBInfo.update_seq);
+          remoteDBDocCount = remoteDBInfo.doc_count;
           logDetails2.remoteDBInfo = remoteDBInfo;
           logDetails1.remoteDBUpdateSeq = remoteDBUpdateSeq;
+          logDetails1.remoteDBDocCount = remoteDBDocCount;
         } catch (e) {
           logDetails1.remoteDBInfoError = e;
         }
@@ -279,6 +320,8 @@ export default function DBSyncManager() {
           // Only update the local or remote seq based on the current operation
           ...(direction === 'push' ? { localDBUpdateSeq } : {}),
           ...(direction === 'pull' ? { remoteDBUpdateSeq } : {}),
+          localDBDocCount,
+          remoteDBDocCount,
           [direction === 'push' ? 'pushLastSeq' : 'pullLastSeq']: lastSeq,
         };
         updateSyncProgress([server.id, payload]);
@@ -418,6 +461,61 @@ export default function DBSyncManager() {
           }
           if (shouldCancel) return;
           dispatch(actions.dbSync.updateServerStatus([server.id, 'Syncing']));
+
+          startupSyncHandler = _startSync(
+            localDB,
+            remoteDB,
+            {
+              live: false,
+              batch_size: BATCH_SIZE,
+              batches_limit: BATCHES_LIMIT,
+            },
+            server,
+            {
+              filter: `${SYNC_FILTER_DDOC_NAME}/${SYNC_ONLY_PRIMARY_FILTER_NAME}`,
+              onChange: assignSeqs,
+              onComplete: payload => {
+                assignSeqs(payload);
+                initialPullLastSeq = payload.pushLastSeq;
+                initialPullLastSeq = payload.pullLastSeq;
+              },
+            },
+          );
+          await new Promise(resolve => {
+            startupSyncHandler?.on('complete', resolve);
+          });
+          logger.info('Start-up sync: primary data synced', {
+            function: server.id,
+          });
+          if (shouldCancel) return;
+
+          startupSyncHandler = _startSync(
+            localDB,
+            remoteDB,
+            {
+              live: false,
+              batch_size: 1,
+              batches_limit: 2,
+            },
+            server,
+            {
+              filter: `${SYNC_FILTER_DDOC_NAME}/${SYNC_ONLY_IMAGES_FILTER_NAME}`,
+              onChange: assignSeqs,
+              onComplete: payload => {
+                assignSeqs(payload);
+                initialPullLastSeq = payload.pushLastSeq;
+                initialPullLastSeq = payload.pullLastSeq;
+              },
+            },
+          );
+          await new Promise(resolve => {
+            startupSyncHandler?.on('complete', resolve);
+          });
+          logger.info('Start-up sync: images synced', {
+            function: server.id,
+          });
+          if (shouldCancel) return;
+
           startupSyncHandler = _startSync(
             localDB,
             remoteDB,
@@ -436,6 +534,7 @@ export default function DBSyncManager() {
               },
             },
           );
+
           startupSyncHandler.on('complete', info => {
             if (shouldCancel) return;
             if (
@@ -465,8 +564,8 @@ export default function DBSyncManager() {
               remoteDB,
               {
                 live: true,
-                batch_size: BATCH_SIZE,
-                batches_limit: BATCHES_LIMIT,
+                batch_size: 2,
+                batches_limit: 2,
               },
               server,
               {

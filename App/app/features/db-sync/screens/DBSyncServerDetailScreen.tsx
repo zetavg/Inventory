@@ -48,6 +48,8 @@ function DBSyncServerDetailScreen({
     });
   }, []);
 
+  const [showAdvancedStatus, setShowAdvancedStatus] = useState(false);
+
   return (
     <ScreenContent
       navigation={navigation}
@@ -214,26 +216,49 @@ function DBSyncServerDetailScreen({
                   }}
                 />
               </UIGroup>
-              <UIGroup header="Advanced">
+              <UIGroup>
                 <UIGroup.ListItem
-                  label="Push Sequence"
-                  adjustsDetailFontSizeToFit
-                  detail={
-                    typeof serverStatus.pushLastSeq === 'number'
-                      ? `${serverStatus.pushLastSeq}/${serverStatus.localDBUpdateSeq}`
-                      : 'N/A'
-                  }
+                  label="Docs"
+                  detail={`${
+                    typeof serverStatus.localDBDocCount === 'number'
+                      ? serverStatus.localDBDocCount
+                      : '?'
+                  }/${
+                    typeof serverStatus.remoteDBDocCount === 'number'
+                      ? serverStatus.remoteDBDocCount
+                      : '?'
+                  }`}
                 />
                 <UIGroup.ListItemSeparator />
-                <UIGroup.ListItem
-                  label="Pull Sequence"
-                  adjustsDetailFontSizeToFit
-                  detail={
-                    typeof serverStatus.pullLastSeq === 'number'
-                      ? `${serverStatus.pullLastSeq}/${serverStatus.remoteDBUpdateSeq}`
-                      : 'N/A'
-                  }
-                />
+                {!showAdvancedStatus ? (
+                  <UIGroup.ListItem
+                    label="Show Advanced Status"
+                    onPress={() => setShowAdvancedStatus(true)}
+                    button
+                  />
+                ) : (
+                  <>
+                    <UIGroup.ListItem
+                      label="Push Sequence"
+                      adjustsDetailFontSizeToFit
+                      detail={
+                        typeof serverStatus.pushLastSeq === 'number'
+                          ? `${serverStatus.pushLastSeq}/${serverStatus.localDBUpdateSeq}`
+                          : 'N/A'
+                      }
+                    />
+                    <UIGroup.ListItemSeparator />
+                    <UIGroup.ListItem
+                      label="Pull Sequence"
+                      adjustsDetailFontSizeToFit
+                      detail={
+                        typeof serverStatus.pullLastSeq === 'number'
+                          ? `${serverStatus.pullLastSeq}/${serverStatus.remoteDBUpdateSeq}`
+                          : 'N/A'
+                      }
+                    />
+                  </>
+                )}
               </UIGroup>
               <UIGroup>
                 <UIGroup.ListItem
