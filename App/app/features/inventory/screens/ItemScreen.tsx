@@ -885,7 +885,11 @@ function ItemScreen({
                 data.consumable_stock_quantity < data.consumable_min_stock_level
               ) {
                 if (data.consumable_will_not_restock) {
-                  return null;
+                  return (
+                    <RNText {...textProps}>
+                      {`This item is at low stock (${data.consumable_stock_quantity}/${data.consumable_min_stock_level}) but it will not be restocked.`}
+                    </RNText>
+                  );
                 }
 
                 const shouldRestock =
@@ -1436,6 +1440,7 @@ function StockQuantityInputs({
     typeof overwrittenStockQuantity === 'number'
       ? overwrittenStockQuantity
       : item?.consumable_stock_quantity;
+  const consumableMinStockLevel = item?.consumable_min_stock_level;
   const willNotRestock =
     typeof overwrittenWillNotRestock === 'boolean'
       ? overwrittenWillNotRestock
@@ -1481,7 +1486,10 @@ function StockQuantityInputs({
           </View>
         }
       />
-      {consumableStockQuantity === 0 && (
+      {(consumableStockQuantity === 0 ||
+        (typeof consumableMinStockLevel === 'number' &&
+          typeof consumableStockQuantity === 'number' &&
+          consumableStockQuantity < consumableMinStockLevel)) && (
         <>
           <UIGroup.ListItemSeparator />
           <UIGroup.ListTextInputItem
