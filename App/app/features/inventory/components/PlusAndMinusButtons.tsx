@@ -11,6 +11,7 @@ import Icon from '@app/components/Icon';
 
 type Props = {
   value: number;
+  min?: number;
   disabled?: boolean;
 } & (
   | {
@@ -27,6 +28,7 @@ export default function PlusAndMinusButtons({
   value,
   onChangeValue,
   onChangeValueUpdater,
+  min = 0,
   disabled,
 }: Props) {
   const isDarkMode = useIsDarkMode();
@@ -37,9 +39,10 @@ export default function PlusAndMinusButtons({
     if (onChangeValueUpdater) onChangeValueUpdater(v => v + 1);
   }, [onChangeValue, onChangeValueUpdater, value]);
   const handleMinus = useCallback(() => {
-    if (onChangeValue) onChangeValue(value > 0 ? value - 1 : 0);
-    if (onChangeValueUpdater) onChangeValueUpdater(v => (v > 0 ? v - 1 : 0));
-  }, [onChangeValue, onChangeValueUpdater, value]);
+    if (onChangeValue) onChangeValue(value > min ? value - 1 : min);
+    if (onChangeValueUpdater)
+      onChangeValueUpdater(v => (v > min ? v - 1 : min));
+  }, [min, onChangeValue, onChangeValueUpdater, value]);
 
   const handlePlusN = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -87,9 +90,10 @@ export default function PlusAndMinusButtons({
               const q = parseInt(qTxt, 10);
               if (isNaN(q)) return;
 
-              if (onChangeValue) onChangeValue(value - q >= 0 ? value - q : 0);
+              if (onChangeValue)
+                onChangeValue(value - q >= min ? value - q : min);
               if (onChangeValueUpdater)
-                onChangeValueUpdater(v => (v - q >= 0 ? v - q : 0));
+                onChangeValueUpdater(v => (v - q >= min ? v - q : min));
             },
             isPreferred: true,
             style: 'default',
@@ -101,13 +105,13 @@ export default function PlusAndMinusButtons({
         'number-pad',
       );
     }
-  }, [onChangeValue, onChangeValueUpdater, value]);
+  }, [min, onChangeValue, onChangeValueUpdater, value]);
 
   const buttonColor = isDarkMode ? '#39393C' : '#E9E9EB';
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        disabled={value <= 0 || disabled}
+        disabled={value <= min || disabled}
         onPress={handleMinus}
         onLongPress={handleMinusN}
         style={styles.buttonContainer}
@@ -116,7 +120,7 @@ export default function PlusAndMinusButtons({
           style={[
             styles.button,
             styles.buttonLeft,
-            (value <= 0 || disabled) && styles.buttonDisabled,
+            (value <= min || disabled) && styles.buttonDisabled,
             { backgroundColor: buttonColor },
           ]}
         >

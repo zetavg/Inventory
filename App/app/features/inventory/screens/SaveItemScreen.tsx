@@ -722,10 +722,14 @@ function SaveItemScreen({
               if (!uiShowDetailedInstructions) return undefined;
 
               if (data.consumable_will_not_restock) {
-                return 'This item is marked as "Will Not Be Restocked". It will not be shown on the "Stock Empty" list or the "Low Stock" list.';
+                return 'This item is marked as "Will Not Be Restocked" and will not be considered "Stock Empty" or "Low Stock."';
               }
 
-              return 'This item will be shown on the "Stock Empty" list if the stock quantity is 0, or in the "Low Stock" list if the stock quantity is less than the minimum stock level.';
+              if (data.consumable_min_stock_level) {
+                return `This item will be considered "Stock Empty" if the stock quantity reaches 0, or "Low Stock" if the stock quantity falls below ${data.consumable_min_stock_level}.`;
+              }
+
+              return 'This item will be considered "Stock Empty" if the stock quantity reaches 0.';
             })()}
           >
             <UIGroup.ListTextInputItem
@@ -817,7 +821,7 @@ function SaveItemScreen({
                 if (isNaN(n)) return;
                 setData(d => ({
                   ...d,
-                  consumable_min_stock_level: n,
+                  consumable_min_stock_level: n > 1 ? n : undefined,
                 }));
               }}
               unit={
@@ -855,6 +859,7 @@ function SaveItemScreen({
               controlElement={
                 <View style={commonStyles.ml8}>
                   <PlusAndMinusButtons
+                    min={1}
                     value={
                       typeof data.consumable_min_stock_level === 'number'
                         ? data.consumable_min_stock_level
@@ -863,7 +868,7 @@ function SaveItemScreen({
                     onChangeValue={v =>
                       setData(d => ({
                         ...d,
-                        consumable_min_stock_level: v,
+                        consumable_min_stock_level: v > 1 ? v : undefined,
                       }))
                     }
                   />
@@ -871,27 +876,20 @@ function SaveItemScreen({
               }
               {...kiaTextInputProps}
             />
-            {(!data.consumable_stock_quantity ||
-              (data.consumable_min_stock_level &&
-                data.consumable_stock_quantity <
-                  data.consumable_min_stock_level)) && (
-              <>
-                <UIGroup.ListItemSeparator />
-                <UIGroup.ListTextInputItem
-                  label="Will Not Be Restocked"
-                  horizontalLabel
-                  inputElement={
-                    <UIGroup.ListItem.Switch
-                      value={data.consumable_will_not_restock}
-                      onValueChange={v =>
-                        setData(d => ({ ...d, consumable_will_not_restock: v }))
-                      }
-                    />
+            <UIGroup.ListItemSeparator />
+            <UIGroup.ListTextInputItem
+              label="Will Not Be Restocked"
+              horizontalLabel
+              inputElement={
+                <UIGroup.ListItem.Switch
+                  value={data.consumable_will_not_restock}
+                  onValueChange={v =>
+                    setData(d => ({ ...d, consumable_will_not_restock: v }))
                   }
-                  {...kiaTextInputProps}
                 />
-              </>
-            )}
+              }
+              {...kiaTextInputProps}
+            />
           </UIGroup>
         )}
 
