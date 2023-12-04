@@ -170,7 +170,7 @@ export const VIEWS = {
       );
     },
   }),
-  expiring_items: view_defn({
+  expired_items: view_defn({
     version: 1,
     map: `
       function (doc) {
@@ -180,6 +180,42 @@ export const VIEWS = {
           (doc.data.item_type !== 'consumable' || (typeof doc.data.consumable_stock_quantity === 'number' && doc.data.consumable_stock_quantity > 0))
         ) {
           emit(doc.data.expiry_date, { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
+  expire_soon_items: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          typeof doc.data._expire_soon_at === 'number' &&
+          (doc.data.item_type !== 'consumable' || (typeof doc.data.consumable_stock_quantity === 'number' && doc.data.consumable_stock_quantity > 0))
+        ) {
+          emit(doc.data._expire_soon_at, { _id: doc._id });
         }
       }
     `,

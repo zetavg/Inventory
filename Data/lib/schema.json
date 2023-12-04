@@ -88,6 +88,8 @@
         "purchased_from": { "type": "string" },
         "purchase_date": { "type": "number" },
         "expiry_date": { "type": "number" },
+        "expire_soon_prior_days": { "type": "number" },
+        "_expire_soon_at": { "type": "number" },
         "consumable_stock_quantity": { "type": "number" },
         "consumable_stock_quantity_unit": { "type": "string" },
         "consumable_min_stock_level": { "type": "number" },

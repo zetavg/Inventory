@@ -29,7 +29,7 @@ function ExpiredItemsScreen({
     loading: expiredItemsLoading,
     refresh: refreshExpiredItems,
     refreshing: expiredItemsRefreshing,
-  } = useView('expiring_items', {
+  } = useView('expired_items', {
     descending: true,
     startKey: nowDate,
     includeDocs: true,
@@ -41,17 +41,17 @@ function ExpiredItemsScreen({
     : expiredItemsData;
 
   const {
-    data: aboutToExpireItemsData,
-    loading: aboutToExpireItemsLoading,
-    refresh: refreshAboutToExpireItems,
-    refreshing: aboutToExpireItemsRefreshing,
-  } = useView('expiring_items', {
+    data: expireSoonItemsData,
+    loading: expireSoonItemsLoading,
+    refresh: refreshExpireSoonItems,
+    refreshing: expireSoonItemsRefreshing,
+  } = useView('expire_soon_items', {
     descending: true,
-    startKey: nowDate + 2629746000,
+    startKey: nowDate,
     includeDocs: true,
   });
-  const aboutToExpireItems = aboutToExpireItemsData
-    ? aboutToExpireItemsData
+  const expireSoonItems = expireSoonItemsData
+    ? expireSoonItemsData
         .map(d => d.data)
         .filter((d): d is NonNullable<typeof d> => !!d)
         .filter(d => {
@@ -60,13 +60,13 @@ function ExpiredItemsScreen({
 
           return expiryDate >= nowDate;
         })
-    : aboutToExpireItemsData;
+    : expireSoonItemsData;
 
   const refresh = useCallback(() => {
     refreshExpiredItems();
-    refreshAboutToExpireItems();
-  }, [refreshExpiredItems, refreshAboutToExpireItems]);
-  const refreshing = expiredItemsRefreshing || aboutToExpireItemsRefreshing;
+    refreshExpireSoonItems();
+  }, [refreshExpiredItems, refreshExpireSoonItems]);
+  const refreshing = expiredItemsRefreshing || expireSoonItemsRefreshing;
 
   const sections = useMemo(() => {
     return [
@@ -79,17 +79,17 @@ function ExpiredItemsScreen({
           : (['loading'] as const),
       },
       {
-        title: 'about-to-expire',
-        data: aboutToExpireItems
-          ? aboutToExpireItems.length > 0
-            ? aboutToExpireItems
+        title: 'expire-soon',
+        data: expireSoonItems
+          ? expireSoonItems.length > 0
+            ? expireSoonItems
             : (['null'] as const)
           : (['loading'] as const),
       },
     ];
-  }, [aboutToExpireItems, expiredItems]);
+  }, [expireSoonItems, expiredItems]);
 
-  const loading = expiredItemsLoading || aboutToExpireItemsLoading;
+  const loading = expiredItemsLoading || expireSoonItemsLoading;
 
   const renderListItem = useCallback(
     ({
@@ -170,8 +170,8 @@ function ExpiredItemsScreen({
                 case 'expired': {
                   return 'Expired Items';
                 }
-                case 'about-to-expire': {
-                  return 'About to Expire';
+                case 'expire-soon': {
+                  return 'Expire Soon';
                 }
                 default: {
                   return title;
@@ -186,11 +186,11 @@ function ExpiredItemsScreen({
                   }
                   return expiredItems.length.toLocaleString();
                 }
-                case 'about-to-expire': {
-                  if (!Array.isArray(aboutToExpireItems)) {
+                case 'expire-soon': {
+                  if (!Array.isArray(expireSoonItems)) {
                     return 'Loading';
                   }
-                  return aboutToExpireItems.length.toLocaleString();
+                  return expireSoonItems.length.toLocaleString();
                 }
                 default: {
                   return undefined;

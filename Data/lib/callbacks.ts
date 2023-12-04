@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import EPCUtils from '@deps/epc-utils';
 
-import { only } from 'node:test';
-
+import { DEFAULT_EXPIRE_SOON_PRIOR_DAYS } from './consts';
 import { DataTypeName } from './schema';
 import {
   DataTypeWithID,
@@ -219,6 +218,21 @@ export default function getCallbacks({
             }
           }
 
+          if (typeof datum.expiry_date === 'number') {
+            if (
+              datum.expire_soon_prior_days &&
+              typeof datum.expire_soon_prior_days === 'number'
+            ) {
+              datum._expire_soon_at =
+                datum.expiry_date - 86400000 * datum.expire_soon_prior_days;
+            } else {
+              datum._expire_soon_at =
+                datum.expiry_date - 86400000 * DEFAULT_EXPIRE_SOON_PRIOR_DAYS;
+            }
+          } else {
+            datum._expire_soon_at = undefined;
+          }
+
           if (!datum.item_reference_number)
             datum.item_reference_number = undefined;
           if (!datum.serial) datum.serial = undefined;
@@ -228,6 +242,8 @@ export default function getCallbacks({
           if (!datum.actual_rfid_tag_epc_memory_bank_contents)
             datum.actual_rfid_tag_epc_memory_bank_contents = undefined;
           if (!datum.item_type) datum.item_type = undefined;
+          if (!datum.expire_soon_prior_days)
+            datum.expire_soon_prior_days = undefined;
           break;
         }
         case 'item_image': {
