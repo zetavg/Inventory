@@ -417,7 +417,7 @@ function InsetGroupItem({
                   color: vertical2
                     ? contentTextColor
                     : contentSecondaryTextColor,
-                  size: 11,
+                  size: vertical ? 12 : vertical2 ? 18 : 12,
                   style: styles.itemDetailIcon,
                 };
 

@@ -79,6 +79,8 @@ export const schema = {
       purchased_from: z.string().optional(),
       purchase_date: z.number().optional(),
       expiry_date: z.number().optional(),
+      expire_soon_prior_days: z.number().optional(),
+      _expire_soon_at: z.number().optional(),
       consumable_stock_quantity: z.number().optional(),
       consumable_stock_quantity_unit: z.string().optional(),
       consumable_min_stock_level: z.number().optional(),

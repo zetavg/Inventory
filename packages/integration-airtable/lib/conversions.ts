@@ -163,6 +163,7 @@ export async function itemToAirtableRecord(
       typeof item.expiry_date === 'number'
         ? new Date(item.expiry_date).toISOString()
         : null,
+    'Expire Soon Prior Days': item.expire_soon_prior_days || null,
     'Stock Quantity': item.consumable_stock_quantity || null,
     'Stock Quantity Unit':
       typeof item.consumable_stock_quantity_unit === 'string'
@@ -441,6 +442,11 @@ export async function airtableRecordToItem(
       value && typeof value === 'string'
         ? new Date(value).getTime()
         : undefined;
+  }
+
+  if (airtableItemsTableFields['Expire Soon Prior Days']) {
+    const value = record.fields['Expire Soon Prior Days'];
+    item.expire_soon_prior_days = typeof value === 'number' ? value : undefined;
   }
 
   if (airtableItemsTableFields['Stock Quantity']) {

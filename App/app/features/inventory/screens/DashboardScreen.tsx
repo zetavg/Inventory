@@ -47,7 +47,7 @@ function DashboardScreen({
   const { data: lowStockItemsCount } = useView('low_stock_items_count');
 
   const [nowDate, setNowDate] = useState(Date.now());
-  const { data: expiredItemsData } = useView('expiring_items', {
+  const { data: expiredItemsData } = useView('expired_items', {
     descending: true,
     startKey: nowDate,
   });
@@ -56,6 +56,16 @@ function DashboardScreen({
 
     return expiredItemsData.length;
   }, [expiredItemsData]);
+  const { data: expireSoonItemsData } = useView('expire_soon_items', {
+    descending: true,
+    startKey: nowDate,
+  });
+  const expireSoonItemsCount = useMemo(() => {
+    if (!expiredItemsData) return null;
+    if (!expireSoonItemsData) return null;
+
+    return expireSoonItemsData.length - expiredItemsData.length;
+  }, [expireSoonItemsData, expiredItemsData]);
 
   const { data: rfidUntaggedItemsCount } = useView('rfid_untagged_items_count');
 
@@ -247,6 +257,12 @@ function DashboardScreen({
                   { color: contentTextColor },
                 ]}
               >
+                {expireSoonItemsCount && (
+                  <Text style={[{ color: contentSecondaryTextColor }]}>
+                    {expireSoonItemsCount}
+                    {' / '}
+                  </Text>
+                )}
                 {expiredItemsCount}
               </Text>
             ) : (
@@ -272,16 +288,17 @@ function DashboardScreen({
       </TouchableHighlight>,
     ];
   }, [
-    contentBackgroundColor,
-    contentSecondaryTextColor,
     contentTextColor,
-    expiredItemsCount,
+    contentBackgroundColor,
     itemsCount,
-    navigation,
-    outOfStockItemsCount,
-    lowStockItemsCount,
-    rfidTagOutdatedItemsCount,
+    contentSecondaryTextColor,
     rfidUntaggedItemsCount,
+    rfidTagOutdatedItemsCount,
+    lowStockItemsCount,
+    outOfStockItemsCount,
+    expiredItemsCount,
+    expireSoonItemsCount,
+    navigation,
   ]);
 
   const [dashboardGridWidth, setDashboardGridWidth] = useState<number | null>(

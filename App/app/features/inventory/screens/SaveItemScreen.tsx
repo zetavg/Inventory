@@ -13,6 +13,7 @@ import type { StackScreenProps } from '@react-navigation/stack';
 
 import { v4 as uuid } from 'uuid';
 
+import { DEFAULT_EXPIRE_SOON_PRIOR_DAYS } from '@deps/data/consts';
 import { DataMeta } from '@deps/data/types';
 import EPCUtils from '@deps/epc-utils';
 
@@ -1234,7 +1235,20 @@ function SaveItemScreen({
             {...kiaTextInputProps}
           />
         </UIGroup>
-        <UIGroup loading={saveWorking}>
+        <UIGroup
+          loading={saveWorking}
+          footer={(() => {
+            if (typeof data.expiry_date !== 'number') return undefined;
+            if (typeof data.expire_soon_prior_days === 'number') {
+              const expire_soon_at =
+                data.expiry_date - 86400000 * data.expire_soon_prior_days;
+              const expire_soon_date = new Date(expire_soon_at);
+              return `This item will be treated as expire soon on ${expire_soon_date.toLocaleDateString()}, ${
+                data.expire_soon_prior_days
+              } days before its expiry date.`;
+            }
+          })()}
+        >
           <UIGroup.ListTextInputItem
             label="Expiry Date"
             horizontalLabel
@@ -1264,7 +1278,7 @@ function SaveItemScreen({
                     }
 
                     const d = new Date(v.y, v.m - 1, v.d);
-                    d.setHours(23, 59, 59, 59);
+                    d.setHours(23, 59, 59, 0);
 
                     setData(dta => ({
                       ...dta,
@@ -1290,6 +1304,34 @@ function SaveItemScreen({
             }
             {...kiaTextInputProps}
           />
+          {typeof data.expiry_date === 'number' && (
+            <>
+              <UIGroup.ListItemSeparator />
+              <UIGroup.ListTextInputItem
+                label="Expire Soon Prior Days"
+                horizontalLabel
+                placeholder={DEFAULT_EXPIRE_SOON_PRIOR_DAYS.toString()}
+                value={
+                  typeof data.expire_soon_prior_days === 'number'
+                    ? data.expire_soon_prior_days.toString()
+                    : ''
+                }
+                onChangeText={text => {
+                  let number = parseInt(text, 10);
+                  if (isNaN(number)) number = 0;
+                  setData(d => ({
+                    ...d,
+                    expire_soon_prior_days: number <= 0 ? undefined : number,
+                  }));
+                }}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                clearButtonMode="while-editing"
+                selectTextOnFocus
+                {...kiaTextInputProps}
+              />
+            </>
+          )}
         </UIGroup>
 
         <UIGroup transparentBackground>
@@ -1341,7 +1383,7 @@ function SaveItemScreen({
                   <UIGroup.ListItemSeparator />
                   <UIGroup.ListTextInputItem
                     ref={refNumberInputRef}
-                    label="Individual Asset Ref."
+                    label="IAR"
                     placeholder={
                       '0'.repeat(collectionReferenceDigits) +
                       '0'.repeat(itemReferenceDigits) +

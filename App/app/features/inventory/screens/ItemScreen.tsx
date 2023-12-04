@@ -283,7 +283,8 @@ function ItemScreen({
 
   const [devModeCounter, setDevModeCounter] = useState(0);
 
-  const { iosTintColor, groupTitleColor } = useColors();
+  const { iosTintColor, groupTitleColor, contentSecondaryTextColor } =
+    useColors();
 
   const afterRFIDTagWriteSuccessRef = useRef<(() => void) | null>(null);
   afterRFIDTagWriteSuccessRef.current = () => {
@@ -1073,12 +1074,14 @@ function ItemScreen({
                 verticalArrangedLargeTextIOS
                 label="Purchase Date"
                 // eslint-disable-next-line react/no-unstable-nested-components
-                detail={({ textProps }) => (
-                  <DateDisplay
-                    textProps={textProps}
-                    date={new Date(data.purchase_date || 0)}
-                  />
-                )}
+                detail={({ textProps }) => {
+                  return (
+                    <DateDisplay
+                      textProps={textProps}
+                      date={new Date(data.purchase_date || 0)}
+                    />
+                  );
+                }}
               />,
             );
           }
@@ -1090,12 +1093,60 @@ function ItemScreen({
                 verticalArrangedLargeTextIOS
                 label="Expiry Date"
                 // eslint-disable-next-line react/no-unstable-nested-components
-                detail={({ textProps }) => (
-                  <DateDisplay
-                    textProps={textProps}
-                    date={new Date(data.expiry_date || 0)}
-                  />
-                )}
+                detail={({ textProps, iconProps }) => {
+                  return (
+                    <DateDisplay
+                      textProps={textProps}
+                      date={new Date(data.expiry_date || 0)}
+                      // eslint-disable-next-line react/no-unstable-nested-components
+                      after={(() => {
+                        const expireInDays = Math.floor(
+                          ((data.expiry_date || 0) - Date.now()) / 86400000,
+                        );
+                        if (
+                          expireInDays < 7 ||
+                          (data._expire_soon_at &&
+                            Date.now() > data._expire_soon_at)
+                        ) {
+                          return (
+                            <Text
+                              style={[
+                                {
+                                  color: contentSecondaryTextColor,
+                                },
+                                commonStyles.fs14,
+                              ]}
+                            >
+                              {' '}
+                              <Icon
+                                {...iconProps}
+                                name="app-exclamation"
+                                color={contentSecondaryTextColor}
+                                size={18}
+                              />{' '}
+                              {(() => {
+                                if (expireInDays < 0) {
+                                  return 'Expired';
+                                }
+
+                                if (expireInDays === 0) {
+                                  return 'Expire today';
+                                }
+
+                                if (expireInDays <= 1) {
+                                  return `Expire in ${expireInDays} day`;
+                                }
+
+                                return `Expire in ${expireInDays} days`;
+                              })()}
+                            </Text>
+                          );
+                        }
+                        return undefined;
+                      })()}
+                    />
+                  );
+                }}
               />,
             );
           }
@@ -1203,9 +1254,11 @@ const DATE_DISPLAY_MODES = ['date', 'datetime', 'unix'] as const;
 function DateDisplay({
   date,
   textProps,
+  after,
 }: {
   date: Date;
   textProps: React.ComponentProps<typeof RNText>;
+  after?: JSX.Element;
 }) {
   const [mode, setMode] = useState<(typeof DATE_DISPLAY_MODES)[number]>(
     DATE_DISPLAY_MODES[0],
@@ -1243,6 +1296,7 @@ function DateDisplay({
                 return date.toLocaleDateString();
             }
           })()}
+          {after}
         </Text>
       </View>
     </TouchableWithoutFeedback>

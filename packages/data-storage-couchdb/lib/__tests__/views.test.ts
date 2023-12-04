@@ -407,15 +407,15 @@ describe('out_of_stock_items', () => {
   });
 });
 
-describe('expiring_items', () => {
-  it('returns expiring items', async () => {
+describe('expired_items', () => {
+  it('returns expired items', async () => {
     await withContext(async context => {
       const d = new CouchDBData(context);
 
       const nowDate = Date.now();
 
       expect(
-        await d.getViewData('expiring_items', {
+        await d.getViewData('expired_items', {
           descending: true,
           startKey: nowDate,
         }),
@@ -468,7 +468,7 @@ describe('expiring_items', () => {
       // Most recent expired first
       expect(
         (
-          await d.getViewData('expiring_items', {
+          await d.getViewData('expired_items', {
             descending: true,
             startKey: nowDate,
             includeDocs: true,
@@ -479,7 +479,7 @@ describe('expiring_items', () => {
       // Most old first
       expect(
         (
-          await d.getViewData('expiring_items', {
+          await d.getViewData('expired_items', {
             descending: false,
             endKey: nowDate,
             includeDocs: true,
@@ -496,7 +496,7 @@ describe('expiring_items', () => {
       const nowDate = Date.now();
 
       expect(
-        await d.getViewData('expiring_items', {
+        await d.getViewData('expired_items', {
           descending: true,
           startKey: nowDate,
         }),
@@ -532,7 +532,7 @@ describe('expiring_items', () => {
 
       expect(
         (
-          await d.getViewData('expiring_items', {
+          await d.getViewData('expired_items', {
             descending: false,
             endKey: nowDate,
             includeDocs: true,
@@ -547,7 +547,7 @@ describe('expiring_items', () => {
 
       expect(
         (
-          await d.getViewData('expiring_items', {
+          await d.getViewData('expired_items', {
             descending: false,
             endKey: nowDate,
             includeDocs: true,
