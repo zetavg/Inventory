@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   LayoutChangeEvent,
+  Platform,
   StyleSheet,
   Text,
   TouchableHighlight,
@@ -8,7 +9,6 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import Svg, { Path, Rect } from 'react-native-svg';
 
 import Color from 'color';
 
@@ -109,7 +109,7 @@ function DashboardScreen({
       >
         <View style={commonStyles.flex1}>
           <View style={styles.dashboardGridItemIconAndNumber}>
-            <Icon name="box" size={24} />
+            <Icon name="box" size={Platform.OS === 'ios' ? 24 : 24} />
             {typeof itemsCount === 'number' ? (
               <Text
                 style={[
@@ -153,7 +153,11 @@ function DashboardScreen({
       >
         <View>
           <View style={styles.dashboardGridItemIconAndNumber}>
-            <Icon name="app-untagged" color="teal" size={20} />
+            <Icon
+              name="app-untagged"
+              color="teal"
+              size={Platform.OS === 'ios' ? 20 : 24}
+            />
             {typeof rfidUntaggedItemsCount === 'number' ? (
               <Text
                 style={[
@@ -203,7 +207,11 @@ function DashboardScreen({
       >
         <View>
           <View style={styles.dashboardGridItemIconAndNumber}>
-            <Icon name="app-exclamation-circle" color="yellow" size={28} />
+            <Icon
+              name="app-exclamation-circle"
+              color="yellow"
+              size={Platform.OS === 'ios' ? 28 : 24}
+            />
             {typeof lowStockItemsCount === 'number' &&
             typeof outOfStockItemsCount === 'number' ? (
               <Text
@@ -249,7 +257,11 @@ function DashboardScreen({
       >
         <View>
           <View style={styles.dashboardGridItemIconAndNumber}>
-            <Icon name="app-calender" color="orange" size={30} />
+            <Icon
+              name="app-calender"
+              color="orange"
+              size={Platform.OS === 'ios' ? 30 : 24}
+            />
             {typeof expiredItemsCount === 'number' ? (
               <Text
                 style={[
