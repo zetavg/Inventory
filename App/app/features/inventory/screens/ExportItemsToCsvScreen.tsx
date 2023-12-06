@@ -149,7 +149,7 @@ function ExportItemsToCsvScreen({
       await RNFS.writeFile(csvFilePath, csv, 'utf8');
 
       Share.open({
-        url: csvFilePath,
+        url: `file://${csvFilePath}`,
         failOnCancel: false,
       });
     } catch (e: any) {
