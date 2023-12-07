@@ -5,9 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Alert, ScrollView, Text as RNText } from 'react-native';
+import { Alert, Platform, ScrollView, Text as RNText } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
-import { jsonToCSV, readRemoteFile } from 'react-native-csv';
+import { jsonToCSV, readRemoteFile, readString } from 'react-native-csv';
 import DocumentPicker from 'react-native-document-picker';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
@@ -109,30 +109,44 @@ function ImportItemsFromCsvScreen({
       const { uri } = await DocumentPicker.pickSingle({
         type: DocumentPicker.types.csv,
       });
-      readRemoteFile(uri, {
-        header: true,
-        complete: async (results: any) => {
-          setCsvContents(results);
-          const items = await getItemsFromCsv(results.data, { db });
-          if (!items || items.length < 1) {
-            setCsvFileName(null);
-            Alert.alert(
-              'No items to import',
-              'CSV file may be invalid or empty, please check.',
-            );
-          } else {
-            const n = uri.split('/').pop();
-            setCsvFileName(n ? decodeURIComponent(n) : null);
-          }
-          setLoadedItems(items);
-          setProcessedLoadedItems(items);
-          setLoadedItemsIssues(new WeakMap());
-          // beforeSave and validate will be run with useEffect.
-        },
-        error: () => {
-          setLoading(false);
-        },
-      });
+
+      async function processResults(results: any) {
+        if (!db) return;
+        setCsvContents(results);
+        const items = await getItemsFromCsv(results.data, { db });
+        if (!items || items.length < 1) {
+          setCsvFileName(null);
+          Alert.alert(
+            'No items to import',
+            'CSV file may be invalid or empty, please check.',
+          );
+        } else {
+          const n = uri.split('/').pop();
+          setCsvFileName(n ? decodeURIComponent(n) : null);
+        }
+        setLoadedItems(items);
+        setProcessedLoadedItems(items);
+        setLoadedItemsIssues(new WeakMap());
+        // beforeSave and validate will be run with useEffect.
+      }
+
+      if (Platform.OS === 'android') {
+        // It seems that `readRemoteFile` is not working on Android.
+        // See: https://github.com/zetavg/Inventory/pull/23
+        const csvFileContents = await RNFS.readFile(uri);
+        const results = readString(csvFileContents, { header: true });
+        await processResults(results);
+      } else {
+        readRemoteFile(uri, {
+          header: true,
+          complete: async (results: any) => {
+            await processResults(results);
+          },
+          error: () => {
+            setLoading(false);
+          },
+        });
+      }
     } catch (e) {
       setLoading(false);
     } finally {
@@ -270,6 +284,7 @@ function ImportItemsFromCsvScreen({
       title="CSV Import"
       backButtonLabel="Cancel"
       action1Label="Import"
+      action1MaterialIconName="import"
       action1Variant="strong"
       onAction1Press={
         (hasValidItemsToUpdate || hasValidItemsToCreate) && !working
@@ -288,32 +303,33 @@ function ImportItemsFromCsvScreen({
           }
           loading={working}
           footer={
-            loadedItems && loadedItems.length > 0 ? (
-              `${loadedItems.length} items loaded from CSV file.`
-            ) : (
-              <>
-                Press "Select CSV File..." to open a CSV file.
-                <RNText> </RNText>
-                You can either start with a<RNText> </RNText>
-                <RNText
-                  onPress={handleGetSampleCsv}
-                  style={{ color: iosTintColor }}
-                >
-                  template CSV file
-                </RNText>
-                , or{' '}
-                <RNText
-                  onPress={() => {
-                    navigation.push('ExportItemsToCsv');
-                  }}
-                  style={{ color: iosTintColor }}
-                >
-                  export items to a CSV file
-                </RNText>
-                , edit it and import them back. Items with matching ID will be
-                updated.
-              </>
-            )
+            loadedItems && loadedItems.length > 0
+              ? `${loadedItems.length} items loaded from CSV file.`
+              : // eslint-disable-next-line react/no-unstable-nested-components
+                ({ textProps }) => (
+                  <RNText {...textProps}>
+                    Press "Select CSV File..." to open a CSV file.
+                    <RNText> </RNText>
+                    You can either start with a<RNText> </RNText>
+                    <RNText
+                      onPress={handleGetSampleCsv}
+                      style={{ color: iosTintColor }}
+                    >
+                      template CSV file
+                    </RNText>
+                    , or{' '}
+                    <RNText
+                      onPress={() => {
+                        navigation.push('ExportItemsToCsv');
+                      }}
+                      style={{ color: iosTintColor }}
+                    >
+                      export items to a CSV file
+                    </RNText>
+                    , edit it and import them back. Items with matching ID will
+                    be updated.
+                  </RNText>
+                )
           }
         >
           {!!csvFileName && (
