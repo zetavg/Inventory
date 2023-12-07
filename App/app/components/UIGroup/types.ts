@@ -22,7 +22,6 @@ export type UIGroupProps = {
   header?: string | JSX.Element;
   footer?:
     | string
-    | JSX.Element
     | ((context: {
         textProps: React.ComponentProps<typeof Text>;
         iconProps: Partial<React.ComponentProps<typeof Icon>>;
