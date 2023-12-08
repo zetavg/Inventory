@@ -1397,9 +1397,7 @@ function hasRecordFieldsChanges(
   fields1: Record<string, unknown>,
   fields2: Record<string, unknown>,
 ) {
-  const keys = Array.from(
-    new Set([...Object.keys(fields1), ...Object.keys(fields2)]),
-  );
+  const keys = Array.from(new Set(Object.keys(fields2)));
 
   for (const key of keys) {
     if (
