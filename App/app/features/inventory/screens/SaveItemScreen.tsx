@@ -218,13 +218,12 @@ function SaveItemScreen({
     setReferenceNumberIsRandomlyGenerated(true);
   }, [itemReferenceDigits]);
   const copyReferenceNumberFromContainer = useCallback(() => {
-    // if (typeof selectedContainerData !== 'object') return;
-    // const itemReferenceNumber =
-    //   selectedContainerData?.itemReferenceNumber;
-    // if (!itemReferenceNumber) return;
-    // setData(d => ({ ...d, itemReferenceNumber }));
-    // setReferenceNumberIsRandomlyGenerated(true);
-  }, []);
+    if (typeof selectedContainer !== 'object') return;
+    const item_reference_number = selectedContainer?.item_reference_number;
+    if (typeof item_reference_number !== 'string') return;
+    setData(d => ({ ...d, item_reference_number }));
+    setReferenceNumberIsRandomlyGenerated(true);
+  }, [selectedContainer]);
 
   const handleOpenSelectIcon = useCallback(
     () =>
@@ -951,13 +950,33 @@ function SaveItemScreen({
             }}
             controlElement={
               (!data.item_reference_number ||
-                referenceNumberIsRandomlyGenerated) && (
+                referenceNumberIsRandomlyGenerated) &&
+              (typeof selectedContainer?.item_reference_number === 'string' &&
+              !data.item_reference_number ? (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={copyReferenceNumberFromContainer}
+                >
+                  {({ textProps }) => (
+                    <Text
+                      {...textProps}
+                      style={[
+                        textProps.style,
+                        { maxWidth: 100 },
+                        { fontSize: 12 },
+                      ]}
+                      adjustsFontSizeToFit
+                    >
+                      Copy from Container
+                    </Text>
+                  )}
+                </UIGroup.ListTextInputItem.Button>
+              ) : (
                 <UIGroup.ListTextInputItem.Button
                   onPress={randomGenerateReferenceNumber}
                 >
                   Generate
                 </UIGroup.ListTextInputItem.Button>
-              )
+              ))
             }
             {...kiaTextInputProps}
           />
