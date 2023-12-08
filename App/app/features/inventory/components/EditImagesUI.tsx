@@ -40,6 +40,7 @@ import {
   getGetDatum,
   getSaveDatum,
 } from '@app/data/functions';
+import getImageDatum from '@app/data/images/getImageDatum';
 import useImageSelector, { ImageData } from '@app/data/images/useImageSelector';
 
 import { useDB } from '@app/db';
@@ -256,53 +257,14 @@ export function EditImagesUI({
             itemImageDataItem.__id || '',
           );
           if (itemImageDataItem.__type === 'unsaved_image_data') {
-            // Reuse already-saved image if possible
-            const imageDatum = await (async () => {
-              const image1440Digest = itemImageDataItem.image1440.digest;
-              if (image1440Digest) {
-                const existingImage = await getData(
-                  'image',
-                  {
-                    image_1440_digest: image1440Digest,
-                  },
-                  { limit: 1 },
-                );
-
-                const validExistingImage = onlyValid(existingImage);
-                if (validExistingImage.length >= 1) {
-                  return validExistingImage[0];
-                }
-              }
-
-              const imageToSave = {
-                __id: itemImageDataItem.__id,
-                __type: 'image',
-                filename: itemImageDataItem.fileName,
-              } as const;
-
-              await attachAttachmentToDatum(
-                imageToSave,
-                'thumbnail-128',
-                itemImageDataItem.thumbnail128.contentType,
-                itemImageDataItem.thumbnail128.data,
-              );
-              // await attachAttachmentToDatum(
-              //   imageToSave,
-              //   'thumbnail-1024',
-              //   itemImageDataItem.thumbnail1024.contentType,
-              //   itemImageDataItem.thumbnail1024.data,
-              // );
-              await attachAttachmentToDatum(
-                imageToSave,
-                'image-1440',
-                itemImageDataItem.image1440.contentType,
-                itemImageDataItem.image1440.data,
-              );
-
-              return await saveDatum(imageToSave, {
-                ignoreConflict: true,
-              });
-            })();
+            const imageDatum = await getImageDatum(
+              { ...itemImageDataItem, fileName: itemImageDataItem.fileName },
+              {
+                getData,
+                attachAttachmentToDatum,
+                saveDatum,
+              },
+            );
 
             await saveDatum(
               {

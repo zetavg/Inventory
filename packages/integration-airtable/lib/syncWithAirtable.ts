@@ -1,5 +1,6 @@
 import {
   DataMeta,
+  DataTypeWithID,
   GetAttachmentInfoFromDatum,
   GetData,
   GetDataConditions,
@@ -113,6 +114,7 @@ export default async function* syncWithAirtable(
     getDataCount,
     saveDatum,
     getAttachmentInfoFromDatum,
+    getImageFromAirtableImage,
   }: // batchSize = 10,
   {
     fetch: Fetch;
@@ -121,6 +123,9 @@ export default async function* syncWithAirtable(
     getDataCount: GetDataCount;
     saveDatum: SaveDatum;
     getAttachmentInfoFromDatum: GetAttachmentInfoFromDatum;
+    getImageFromAirtableImage: (
+      airtableImage: unknown,
+    ) => Promise<DataTypeWithID<'image'>>;
     // batchSize?: number;
   },
 ) {
@@ -1174,8 +1179,17 @@ export default async function* syncWithAirtable(
           .map(ri => ri?.filename)
           .filter(f => typeof f === 'string');
         const recordImageIds = recordImageFilenames.map(f => f.split('.')[0]);
-        const shouldHaveImages = onlyValid(
-          await getData('image', recordImageIds),
+        const shouldHaveImages = await Promise.all(
+          (
+            await getData('image', recordImageIds)
+          ).map(async (image, i) => {
+            if (image.__valid) return image;
+
+            const recordImage = (recordImages as Array<unknown>)[i];
+            const img = await getImageFromAirtableImage(recordImage);
+
+            return img;
+          }),
         );
         const shouldHaveImageIdsSet = new Set<string>(
           shouldHaveImages
