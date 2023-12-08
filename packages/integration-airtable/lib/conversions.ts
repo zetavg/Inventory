@@ -116,19 +116,33 @@ export async function itemToAirtableRecord(
       filename,
     };
   });
-  // Check if all image URL works
+  // Check if all image URL works, since Airtable will simply ignore URLs that cannot be accessed.
   for (const image of images) {
-    try {
-      const resp = await fetch(image.url, { method: 'HEAD' });
-      if (resp.status !== 200) {
-        throw new Error(`HEAD request to ${image.url} returns ${resp.status}`);
-      }
-    } catch (e) {
-      if (e instanceof Error) {
-        e.message = `Image URL ${image.url} for item "${item.name}" (ID: ${item.__id}) does not work: ${e.message}`;
-      }
+    let retries = 0;
+    while (true) {
+      try {
+        const resp = await fetch(image.url, { method: 'HEAD' });
+        if (resp.status !== 200) {
+          if (resp.status === 404 && retries < 10) {
+            // Maybe the image is not uploaded yet. Wait for 1 second and try again.
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            retries += 1;
+            continue;
+          }
 
-      throw e;
+          throw new Error(
+            `HEAD request to ${image.url} returns ${resp.status}`,
+          );
+        } else {
+          break;
+        }
+      } catch (e) {
+        if (e instanceof Error) {
+          e.message = `Image URL ${image.url} for item "${item.name}" (ID: ${item.__id}) does not work: ${e.message}`;
+        }
+
+        throw e;
+      }
     }
   }
 

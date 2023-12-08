@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
+import RNFS from 'react-native-fs';
 import RNSInfo from 'react-native-sensitive-info';
 
 import { z } from 'zod';
@@ -28,12 +29,15 @@ import ItemListItem from '@app/features/inventory/components/ItemListItem';
 
 import { onlyValid, useData } from '@app/data';
 import {
+  getAttachAttachmentToDatum,
   getGetAttachmentInfoFromDatum,
   getGetData,
   getGetDataCount,
   getGetDatum,
   getSaveDatum,
 } from '@app/data/functions';
+import getImageDatum from '@app/data/images/getImageDatum';
+import processAssets from '@app/data/images/processAssets';
 
 import { useDB } from '@app/db';
 
@@ -239,6 +243,7 @@ function AirtableIntegrationScreen({
             db,
             logger,
           });
+          const attachAttachmentToDatum = getAttachAttachmentToDatum({ db });
 
           for await (const p of syncWithAirtable(
             {
@@ -253,6 +258,61 @@ function AirtableIntegrationScreen({
               getDataCount,
               saveDatum,
               getAttachmentInfoFromDatum,
+              getImageFromAirtableImage: async airtableImage => {
+                if (!airtableImage || typeof airtableImage !== 'object') {
+                  throw new Error(
+                    `Expect airtableImage to be a non-null object, got ${typeof typeof airtableImage}.`,
+                  );
+                }
+
+                const { id, url, filename, type } = airtableImage as any;
+                if (typeof id !== 'string') {
+                  throw new Error(
+                    `Expect airtableImage.id to be a string, got ${typeof typeof id}.`,
+                  );
+                }
+                if (typeof url !== 'string') {
+                  throw new Error(
+                    `Expect airtableImage.url to be a string, got ${typeof typeof url}.`,
+                  );
+                }
+                if (filename && typeof filename !== 'string') {
+                  throw new Error(
+                    `Expect airtableImage.filename to be undefined or a string, got ${typeof typeof filename}.`,
+                  );
+                }
+                if (typeof type !== 'string') {
+                  throw new Error(
+                    `Expect airtableImage.type to be a string, got ${typeof typeof type}.`,
+                  );
+                }
+
+                const fileUri = `${RNFS.TemporaryDirectoryPath.replace(
+                  /\/$/,
+                  '',
+                )}/airtable_image_${id}.${type.split('/')[1]}`;
+                await RNFS.downloadFile({
+                  fromUrl: url,
+                  toFile: fileUri,
+                }).promise;
+
+                const images = await processAssets([
+                  { uri: fileUri, fileName: filename, type },
+                ]);
+
+                const image = images[0];
+                if (!image) {
+                  throw new Error('processAssets returned no images.');
+                }
+
+                const imageDatum = await getImageDatum(image, {
+                  getData,
+                  attachAttachmentToDatum,
+                  saveDatum,
+                });
+
+                return imageDatum;
+              },
             },
           )) {
             if (!gotAirtableBaseSchema) {
