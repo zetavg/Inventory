@@ -178,7 +178,10 @@ export async function itemToAirtableRecord(
         ? new Date(item.expiry_date).toISOString()
         : null,
     'Expire Soon Prior Days': item.expire_soon_prior_days || null,
-    'Stock Quantity': item.consumable_stock_quantity || null,
+    'Stock Quantity':
+      typeof item.consumable_stock_quantity === 'number'
+        ? item.consumable_stock_quantity
+        : null,
     'Stock Quantity Unit':
       typeof item.consumable_stock_quantity_unit === 'string'
         ? item.consumable_stock_quantity_unit
