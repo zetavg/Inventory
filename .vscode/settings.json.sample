@@ -1,0 +1,32 @@
+{
+    "jest.runMode": {
+        "type": "watch",
+        "deferred": true
+    },
+    "jest.virtualFolders": [
+        {
+            "name": "App",
+            "rootPath": "App"
+        },
+        {
+            "name": "Data",
+            "rootPath": "Data"
+        },
+        {
+            "name": "epc-utils",
+            "rootPath": "packages/epc-utils"
+        },
+        {
+            "name": "data-storage-couchdb",
+            "rootPath": "packages/data-storage-couchdb"
+        },
+        {
+            "name": "integration-airtable",
+            "rootPath": "packages/integration-airtable"
+        },
+        {
+            "name": "integration-snipe-it",
+            "rootPath": "packages/integration-snipe-it"
+        }
+    ]
+}
