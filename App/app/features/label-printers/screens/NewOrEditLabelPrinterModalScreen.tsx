@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, ScrollView, TextInput } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
+import Clipboard from '@react-native-clipboard/clipboard';
 import { diff } from 'deep-object-diff';
 
 import { URLS } from '@app/consts/info';
@@ -196,6 +197,40 @@ function NewOrEditLabelPrinterModalScreen({
     }
   }, [loadSampleConfig, state.printerConfig]);
 
+  const pasteConfigFromClipboard = useCallback(async () => {
+    printerConfigInputRef.current?.blur();
+    const cfg = await Clipboard.getString();
+    setState(s => ({
+      ...s,
+      printerConfig: cfg,
+    }));
+  }, []);
+  const handlePasteConfigPress = useCallback(() => {
+    if (
+      state.printerConfig !== INITIAL_PRINTER_CONFIG &&
+      state.printerConfig !== SAMPLE_PRINTER_CONFIG
+    ) {
+      Alert.alert(
+        'Paste and replace?',
+        'Are you sure you want to paste the config from the clipboard, replacing your current config?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+            onPress: () => {},
+          },
+          {
+            text: 'Paste and replace',
+            style: 'destructive',
+            onPress: pasteConfigFromClipboard,
+          },
+        ],
+      );
+    } else {
+      pasteConfigFromClipboard();
+    }
+  }, [pasteConfigFromClipboard, state.printerConfig]);
+
   return (
     <ModalContent
       navigation={navigation}
@@ -238,12 +273,12 @@ function NewOrEditLabelPrinterModalScreen({
             ref={printerConfigInputRef}
             label="Config"
             placeholder={
-              'Paste config here...\n\n(It is recommended to edit the config in a code editor and copy-paste it here)\n'
+              'Enter config here...\n\n(It is recommended to edit the config in a code editor and copy-paste it here)\n'
             }
             value={state.printerConfig}
             controlElement={
               <>
-                {!!configErrorMessage && (
+                {!state.printerConfig && (
                   <UIGroup.ListTextInputItemButton
                     onPress={handleLoadSampleConfigPress}
                   >
@@ -251,15 +286,22 @@ function NewOrEditLabelPrinterModalScreen({
                   </UIGroup.ListTextInputItemButton>
                 )}
                 <UIGroup.ListTextInputItemButton
-                  onPress={() =>
-                    navigation.push('TestPrinterConfigModal', {
-                      printerConfig: state.printerConfig,
-                    })
-                  }
-                  disabled={!!configErrorMessage}
+                  onPress={handlePasteConfigPress}
                 >
-                  {configErrorMessage ? 'Invalid Config' : 'Test'}
+                  Paste from Clipboard
                 </UIGroup.ListTextInputItemButton>
+                {!!state.printerConfig && (
+                  <UIGroup.ListTextInputItemButton
+                    onPress={() =>
+                      navigation.push('TestPrinterConfigModal', {
+                        printerConfig: state.printerConfig,
+                      })
+                    }
+                    disabled={!!configErrorMessage}
+                  >
+                    {configErrorMessage ? 'Invalid Config' : 'Test'}
+                  </UIGroup.ListTextInputItemButton>
+                )}
               </>
             }
             keyboardType="ascii-capable"
@@ -271,6 +313,7 @@ function NewOrEditLabelPrinterModalScreen({
             onChangeText={text => setState({ ...state, printerConfig: text })}
             {...kiaTextInputProps}
           />
+          {/*
           <UIGroup.ListItemSeparator />
           <UIGroup.ListItem
             button
@@ -282,6 +325,7 @@ function NewOrEditLabelPrinterModalScreen({
             }
             disabled={!!configErrorMessage}
           />
+          */}
         </UIGroup>
         <UIGroup footer="Check out the documentation on how to integrate with your label printer.">
           <UIGroup.ListItem

@@ -1,13 +1,21 @@
 import { NativeModules } from 'react-native';
 
+import { PUNCTUATION_REGEX } from '@app/consts/chars';
+
 const { NSLinguisticTaggerModule } = NativeModules;
 
 const LinguisticTaggerModuleIOS = {
   initTagger() {
-    return NSLinguisticTaggerModule.initTagger();
+    if (NSLinguisticTaggerModule) {
+      return NSLinguisticTaggerModule.initTagger();
+    }
   },
   cut(string: string): ReadonlyArray<string> {
-    return NSLinguisticTaggerModule.cut(string);
+    if (NSLinguisticTaggerModule) {
+      return NSLinguisticTaggerModule.cut(string);
+    } else {
+      return string.split(PUNCTUATION_REGEX).filter(s => !!s);
+    }
   },
 };
 

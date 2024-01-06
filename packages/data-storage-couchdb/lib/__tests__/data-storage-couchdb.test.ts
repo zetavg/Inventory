@@ -1581,8 +1581,6 @@ describe('saveDatum', () => {
             {
               __type: 'item',
               __id: item.__id,
-              name: 'Item',
-              icon_color: 'gray',
             },
             { ignoreConflict: true, forceTouch: true },
           );
