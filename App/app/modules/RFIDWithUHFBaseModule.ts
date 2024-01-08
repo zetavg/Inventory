@@ -1,4 +1,5 @@
 import { DeviceEventEmitter } from 'react-native';
+
 import crypto from 'crypto-browserify';
 
 export type MemoryBank = 'RESERVED' | 'EPC' | 'TID' | 'USER';
@@ -307,22 +308,6 @@ const RFIDWithUHFBaseModule = {
     };
 
     try {
-      reportStatus && reportStatus('Initializing lock...');
-      // Lock tag
-      await this.lock({
-        power,
-        accessPassword: oldAccessPassword,
-        code: '0a82a0', // Locks kill, access and EPC
-        filter: newFilter,
-        soundEnabled: false,
-      });
-    } catch (e) {
-      reportStatus && reportStatus('Failed on initializing lock');
-      if (soundEnabled) this.playSound('error');
-      throw e;
-    }
-
-    try {
       reportStatus && reportStatus('Setting password...');
       // Set password
       await this.write({
@@ -335,14 +320,30 @@ const RFIDWithUHFBaseModule = {
         filter: newFilter,
         soundEnabled: false,
       });
-
-      reportStatus && reportStatus('Done');
-      if (soundEnabled) this.playSound('success');
     } catch (e) {
       reportStatus && reportStatus('Failed on setting password');
       if (soundEnabled) this.playSound('error');
       throw e;
     }
+
+    try {
+      reportStatus && reportStatus('Locking tag...');
+      // Lock tag
+      await this.lock({
+        power,
+        accessPassword: newAccessPassword,
+        code: '0a82a0', // Locks kill, access and EPC
+        filter: newFilter,
+        soundEnabled: false,
+      });
+    } catch (e) {
+      reportStatus && reportStatus('Failed on locking tag');
+      if (soundEnabled) this.playSound('error');
+      throw e;
+    }
+
+    reportStatus && reportStatus('Done');
+    if (soundEnabled) this.playSound('success');
   },
   resetEpcAndUnlock: async function unlockAndResetEpc(
     oldAccessPassword: string,
@@ -417,9 +418,17 @@ const RFIDWithUHFBaseModule = {
         code: '000000',
       });
     } catch (e) {
-      reportStatus && reportStatus('Failed while unlocking tag');
-      if (soundEnabled) this.playSound('error');
-      throw e;
+      if (isLocked) {
+        reportStatus && reportStatus('Failed while unlocking tag');
+        if (soundEnabled) this.playSound('error');
+        throw e;
+      } else {
+        // Newer device models will throw an error when trying to unlock a tag with access password 00000000. But as long as the tag is already unlocked, we can ignore this error.
+        reportStatus && reportStatus('Unlocking tag... skipped');
+        await new Promise(resolve => {
+          setTimeout(resolve, 300);
+        });
+      }
     }
 
     try {
@@ -437,14 +446,14 @@ const RFIDWithUHFBaseModule = {
           soundEnabled: false,
         });
       }
-
-      reportStatus && reportStatus('Done');
-      if (soundEnabled) this.playSound('success');
     } catch (e) {
       reportStatus && reportStatus('Failed while removing password');
       if (soundEnabled) this.playSound('error');
       throw e;
     }
+
+    reportStatus && reportStatus('Done');
+    if (soundEnabled) this.playSound('success');
   },
 };
 
