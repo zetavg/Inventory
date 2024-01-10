@@ -55,5 +55,9 @@ describe('splitToTwoLines', () => {
     expect(
       splitToTwoLines('SKÅDIS Pegboard - 56x56 cm - white', 24),
     ).toStrictEqual(['SKÅDIS Pegboard', '56x56 cm - white']);
+
+    expect(
+      splitToTwoLines('Storage Bag for ABC-123 and DEF-456', 20),
+    ).toStrictEqual(['Storage Bag for', 'ABC-123 and DEF-456']);
   });
 });
