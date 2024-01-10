@@ -74,6 +74,11 @@ describe('splitToTwoLines', () => {
       '10 mm x 20 cm',
     ]);
 
+    expect(splitToTwoLines('Paper 10mm × 20cm', 12)).toStrictEqual([
+      'Paper',
+      '10mm × 20cm',
+    ]);
+
     expect(splitToTwoLines('Paper 10 × 20 cm', 12)).toStrictEqual([
       'Paper',
       '10 × 20 cm',

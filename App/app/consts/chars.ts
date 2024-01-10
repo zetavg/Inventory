@@ -28,4 +28,8 @@ export const UNITS = [
   '公升',
 ];
 
+export const NUMBER_WITH_OPTIONAL_UNIT_REGEX = new RegExp(
+  `^([0-9,.]+) ?(${UNITS.join('|')})?$`,
+);
+
 export const OPERATION_SYMBOLS = ['×', 'x'];

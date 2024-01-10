@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import {
   LINE_SPLITTING_PUNCTUATION_REGEX,
+  NUMBER_WITH_OPTIONAL_UNIT_REGEX,
   OPERATION_SYMBOLS,
   PUNCTUATION_REGEX,
   T_PUNCTUATION_REGEX,
@@ -55,12 +56,12 @@ function* generateSubstrings(str: string, splitRegex?: RegExp) {
         !UNITS.includes(words[wordsPtr + 1]) &&
         !(
           OPERATION_SYMBOLS.includes(words[wordsPtr + 1]) &&
-          (words[wordsPtr].match(/^[0-9.]+$/) ||
+          (words[wordsPtr].match(NUMBER_WITH_OPTIONAL_UNIT_REGEX) ||
             UNITS.includes(words[wordsPtr]))
         ) &&
         !(
           OPERATION_SYMBOLS.includes(words[wordsPtr]) &&
-          (words[wordsPtr + 1] || '').match(/^[0-9.]+$/)
+          (words[wordsPtr + 1] || '').match(NUMBER_WITH_OPTIONAL_UNIT_REGEX)
         )
       ) {
         yield subStr;
