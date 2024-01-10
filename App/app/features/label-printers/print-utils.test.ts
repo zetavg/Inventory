@@ -60,4 +60,27 @@ describe('splitToTwoLines', () => {
       splitToTwoLines('Storage Bag for ABC-123 and DEF-456', 20),
     ).toStrictEqual(['Storage Bag for', 'ABC-123 and DEF-456']);
   });
+
+  it('keeps number with unit in a whole', async () => {
+    expect(splitToTwoLines('Rope 10 m', 8)).toStrictEqual(['Rope', '10 m']);
+
+    expect(splitToTwoLines('Paper 10 mm × 20 cm', 12)).toStrictEqual([
+      'Paper',
+      '10 mm × 20 cm',
+    ]);
+
+    expect(splitToTwoLines('Paper 10 mm x 20 cm', 12)).toStrictEqual([
+      'Paper',
+      '10 mm x 20 cm',
+    ]);
+
+    expect(splitToTwoLines('Paper 10 × 20 cm', 12)).toStrictEqual([
+      'Paper',
+      '10 × 20 cm',
+    ]);
+
+    expect(splitToTwoLines('Paper 10 ×', 12)).toStrictEqual(['Paper 10 ×', '']);
+
+    expect(splitToTwoLines('Paper × 3', 5)).toStrictEqual(['Paper', '× 3']);
+  });
 });

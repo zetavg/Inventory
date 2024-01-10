@@ -2,8 +2,10 @@ import { Platform } from 'react-native';
 
 import {
   LINE_SPLITTING_PUNCTUATION_REGEX,
+  OPERATION_SYMBOLS,
   PUNCTUATION_REGEX,
   T_PUNCTUATION_REGEX,
+  UNITS,
 } from '@app/consts/chars';
 
 import LinguisticTaggerModuleIOS from '@app/modules/LinguisticTaggerModuleIOS';
@@ -49,7 +51,20 @@ function* generateSubstrings(str: string, splitRegex?: RegExp) {
   for (let i = 0; i < str.length; i++) {
     subStr += str[i];
     if (subStr.endsWith(words[wordsPtr])) {
-      yield subStr;
+      if (
+        !UNITS.includes(words[wordsPtr + 1]) &&
+        !(
+          OPERATION_SYMBOLS.includes(words[wordsPtr + 1]) &&
+          (words[wordsPtr].match(/^[0-9.]+$/) ||
+            UNITS.includes(words[wordsPtr]))
+        ) &&
+        !(
+          OPERATION_SYMBOLS.includes(words[wordsPtr]) &&
+          (words[wordsPtr + 1] || '').match(/^[0-9.]+$/)
+        )
+      ) {
+        yield subStr;
+      }
       lastYieldLength = subStr.length;
       wordsPtr += 1;
     }
