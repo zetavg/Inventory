@@ -303,6 +303,78 @@ export const VIEWS = {
       );
     },
   }),
+  rfid_untagged_items_by_updated_time: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          !!doc.data.rfid_tag_epc_memory_bank_contents &&
+          !doc.data.actual_rfid_tag_epc_memory_bank_contents
+        ) {
+          emit([doc.updated_at], { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
+  rfid_untagged_items_by_created_time: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          !!doc.data.rfid_tag_epc_memory_bank_contents &&
+          !doc.data.actual_rfid_tag_epc_memory_bank_contents
+        ) {
+          emit([doc.created_at], { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
   rfid_tag_outdated_items_count: view_defn({
     version: 1,
     map: `
@@ -340,6 +412,80 @@ export const VIEWS = {
           doc.data.rfid_tag_epc_memory_bank_contents !== doc.data.actual_rfid_tag_epc_memory_bank_contents
         ) {
           emit([doc.data.collection_id, doc._id], { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
+  rfid_tag_outdated_items_by_updated_time: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          !!doc.data.rfid_tag_epc_memory_bank_contents &&
+          !!doc.data.actual_rfid_tag_epc_memory_bank_contents &&
+          doc.data.rfid_tag_epc_memory_bank_contents !== doc.data.actual_rfid_tag_epc_memory_bank_contents
+        ) {
+          emit([doc.updated_at], { _id: doc._id });
+        }
+      }
+    `,
+    dataParser: (data: unknown) => {
+      if (!data) return null;
+      if (typeof data !== 'object') return null;
+      const rows = (data as any).rows;
+      if (!Array.isArray(rows)) return null;
+      return rows.map(row =>
+        row.doc
+          ? {
+              __data_included: true,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+              data: getDatumFromDoc('item', row.doc),
+            }
+          : {
+              __data_included: false,
+              key: row.key,
+              id: row.id,
+              value: row.value,
+            },
+      );
+    },
+  }),
+  rfid_tag_outdated_items_by_created_time: view_defn({
+    version: 1,
+    map: `
+      function (doc) {
+        if (
+          doc.type === 'item' &&
+          !!doc.data.rfid_tag_epc_memory_bank_contents &&
+          !!doc.data.actual_rfid_tag_epc_memory_bank_contents &&
+          doc.data.rfid_tag_epc_memory_bank_contents !== doc.data.actual_rfid_tag_epc_memory_bank_contents
+        ) {
+          emit([doc.created_at], { _id: doc._id });
         }
       }
     `,

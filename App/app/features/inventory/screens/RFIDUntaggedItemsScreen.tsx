@@ -22,8 +22,9 @@ function RFIDUntaggedItemsScreen({
     loading: rfidUntaggedItemsDataLoading,
     refresh: refreshRfidUntaggedItems,
     refreshing: rfidUntaggedItemsRefreshing,
-  } = useView('rfid_untagged_items', {
+  } = useView('rfid_untagged_items_by_updated_time', {
     includeDocs: true,
+    descending: true,
   });
   const rfidUntaggedItems = rfidUntaggedItemsData
     ? rfidUntaggedItemsData
@@ -36,8 +37,9 @@ function RFIDUntaggedItemsScreen({
     loading: rfidTagOutdatedItemsDataLoading,
     refresh: refreshRfidTagOutdatedItems,
     refreshing: rfidTagOutdatedItemsRefreshing,
-  } = useView('rfid_tag_outdated_items', {
+  } = useView('rfid_tag_outdated_items_by_updated_time', {
     includeDocs: true,
+    descending: true,
   });
   const rfidTagOutdatedItems = rfidTagOutdatedItemsData
     ? rfidTagOutdatedItemsData
