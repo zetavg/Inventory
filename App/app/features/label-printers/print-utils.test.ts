@@ -61,6 +61,23 @@ describe('splitToTwoLines', () => {
     ).toStrictEqual(['Storage Bag for', 'ABC-123 and DEF-456']);
   });
 
+  it('does not break parentheses', async () => {
+    expect(splitToTwoLines('Hello (Hello World)', 12)).toStrictEqual([
+      'Hello',
+      '(Hello World)',
+    ]);
+
+    expect(splitToTwoLines('Hello (Hello World)', 18)).toStrictEqual([
+      'Hello',
+      '(Hello World)',
+    ]);
+
+    expect(splitToTwoLines('Hello (Hello World)', 7)).toStrictEqual([
+      'Hello',
+      '(Hello World)',
+    ]);
+  });
+
   it('keeps number with unit in a whole', async () => {
     expect(splitToTwoLines('Rope 10 m', 8)).toStrictEqual(['Rope', '10 m']);
 
@@ -81,6 +98,11 @@ describe('splitToTwoLines', () => {
 
     expect(splitToTwoLines('Paper 10 × 20 cm', 12)).toStrictEqual([
       'Paper',
+      '10 × 20 cm',
+    ]);
+
+    expect(splitToTwoLines('Paper (White) Bag 10 × 20 cm', 20)).toStrictEqual([
+      'Paper (White) Bag',
       '10 × 20 cm',
     ]);
 

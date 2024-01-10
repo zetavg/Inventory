@@ -1,10 +1,13 @@
 import { Platform } from 'react-native';
 
 import {
+  LEFT_PARENTHESES,
   LINE_SPLITTING_PUNCTUATION_REGEX,
+  LINE_SPLITTING_PUNCTUATION_REGEX_2,
   NUMBER_WITH_OPTIONAL_UNIT_REGEX,
   OPERATION_SYMBOLS,
   PUNCTUATION_REGEX,
+  RIGHT_PARENTHESES,
   T_PUNCTUATION_REGEX,
   UNITS,
 } from '@app/consts/chars';
@@ -53,6 +56,8 @@ function* generateSubstrings(str: string, splitRegex?: RegExp) {
     subStr += str[i];
     if (subStr.endsWith(words[wordsPtr])) {
       if (
+        !LEFT_PARENTHESES.some(p => subStr.endsWith(p)) &&
+        !RIGHT_PARENTHESES.some(p => str.slice(i + 1).startsWith(p)) &&
         !UNITS.includes(words[wordsPtr + 1]) &&
         !(
           OPERATION_SYMBOLS.includes(words[wordsPtr + 1]) &&
@@ -100,7 +105,7 @@ export function splitToTwoLines(
   let line1 = '';
   for (const substring of generateSubstrings(
     str,
-    strContainsPunctuation ? LINE_SPLITTING_PUNCTUATION_REGEX : undefined,
+    strContainsPunctuation ? LINE_SPLITTING_PUNCTUATION_REGEX_2 : undefined,
   )) {
     if (countChars(substring) > line1MaxWidth) break;
 

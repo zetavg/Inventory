@@ -1,5 +1,31 @@
-export const PUNCTUATION_REGEX = /[ ,/()　，。／、（）]| - /;
-export const LINE_SPLITTING_PUNCTUATION_REGEX = /[,(，。／、（]| - | \/ /;
+export const LEFT_PARENTHESES = ['(', '（'];
+
+export const RIGHT_PARENTHESES = [')', '）'];
+
+export const PUNCTUATIONS = [
+  ' ',
+  ',',
+  '/',
+  '　',
+  '，',
+  '。',
+  '／',
+  '、',
+  ' - ',
+  ...LEFT_PARENTHESES,
+  ...RIGHT_PARENTHESES,
+];
+
+export const PUNCTUATION_REGEX = new RegExp(
+  `${PUNCTUATIONS.map(p =>
+    p.replace('/', '\\/').replace('(', '\\(').replace(')', '\\)'),
+  ).join('|')}`,
+);
+
+export const LINE_SPLITTING_PUNCTUATION_REGEX = /[,()，。／、（）]| - | \/ /;
+export const LINE_SPLITTING_PUNCTUATION_REGEX_2 = new RegExp(
+  `${LINE_SPLITTING_PUNCTUATION_REGEX.source}| (?=\\d)`,
+);
 export const T_PUNCTUATION_REGEX = /[ ,-/　，。／]/;
 
 export const UNITS = [
