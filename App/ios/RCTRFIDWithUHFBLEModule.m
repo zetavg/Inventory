@@ -87,14 +87,14 @@ RCT_EXPORT_METHOD(connectDevice:
   @try {
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
 
-    // Try to connect a paired device
+    // Try to connect device directly
     BOOL result = [[RFIDBlutoothManager shareManager] connectPeripheralWithIdentifier:identifier];
     if (result == YES) {
       resolve(@(true));
       return;
     }
     
-    // Or try to search and connect to a unpaired device
+    // Or try to search and connect to a device
     self->searchForConnectToIdentifier = identifier;
     [[RFIDBlutoothManager shareManager] startBleScan];
     [[RFIDBlutoothManager shareManager] initSoundIfNeeded];
