@@ -19,8 +19,11 @@ import verifyMaterialCommunityIconName from '@app/utils/verifyMaterialCommunityI
 
 import type { StackParamList } from '@app/navigation/MainStack';
 
+import useActionSheet from '@app/hooks/useActionSheet';
 import useColors from '@app/hooks/useColors';
 import useTabBarInsets from '@app/hooks/useTabBarInsets';
+
+import { MenuAction, MenuView } from '@app/components/Menu';
 
 import ScreenContentScrollView from './ScreenContentScrollView';
 
@@ -46,6 +49,7 @@ type Props = {
   /** See: https://materialdesignicons.com */
   action1MaterialIconName?: string;
   onAction1Press?: () => void;
+  action1MenuActions?: ReadonlyArray<MenuAction>;
   action1Color?: string;
 
   action2Label?: string;
@@ -53,12 +57,14 @@ type Props = {
   /** See: https://materialdesignicons.com */
   action2MaterialIconName?: string;
   onAction2Press?: () => void;
+  action2MenuActions?: ReadonlyArray<MenuAction>;
 
   action3Label?: string;
   action3SFSymbolName?: string;
   /** See: https://materialdesignicons.com */
   action3MaterialIconName?: string;
   onAction3Press?: () => void;
+  action3MenuActions?: ReadonlyArray<MenuAction>;
 
   headerRight?: JSX.Element;
 
@@ -85,15 +91,18 @@ function ScreenContent({
   action1SFSymbolName,
   action1MaterialIconName,
   onAction1Press,
+  action1MenuActions,
   action1Color,
   action2Label,
   action2SFSymbolName,
   action2MaterialIconName,
   onAction2Press,
+  action2MenuActions,
   action3Label,
   action3SFSymbolName,
   action3MaterialIconName,
   onAction3Press,
+  action3MenuActions,
   headerRight,
   overlay,
   route,
@@ -141,95 +150,86 @@ function ScreenContent({
             commonStyles.mrm4,
           ]}
         >
-          {(action3Label || action3SFSymbolName) && (
-            <TouchableOpacity
-              onPress={onAction3Press}
-              style={[
-                !!action3SFSymbolName &&
-                  commonStyles.touchableSFSymbolContainer,
-                action3SFSymbolName
-                  ? styles.touchableSFSymbolContainer
-                  : styles.touchableTextContainer,
-              ]}
-            >
-              {action3SFSymbolName ? (
-                <SFSymbol
-                  name={action3SFSymbolName}
-                  color={iosHeaderTintColor}
-                  size={22}
-                />
-              ) : (
-                <Text
-                  style={[
-                    styles.iosHeaderButtonText,
-                    { color: iosHeaderTintColor },
-                  ]}
-                >
-                  {action3Label}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {(action2Label || action2SFSymbolName) && (
-            <TouchableOpacity
-              onPress={onAction2Press}
-              style={[
-                !!action2SFSymbolName &&
-                  commonStyles.touchableSFSymbolContainer,
-                action2SFSymbolName
-                  ? styles.touchableSFSymbolContainer
-                  : styles.touchableTextContainer,
-              ]}
-            >
-              {action2SFSymbolName ? (
-                <SFSymbol
-                  name={action2SFSymbolName}
-                  color={iosHeaderTintColor}
-                  size={22}
-                />
-              ) : (
-                <Text
-                  style={[
-                    styles.iosHeaderButtonText,
-                    { color: iosHeaderTintColor },
-                  ]}
-                >
-                  {action2Label}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {(action1Label || action1SFSymbolName) && (
-            <TouchableOpacity
-              onPress={onAction1Press}
-              style={[
-                !!action1SFSymbolName &&
-                  commonStyles.touchableSFSymbolContainer,
-                action1SFSymbolName
-                  ? styles.touchableSFSymbolContainer
-                  : styles.touchableTextContainer,
-              ]}
-            >
-              {action1SFSymbolName ? (
-                <SFSymbol
-                  name={action1SFSymbolName}
-                  color={action1Color || iosHeaderTintColor}
-                  size={22}
-                />
-              ) : (
-                <Text
-                  style={[
-                    styles.iosHeaderButtonText,
-                    { color: iosHeaderTintColor },
-                  ]}
-                >
-                  {action1Label}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
+          {(
+            [
+              {
+                key: 3,
+                actionLabel: action3Label,
+                actionSFSymbolName: action3SFSymbolName,
+                actionColor: undefined,
+                onActionPress: onAction3Press,
+                actionMenuActions: action3MenuActions,
+              },
+              {
+                key: 2,
+                actionLabel: action2Label,
+                actionSFSymbolName: action2SFSymbolName,
+                actionColor: undefined,
+                onActionPress: onAction2Press,
+                actionMenuActions: action2MenuActions,
+              },
+              {
+                key: 1,
+                actionLabel: action1Label,
+                actionSFSymbolName: action1SFSymbolName,
+                actionColor: action1Color,
+                onActionPress: onAction1Press,
+                actionMenuActions: action1MenuActions,
+              },
+            ] as const
+          )
+            .map(
+              ({
+                key,
+                actionLabel,
+                actionSFSymbolName,
+                actionColor,
+                onActionPress,
+                actionMenuActions,
+              }) =>
+                (actionLabel || actionSFSymbolName) &&
+                (() => {
+                  const c = (
+                    <TouchableOpacity
+                      key={key}
+                      onPress={onActionPress}
+                      style={[
+                        !!actionSFSymbolName &&
+                          commonStyles.touchableSFSymbolContainer,
+                        actionSFSymbolName
+                          ? styles.touchableSFSymbolContainer
+                          : styles.touchableTextContainer,
+                      ]}
+                    >
+                      {actionSFSymbolName ? (
+                        <SFSymbol
+                          name={actionSFSymbolName}
+                          color={actionColor || iosHeaderTintColor}
+                          size={22}
+                        />
+                      ) : (
+                        <Text
+                          style={[
+                            styles.iosHeaderButtonText,
+                            { color: iosHeaderTintColor },
+                          ]}
+                        >
+                          {actionLabel}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                  if (actionMenuActions) {
+                    return (
+                      <MenuView key={key} actions={actionMenuActions}>
+                        {c}
+                      </MenuView>
+                    );
+                  }
+                  return c;
+                })(),
+            )
+            .filter(a => !!a)}
 
           {headerRight}
         </View>
@@ -248,6 +248,9 @@ function ScreenContent({
     onAction1Press,
     onAction2Press,
     onAction3Press,
+    action1MenuActions,
+    action2MenuActions,
+    action3MenuActions,
     onSearchChangeText,
     showAppBar,
     showSearch,
@@ -309,6 +312,8 @@ function ScreenContent({
 
   const searchInputRef = useRef<TextInput>(null);
 
+  const { showActionSheet } = useActionSheet();
+
   return (
     <View style={commonStyles.flex1}>
       {Platform.OS !== 'ios' && showAppBar && (
@@ -340,83 +345,101 @@ function ScreenContent({
               onPress={() => searchInputRef.current?.focus()}
             />
           )}
-          {searchEnabled ? (
-            <>
-              <TextInput
-                ref={searchInputRef}
-                style={styles.searchTextInput}
-                autoFocus={searchCanBeClosedAndroid}
-                placeholder={searchPlaceholder || 'Search'}
-                value={searchText}
-                onChangeText={text => {
-                  setSearchText(text);
-                  onSearchChangeText && onSearchChangeText(text);
-                }}
-                returnKeyType="search"
-                onBlur={onSearchBlur}
-              />
-              {!searchCanBeClosedAndroid && (
-                <>
-                  {searchText && (
+          {(() => {
+            const actionButtons = (
+              [
+                {
+                  key: 3,
+                  verifiedActionMaterialIconName:
+                    verifiedAction3MaterialIconName,
+                  actionMenuActions: action3MenuActions,
+                  onActionPress: onAction3Press,
+                },
+                {
+                  key: 2,
+                  verifiedActionMaterialIconName:
+                    verifiedAction2MaterialIconName,
+                  actionMenuActions: action2MenuActions,
+                  onActionPress: onAction2Press,
+                },
+                {
+                  key: 1,
+                  verifiedActionMaterialIconName:
+                    verifiedAction1MaterialIconName,
+                  actionMenuActions: action1MenuActions,
+                  onActionPress: onAction1Press,
+                },
+              ] as const
+            )
+              .map(
+                ({
+                  key,
+                  verifiedActionMaterialIconName,
+                  actionMenuActions,
+                  onActionPress,
+                }) =>
+                  !!verifiedActionMaterialIconName &&
+                  (actionMenuActions ? (
+                    <MenuView key={key} actions={actionMenuActions}>
+                      <Appbar.Action
+                        icon={verifiedActionMaterialIconName}
+                        onPress={onActionPress}
+                      />
+                    </MenuView>
+                  ) : (
                     <Appbar.Action
-                      icon="close"
-                      onPress={() => {
-                        searchInputRef.current?.clear();
-                        setSearchText('');
-                        onSearchChangeText && onSearchChangeText('');
-                      }}
+                      key={key}
+                      icon={verifiedActionMaterialIconName}
+                      onPress={onActionPress}
                     />
-                  )}
-                  {verifiedAction3MaterialIconName && onAction2Press && (
-                    <Appbar.Action
-                      icon={verifiedAction3MaterialIconName}
-                      onPress={onAction3Press}
-                    />
-                  )}
-                  {verifiedAction2MaterialIconName && onAction2Press && (
-                    <Appbar.Action
-                      icon={verifiedAction2MaterialIconName}
-                      onPress={onAction2Press}
-                    />
-                  )}
-                  {verifiedAction1MaterialIconName && onAction1Press && (
-                    <Appbar.Action
-                      icon={verifiedAction1MaterialIconName}
-                      onPress={onAction1Press}
-                    />
-                  )}
-                </>
-              )}
-            </>
-          ) : (
-            <>
-              <Appbar.Content title={title} />
-              {showSearch && (
-                <Appbar.Action
-                  icon="magnify"
-                  onPress={() => setSearchEnabled(true)}
+                  )),
+              )
+              .filter(a => !!a);
+            return searchEnabled ? (
+              <>
+                <TextInput
+                  ref={searchInputRef}
+                  style={styles.searchTextInput}
+                  autoFocus={searchCanBeClosedAndroid}
+                  placeholder={searchPlaceholder || 'Search'}
+                  value={searchText}
+                  onChangeText={text => {
+                    setSearchText(text);
+                    onSearchChangeText && onSearchChangeText(text);
+                  }}
+                  returnKeyType="search"
+                  onBlur={onSearchBlur}
                 />
-              )}
-              {verifiedAction3MaterialIconName && onAction2Press && (
-                <Appbar.Action
-                  icon={verifiedAction3MaterialIconName}
-                  onPress={onAction3Press}
-                />
-              )}
-              {verifiedAction2MaterialIconName && onAction2Press && (
-                <Appbar.Action
-                  icon={verifiedAction2MaterialIconName}
-                  onPress={onAction2Press}
-                />
-              )}
-              {verifiedAction1MaterialIconName && onAction1Press && (
-                <Appbar.Action
-                  icon={verifiedAction1MaterialIconName}
-                  onPress={onAction1Press}
-                />
-              )}
-            </>
-          )}
+                {!searchCanBeClosedAndroid && (
+                  <>
+                    {searchText && (
+                      <Appbar.Action
+                        icon="close"
+                        onPress={() => {
+                          searchInputRef.current?.clear();
+                          setSearchText('');
+                          onSearchChangeText && onSearchChangeText('');
+                        }}
+                      />
+                    )}
+                    {actionButtons}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <Appbar.Content title={title} />
+                {showSearch && (
+                  <Appbar.Action
+                    icon="magnify"
+                    onPress={() => setSearchEnabled(true)}
+                  />
+                )}
+
+                {actionButtons}
+              </>
+            );
+          })()}
         </Appbar.Header>
       )}
       {Platform.OS === 'ios'

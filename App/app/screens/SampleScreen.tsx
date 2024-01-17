@@ -6,8 +6,65 @@ import type { StackParamList } from '@app/navigation/MainStack';
 
 import useDebouncedValue from '@app/hooks/useDebouncedValue';
 
+import { MenuAction } from '@app/components/Menu';
 import ScreenContent from '@app/components/ScreenContent';
 import UIGroup from '@app/components/UIGroup';
+
+const SAMPLE_MENU_ACTIONS: ReadonlyArray<MenuAction> = [
+  {
+    title: 'Add',
+    sfSymbolName: 'plus',
+    children: [
+      {
+        title: 'Take Picture from Camera',
+        sfSymbolName: 'camera',
+        onPress: () => Alert.alert('"Take Picture from Camera" pressed'),
+      },
+      {
+        title: 'Select from Photo Library',
+        sfSymbolName: 'photo.on.rectangle',
+        onPress: () => Alert.alert('"Select from Photo Library" pressed'),
+      },
+      {
+        title: 'Select from Files',
+        sfSymbolName: 'folder',
+        onPress: () => Alert.alert('"Select from Files" pressed'),
+      },
+    ],
+  },
+  {
+    title: 'Options',
+    sfSymbolName: 'slider.horizontal.3',
+    children: [
+      {
+        title: 'On State',
+        state: 'on',
+        onPress: () => Alert.alert('"On State" pressed'),
+      },
+      {
+        title: 'Off State',
+        state: 'off',
+        onPress: () => Alert.alert('"Off State" pressed'),
+      },
+      {
+        title: 'Mixed State',
+        state: 'mixed',
+        onPress: () => Alert.alert('"Mixed State" pressed'),
+      },
+    ],
+  },
+  {
+    title: 'Share',
+    sfSymbolName: 'square.and.arrow.up',
+    onPress: () => Alert.alert('"Share" pressed'),
+  },
+  {
+    title: 'Destructive',
+    destructive: true,
+    sfSymbolName: 'trash',
+    onPress: () => Alert.alert('"Destructive" pressed'),
+  },
+];
 
 function SampleScreen({
   navigation,
@@ -43,6 +100,7 @@ function SampleScreen({
     action1MaterialIconName,
     1000,
   );
+  const [action1UseMenu, setAction1UseMenu] = useState(false);
 
   const [action2Label, setAction2Label] = useState('Action 2');
   const [action2SFSymbolName, setAction2SFSymbolName] = useState('trash');
@@ -56,6 +114,7 @@ function SampleScreen({
     action2MaterialIconName,
     1000,
   );
+  const [action2UseMenu, setAction2UseMenu] = useState(false);
 
   const [action3Label, setAction3Label] = useState('Action 3');
   const [action3SFSymbolName, setAction3SFSymbolName] = useState('gearshape');
@@ -68,6 +127,7 @@ function SampleScreen({
     action3MaterialIconName,
     1000,
   );
+  const [action3UseMenu, setAction3UseMenu] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const { kiaTextInputProps } =
@@ -85,15 +145,24 @@ function SampleScreen({
       action1Label={action1Label}
       action1SFSymbolName={debouncedAction1SFSymbolName}
       action1MaterialIconName={debouncedAction1MaterialIconName}
-      onAction1Press={() => Alert.alert('Action 1 Pressed')}
+      onAction1Press={
+        !action1UseMenu ? () => Alert.alert('Action 1 Pressed') : undefined
+      }
+      action1MenuActions={action1UseMenu ? SAMPLE_MENU_ACTIONS : undefined}
       action2Label={action2Label}
       action2SFSymbolName={debouncedAction2SFSymbolName}
       action2MaterialIconName={debouncedAction2MaterialIconName}
-      onAction2Press={() => Alert.alert('Action 2 Pressed')}
+      onAction2Press={
+        !action2UseMenu ? () => Alert.alert('Action 2 Pressed') : undefined
+      }
+      action2MenuActions={action2UseMenu ? SAMPLE_MENU_ACTIONS : undefined}
       action3Label={action3Label}
       action3SFSymbolName={debouncedAction3SFSymbolName}
       action3MaterialIconName={debouncedAction3MaterialIconName}
-      onAction3Press={() => Alert.alert('Action 3 Pressed')}
+      onAction3Press={
+        !action3UseMenu ? () => Alert.alert('Action 3 Pressed') : undefined
+      }
+      action3MenuActions={action3UseMenu ? SAMPLE_MENU_ACTIONS : undefined}
     >
       <ScreenContent.ScrollView
         ref={scrollViewRef}
@@ -226,6 +295,17 @@ function SampleScreen({
             onChangeText={t => setAction1MaterialIconName(t)}
             {...kiaTextInputProps}
           />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Use Menu"
+            horizontalLabel
+            inputElement={
+              <UIGroup.ListItem.Switch
+                value={action1UseMenu}
+                onValueChange={v => setAction1UseMenu(v)}
+              />
+            }
+          />
         </UIGroup>
 
         <UIGroup header="Action 2">
@@ -264,6 +344,17 @@ function SampleScreen({
             onChangeText={t => setAction2MaterialIconName(t)}
             {...kiaTextInputProps}
           />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Use Menu"
+            horizontalLabel
+            inputElement={
+              <UIGroup.ListItem.Switch
+                value={action2UseMenu}
+                onValueChange={v => setAction2UseMenu(v)}
+              />
+            }
+          />
         </UIGroup>
 
         <UIGroup header="Action 3">
@@ -301,6 +392,17 @@ function SampleScreen({
             value={action3MaterialIconName}
             onChangeText={t => setAction3MaterialIconName(t)}
             {...kiaTextInputProps}
+          />
+          <UIGroup.ListItemSeparator />
+          <UIGroup.ListTextInputItem
+            label="Use Menu"
+            horizontalLabel
+            inputElement={
+              <UIGroup.ListItem.Switch
+                value={action3UseMenu}
+                onValueChange={v => setAction3UseMenu(v)}
+              />
+            }
           />
         </UIGroup>
       </ScreenContent.ScrollView>
