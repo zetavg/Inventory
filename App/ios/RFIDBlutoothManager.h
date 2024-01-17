@@ -10,6 +10,7 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
+#import <UIKit/UIKit.h>
 #import "BLEModel.h"
 #import "BluetoothUtil.h"
 
@@ -72,10 +73,16 @@
   int player1i;
   int player2i;
   int player3i;
+  BOOL hapticFeedbackInitialized;
+  UIImpactFeedbackGenerator *uiLightImpactFeedbackGenerator;
+  double lastTagScannedFeedback1PlayAt;
+  double lastTagScannedFeedback2PlayAt;
 }
 
 @property (nonatomic, strong) CBCentralManager *centralManager;
 @property (nonatomic, assign) BOOL connectDevice;
+
+@property (nonatomic, assign) double feedbackMinimumDelay;
 
 + (instancetype)shareManager;
 
@@ -265,5 +272,9 @@
 
 - (void)initSoundIfNeeded;
 - (void)playSound:(int)soundId withVolume:(float)volume;
+
+
+- (void)initHapticFeedbackIfNeeded;
+- (void)playTagScannedFeedback:(int)soundId volume:(float)volume hapticFeedbackIntensity:(float)hapticFeedbackIntensity;
 
 @end
