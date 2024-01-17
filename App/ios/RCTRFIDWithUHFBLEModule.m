@@ -86,19 +86,18 @@ RCT_EXPORT_METHOD(connectDevice:
 {
   @try {
     [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    self->searchForConnectToIdentifier = identifier;
 
-    // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
-    //    dispatch_async(dispatch_get_main_queue(), ^{
-    //    });
+    // Try to connect a paired device
+    BOOL result = [[RFIDBlutoothManager shareManager] connectPeripheralWithIdentifier:identifier];
+    if (result == YES) {
+      resolve(@(true));
+      return;
+    }
+    
+    // Or try to search and connect to a unpaired device
+    self->searchForConnectToIdentifier = identifier;
     [[RFIDBlutoothManager shareManager] startBleScan];
     [[RFIDBlutoothManager shareManager] initSoundIfNeeded];
-//    if (![RFIDBlutoothManager shareManager].connectDevice) {
-//      // Just to poke centralManager so that it can report status correctly
-//      [[RFIDBlutoothManager shareManager].centralManager scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey : @ YES}];
-//      [[RFIDBlutoothManager shareManager].centralManager stopScan];
-//    }
-//    BOOL result = [[RFIDBlutoothManager shareManager] connectPeripheralWithIdentifier:identifier];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
