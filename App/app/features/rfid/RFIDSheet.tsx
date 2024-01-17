@@ -396,7 +396,7 @@ function RFIDSheet(
   useEffect(() => {
     if (!sheetOpened || useBuiltinReader) return;
     if (bleDeviceConnectionStatus?.status !== 'CONNECTED') return;
-    if (isWorking) return;
+    if (isWorkingRef.current) return;
 
     const timer = setTimeout(() => {
       RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(v =>
@@ -406,8 +406,8 @@ function RFIDSheet(
 
     const interval = setInterval(() => {
       if (isWorkingRef.current) return;
-      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(
-        v => v <= 100 && v >= 0 && setBleDeviceBatteryLevel(v),
+      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(v =>
+        setBleDeviceBatteryLevel(v),
       );
     }, 10000);
 
@@ -415,12 +415,7 @@ function RFIDSheet(
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, [
-    useBuiltinReader,
-    bleDeviceConnectionStatus?.status,
-    sheetOpened,
-    isWorking,
-  ]);
+  }, [useBuiltinReader, bleDeviceConnectionStatus?.status, sheetOpened]);
 
   // General
 
