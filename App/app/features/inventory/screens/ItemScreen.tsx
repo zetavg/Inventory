@@ -81,7 +81,6 @@ function ItemScreen({
 
   const rootNavigation = useRootNavigation();
   const { openRfidSheet } = useRootBottomSheets();
-  const { showActionSheet } = useActionSheet();
 
   const { config, loading: configLoading } = useConfig();
   const { save, saving } = useSave();
@@ -298,49 +297,6 @@ function ItemScreen({
     navigation,
   });
 
-  const handleMoreActionsPress = useCallback(() => {
-    showActionSheet(
-      [
-        data?.__valid
-          ? {
-              name: 'Duplicate',
-              onSelect: () => {
-                if (!data?.__valid) return;
-                rootNavigation?.navigate('SaveItem', {
-                  initialData: {
-                    ...Object.fromEntries(
-                      Object.entries(data).filter(
-                        ([k]) =>
-                          !k.startsWith('_') &&
-                          k !== 'actual_rfid_tag_epc_memory_bank_contents' &&
-                          k !== 'rfid_tag_access_password' &&
-                          k !== 'integrations',
-                      ),
-                    ),
-                  },
-                  afterSave: it => {
-                    it.__id && navigation.push('Item', { id: it.__id });
-                  },
-                });
-              },
-            }
-          : null,
-        {
-          name: 'Print Label',
-          onSelect: () => {
-            rootNavigation?.push('PrintLabelModal', { itemIds: [id] });
-          },
-        },
-        {
-          name: 'Copy Item ID',
-          onSelect: () => {
-            Clipboard.setString(id);
-          },
-        },
-      ].filter((s): s is NonNullable<typeof s> => !!s),
-    );
-  }, [data, id, navigation, rootNavigation, showActionSheet]);
-
   const dispatch = useAppDispatch();
   useEffect(() => {
     dispatch(actions.inventory.addRecentViewedItemId({ id }));
@@ -386,7 +342,58 @@ function ItemScreen({
       action2Label={(data && 'Actions') || undefined}
       action2SFSymbolName={(data && 'ellipsis.circle') || undefined}
       action2MaterialIconName={(data && 'dots-horizontal') || undefined}
-      onAction2Press={handleMoreActionsPress}
+      action2MenuActions={[
+        {
+          type: 'section',
+          children: [
+            data?.__valid
+              ? {
+                  title: 'Duplicate',
+                  sfSymbolName: 'plus.square.on.square',
+                  onPress: () => {
+                    if (!data?.__valid) return;
+                    rootNavigation?.navigate('SaveItem', {
+                      initialData: {
+                        ...Object.fromEntries(
+                          Object.entries(data).filter(
+                            ([k]) =>
+                              !k.startsWith('_') &&
+                              k !==
+                                'actual_rfid_tag_epc_memory_bank_contents' &&
+                              k !== 'rfid_tag_access_password' &&
+                              k !== 'integrations',
+                          ),
+                        ),
+                      },
+                      afterSave: it => {
+                        it.__id && navigation.push('Item', { id: it.__id });
+                      },
+                    });
+                  },
+                }
+              : null,
+            {
+              title: 'Print Label',
+              sfSymbolName: 'printer',
+              onPress: () => {
+                rootNavigation?.push('PrintLabelModal', { itemIds: [id] });
+              },
+            },
+          ].filter((s): s is NonNullable<typeof s> => !!s),
+        },
+        {
+          type: 'section',
+          children: [
+            {
+              title: 'Copy Item ID',
+              sfSymbolName: 'doc.on.doc',
+              onPress: () => {
+                Clipboard.setString(id);
+              },
+            },
+          ],
+        },
+      ]}
     >
       <ScreenContent.ScrollView
         refreshControl={
