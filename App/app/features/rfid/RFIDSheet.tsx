@@ -203,6 +203,8 @@ function RFIDSheet(
   );
 
   const [isWorking, setIsWorking] = useState(false);
+  const isWorkingRef = useRef(isWorking);
+  isWorkingRef.current = isWorking;
 
   // Built-in Reader
 
@@ -403,8 +405,9 @@ function RFIDSheet(
     }, 800);
 
     const interval = setInterval(() => {
-      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(v =>
-        setBleDeviceBatteryLevel(v),
+      if (isWorkingRef.current) return;
+      RFIDWithUHFBLEModule.getDeviceBatteryLevel().then(
+        v => v <= 100 && v >= 0 && setBleDeviceBatteryLevel(v),
       );
     }, 10000);
 
