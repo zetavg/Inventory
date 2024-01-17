@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Alert, Platform } from 'react-native';
 import DocumentPicker from 'react-native-document-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -6,6 +6,8 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import humanFileSize from '@app/utils/humanFileSize';
 
 import useActionSheet from '@app/hooks/useActionSheet';
+
+import { MenuAction } from '@app/components/Menu';
 
 import processAssets, { ImageAsset, ImageD } from './processAssets';
 
@@ -134,89 +136,101 @@ export default function useImageSelector() {
     [],
   );
 
+  const getSelectImageActions = useCallback<
+    (
+      callback: (images: ReadonlyArray<ImageData> | null) => void,
+      options: Options,
+    ) => ReadonlyArray<MenuAction>
+  >(
+    (callback, options = {}) => [
+      {
+        title: 'Take Picture from Camera',
+        sfSymbolName: 'camera',
+        onPress: async () => {
+          try {
+            if (options.onUserSelectStart) options.onUserSelectStart();
+            const assets = await takePictureFromCamera(options);
+            if (!assets) {
+              callback(null);
+              return;
+            }
+            if (options.onUserSelected) options.onUserSelected();
+            const images = await processAssets(assets);
+            callback(images);
+          } catch (e) {
+            Alert.alert(
+              'An Error Occurred',
+              e instanceof Error ? e.message : 'unknown error',
+            );
+            callback(null);
+          }
+        },
+      },
+      {
+        title: 'Select from Photo Library',
+        sfSymbolName: 'photo.on.rectangle',
+        onPress: async () => {
+          try {
+            if (options.onUserSelectStart) options.onUserSelectStart();
+            const assets = await selectImageFromLibrary(options);
+            if (!assets) {
+              callback(null);
+              return;
+            }
+            if (options.onUserSelected) options.onUserSelected();
+            const images = await processAssets(assets);
+            callback(images);
+          } catch (e) {
+            Alert.alert(
+              'An Error Occurred',
+              e instanceof Error ? e.message : 'unknown error',
+            );
+            callback(null);
+          }
+        },
+      },
+      {
+        title: 'Select from Files',
+        sfSymbolName: 'folder',
+        onPress: async () => {
+          try {
+            if (options.onUserSelectStart) options.onUserSelectStart();
+            const imageAssets = await selectImageFromFile(options);
+            if (!imageAssets || imageAssets.length <= 0) {
+              callback(null);
+              return;
+            }
+            if (options.onUserSelected) options.onUserSelected();
+            const images = await processAssets(imageAssets);
+            callback(images);
+          } catch (e) {
+            Alert.alert(
+              'An Error Occurred',
+              e instanceof Error ? e.message : 'unknown error',
+            );
+            callback(null);
+          }
+        },
+      },
+    ],
+    [selectImageFromFile, selectImageFromLibrary, takePictureFromCamera],
+  );
+
   const selectImage = useCallback(
     (options: Options = {}): Promise<ReadonlyArray<ImageData> | null> => {
       return new Promise(resolve => {
+        const actions = getSelectImageActions(resolve, options);
         showActionSheet(
-          [
-            {
-              name: 'Take Picture from Camera',
-              onSelect: async () => {
-                try {
-                  if (options.onUserSelectStart) options.onUserSelectStart();
-                  const assets = await takePictureFromCamera(options);
-                  if (!assets) {
-                    resolve(null);
-                    return;
-                  }
-                  if (options.onUserSelected) options.onUserSelected();
-                  const images = await processAssets(assets);
-                  resolve(images);
-                } catch (e) {
-                  Alert.alert(
-                    'An Error Occurred',
-                    e instanceof Error ? e.message : 'unknown error',
-                  );
-                  resolve(null);
-                }
-              },
-            },
-            {
-              name: 'Select from Photo Library',
-              onSelect: async () => {
-                try {
-                  if (options.onUserSelectStart) options.onUserSelectStart();
-                  const assets = await selectImageFromLibrary(options);
-                  if (!assets) {
-                    resolve(null);
-                    return;
-                  }
-                  if (options.onUserSelected) options.onUserSelected();
-                  const images = await processAssets(assets);
-                  resolve(images);
-                } catch (e) {
-                  Alert.alert(
-                    'An Error Occurred',
-                    e instanceof Error ? e.message : 'unknown error',
-                  );
-                  resolve(null);
-                }
-              },
-            },
-            {
-              name: 'Select from Files',
-              onSelect: async () => {
-                try {
-                  if (options.onUserSelectStart) options.onUserSelectStart();
-                  const imageAssets = await selectImageFromFile(options);
-                  if (!imageAssets || imageAssets.length <= 0) {
-                    resolve(null);
-                    return;
-                  }
-                  if (options.onUserSelected) options.onUserSelected();
-                  const images = await processAssets(imageAssets);
-                  resolve(images);
-                } catch (e) {
-                  Alert.alert(
-                    'An Error Occurred',
-                    e instanceof Error ? e.message : 'unknown error',
-                  );
-                  resolve(null);
-                }
-              },
-            },
-          ],
+          actions.map(a => ({
+            name: a.title || '',
+            onSelect: a.onPress || (() => {}),
+          })),
           { onCancel: () => resolve(null) },
         );
       });
     },
-    [
-      selectImageFromFile,
-      selectImageFromLibrary,
-      showActionSheet,
-      takePictureFromCamera,
-    ],
+    [getSelectImageActions, showActionSheet],
   );
 
-  return selectImage;
+  return { selectImage, getSelectImageActions };
 }
