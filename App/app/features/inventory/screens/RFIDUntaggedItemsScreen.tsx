@@ -1,9 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { SectionList } from 'react-native';
+import { Platform, SectionList } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { StackScreenProps } from '@react-navigation/stack';
 
 import { InvalidDataTypeWithID, ValidDataTypeWithID } from '@deps/data/types';
+
+import { MAJOR_VERSION_IOS } from '@app/consts/icons';
 
 import useView from '@app/data/hooks/useView';
 
@@ -17,15 +19,24 @@ import ItemListItem from '../components/ItemListItem';
 function RFIDUntaggedItemsScreen({
   navigation,
 }: StackScreenProps<StackParamList, 'RFIDUntaggedItems'>) {
+  const [sort, setSort] = useState<'updated_time' | 'created_time'>(
+    'updated_time',
+  );
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
   const {
     data: rfidUntaggedItemsData,
     loading: rfidUntaggedItemsDataLoading,
     refresh: refreshRfidUntaggedItems,
     refreshing: rfidUntaggedItemsRefreshing,
-  } = useView('rfid_untagged_items_by_updated_time', {
-    includeDocs: true,
-    descending: true,
-  });
+  } = useView(
+    sort === 'updated_time'
+      ? 'rfid_untagged_items_by_updated_time'
+      : 'rfid_untagged_items_by_created_time',
+    {
+      includeDocs: true,
+      descending: order === 'desc',
+    },
+  );
   const rfidUntaggedItems = rfidUntaggedItemsData
     ? rfidUntaggedItemsData
         .map(d => d.data)
@@ -37,10 +48,15 @@ function RFIDUntaggedItemsScreen({
     loading: rfidTagOutdatedItemsDataLoading,
     refresh: refreshRfidTagOutdatedItems,
     refreshing: rfidTagOutdatedItemsRefreshing,
-  } = useView('rfid_tag_outdated_items_by_updated_time', {
-    includeDocs: true,
-    descending: true,
-  });
+  } = useView(
+    sort === 'updated_time'
+      ? 'rfid_tag_outdated_items_by_updated_time'
+      : 'rfid_tag_outdated_items_by_created_time',
+    {
+      includeDocs: true,
+      descending: order === 'desc',
+    },
+  );
   const rfidTagOutdatedItems = rfidTagOutdatedItemsData
     ? rfidTagOutdatedItemsData
         .map(d => d.data)
@@ -58,22 +74,29 @@ function RFIDUntaggedItemsScreen({
     return [
       {
         title: 'untagged',
-        data: rfidUntaggedItems
-          ? rfidUntaggedItems.length > 0
-            ? rfidUntaggedItems
-            : (['null'] as const)
-          : (['loading'] as const),
+        data:
+          rfidUntaggedItems && !rfidUntaggedItemsDataLoading
+            ? rfidUntaggedItems.length > 0
+              ? rfidUntaggedItems
+              : (['null'] as const)
+            : (['loading'] as const),
       },
       {
         title: 'tag-outdated',
-        data: rfidTagOutdatedItems
-          ? rfidTagOutdatedItems.length > 0
-            ? rfidTagOutdatedItems
-            : (['null'] as const)
-          : (['loading'] as const),
+        data:
+          rfidTagOutdatedItems && !rfidTagOutdatedItemsDataLoading
+            ? rfidTagOutdatedItems.length > 0
+              ? rfidTagOutdatedItems
+              : (['null'] as const)
+            : (['loading'] as const),
       },
     ];
-  }, [rfidTagOutdatedItems, rfidUntaggedItems]);
+  }, [
+    rfidTagOutdatedItems,
+    rfidTagOutdatedItemsDataLoading,
+    rfidUntaggedItems,
+    rfidUntaggedItemsDataLoading,
+  ]);
 
   const loading =
     rfidUntaggedItemsDataLoading || rfidTagOutdatedItemsDataLoading;
@@ -122,6 +145,45 @@ function RFIDUntaggedItemsScreen({
       navigation={navigation}
       title="Items"
       headerLargeTitle={false}
+      action1Label="Order"
+      action1SFSymbolName={
+        MAJOR_VERSION_IOS >= 16
+          ? 'arrow.up.and.down.text.horizontal'
+          : 'slider.vertical.3'
+      }
+      action1MaterialIconName="sort-ascending"
+      action1MenuActions={[
+        {
+          type: 'section',
+          children: [
+            {
+              title: 'Sort by Created Time',
+              state: sort === 'created_time' ? 'on' : 'off',
+              onPress: () => setSort('created_time'),
+            },
+            {
+              title: 'Sort by Updated Time',
+              state: sort === 'updated_time' ? 'on' : 'off',
+              onPress: () => setSort('updated_time'),
+            },
+          ],
+        },
+        {
+          type: 'section',
+          children: [
+            {
+              title: 'Ascending',
+              state: order === 'asc' ? 'on' : 'off',
+              onPress: () => setOrder('asc'),
+            },
+            {
+              title: 'Descending',
+              state: order === 'desc' ? 'on' : 'off',
+              onPress: () => setOrder('desc'),
+            },
+          ],
+        },
+      ]}
     >
       <SectionList
         ref={scrollViewRef}

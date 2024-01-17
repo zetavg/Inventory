@@ -18,12 +18,15 @@ export const ICON_COLORS = [
 
 export type IconColor = (typeof ICON_COLORS)[number];
 
+export const MAJOR_VERSION_IOS =
+  Platform.OS === 'ios' ? parseInt(Platform.Version, 10) : 0;
+
 function sfSymbolForOSVersion(
   sfSymbolName: string,
   { ios }: { ios: number },
 ): string | undefined {
   if (Platform.OS === 'ios') {
-    const majorVersionIOS = parseInt(Platform.Version, 10);
+    const majorVersionIOS = MAJOR_VERSION_IOS;
     if (majorVersionIOS < ios) {
       return undefined;
     }
