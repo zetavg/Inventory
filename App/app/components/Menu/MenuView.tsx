@@ -19,6 +19,7 @@ export type Props = {
   /** Actions in the menu. */
   actions: ReadonlyArray<MenuAction>;
   children?: React.ReactNode | undefined;
+  disabled?: boolean;
 };
 
 const NATIVE_STATE_SUPPORTED = Platform.OS === 'ios';
@@ -60,7 +61,12 @@ function processActions(
   });
 }
 
-export default function MenuView({ title, actions, ...restProps }: Props) {
+export default function MenuView({
+  title,
+  actions,
+  disabled,
+  ...restProps
+}: Props) {
   const logger = useLogger('MenuView');
   const processedActions = useMemo(() => processActions(actions), [actions]);
   const handlePressAction = useCallback<
@@ -99,6 +105,8 @@ export default function MenuView({ title, actions, ...restProps }: Props) {
 
   const { showActionSheet } = useActionSheet();
 
+  if (disabled) return restProps.children || null;
+
   if (Platform.OS === 'android') {
     // @react-native-menu/menu will not work on Android randomly. Fall back to ActionSheet.
     // See: https://github.com/react-native-menu/menu/issues/539
@@ -131,7 +139,9 @@ export default function MenuView({ title, actions, ...restProps }: Props) {
     };
     return (
       <TouchableWithoutFeedback
-        onPress={() => handleOpenActionSheetForMenuActions(actions)}
+        onPress={() =>
+          !disabled && handleOpenActionSheetForMenuActions(actions)
+        }
         {...restProps}
       />
     );

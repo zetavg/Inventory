@@ -148,7 +148,8 @@ export default function SampleComponent() {
                       {
                         title: 'Destructive Action',
                         destructive: true,
-                        onPress: () => Alert.alert('"Destructive Action" pressed'),
+                        onPress: () =>
+                          Alert.alert('"Destructive Action" pressed'),
                       },
                     ],
                   },
@@ -159,6 +160,22 @@ export default function SampleComponent() {
           )}
         >
           <Button title="Show Menu" />
+        </MenuView>
+      </StorybookSection>
+      <StorybookSection title="MenuView disabled" style={{ gap: 8 }}>
+        <MenuView
+          disabled
+          actions={useMemo(
+            () => [
+              {
+                title: 'Action',
+                onPress: () => Alert.alert('"Action" pressed'),
+              },
+            ],
+            [],
+          )}
+        >
+          <Button title="Show Menu" disabled />
         </MenuView>
       </StorybookSection>
     </StorybookStoryContainer>

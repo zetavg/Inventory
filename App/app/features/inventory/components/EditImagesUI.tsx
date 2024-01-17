@@ -50,6 +50,7 @@ import commonStyles from '@app/utils/commonStyles';
 import useColors from '@app/hooks/useColors';
 import useLogger from '@app/hooks/useLogger';
 
+import { MenuView } from '@app/components/Menu';
 import UIGroup from '@app/components/UIGroup';
 
 import { imageLoadingPlaceholder } from '@app/images';
@@ -182,34 +183,33 @@ export function EditImagesUI({
   }, [db, loadedImageMap, loadedItemImageData, logger]);
 
   const [isAddingImage, setIsAddingImage] = useState(false);
-  const selectImage = useImageSelector();
-  const handleAddImage = useCallback(async () => {
-    try {
-      const images = await selectImage({
-        onUserSelectStart: () => setIsAddingImage(true),
-        selectionLimit: IMAGES_LIMIT - (itemImageData?.length || 0),
-      });
-      if (!images) return;
+  const { selectImage, getSelectImageActions } = useImageSelector();
+  const handleAddImages = useCallback(
+    async (images: ReadonlyArray<ImageData> | null) => {
+      try {
+        if (!images) return;
 
-      hasChangesRef.current = true;
-      LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
-      setItemImageData(origData => [
-        ...(origData || []),
-        ...images.map(i => ({
-          __type: 'unsaved_image_data' as const,
-          __id: uuid(),
-          ...i,
-        })),
-      ]);
-    } catch (e) {
-      Alert.alert(
-        'An Error Occurred',
-        e instanceof Error ? e.message : e?.toString(),
-      );
-    } finally {
-      setIsAddingImage(false);
-    }
-  }, [hasChangesRef, itemImageData?.length, selectImage]);
+        hasChangesRef.current = true;
+        LayoutAnimation.configureNext(DEFAULT_LAYOUT_ANIMATION_CONFIG);
+        setItemImageData(origData => [
+          ...(origData || []),
+          ...images.map(i => ({
+            __type: 'unsaved_image_data' as const,
+            __id: uuid(),
+            ...i,
+          })),
+        ]);
+      } catch (e) {
+        Alert.alert(
+          'An Error Occurred',
+          e instanceof Error ? e.message : e?.toString(),
+        );
+      } finally {
+        setIsAddingImage(false);
+      }
+    },
+    [hasChangesRef],
+  );
 
   const imageUiWorking = loadingDelayed || itemImageLoading || isAddingImage;
   const imageUiWorkingRef = useRef(imageUiWorking);
@@ -318,6 +318,9 @@ export function EditImagesUI({
     selectors.settings.uiShowDetailedInstructions,
   );
 
+  const addImageDisabled =
+    imageUiWorking || (itemImageData || []).length >= IMAGES_LIMIT;
+
   return (
     <>
       <UIGroup
@@ -415,14 +418,20 @@ export function EditImagesUI({
             )}
           </>
         )}
-        <UIGroup.ListItem
-          label="Add Image..."
-          button
-          onPress={handleAddImage}
-          disabled={
-            imageUiWorking || (itemImageData || []).length >= IMAGES_LIMIT
-          }
-        />
+        <MenuView
+          actions={getSelectImageActions(handleAddImages, {
+            onUserSelectStart: () => setIsAddingImage(true),
+            selectionLimit: IMAGES_LIMIT - (itemImageData?.length || 0),
+          })}
+          disabled={addImageDisabled}
+        >
+          <UIGroup.ListItem
+            label="Add Image..."
+            button
+            onPress={() => {}}
+            disabled={addImageDisabled}
+          />
+        </MenuView>
       </UIGroup>
       <ImageView
         images={
