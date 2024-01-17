@@ -68,9 +68,15 @@ export default function useView<T extends ViewName>(
     }
   }, [db, logger, cachedOptions, viewName]);
 
+  const prevLoadData = useRef(loadData);
   useFocusEffect(
     useCallback(() => {
       if (cachedOptions.disable) return;
+
+      if (prevLoadData.current !== loadData) {
+        setLoading(true);
+        prevLoadData.current = loadData;
+      }
 
       if (!dataRef.current) {
         loadData();
