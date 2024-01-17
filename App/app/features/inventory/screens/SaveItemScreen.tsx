@@ -42,6 +42,7 @@ import Icon, {
   verifyIconName,
   verifyIconNameWithDefault,
 } from '@app/components/Icon';
+import { MenuAction, MenuView } from '@app/components/Menu';
 import ModalContent from '@app/components/ModalContent';
 import { Link } from '@app/components/Text';
 import UIGroup from '@app/components/UIGroup';
@@ -191,6 +192,8 @@ function SaveItemScreen({
       },
     });
   }, [data.purchase_price_currency, navigation]);
+
+  const currencies = useMemo(() => ['USD', 'TWD'], []);
 
   const { data: selectedContainer } = useData('item', data.container_id || '', {
     disable: !data.container_id,
@@ -524,6 +527,37 @@ function SaveItemScreen({
       false,
   );
 
+  const itemTypeSelections = useMemo<ReadonlyArray<MenuAction>>(
+    () => [
+      {
+        title: 'Item',
+        state: data.item_type === undefined ? 'on' : 'off',
+        onPress: () => setData(d => ({ ...d, item_type: undefined })),
+      },
+      {
+        title: 'Container',
+        state: data.item_type === 'container' ? 'on' : 'off',
+        onPress: () => setData(d => ({ ...d, item_type: 'container' })),
+      },
+      {
+        title: 'Generic Container',
+        state: data.item_type === 'generic_container' ? 'on' : 'off',
+        onPress: () => setData(d => ({ ...d, item_type: 'generic_container' })),
+      },
+      {
+        title: 'Item with Parts',
+        state: data.item_type === 'item_with_parts' ? 'on' : 'off',
+        onPress: () => setData(d => ({ ...d, item_type: 'item_with_parts' })),
+      },
+      {
+        title: 'Consumable',
+        state: data.item_type === 'consumable' ? 'on' : 'off',
+        onPress: () => setData(d => ({ ...d, item_type: 'consumable' })),
+      },
+    ],
+    [data.item_type],
+  );
+
   return (
     <ModalContent
       navigation={navigation}
@@ -653,62 +687,86 @@ function SaveItemScreen({
             label="Item Type"
             horizontalLabel
             // eslint-disable-next-line react/no-unstable-nested-components
-            inputElement={({ textProps, iconProps }) => (
-              <TouchableOpacity
-                style={commonStyles.flex1}
-                onPress={handleOpenSelectItemType}
-              >
-                <View
-                  style={[
-                    commonStyles.flex1,
-                    commonStyles.row,
-                    commonStyles.alignItemsCenter,
-                    commonStyles.justifyContentFlexEnd,
-                  ]}
+            inputElement={({ textProps, iconProps }) => {
+              const element = (
+                <TouchableOpacity
+                  style={commonStyles.flex1}
+                  onPress={
+                    uiShowDetailedInstructions
+                      ? handleOpenSelectItemType
+                      : () => {
+                          /* Handled by MenyView */
+                        }
+                  }
                 >
-                  {/*
-                  <Icon
-                    {...iconProps}
-                    size={16}
-                    showBackground={false}
-                    color={contentSecondaryTextColor}
-                    style={commonStyles.mr4}
-                    name="box"
-                  />
-                  */}
-                  <Text
-                    {...textProps}
+                  <View
                     style={[
-                      textProps.style,
-                      commonStyles.tar,
+                      commonStyles.flex1,
+                      commonStyles.row,
                       commonStyles.alignItemsCenter,
-                      commonStyles.flex0,
+                      commonStyles.justifyContentFlexEnd,
                     ]}
                   >
-                    {((): string => {
-                      switch (data.item_type) {
-                        case 'container':
-                          return 'Container';
-                        case 'generic_container':
-                          return 'Generic Container';
-                        case 'item_with_parts':
-                          return 'Item with Parts';
-                        case 'consumable':
-                          return 'Consumable';
-                        case undefined:
-                          return 'Item';
-                      }
-                    })()}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            )}
+                    {/*
+                    <Icon
+                      {...iconProps}
+                      size={16}
+                      showBackground={false}
+                      color={contentSecondaryTextColor}
+                      style={commonStyles.mr4}
+                      name="box"
+                    />
+                    */}
+                    <Text
+                      {...textProps}
+                      style={[
+                        textProps.style,
+                        commonStyles.tar,
+                        commonStyles.alignItemsCenter,
+                        commonStyles.flex0,
+                      ]}
+                    >
+                      {((): string => {
+                        switch (data.item_type) {
+                          case 'container':
+                            return 'Container';
+                          case 'generic_container':
+                            return 'Generic Container';
+                          case 'item_with_parts':
+                            return 'Item with Parts';
+                          case 'consumable':
+                            return 'Consumable';
+                          case undefined:
+                            return 'Item';
+                        }
+                      })()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+
+              if (!uiShowDetailedInstructions) {
+                return (
+                  <MenuView actions={itemTypeSelections}>{element}</MenuView>
+                );
+              }
+
+              return element;
+            }}
             controlElement={
-              <UIGroup.ListTextInputItem.Button
-                onPress={handleOpenSelectItemType}
-              >
-                Select
-              </UIGroup.ListTextInputItem.Button>
+              uiShowDetailedInstructions ? (
+                <UIGroup.ListTextInputItem.Button
+                  onPress={handleOpenSelectItemType}
+                >
+                  Select
+                </UIGroup.ListTextInputItem.Button>
+              ) : (
+                <MenuView actions={itemTypeSelections}>
+                  <UIGroup.ListTextInputItem.Button onPress={() => {}}>
+                    Select
+                  </UIGroup.ListTextInputItem.Button>
+                </MenuView>
+              )
             }
             {...kiaTextInputProps}
           />
@@ -1176,7 +1234,35 @@ function SaveItemScreen({
               }));
             }}
             unit={data.purchase_price_currency}
-            onUnitPress={handleOpenSelectPurchasePriceCurrency}
+            // onUnitPress={handleOpenSelectPurchasePriceCurrency}
+            onUnitPress={() => {}}
+            renderUnit={({ children, style }) => (
+              <MenuView
+                style={style}
+                actions={[
+                  {
+                    type: 'section',
+                    children: currencies.map(c => ({
+                      title: c,
+                      state: c === data.purchase_price_currency ? 'on' : 'off',
+                      onPress: () =>
+                        setData(d => ({ ...d, purchase_price_currency: c })),
+                    })),
+                  },
+                  {
+                    type: 'section',
+                    children: [
+                      {
+                        title: 'More...',
+                        onPress: handleOpenSelectPurchasePriceCurrency,
+                      },
+                    ],
+                  },
+                ]}
+              >
+                {children}
+              </MenuView>
+            )}
             {...kiaTextInputProps}
           />
           <UIGroup.ListItemSeparator />

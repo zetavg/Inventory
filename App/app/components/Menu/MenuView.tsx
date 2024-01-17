@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, Platform, StyleProp, ViewStyle } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 
 import {
@@ -19,6 +19,7 @@ export type Props = {
   /** Actions in the menu. */
   actions: ReadonlyArray<MenuAction>;
   children?: JSX.Element | undefined;
+  style?: StyleProp<ViewStyle>;
   disabled?: boolean;
 };
 

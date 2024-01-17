@@ -9,9 +9,9 @@ import {
   View,
 } from 'react-native';
 
+import Icon, { IconName } from '@app/components/Icon';
+import { MenuView } from '@app/components/Menu';
 import UIText from '@app/components/Text';
-
-import Icon, { IconName } from '../Icon';
 
 import UIGroup from './UIGroup';
 
@@ -422,6 +422,48 @@ export function WithListItems() {
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem
+          label="With Pressable Menu Unit"
+          placeholder="0"
+          keyboardType="number-pad"
+          unit="USD"
+          onUnitPress={() => {}}
+          renderUnit={({ children, style }) => (
+            <MenuView
+              style={style}
+              actions={[
+                {
+                  type: 'section',
+                  children: [
+                    {
+                      title: 'USD',
+                      state: 'on',
+                      onPress: () => Alert.alert('USD Pressed'),
+                    },
+                    {
+                      title: 'TWD',
+                      state: 'off',
+                      onPress: () => Alert.alert('TWD Pressed'),
+                    },
+                  ],
+                },
+                {
+                  type: 'section',
+                  children: [
+                    {
+                      title: 'More...',
+                      // sfSymbolName: 'ellipsis.circle',
+                      onPress: () => Alert.alert('More Pressed'),
+                    },
+                  ],
+                },
+              ]}
+            >
+              {children}
+            </MenuView>
+          )}
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
           label="With Button"
           placeholder="Placeholder"
           controlElement={
@@ -524,6 +566,49 @@ export function WithListItems() {
           keyboardType="number-pad"
           unit="USD"
           onUnitPress={() => Alert.alert('Unit Pressed')}
+        />
+        <UIGroup.ListItemSeparator />
+        <UIGroup.ListTextInputItem
+          horizontalLabel
+          label="With Pressable Menu Unit"
+          placeholder="0"
+          keyboardType="number-pad"
+          unit="USD"
+          onUnitPress={() => {}}
+          renderUnit={({ children, style }) => (
+            <MenuView
+              style={style}
+              actions={[
+                {
+                  type: 'section',
+                  children: [
+                    {
+                      title: 'USD',
+                      state: 'on',
+                      onPress: () => Alert.alert('USD Pressed'),
+                    },
+                    {
+                      title: 'TWD',
+                      state: 'off',
+                      onPress: () => Alert.alert('TWD Pressed'),
+                    },
+                  ],
+                },
+                {
+                  type: 'section',
+                  children: [
+                    {
+                      title: 'More...',
+                      // sfSymbolName: 'ellipsis.circle',
+                      onPress: () => Alert.alert('More Pressed'),
+                    },
+                  ],
+                },
+              ]}
+            >
+              {children}
+            </MenuView>
+          )}
         />
         <UIGroup.ListItemSeparator />
         <UIGroup.ListTextInputItem

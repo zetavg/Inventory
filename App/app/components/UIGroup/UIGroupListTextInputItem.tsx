@@ -35,6 +35,8 @@ export default function UIGroupListTextInputItem(
     label,
     unit,
     onUnitPress,
+    onUnitLongPress,
+    renderUnit,
     disabled,
     readonly,
     horizontalLabel,
@@ -83,22 +85,33 @@ export default function UIGroupListTextInputItem(
           ]}
         />
       )}
-      {unit ? (
-        onUnitPress ? (
-          <TouchableOpacity
-            onPress={onUnitPress}
-            style={styles.pressableUnitContainer}
-          >
-            <InsetGroup.ItemAffix
-              style={[styles.pressableUnitText, { color: iosTintColor }]}
-            >
-              {unit}
-            </InsetGroup.ItemAffix>
-          </TouchableOpacity>
-        ) : (
-          <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
-        )
-      ) : null}
+      {unit
+        ? (() => {
+            const pressable = onUnitPress || onUnitLongPress;
+            const element = pressable ? (
+              <TouchableOpacity
+                onPress={onUnitPress}
+                onLongPress={onUnitLongPress}
+                style={renderUnit ? {} : styles.pressableUnitContainer}
+              >
+                <InsetGroup.ItemAffix
+                  style={[styles.pressableUnitText, { color: iosTintColor }]}
+                >
+                  {unit}
+                </InsetGroup.ItemAffix>
+              </TouchableOpacity>
+            ) : (
+              <InsetGroup.ItemAffix>{unit}</InsetGroup.ItemAffix>
+            );
+
+            if (renderUnit)
+              return renderUnit({
+                children: element,
+                style: pressable ? styles.pressableUnitContainer : {},
+              });
+            return element;
+          })()
+        : null}
       {controlElement && (!vertical2 || !label) ? (
         <View style={styles.insetGroupTextInputRightElementContainer}>
           {controlElement}

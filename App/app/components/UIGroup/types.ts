@@ -94,6 +94,11 @@ export type ListTextInputItemProps = {
   label?: string;
   unit?: string;
   onUnitPress?: () => void;
+  onUnitLongPress?: () => void;
+  renderUnit?: (props: {
+    children: JSX.Element;
+    style: React.ComponentProps<typeof View>['style'];
+  }) => React.ReactNode;
   disabled?: boolean;
   readonly?: boolean;
   horizontalLabel?: boolean;
