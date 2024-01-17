@@ -346,9 +346,10 @@
           self.isFirstSendGetTAGCmd=YES;
 
           if(self.isBLE40 == YES){
-              self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.08 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
+              self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.06 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
           }else{
-               self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.05 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
+               // Time interval should be 0.03 or lower to work with newer BLE models
+               self.sendGetTagRequestTime = [NSTimer timerWithTimeInterval:0.02 target:self selector:@selector(handleTimer) userInfo:nil repeats:YES];
           }
 //       NSRunLoop *runLoop = [NSRunLoop currentRunLoop];
 //       [runLoop addTimer:self.sendGetTagRequestTime forMode:NSRunLoopCommonModes];
