@@ -32,10 +32,10 @@ export type MenuAction = {
   //  * @platform iOS
   //  */
   // subtitle?: string;
-  /**
-   * The attributes indicating the style of the action.
-   */
-  attributes?: MenuAttributes;
+  // /**
+  //  * The attributes indicating the style of the action.
+  //  */
+  // attributes?: MenuAttributes;
   /**
    * The state of the action.
    */

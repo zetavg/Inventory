@@ -18,7 +18,7 @@ export type Props = {
   title?: string;
   /** Actions in the menu. */
   actions: ReadonlyArray<MenuAction>;
-  children?: React.ReactNode | undefined;
+  children?: JSX.Element | undefined;
   disabled?: boolean;
 };
 
@@ -105,7 +105,7 @@ export default function MenuView({
 
   const { showActionSheet } = useActionSheet();
 
-  if (disabled) return restProps.children || null;
+  if (disabled) return <>{restProps.children}</> || null;
 
   if (Platform.OS === 'android') {
     // @react-native-menu/menu will not work on Android randomly. Fall back to ActionSheet.
