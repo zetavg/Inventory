@@ -708,6 +708,7 @@ function RFIDSheet(
         },
         isLocate: true,
         enableReaderSound: locateReaderSoundEnabled,
+        playSoundOnlyForEpcs: [epc],
       });
       setLocateStatus('Signals broadcasting, move around to locate');
     } catch (e: any) {
