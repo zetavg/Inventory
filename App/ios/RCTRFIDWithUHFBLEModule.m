@@ -275,6 +275,7 @@ RCT_EXPORT_METHOD(stopScan:
 - (void) endStopScan:(NSTimer *)timer
 {
   [[RFIDBlutoothManager shareManager] setOpenBuzzer];
+  [[RFIDBlutoothManager shareManager] stopContinuitySaveLabel];
 
   if (self->scanTagsData) {
     [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
