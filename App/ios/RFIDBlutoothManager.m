@@ -2363,4 +2363,67 @@ NSInteger dataIndex=0;
   }
 }
 
+- (void)initHapticFeedbackIfNeeded
+{
+  if (self->hapticFeedbackInitialized) return;
+
+  self->uiLightImpactFeedbackGenerator = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
+  [self->uiLightImpactFeedbackGenerator prepare];
+  if (!self.feedbackMinimumDelay) {
+    self.feedbackMinimumDelay = 50;
+  }
+
+  self->hapticFeedbackInitialized = YES;
+}
+
+- (void)playTagScannedFeedback:(int)soundId volume:(float)volume hapticFeedbackIntensity:(float)hapticFeedbackIntensity
+{
+    [self initHapticFeedbackIfNeeded];
+    double currentTime = CACurrentMediaTime() * 1000;
+    double lastTagScannedFeedbackPlayAt;
+    if (soundId == 1) {
+      lastTagScannedFeedbackPlayAt = self->lastTagScannedFeedback1PlayAt;
+    } else {
+      lastTagScannedFeedbackPlayAt = self->lastTagScannedFeedback2PlayAt;
+    }
+
+    if (!lastTagScannedFeedbackPlayAt || currentTime - lastTagScannedFeedbackPlayAt >= self.feedbackMinimumDelay) {
+      if (volume > 0) {
+        [self playSound:soundId withVolume:volume];
+      }
+      if (hapticFeedbackIntensity > 0) {
+        [self->uiLightImpactFeedbackGenerator impactOccurredWithIntensity:hapticFeedbackIntensity];
+      }
+      if (soundId == 1) {
+        self->lastTagScannedFeedback1PlayAt = currentTime;
+      } else {
+        self->lastTagScannedFeedback2PlayAt = currentTime;
+      }
+    } else {
+        double delayInMs = self.feedbackMinimumDelay - (currentTime - lastTagScannedFeedbackPlayAt);
+        if (delayInMs > 400) {
+          if (soundId == 1) {
+            delayInMs = 400;
+          } else {
+            return;
+          }
+        }
+        if (soundId == 1) {
+          self->lastTagScannedFeedback1PlayAt = currentTime + delayInMs;
+        } else {
+          self->lastTagScannedFeedback2PlayAt = currentTime + delayInMs;
+        }
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInMs * NSEC_PER_MSEC)), dispatch_get_main_queue(), ^{
+          if (volume > 0) {
+            [self playSound:soundId withVolume:volume];
+          }
+          if (hapticFeedbackIntensity > 0) {
+            [self->uiLightImpactFeedbackGenerator impactOccurredWithIntensity:hapticFeedbackIntensity];
+          }
+        }
+      );
+    }
+}
+
+
 @end

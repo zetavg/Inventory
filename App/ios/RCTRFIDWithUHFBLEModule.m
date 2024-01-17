@@ -170,6 +170,19 @@ RCT_EXPORT_METHOD(getDeviceTemperature:
   }
 }
 
+RCT_EXPORT_METHOD(setFeedbackMinimumDelay:
+                  (double)feedbackMinimumDelay:
+                  (RCTPromiseResolveBlock)resolve:
+                  (RCTPromiseRejectBlock)reject)
+{
+  @try {
+    [RFIDBlutoothManager shareManager].feedbackMinimumDelay = feedbackMinimumDelay;
+    resolve(@(true));
+  } @catch (NSException *exception) {
+    reject(exception.name, exception.reason, nil);
+  }
+}
+
 #pragma mark - Scan Tags
 
 RCT_EXPORT_METHOD(startScan:
@@ -612,15 +625,26 @@ RCT_EXPORT_METHOD(playSound:
   if (!self->scanTagsData) self->scanTagsData = [NSMutableArray array];
   [self->scanTagsData addObject:jsData];
 
-  if (self->soundEnabled && ([playSoundOnlyForEpcs count] <= 0 || [playSoundOnlyForEpcs containsObject:[epc uppercaseString]])) {
+  if (([playSoundOnlyForEpcs count] <= 0 || [playSoundOnlyForEpcs containsObject:[epc uppercaseString]])) {
     if (self->scanIsLocate) {
       float maxVolume = 10;
-      [[RFIDBlutoothManager shareManager] playSound:2 withVolume:1 + MIN(maxVolume, MAX(0, (80 + rssi) * (maxVolume / (80 - 30))))];
-    } else {
-      if ([self->scannedEpcs containsObject:epc]) {
-        [[RFIDBlutoothManager shareManager] playSound:2 withVolume:1];
+      float soundVolume;
+      float rssiFraction = (80 + rssi) / 50.0;
+      if (self->soundEnabled) {
+          soundVolume = MIN(maxVolume, MAX(0, rssiFraction * maxVolume));
       } else {
-        [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
+          soundVolume = 0;
+      }
+      [[RFIDBlutoothManager shareManager] playTagScannedFeedback:2 volume:soundVolume hapticFeedbackIntensity:MAX(0.4, rssiFraction)];
+    } else {
+      float soundVolume = 0;
+      if (self->soundEnabled) {
+        soundVolume = 1;
+      }
+      if ([self->scannedEpcs containsObject:epc]) {
+        [[RFIDBlutoothManager shareManager] playTagScannedFeedback:2 volume:soundVolume hapticFeedbackIntensity:0];
+      } else {
+        [[RFIDBlutoothManager shareManager] playTagScannedFeedback:1 volume:soundVolume hapticFeedbackIntensity:1];
       }
     }
   }

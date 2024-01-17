@@ -145,6 +145,7 @@ const RFIDWithUHFBaseModule = {
     return this.NativeModule.setPower(power);
   },
   startScan(options: ScanOptions): Promise<void> {
+    this.NativeModule.setFeedbackMinimumDelay(50);
     this._scanListener?.remove();
     this._scanListener = DeviceEventEmitter.addListener(
       'uhfScanData',
