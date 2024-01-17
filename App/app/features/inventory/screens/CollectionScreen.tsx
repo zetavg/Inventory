@@ -253,18 +253,6 @@ function CollectionScreen({
   const collectionName =
     typeof data?.name === 'string' ? data.name : preloadedTitle || 'Collection';
 
-  const { showActionSheet } = useActionSheet();
-  const handleMoreActionsPress = useCallback(() => {
-    showActionSheet([
-      {
-        name: 'Copy Collection ID',
-        onSelect: () => {
-          Clipboard.setString(id);
-        },
-      },
-    ]);
-  }, [id, showActionSheet]);
-
   const renderListItem = useCallback(
     ({ item, index }: { item: DataTypeWithID<'item'>; index: number }) => (
       <UIGroup.ListItem.RenderItemContainer
@@ -333,7 +321,20 @@ function CollectionScreen({
       action2Label={(data && 'Actions') || undefined}
       action2SFSymbolName={(data && 'ellipsis.circle') || undefined}
       action2MaterialIconName={(data && 'dots-horizontal') || undefined}
-      onAction2Press={handleMoreActionsPress}
+      action2MenuActions={[
+        {
+          type: 'section',
+          children: [
+            {
+              title: 'Copy Collection ID',
+              sfSymbolName: 'doc.on.doc',
+              onPress: () => {
+                Clipboard.setString(id);
+              },
+            },
+          ],
+        },
+      ]}
     >
       <FlatList
         onRefresh={refresh}
