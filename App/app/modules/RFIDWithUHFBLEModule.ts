@@ -1,10 +1,11 @@
 import {
-  NativeModules,
   DeviceEventEmitter,
-  NativeEventEmitter,
   EmitterSubscription,
+  NativeEventEmitter,
+  NativeModules,
   Platform,
 } from 'react-native';
+
 import RFIDWithUHFBaseModule from './RFIDWithUHFBaseModule';
 const { RFIDWithUHFBLEModule: NativeRFIDWithUHFBLEModule } = NativeModules;
 
@@ -74,8 +75,17 @@ const RFIDWithUHFBLEModule = {
     return NativeRFIDWithUHFBLEModule.getDeviceConnectStatus();
   },
   getDeviceBatteryLevel: async (): Promise<number> => {
-    const { value } = await NativeRFIDWithUHFBLEModule.getDeviceBatteryLevel();
-    return value;
+    return await new Promise(async resolve => {
+      while (true) {
+        const { value } =
+          await NativeRFIDWithUHFBLEModule.getDeviceBatteryLevel();
+        if (value <= 100 && value >= 0) {
+          resolve(value);
+          return;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    });
   },
   getDeviceTemperature: async (): Promise<number> => {
     const { value } = await NativeRFIDWithUHFBLEModule.getDeviceTemperature();
