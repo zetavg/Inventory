@@ -3,7 +3,7 @@
 #import "RCTRFIDWithUHFBLEModule.h"
 
 #import "BLEModel.h"
-#import "RFIDBlutoothManager.h"
+#import "RFIDBluetoothManager.h"
 
 @implementation RCTRFIDWithUHFBLEModule
 
@@ -23,7 +23,7 @@ RCT_EXPORT_METHOD(init
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
     resolve(@(YES));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -34,8 +34,8 @@ RCT_EXPORT_METHOD(free
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    [[RFIDBlutoothManager shareManager] closeBleAndDisconnect];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] closeBleAndDisconnect];
     resolve(@(YES));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -50,12 +50,12 @@ RCT_EXPORT_METHOD(scanDevices
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
 
     if (!enable) {
-      [[RFIDBlutoothManager shareManager] stopBleScan];
+      [[RFIDBluetoothManager shareManager] stopBleScan];
       NSLog(@"RCTRFIDWithUHFBLEModule: stopBleScan called on "
-            @"RFIDBlutoothManager");
+            @"RFIDBluetoothManager");
       resolve(@(YES));
       return;
     }
@@ -66,9 +66,9 @@ RCT_EXPORT_METHOD(scanDevices
     // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //    });
-    [[RFIDBlutoothManager shareManager] startBleScan];
+    [[RFIDBluetoothManager shareManager] startBleScan];
     NSLog(
-        @"RCTRFIDWithUHFBLEModule: startBleScan called on RFIDBlutoothManager");
+        @"RCTRFIDWithUHFBLEModule: startBleScan called on RFIDBluetoothManager");
     resolve(@(YES));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -80,10 +80,10 @@ RCT_EXPORT_METHOD(connectDevice
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
 
     // Try to connect device directly
-    BOOL result = [[RFIDBlutoothManager shareManager]
+    BOOL result = [[RFIDBluetoothManager shareManager]
         connectPeripheralWithIdentifier:identifier];
     if (result == YES) {
       resolve(@(true));
@@ -92,8 +92,8 @@ RCT_EXPORT_METHOD(connectDevice
 
     // Or try to search and connect to a device
     self->searchForConnectToIdentifier = identifier;
-    [[RFIDBlutoothManager shareManager] startBleScan];
-    [[RFIDBlutoothManager shareManager] initSoundIfNeeded];
+    [[RFIDBluetoothManager shareManager] startBleScan];
+    [[RFIDBluetoothManager shareManager] initSoundIfNeeded];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -104,12 +104,12 @@ RCT_EXPORT_METHOD(disconnectDevice
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
 
     // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //    });
-    [[RFIDBlutoothManager shareManager] closeBleAndDisconnect];
+    [[RFIDBluetoothManager shareManager] closeBleAndDisconnect];
     resolve(@(YES));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -122,7 +122,7 @@ RCT_EXPORT_METHOD(getDeviceConnectStatus
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    BOOL result = [RFIDBlutoothManager shareManager].connectDevice;
+    BOOL result = [RFIDBluetoothManager shareManager].connectDevice;
     if (result)
       resolve(@"CONNECTED");
     else
@@ -136,14 +136,14 @@ RCT_EXPORT_METHOD(getDeviceBatteryLevel
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    if (![RFIDBlutoothManager shareManager].connectDevice) {
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    if (![RFIDBluetoothManager shareManager].connectDevice) {
       resolve(@{@"value" : @(-1)});
     }
     if (!getDeviceBatteryLevelResolveFns)
       getDeviceBatteryLevelResolveFns = [NSMutableArray array];
     [getDeviceBatteryLevelResolveFns addObject:resolve];
-    [[RFIDBlutoothManager shareManager] getBatteryLevel];
+    [[RFIDBluetoothManager shareManager] getBatteryLevel];
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
   }
@@ -153,14 +153,14 @@ RCT_EXPORT_METHOD(getDeviceTemperature
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    if (![RFIDBlutoothManager shareManager].connectDevice) {
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    if (![RFIDBluetoothManager shareManager].connectDevice) {
       resolve(@{@"value" : @(-1)});
     }
     if (!getDeviceTemperatureResolveFns)
       getDeviceTemperatureResolveFns = [NSMutableArray array];
     [getDeviceTemperatureResolveFns addObject:resolve];
-    [[RFIDBlutoothManager shareManager] getServiceTemperature];
+    [[RFIDBluetoothManager shareManager] getServiceTemperature];
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
   }
@@ -171,7 +171,7 @@ RCT_EXPORT_METHOD(setFeedbackMinimumDelay
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [RFIDBlutoothManager shareManager].feedbackMinimumDelay =
+    [RFIDBluetoothManager shareManager].feedbackMinimumDelay =
         feedbackMinimumDelay;
     resolve(@(true));
   } @catch (NSException *exception) {
@@ -201,8 +201,8 @@ RCT_EXPORT_METHOD(startScan
     self->scanTagsEventRate = eventRate;
     self->lastScanTagsEventEmittedAt = CACurrentMediaTime() * 1000;
 
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager]
         setLaunchPowerWithstatus:@"1"
                          antenna:@"1"
                          readStr:[power stringValue]
@@ -218,7 +218,7 @@ RCT_EXPORT_METHOD(startScan
       // [scannedEpcs addObjectsFromArray:scannedEpcsArr];
     }
     if (!enableReaderSound) {
-      [[RFIDBlutoothManager shareManager] setCloseBuzzer];
+      [[RFIDBluetoothManager shareManager] setCloseBuzzer];
       usleep(80 * 1000);
     }
     playSoundOnlyForEpcs = [[NSMutableSet alloc] init];
@@ -228,7 +228,7 @@ RCT_EXPORT_METHOD(startScan
     self->scanIsLocate = isLocate;
     self->soundEnabled = soundEnabled;
     if (enableFilter) {
-      [[RFIDBlutoothManager shareManager]
+      [[RFIDBluetoothManager shareManager]
           setFilterWithBank:[memoryBank intValue]
                         ptr:[filterBitOffset intValue]
                         cnt:[filterBitCount intValue]
@@ -236,20 +236,20 @@ RCT_EXPORT_METHOD(startScan
                                                          // on iOS side
       ];
     } else {
-      [[RFIDBlutoothManager shareManager] setFilterWithBank:1
+      [[RFIDBluetoothManager shareManager] setFilterWithBank:1
                                                         ptr:32
                                                         cnt:0
                                                        data:@"00"];
     }
 
-    [RFIDBlutoothManager shareManager].isSupportRssi = YES;
+    [RFIDBluetoothManager shareManager].isSupportRssi = YES;
     usleep(120 * 1000);
 
     // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //    });
-    [RFIDBlutoothManager shareManager].isgetLab = YES;
-    [[RFIDBlutoothManager shareManager] continuitySaveLabelWithCount:@"10000"];
+    [RFIDBluetoothManager shareManager].isGetLabel = YES;
+    [[RFIDBluetoothManager shareManager] continuitySaveLabelWithCount:@"10000"];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -260,7 +260,7 @@ RCT_EXPORT_METHOD(getLabMessage
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] getLabMessage];
+    [[RFIDBluetoothManager shareManager] getLabMessage];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -271,13 +271,13 @@ RCT_EXPORT_METHOD(stopScan
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
 
     // We use [[NSRunLoop mainRunLoop] addTimer:forMode:]; instead
     //    dispatch_async(dispatch_get_main_queue(), ^{
     //    });
-    [RFIDBlutoothManager shareManager].isgetLab = NO;
-    [[RFIDBlutoothManager shareManager] stopContinuitySaveLabel];
+    [RFIDBluetoothManager shareManager].isGetLabel = NO;
+    [[RFIDBluetoothManager shareManager] stopContinuitySaveLabel];
 
     // Need to let the last coming data to emit
     NSTimer *endStopScanTimer =
@@ -294,8 +294,8 @@ RCT_EXPORT_METHOD(stopScan
 }
 
 - (void)endStopScan:(NSTimer *)timer {
-  [[RFIDBlutoothManager shareManager] setOpenBuzzer];
-  [[RFIDBlutoothManager shareManager] stopContinuitySaveLabel];
+  [[RFIDBluetoothManager shareManager] setOpenBuzzer];
+  [[RFIDBluetoothManager shareManager] stopContinuitySaveLabel];
 
   if (self->scanTagsData) {
     [self sendEventWithName:@"uhfScanData" body:self->scanTagsData];
@@ -336,13 +336,13 @@ RCT_EXPORT_METHOD(read
                   : (RCTPromiseRejectBlock)reject) {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+      [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
     self->working = YES;
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager]
         setLaunchPowerWithstatus:@"1"
                          antenna:@"1"
                          readStr:[power stringValue]
@@ -353,7 +353,7 @@ RCT_EXPORT_METHOD(read
     [readRejectFns addObject:reject];
     isWaitingRead = YES;
     self->soundEnabled = soundEnabled;
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager]
         readLabelMessageWithPassword:accessPassword
                               MMBstr:[filterMemoryBank stringValue]
                               MSAstr:[filterBitOffset stringValue]
@@ -393,7 +393,7 @@ RCT_EXPORT_METHOD(read
   if (readTimeoutTimer)
     [readTimeoutTimer invalidate];
   if (self->soundEnabled)
-    [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+    [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
   if (readRejectFns) {
     for (RCTPromiseRejectBlock reject in readRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -423,12 +423,12 @@ RCT_EXPORT_METHOD(write
                   : (RCTPromiseRejectBlock)reject) {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+      [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager]
         setLaunchPowerWithstatus:@"1"
                          antenna:@"1"
                          readStr:[power stringValue]
@@ -439,7 +439,7 @@ RCT_EXPORT_METHOD(write
     [writeRejectFns addObject:reject];
     isWaitingWrite = YES;
     self->soundEnabled = soundEnabled;
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager]
         writeLabelMessageWithPassword:accessPassword
                                MMBstr:[filterMemoryBank stringValue]
                                MSAstr:[filterBitOffset stringValue]
@@ -481,7 +481,7 @@ RCT_EXPORT_METHOD(write
   if (writeTimeoutTimer)
     [writeTimeoutTimer invalidate];
   if (self->soundEnabled)
-    [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+    [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
   if (writeRejectFns) {
     for (RCTPromiseRejectBlock reject in writeRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -508,12 +508,12 @@ RCT_EXPORT_METHOD(lock
                   : (RCTPromiseRejectBlock)reject) {
   @try {
     if (self->working) {
-      [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+      [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
       reject(@"busy", @"another operation is still in process", nil);
       return;
     }
-    [[RFIDBlutoothManager shareManager] setFatScaleBluetoothDelegate:self];
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager] setFatScaleBluetoothDelegate:self];
+    [[RFIDBluetoothManager shareManager]
         setLaunchPowerWithstatus:@"1"
                          antenna:@"1"
                          readStr:[power stringValue]
@@ -524,7 +524,7 @@ RCT_EXPORT_METHOD(lock
     [lockRejectFns addObject:reject];
     isWaitingLock = YES;
     self->soundEnabled = soundEnabled;
-    [[RFIDBlutoothManager shareManager]
+    [[RFIDBluetoothManager shareManager]
         lockLabelWithPassword:accessPassword
                        MMBstr:[filterMemoryBank stringValue]
                        MSAstr:[filterBitOffset stringValue]
@@ -562,7 +562,7 @@ RCT_EXPORT_METHOD(lock
   if (lockTimeoutTimer)
     [lockTimeoutTimer invalidate];
   if (self->soundEnabled)
-    [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+    [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
   if (lockRejectFns) {
     for (RCTPromiseRejectBlock reject in lockRejectFns) {
       reject(@"timeout", @"operation timeout", nil);
@@ -582,7 +582,7 @@ RCT_EXPORT_METHOD(playSound
                   : (RCTPromiseResolveBlock)resolve
                   : (RCTPromiseRejectBlock)reject) {
   @try {
-    [[RFIDBlutoothManager shareManager] playSound:soundId withVolume:1];
+    [[RFIDBluetoothManager shareManager] playSound:soundId withVolume:1];
     resolve(@(true));
   } @catch (NSException *exception) {
     reject(exception.name, exception.reason, nil);
@@ -613,8 +613,8 @@ RCT_EXPORT_METHOD(playSound
     // This search is for connecting to a specific device
     if ([self->searchForConnectToIdentifier
             isEqualToString:[model.peripheral.identifier UUIDString]]) {
-      [[RFIDBlutoothManager shareManager] stopBleScan];
-      [[RFIDBlutoothManager shareManager] connectPeripheral:model.peripheral
+      [[RFIDBluetoothManager shareManager] stopBleScan];
+      [[RFIDBluetoothManager shareManager] connectPeripheral:model.peripheral
                                                  macAddress:model.addressStr];
     }
     return;
@@ -684,7 +684,7 @@ RCT_EXPORT_METHOD(playSound
       } else {
         soundVolume = 0;
       }
-      [[RFIDBlutoothManager shareManager]
+      [[RFIDBluetoothManager shareManager]
            playTagScannedFeedback:2
                            volume:soundVolume
           hapticFeedbackIntensity:MAX(0.4, rssiFraction)];
@@ -694,11 +694,11 @@ RCT_EXPORT_METHOD(playSound
         soundVolume = 1;
       }
       if ([self->scannedEpcs containsObject:epc]) {
-        [[RFIDBlutoothManager shareManager] playTagScannedFeedback:2
+        [[RFIDBluetoothManager shareManager] playTagScannedFeedback:2
                                                             volume:soundVolume
                                            hapticFeedbackIntensity:0];
       } else {
-        [[RFIDBlutoothManager shareManager] playTagScannedFeedback:1
+        [[RFIDBluetoothManager shareManager] playTagScannedFeedback:1
                                                             volume:soundVolume
                                            hapticFeedbackIntensity:1];
       }
@@ -752,7 +752,7 @@ RCT_EXPORT_METHOD(playSound
     isWaitingRead = NO;
     NSLog(@"RCTRFIDWithUHFBLEModule: Read success");
     if (self->soundEnabled)
-      [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
+      [[RFIDBluetoothManager shareManager] playSound:1 withVolume:1];
     if (readTimeoutTimer)
       [readTimeoutTimer invalidate];
     if (readResolveFns) {
@@ -771,7 +771,7 @@ RCT_EXPORT_METHOD(playSound
     if ([dataStr isEqualToString:@"Successful tag writing"]) {
       NSLog(@"RCTRFIDWithUHFBLEModule: Write success");
       if (self->soundEnabled)
-        [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
+        [[RFIDBluetoothManager shareManager] playSound:1 withVolume:1];
       if (writeTimeoutTimer)
         [writeTimeoutTimer invalidate];
       if (writeResolveFns) {
@@ -786,7 +786,7 @@ RCT_EXPORT_METHOD(playSound
     } else {
       NSLog(@"RCTRFIDWithUHFBLEModule: Write failed");
       if (self->soundEnabled)
-        [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+        [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
       if (writeTimeoutTimer)
         [writeTimeoutTimer invalidate];
       if (writeResolveFns) {
@@ -806,7 +806,7 @@ RCT_EXPORT_METHOD(playSound
     if ([dataStr isEqualToString:@"Lock label successful"]) {
       NSLog(@"RCTRFIDWithUHFBLEModule: Lock success");
       if (self->soundEnabled)
-        [[RFIDBlutoothManager shareManager] playSound:1 withVolume:1];
+        [[RFIDBluetoothManager shareManager] playSound:1 withVolume:1];
       if (lockTimeoutTimer)
         [lockTimeoutTimer invalidate];
       if (lockResolveFns) {
@@ -823,7 +823,7 @@ RCT_EXPORT_METHOD(playSound
     } else {
       NSLog(@"RCTRFIDWithUHFBLEModule: Lock failed");
       if (self->soundEnabled)
-        [[RFIDBlutoothManager shareManager] playSound:3 withVolume:1];
+        [[RFIDBluetoothManager shareManager] playSound:3 withVolume:1];
       if (lockTimeoutTimer)
         [lockTimeoutTimer invalidate];
       if (lockResolveFns) {

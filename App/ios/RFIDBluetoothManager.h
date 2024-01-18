@@ -1,5 +1,5 @@
 //
-//  RFIDBlutoothManager.h
+//  RFIDBluetoothManager.h
 //  RFID_ios
 //
 //  Created by chainway on 2018/4/26.
@@ -72,7 +72,7 @@
 
 @end
 
-@interface RFIDBlutoothManager : NSObject {
+@interface RFIDBluetoothManager : NSObject {
   BOOL soundInitialized;
   AVAudioPlayer *player1[SOUND_I];
   AVAudioPlayer *player2[SOUND_I];
@@ -111,13 +111,13 @@
 
 @property(nonatomic, assign) int num;
 
-@property(nonatomic, assign) BOOL isgetLab; // 是否是獲取標籤
+@property(nonatomic, assign) BOOL isGetLabel; // 是否是獲取標籤
 
 @property(nonatomic, assign) BOOL isSupportRssi; // 是否是獲取升級後的標籤
 
 @property(nonatomic, assign) BOOL isBLE40; // 藍牙4.0
 
-@property(nonatomic, assign) BOOL isGetVerson; // 是否是獲取版本號
+@property(nonatomic, assign) BOOL isGetVersion; // 是否是獲取版本號
 
 @property(nonatomic, assign) BOOL isGetBattery; // 是否是獲取電量
 
@@ -133,7 +133,7 @@
 
 @property(nonatomic, assign) BOOL isCloseBuzzer; // 關閉蜂鳴器
 
-@property(nonatomic, assign) BOOL isSingleSaveLable; // 單次盤點標籤
+@property(nonatomic, assign) BOOL isSingleSaveLabel; // 單次盤點標籤
 
 @property(nonatomic, assign) BOOL isSetTag; // 設置讀取標籤格式
 @property(nonatomic, assign) BOOL isGetTag; // 獲取讀取標籤格式
@@ -177,7 +177,7 @@
 
 @property(nonatomic, strong) NSMutableString *rcodeStr; // 二維碼數據
 
-@property(nonatomic, strong) NSMutableString *singleLableStr; // 單次標籤數據
+@property(nonatomic, strong) NSMutableString *singleLabelStr; // 單次標籤數據
 
 @property(nonatomic, strong) NSMutableString *rcodeDataSource; // 二維碼數據數組
 
