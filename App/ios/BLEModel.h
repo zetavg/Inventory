@@ -6,14 +6,13 @@
 //  Copyright © 2018年 chainway. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
 #import <CoreBluetooth/CoreBluetooth.h>
+#import <Foundation/Foundation.h>
 @interface BLEModel : NSObject
 
-@property (nonatomic,copy)NSString *nameStr;
-@property (nonatomic,copy)NSString *addressStr;
-@property (nonatomic,copy)NSString *rssStr;
-@property (nonatomic,strong)CBPeripheral *peripheral;
-
+@property(nonatomic, copy) NSString *nameStr;
+@property(nonatomic, copy) NSString *addressStr;
+@property(nonatomic, copy) NSString *rssStr;
+@property(nonatomic, strong) CBPeripheral *peripheral;
 
 @end

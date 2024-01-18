@@ -28,7 +28,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (NSString *)getBinaryByDecimal:(NSInteger)decimal;
 
-
 /**
  十進制轉換十六進制
 
@@ -75,7 +74,7 @@ NS_ASSUME_NONNULL_BEGIN
  @param hex 十六進制數
  @return 十進制數
  */
-+(NSString *)dataToHex:(NSData *)data ;
++ (NSString *)dataToHex:(NSData *)data;
 @end
 
 NS_ASSUME_NONNULL_END
