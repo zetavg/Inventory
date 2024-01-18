@@ -138,18 +138,14 @@
 		13B07FAE1A68108700A75B9A /* Inventory */ = {
 			isa = PBXGroup;
 			children = (
+				195A022D2B597C1D00FF2B0F /* Libraries */,
+				195A022A2B597B9200FF2B0F /* ReactNativeModules */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
-				197D8A3628C340FA0048042D /* RCTRFIDWithUHFBLEModule.h */,
-				197D8A3728C341630048042D /* RCTRFIDWithUHFBLEModule.m */,
-				1925244C2AAB855300F85C2F /* RCTNativeEventEmitterModule.h */,
-				1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */,
-				1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */,
-				1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */,
 			);
 			name = Inventory;
 			sourceTree = "<group>";
@@ -159,6 +155,66 @@
 			children = (
 			);
 			path = ReactViews;
+			sourceTree = "<group>";
+		};
+		195A022A2B597B9200FF2B0F /* ReactNativeModules */ = {
+			isa = PBXGroup;
+			children = (
+				195A022B2B597BE000FF2B0F /* RFID */,
+				1925244C2AAB855300F85C2F /* RCTNativeEventEmitterModule.h */,
+				1925244D2AAB858F00F85C2F /* RCTNativeEventEmitterModule.m */,
+				1925A26728E0AB5F00FEE3AE /* RCTNSLinguisticTaggerModule.h */,
+				1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */,
+			);
+			path = ReactNativeModules;
+			sourceTree = "<group>";
+		};
+		195A022B2B597BE000FF2B0F /* RFID */ = {
+			isa = PBXGroup;
+			children = (
+				195A022C2B597BFE00FF2B0F /* Chainway */,
+			);
+			path = RFID;
+			sourceTree = "<group>";
+		};
+		195A022C2B597BFE00FF2B0F /* Chainway */ = {
+			isa = PBXGroup;
+			children = (
+				197D8A3628C340FA0048042D /* RCTRFIDWithUHFBLEModule.h */,
+				197D8A3728C341630048042D /* RCTRFIDWithUHFBLEModule.m */,
+			);
+			path = Chainway;
+			sourceTree = "<group>";
+		};
+		195A022D2B597C1D00FF2B0F /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				195A022E2B597C2E00FF2B0F /* RFID */,
+			);
+			path = Libraries;
+			sourceTree = "<group>";
+		};
+		195A022E2B597C2E00FF2B0F /* RFID */ = {
+			isa = PBXGroup;
+			children = (
+				195A022F2B597C3900FF2B0F /* Chainway */,
+			);
+			path = RFID;
+			sourceTree = "<group>";
+		};
+		195A022F2B597C3900FF2B0F /* Chainway */ = {
+			isa = PBXGroup;
+			children = (
+				197AF16B28C7919900F7066A /* AppHelper.h */,
+				197AF16A28C7919800F7066A /* AppHelper.m */,
+				197AF16628C7919800F7066A /* BLEModel.h */,
+				197AF16828C7919800F7066A /* BLEModel.m */,
+				197AF16D28C7919900F7066A /* BluetoothUtil.h */,
+				197AF16928C7919800F7066A /* BluetoothUtil.m */,
+				197AF16728C7919800F7066A /* RFIDBluetoothManager.h */,
+				197AF16C28C7919900F7066A /* RFIDBluetoothManager.m */,
+			);
+			path = Chainway;
 			sourceTree = "<group>";
 		};
 		197AF19128CA687400F7066A /* Sounds */ = {
@@ -184,21 +240,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
-			isa = PBXGroup;
-			children = (
-				197AF16B28C7919900F7066A /* AppHelper.h */,
-				197AF16A28C7919800F7066A /* AppHelper.m */,
-				197AF16628C7919800F7066A /* BLEModel.h */,
-				197AF16828C7919800F7066A /* BLEModel.m */,
-				197AF16D28C7919900F7066A /* BluetoothUtil.h */,
-				197AF16928C7919800F7066A /* BluetoothUtil.m */,
-				197AF16728C7919800F7066A /* RFIDBluetoothManager.h */,
-				197AF16C28C7919900F7066A /* RFIDBluetoothManager.m */,
-			);
-			name = Libraries;
-			sourceTree = "<group>";
-		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
@@ -206,7 +247,6 @@
 				197AF19128CA687400F7066A /* Sounds */,
 				1938EC8D28A428DD005192B7 /* ReactViews */,
 				13B07FAE1A68108700A75B9A /* Inventory */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* InventoryTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
