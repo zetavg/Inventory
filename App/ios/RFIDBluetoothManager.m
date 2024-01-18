@@ -1,12 +1,12 @@
 //
-//  RFIDBlutoothManager.m
+//  RFIDBluetoothManager.m
 //  RFID_ios
 //
 //  Created by chainway on 2018/4/26.
 //  Copyright © 2018年 chainway. All rights reserved.
 //
 
-#import "RFIDBlutoothManager.h"
+#import "RFIDBluetoothManager.h"
 #import <UIKit/UIKit.h>
 // #import "BSprogreUtil.h"
 #import "AppHelper.h"
@@ -27,7 +27,7 @@
 
 #define UpdateBLE_SEND_MAX_LEN 20
 
-@interface RFIDBlutoothManager () <CBCentralManagerDelegate,
+@interface RFIDBluetoothManager () <CBCentralManagerDelegate,
                                    CBPeripheralDelegate>
 
 // @property (nonatomic, strong) CBCentralManager *centralManager; // declared
@@ -61,10 +61,10 @@
 
 @end
 
-@implementation RFIDBlutoothManager
+@implementation RFIDBluetoothManager
 
 + (instancetype)shareManager {
-  static RFIDBlutoothManager *shareManager = nil;
+  static RFIDBluetoothManager *shareManager = nil;
   static dispatch_once_t once;
   dispatch_once(&once, ^{
     shareManager = [[self alloc] init];
@@ -90,7 +90,7 @@
     self.isFirstSendGetTAGCmd = YES;
     _tagStr = [[NSMutableString alloc] init];
     _allCount = 0;
-    self.isgetLab = NO;
+    self.isGetLabel = NO;
     self.countArr = [[NSMutableArray alloc] init];
     self.countArr1 = [NSMutableArray array];
     self.countArr2 = [NSMutableArray array];
@@ -189,13 +189,13 @@
 
 // 獲取硬件版本號
 - (void)getHardwareVersion {
-  self.isGetVerson = YES;
+  self.isGetVersion = YES;
   NSData *data = [BluetoothUtil getHardwareVersion];
   [self sendDataToBle:data];
 }
 // 獲取固件版本號
 - (void)getFirmwareVersion {
-  self.isGetVerson = YES;
+  self.isGetVersion = YES;
   NSData *data = [BluetoothUtil getFirmwareVersion];
   [self sendDataToBle:data];
 }
@@ -285,7 +285,7 @@
 
 // 單次盤存標籤
 - (void)singleSaveLabel {
-  self.isSingleSaveLable = YES;
+  self.isSingleSaveLabel = YES;
   NSData *data = [BluetoothUtil singleSaveLabel];
   [self sendDataToBle:data];
 }
@@ -296,7 +296,7 @@
     // 如果開始盤底後，馬上停止。 那麼直接退回定時器
     self.isFirstSendGetTAGCmd = NO;
     for (int k = 0; k < 300; k++) {
-      if (self.isgetLab == NO) {
+      if (self.isGetLabel == NO) {
         [self.sendGetTagRequestTime invalidate];
         self.sendGetTagRequestTime = nil;
         //                    NSLog(@"退出獲取標籤定時器!");
@@ -306,7 +306,7 @@
     }
   }
 
-  if (self.connectDevice == YES && self.isgetLab == YES) {
+  if (self.connectDevice == YES && self.isGetLabel == YES) {
     //          NSLog(@"獲取標籤定時器!");
     [self getLabMessage];
   } else {
@@ -1062,11 +1062,11 @@ NSInteger dataIndex = 0;
     typeStr = @"10000";
   }
 
-  if (self.singleLableStr.length > 0) {
+  if (self.singleLabelStr.length > 0) {
     // 單次盤點n標籤
-    [self.singleLableStr appendString:dataStr];
+    [self.singleLabelStr appendString:dataStr];
     if (dataStr.length < 40) {
-      // NSLog(@"self.singleLableStr===%@",self.singleLableStr);
+      // NSLog(@"self.singleLabelStr===%@",self.singleLabelStr);
       //   天線號 1 個字節,信號值 2 個字節,1個字節校驗碼,2個字節 RSSI
       //        數據長度（2字節）  cmd      pc(2字節)              epc
       //        rssi(2字節)   ant((2字節))     crc(1字節)
@@ -1074,16 +1074,16 @@ NSInteger dataIndex = 0;
       // 33 34     fe b7      01               eb          0d 0a
       //                                 34 00     39 31 31 31 32 32 32 32 33 33
       //                                 33 34     fe 54      01
-      NSData *rawData = [AppHelper hexToNSData:self.singleLableStr];
+      NSData *rawData = [AppHelper hexToNSData:self.singleLabelStr];
       NSData *tagTempData = [self parseDataWithOriginalStr:rawData cmd:0x81];
 
-      //  NSLog(@"singleLableStr= %@",self.singleLableStr);
+      //  NSLog(@"singleLabelStr= %@",self.singleLabelStr);
       //  NSLog(@"data= %@",[AppHelper dataToHex:tagTempData]);
       //  NSLog(@"rawData.length= %d",(int)rawData.length);
       //  NSLog(@"data.length= %d",(int)tagTempData.length);
       [self parseSingleLabel:tagTempData];
-      self.singleLableStr = [[NSMutableString alloc] init];
-      self.isSingleSaveLable = NO;
+      self.singleLabelStr = [[NSMutableString alloc] init];
+      self.isSingleSaveLabel = NO;
     }
   }
 
@@ -1179,21 +1179,21 @@ NSInteger dataIndex = 0;
     */
   }
 
-  if (self.isgetLab == NO) {
+  if (self.isGetLabel == NO) {
     NSLog(@"RFIDBluetoothManager: received data (!getLab) type: %@, data: %@",
           typeStr, dataStr);
     //          int i=0;
     // 不是獲取標籤的
     if ([typeStr isEqualToString:@"01"]) {
       // 獲取硬件版本號
-      if (self.isGetVerson) {
+      if (self.isGetVersion) {
         NSString *strr = [dataStr substringWithRange:NSMakeRange(10, 6)];
         [self.managerDelegate receiveMessageWithtype:@"01" dataStr:strr];
-        self.isGetVerson = NO;
+        self.isGetVersion = NO;
       }
 
     } else if ([typeStr isEqualToString:@"03"]) {
-      if (self.isGetVerson) {
+      if (self.isGetVersion) {
         // 獲取固件版本號
         NSString *str1 = [dataStr substringWithRange:NSMakeRange(10, 2)];
         NSString *str2 = [dataStr substringWithRange:NSMakeRange(12, 2)];
@@ -1202,7 +1202,7 @@ NSInteger dataIndex = 0;
             stringWithFormat:@"V%ld.%ld%ld", (long)str1.integerValue,
                              (long)str2.integerValue, (long)str3.integerValue];
         [self.managerDelegate receiveMessageWithtype:@"03" dataStr:strr];
-        self.isGetVerson = NO;
+        self.isGetVersion = NO;
       }
 
     } else if ([typeStr isEqualToString:@"c9"]) {
@@ -1309,7 +1309,7 @@ NSInteger dataIndex = 0;
       NSString *strr = [dataStr substringWithRange:NSMakeRange(10, 2)];
       if ([strr isEqualToString:@"01"]) {
         NSLog(@"停止連續盤存標籤成功");
-        self.isgetLab = NO;
+        self.isGetLabel = NO;
         _tagStr = [[NSMutableString alloc] init];
       }
     } else if ([typeStr isEqualToString:@"85"]) {
@@ -1373,10 +1373,10 @@ NSInteger dataIndex = 0;
                                              dataStr:@"Destruction of failure"];
       }
     } else if ([typeStr isEqualToString:@"81"]) {
-      if (self.isSingleSaveLable) {
+      if (self.isSingleSaveLabel) {
         // 單次盤存標籤
-        self.singleLableStr = [[NSMutableString alloc] init];
-        [self.singleLableStr appendString:dataStr];
+        self.singleLabelStr = [[NSMutableString alloc] init];
+        [self.singleLabelStr appendString:dataStr];
       }
     } else if ([typeStr isEqualToString:@"71"]) {
       if (self.isSetTag) {

@@ -19,7 +19,7 @@
 		197AF16E28C7919900F7066A /* BLEModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16828C7919800F7066A /* BLEModel.m */; };
 		197AF16F28C7919900F7066A /* BluetoothUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16928C7919800F7066A /* BluetoothUtil.m */; };
 		197AF17028C7919900F7066A /* AppHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16A28C7919800F7066A /* AppHelper.m */; };
-		197AF17128C7919900F7066A /* RFIDBlutoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16C28C7919900F7066A /* RFIDBlutoothManager.m */; };
+		197AF17128C7919900F7066A /* RFIDBluetoothManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 197AF16C28C7919900F7066A /* RFIDBluetoothManager.m */; };
 		197AF19B28CA692700F7066A /* beep.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 197AF19828CA692700F7066A /* beep.ogg */; };
 		197AF19C28CA692700F7066A /* serror.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 197AF19928CA692700F7066A /* serror.ogg */; };
 		197AF19D28CA692700F7066A /* beep_slight.ogg in Resources */ = {isa = PBXBuildFile; fileRef = 197AF19A28CA692700F7066A /* beep_slight.ogg */; };
@@ -71,12 +71,12 @@
 		1925A26828E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTNSLinguisticTaggerModule.m; sourceTree = "<group>"; };
 		1962F0C12A35DF72003E3ADE /* config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = config.xcconfig; sourceTree = "<group>"; };
 		197AF16628C7919800F7066A /* BLEModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BLEModel.h; sourceTree = "<group>"; };
-		197AF16728C7919800F7066A /* RFIDBlutoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFIDBlutoothManager.h; sourceTree = "<group>"; };
+		197AF16728C7919800F7066A /* RFIDBluetoothManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RFIDBluetoothManager.h; sourceTree = "<group>"; };
 		197AF16828C7919800F7066A /* BLEModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BLEModel.m; sourceTree = "<group>"; };
 		197AF16928C7919800F7066A /* BluetoothUtil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BluetoothUtil.m; sourceTree = "<group>"; };
 		197AF16A28C7919800F7066A /* AppHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppHelper.m; sourceTree = "<group>"; };
 		197AF16B28C7919900F7066A /* AppHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppHelper.h; sourceTree = "<group>"; };
-		197AF16C28C7919900F7066A /* RFIDBlutoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFIDBlutoothManager.m; sourceTree = "<group>"; };
+		197AF16C28C7919900F7066A /* RFIDBluetoothManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RFIDBluetoothManager.m; sourceTree = "<group>"; };
 		197AF16D28C7919900F7066A /* BluetoothUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BluetoothUtil.h; sourceTree = "<group>"; };
 		197AF19828CA692700F7066A /* beep.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = beep.ogg; sourceTree = "<group>"; };
 		197AF19928CA692700F7066A /* serror.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = serror.ogg; sourceTree = "<group>"; };
@@ -193,8 +193,8 @@
 				197AF16828C7919800F7066A /* BLEModel.m */,
 				197AF16D28C7919900F7066A /* BluetoothUtil.h */,
 				197AF16928C7919800F7066A /* BluetoothUtil.m */,
-				197AF16728C7919800F7066A /* RFIDBlutoothManager.h */,
-				197AF16C28C7919900F7066A /* RFIDBlutoothManager.m */,
+				197AF16728C7919800F7066A /* RFIDBluetoothManager.h */,
+				197AF16C28C7919900F7066A /* RFIDBluetoothManager.m */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -520,7 +520,7 @@
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				197D8A3828C341630048042D /* RCTRFIDWithUHFBLEModule.m in Sources */,
 				1925A26928E0ABE400FEE3AE /* RCTNSLinguisticTaggerModule.m in Sources */,
-				197AF17128C7919900F7066A /* RFIDBlutoothManager.m in Sources */,
+				197AF17128C7919900F7066A /* RFIDBluetoothManager.m in Sources */,
 				197AF17028C7919900F7066A /* AppHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,4 +1,4 @@
-#import "RFIDBlutoothManager.h"
+#import "RFIDBluetoothManager.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
