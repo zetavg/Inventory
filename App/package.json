@@ -6,7 +6,8 @@
     "node": "18.15.0"
   },
   "scripts": {
-    "android": "react-native run-android",
+    "android": "react-native run-android --appIdSuffix dev",
+    "pod-install": "bash scripts/pod-install.sh",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "prestart": "sb-rn-get-stories",

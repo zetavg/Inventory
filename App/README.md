@@ -17,14 +17,14 @@ yarn start
 ### For iOS
 
 1. `cp ios/config.xcconfig.sample ios/config.xcconfig` and modify the content of `ios/config.xcconfig` to fit your setup.
-2. `bash scripts/pod-install.sh`.
+2. `yarn run pod-install`.
 3. `open ios/Inventory.xcworkspace`.
 4. In Xcode, select a scheme and target, then run.
 
 ### For Android
 
 ```bash
-npx react-native run-android --appIdSuffix dev
+yarn run android
 ```
 
 ## Build
@@ -37,7 +37,7 @@ npx react-native run-android --appIdSuffix dev
 
 #### Using Fastlane
 
-To use Fastlane, you'll need to install Fastlane by running `bundle install` in the `ios` directory. Also, App Store Connect API keys have to be setup in `config.xcconfig`.
+To use Fastlane, you'll need to install Fastlane by running `bundle install` in the `ios` directory. Also, App Store Connect API keys have to be set up in `config.xcconfig`.
 
 The following Fastlane lanes are available, which can be run in the `ios` directory:
 
