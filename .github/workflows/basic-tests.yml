@@ -88,8 +88,8 @@ jobs:
           echo "name=${package_name}" >> $GITHUB_OUTPUT
       - name: Setup environment
         uses: ./.github/actions/setup-environment
-        with:
-          yarn-workspaces-focus: ${{ steps.get-workspace-package-name.outputs.name }}
+        # with:
+        #   yarn-workspaces-focus: ${{ steps.get-workspace-package-name.outputs.name }}
       - name: Test
         run: |
           FORCE_COLOR=true yarn test
