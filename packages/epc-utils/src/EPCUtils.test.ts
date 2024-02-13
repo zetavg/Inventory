@@ -501,6 +501,7 @@ describe('EPCUtils.getGiaiUriFromEpcHex', () => {
 });
 
 function getCompanyIarPrefixCaseKeys() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const sd = require('./__snapshots__/EPCUtils.test.ts.snap');
   const sdKeys1 = Object.keys(
     // eslint-disable-next-line no-eval

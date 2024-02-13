@@ -212,7 +212,7 @@ const getGiaiUriFromEpcHex = (epcHex: string): string => {
   // Giai96.fromTagURI have integer overflow issue, so we have to do this manually and use BigInt instead of parseInt at some places
   const epc = new Giai96(epcHex);
 
-  let partition = Giai96.PARTITIONS[epc.getPartition()];
+  const partition = Giai96.PARTITIONS[epc.getPartition()];
 
   const companyPrefix = epc.getSegmentString(partition.a);
 
