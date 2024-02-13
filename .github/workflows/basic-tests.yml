@@ -80,8 +80,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Get workspace package name
+        id: get-workspace-package-name
+        run: |
+          package_name=$(jq -r '.name' package.json)
+          echo "Package name: ${package_name}"
+          echo "name=${package_name}" >> $GITHUB_OUTPUT
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+        with:
+          yarn-workspaces-focus: ${{ steps.get-workspace-package-name.outputs.name }}
       - name: Test
         run: |
           FORCE_COLOR=true yarn test

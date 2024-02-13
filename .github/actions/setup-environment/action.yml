@@ -23,10 +23,9 @@ runs:
         cache-name: node_modules
       with:
         path: '**/node_modules'
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('yarn.lock') }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}
+        key: ${{ runner.os }}-${{ env.cache-name }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('yarn.lock') }}
-          ${{ runner.os }}-${{ env.cache-name }}-
+          ${{ runner.os }}-${{ env.cache-name }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}-
     - name: Install dependencies
       if: ${{ inputs.skip-yarn-install != 'true' }}
       shell: bash
