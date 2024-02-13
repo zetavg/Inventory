@@ -10,4 +10,4 @@ Run `yarn run generate-schema` before and after development.
 
 ## Implementations
 
-* CouchDB: [data-storage-couchdb](../packages/data-storage-couchdb)
+* CouchDB: [data-storage-couchdb](../data-storage-couchdb)

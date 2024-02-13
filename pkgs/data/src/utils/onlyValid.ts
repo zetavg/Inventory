@@ -17,8 +17,8 @@ export default function onlyValid<
     ? Array<DataTypeWithID<T>>
     : never
   : TT extends MaybeDataTypeWithID<infer T>
-  ? DataTypeWithID<T> | null
-  : never {
+    ? DataTypeWithID<T> | null
+    : never {
   if (Array.isArray(data)) {
     return data.filter(d => d?.__valid) as any;
   }

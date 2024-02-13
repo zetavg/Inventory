@@ -1,6 +1,5 @@
+import EPCUtils from '@invt/epc-utils';
 import { v4 as uuidv4 } from 'uuid';
-
-import EPCUtils from '@deps/epc-utils';
 
 import { DEFAULT_EXPIRE_SOON_PRIOR_DAYS } from './consts';
 import { DataTypeName } from './schema';
@@ -178,7 +177,9 @@ export default function getCallbacks({
               try {
                 const epcHex = EPCUtils.encodeEpcHexFromGiai(datum.epc_tag_uri);
                 datum.rfid_tag_epc_memory_bank_contents = epcHex;
-              } catch (e) {}
+              } catch (e) {
+                /* empty */
+              }
             } else {
               datum.rfid_tag_epc_memory_bank_contents = undefined;
             }
@@ -354,7 +355,9 @@ export default function getCallbacks({
                 d => ({ ...d, size, image_1440_digest }),
               ]);
             }
-          } catch (e) {}
+          } catch (e) {
+            /* empty */
+          }
           break;
         }
       }

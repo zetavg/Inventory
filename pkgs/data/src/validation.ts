@@ -1,7 +1,5 @@
-import EPCUtils from '@deps/epc-utils';
+import EPCUtils from '@invt/epc-utils';
 
-import capitalizeAcronyms from './utils/capitalizeAcronyms';
-import toTitleCase from './utils/toTitleCase';
 import { DataTypeName } from './schema';
 import {
   DataTypeWithID,
@@ -12,6 +10,8 @@ import {
   InvalidDataTypeWithID,
   ValidationIssue,
 } from './types';
+import capitalizeAcronyms from './utils/capitalizeAcronyms';
+import toTitleCase from './utils/toTitleCase';
 
 export type ValidationResults = Array<ValidationIssue>;
 

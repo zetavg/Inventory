@@ -247,6 +247,7 @@ export default function getSaveDatum({
 
       const [type, id, updater] = d;
       const errors: unknown[] = [];
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           const existingData = await getDatum(type, id);
@@ -288,6 +289,7 @@ export default function getSaveDatum({
     }
 
     // Normal save
+    // eslint-disable-next-line no-constant-condition
     if (true /* an unnecessary if condition for code folding in editors */) {
       const existingData = await (async () => {
         if (typeof d.__id !== 'string') return null;

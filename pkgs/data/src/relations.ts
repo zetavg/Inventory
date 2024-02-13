@@ -1,5 +1,5 @@
 import { DataTypeName } from './schema';
-import type { ValidDataTypeWithID, InvalidDataTypeWithID } from './types';
+import type { InvalidDataTypeWithID, ValidDataTypeWithID } from './types';
 
 export type RelationConfig = {
   type_name: DataTypeName;

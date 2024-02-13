@@ -84,4 +84,4 @@ jobs:
         uses: ./.github/actions/setup-environment
       - name: Test
         run: |
-          yarn test
+          FORCE_COLOR=true yarn test

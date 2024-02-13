@@ -3,8 +3,8 @@ import fs from 'fs';
 import { parseSchema } from 'json-schema-to-zod';
 import path from 'path';
 
-const jsonSchemaFilePath = path.join(__dirname, '..', 'lib', 'schema.json');
-const outputFilePath = path.join(__dirname, '..', 'lib', 'generated-schema.ts');
+const jsonSchemaFilePath = path.join(__dirname, '..', 'src', 'schema.json');
+const outputFilePath = path.join(__dirname, '..', 'src', 'generated-schema.ts');
 
 // Read the JSON file
 const jsonSchema = JSON.parse(fs.readFileSync(jsonSchemaFilePath, 'utf8'));

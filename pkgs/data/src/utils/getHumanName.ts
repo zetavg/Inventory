@@ -1,5 +1,4 @@
 import PLURALS from '../plurals';
-
 import capitalizeAcronyms from './capitalizeAcronyms';
 import toTitleCase from './toTitleCase';
 
