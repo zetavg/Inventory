@@ -4,9 +4,14 @@
   "packageManager": "yarn@4.1.0",
   "workspaces": [
     "configs/*",
-    "packages/*"
+    "pkgs/*"
   ],
   "scripts": {
-    "preinstall": "node scripts/package-inherit-cli.js update"
+    "preinstall": "node scripts/package-inherit-cli.js update",
+    "lint": "yarn workspaces foreach --all --exclude . run lint",
+    "typecheck": "FORCE_COLOR=true yarn workspaces foreach --all --exclude . -vv run typecheck",
+    "test": "FORCE_COLOR=true yarn workspaces foreach --all --exclude . run test",
+    "build": "FORCE_COLOR=true yarn workspaces foreach --all --topological --exclude . run build",
+    "clean": "FORCE_COLOR=true yarn workspaces foreach --all --exclude . run clean"
   }
 }

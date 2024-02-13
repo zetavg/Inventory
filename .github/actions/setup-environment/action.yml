@@ -1,0 +1,35 @@
+name: Setup Environment
+inputs:
+  yarn-workspaces-focus:
+    required: false
+    type: string
+  skip-yarn-install:
+    required: false
+    default: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: '.node-version'
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+    - name: Cache node_modules
+      if: ${{ inputs.skip-yarn-install != 'true' }}
+      uses: actions/cache@v4
+      env:
+        cache-name: node_modules
+      with:
+        path: '**/node_modules'
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('yarn.lock') }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('yarn.lock') }}
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Install dependencies
+      if: ${{ inputs.skip-yarn-install != 'true' }}
+      shell: bash
+      run: |
+        yarn preinstall
+        ${{ inputs.yarn-workspaces-focus && format('yarn workspaces focus {0}', inputs.yarn-workspaces-focus) || 'yarn install'}}

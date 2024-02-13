@@ -505,6 +505,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@invt/epc-utils@workspace:pkgs/epc-utils":
+  version: 0.0.0-use.local
+  resolution: "@invt/epc-utils@workspace:pkgs/epc-utils"
+  dependencies:
+    "@types/jest": "npm:*"
+    epc-tds: "npm:1.3.1"
+    eslint: "npm:*"
+    eslint-config-workspace: "workspace:^"
+    jest: "npm:*"
+    jest-config-workspace: "workspace:^"
+    tsconfig-workspace: "workspace:^"
+    typescript: "npm:^4"
+  languageName: unknown
+  linkType: soft
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -2148,21 +2163,6 @@ __metadata:
   checksum: 10c0/bd6908228293b6e50ab2945beda75ff85f63dd79dbbabe85b20132bcdb370bf175e6e2ee8023513d5045d7cf2e667ee9d95748401ccb137ce53d6590197cfac1
   languageName: node
   linkType: hard
-
-"epc-utils@workspace:packages/epc-utils":
-  version: 0.0.0-use.local
-  resolution: "epc-utils@workspace:packages/epc-utils"
-  dependencies:
-    "@types/jest": "npm:*"
-    epc-tds: "npm:1.3.1"
-    eslint: "npm:*"
-    eslint-config-workspace: "workspace:^"
-    jest: "npm:*"
-    jest-config-workspace: "workspace:^"
-    tsconfig-workspace: "workspace:^"
-    typescript: "npm:^4"
-  languageName: unknown
-  linkType: soft
 
 "err-code@npm:^2.0.2":
   version: 2.0.3

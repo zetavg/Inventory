@@ -3,10 +3,11 @@ run-name: "Lint: ${{ github.event_name == 'push' && format('[{0}] {1}', github.r
 on:
   push:
     branches:
-    - main
-  pull_request:
-    branches:
-    - main
+    # - main
+    - __ignore__ # Temporary disable this workflow
+  # pull_request:
+  #   branches:
+  #   - main
 
 jobs:
   lint-data:

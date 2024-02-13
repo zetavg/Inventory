@@ -3,23 +3,24 @@ run-name: "CI${{ vars.CI_ENABLE_BUILD && ((github.event_name != 'pull_request' &
 on:
   push:
     branches:
-    - main
+    # - main
+    - __ignore__ # Temporary disable this workflow
     paths-ignore:
       - '**/README.md'
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-    - main
-    paths-ignore:
-      - '**/README.md'
-  release:
-    types: [published]
-  schedule:
-    # Every Monday
-    - cron: 0 0 * * 1
-    # # First Sunday of every month
-    # # See: https://crontab.guru/#0_0_1-7_*_*/7
-    # - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
+  # pull_request:
+  #   types: [opened, synchronize, reopened, ready_for_review]
+  #   branches:
+  #   - main
+  #   paths-ignore:
+  #     - '**/README.md'
+  # release:
+  #   types: [published]
+  # schedule:
+  #   # Every Monday
+  #   - cron: 0 0 * * 1
+  #   # # First Sunday of every month
+  #   # # See: https://crontab.guru/#0_0_1-7_*_*/7
+  #   # - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}

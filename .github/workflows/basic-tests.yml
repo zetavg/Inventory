@@ -1,0 +1,87 @@
+name: Basic Tests
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+      - main
+    paths-ignore:
+      - '**/README.md'
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      - name: Lint
+        run: |
+          yarn lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+      - name: Typecheck
+        run: |
+          yarn typecheck
+
+  prepare-test:
+    name: Prepare Test
+    runs-on: ubuntu-latest
+    outputs:
+      # Expose the workspace path output from the list-workspaces step for other jobs to use it.
+      workspace-paths: ${{ steps.list-workspaces.outputs.workspace-paths }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          skip-yarn-install: true
+      - name: List workspaces with tests
+        uses: zetavg/yarn-workspaces-list-action@v2.pre1
+        id: list-workspaces
+        with:
+          # Check if the workspace has a "test" script defined in its package.json.
+          condition: '[ -f "$workspace_path/package.json" ] && jq -e ".scripts.test" "$workspace_path/package.json"'
+
+  test:
+    needs: prepare-test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Use the workspace paths from the prepare-test job to create a matrix of workspaces to test.
+        dir: ${{ fromJson(needs.prepare-test.outputs.workspace-paths) }}
+    name: Test ${{ matrix.dir }}
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+      - name: Test
+        run: |
+          yarn test
