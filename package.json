@@ -1,13 +1,12 @@
 {
-  "name": "Inventory",
-  "version": "0.0.1",
+  "name": "inventory-workspaces",
   "private": true,
-  "engines": {
-    "node": "18.15.0"
-  },
+  "packageManager": "yarn@4.1.0",
+  "workspaces": [
+    "configs/*",
+    "packages/*"
+  ],
   "scripts": {
-    "postinstall": "bash ./scripts/yarn-install-all.sh"
-  },
-  "dependencies": {},
-  "devDependencies": {}
+    "preinstall": "node scripts/package-inherit-cli.js update"
+  }
 }

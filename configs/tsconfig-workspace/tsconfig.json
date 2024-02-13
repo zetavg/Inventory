@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "strict": true,
+    // "noUncheckedIndexedAccess": true, // TODO: enable me!
+    "lib": [
+      "es2020",
+      "ES2021.String"
+    ],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "declaration": true
+  }
+}
