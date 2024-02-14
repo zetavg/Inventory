@@ -1,0 +1,21 @@
+{
+  "extends": "tsconfig-workspace",
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  },
+  "compilerOptions": {
+    "resolveJsonModule": false, // To prevent schema.json to be imported instead of schema.ts.
+    "paths": {
+      // Use the un-compiled source code from workspace dependencies to avoid the need to build them first during development.
+      // To simulate using the compiled code as installing the packages from npm, comment out the following path mappings.
+      "@invt/data": ["../../pkgs/data/src"],
+      "@invt/data/*": ["../../pkgs/data/src/*"],
+      "@invt/epc-utils": ["../../pkgs/epc-utils/src"],
+    }
+  },
+  "include": [
+    "**/*.ts"
+  ]
+}
