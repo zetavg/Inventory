@@ -1,0 +1,23 @@
+module.exports = {
+  root: true,
+  extends: ['@react-native-community', 'workspace/base'],
+  rules: {
+    '@typescript-eslint/ban-ts-comment': 'warn',
+    '@typescript-eslint/ban-types': 'warn',
+    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-empty-interface': 'warn',
+    '@typescript-eslint/no-inferrable-types': 'off',
+    '@typescript-eslint/no-var-requires': 'warn',
+    'no-async-promise-executor': 'warn',
+    'no-case-declarations': 'warn',
+    'no-constant-condition': 'off',
+    'no-empty-pattern': 'off',
+    'no-empty': 'off',
+    'no-inner-declarations': 'warn',
+    'no-irregular-whitespace': 'warn',
+    'no-prototype-builtins': 'warn',
+    'no-useless-catch': 'off',
+    'no-var': 'warn',
+    'prefer-const': 'warn',
+  },
+};

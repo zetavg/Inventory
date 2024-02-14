@@ -1,0 +1,173 @@
+name: Lint (Old)
+run-name: "Lint: ${{ github.event_name == 'push' && format('[{0}] {1}', github.ref_name, github.event.head_commit.message) || github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || github.ref_name }}"
+on:
+  push:
+    branches:
+    # - main
+    - __ignore__ # Temporary disable this workflow
+  # pull_request:
+  #   branches:
+  #   - main
+
+jobs:
+  lint-data:
+    name: "Lint: Data"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: data-node_modules
+      with:
+        path: Data/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Data/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd Data
+        yarn install
+    - name: Lint
+      run: |
+        cd Data
+        yarn run lint
+
+  lint-app:
+    name: "Lint: App"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: app-node_modules
+      with:
+        path: App/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd App
+        yarn install
+    - name: Lint
+      run: |
+        cd App
+        yarn run lint
+
+  lint-epc-utils:
+    name: "Lint: epc-utils"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: epc-utils-node_modules
+      with:
+        path: packages/epc-utils/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/epc-utils/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/epc-utils
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/epc-utils
+        yarn run lint
+
+  lint-data-storage-couchdb:
+    name: "Lint: data-storage-couchdb"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: data-storage-couchdb-node_modules
+      with:
+        path: packages/data-storage-couchdb/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/data-storage-couchdb
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/data-storage-couchdb
+        yarn run lint
+
+  lint-integration-airtable:
+    name: "Lint: integration-airtable"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: integration-airtable-node_modules
+      with:
+        path: packages/integration-airtable/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-airtable/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/integration-airtable
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/integration-airtable
+        yarn run lint
+
+  lint-integration-snipe-it:
+    name: "Lint: integration-snipe-it"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.15.0
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      env:
+        cache-name: integration-snipe-it-node_modules
+      with:
+        path: packages/integration-snipe-it/node_modules
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-snipe-it/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ env.cache-name }}-
+    - name: Yarn Install
+      run: |
+        cd packages/integration-snipe-it
+        yarn install
+    - name: Lint
+      run: |
+        cd packages/integration-snipe-it
+        yarn run lint

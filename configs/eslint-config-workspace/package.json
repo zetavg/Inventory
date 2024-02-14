@@ -1,0 +1,25 @@
+{
+  "name": "eslint-config-workspace",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "peerDependencies": {
+    "eslint": "^8"
+  },
+  "inherits": [
+    "eslint-config-workspace/package.dependencies.json"
+  ],
+  "devDependencies": {
+    "eslint": "^8"
+  },
+  "dependencies": {
+    "@react-native-community/eslint-config": "^3",
+    "@typescript-eslint/eslint-plugin": "^6",
+    "@typescript-eslint/parser": "^6",
+    "eslint-config-prettier": "^9",
+    "eslint-plugin-jest": "^27",
+    "eslint-plugin-prettier": "^5",
+    "eslint-plugin-simple-import-sort": "^10",
+    "prettier": "^3"
+  }
+}

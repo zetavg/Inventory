@@ -3,7 +3,8 @@ run-name: "Auto comment on new PR #${{ github.event.pull_request.number }}"
 on:
   pull_request_target:
     branches:
-    - main
+    # - main
+    - __ignore__ # Temporary disable this workflow
     types: [opened]
 
 jobs:

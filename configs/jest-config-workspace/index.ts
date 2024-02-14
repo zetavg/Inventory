@@ -1,0 +1,1 @@
+export { getJestBaseConfig } from './getJestBaseConfig';

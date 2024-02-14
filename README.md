@@ -21,18 +21,7 @@ Here are some guides for you to get started: [Get Started Guides](https://docs.i
 
 ## Documents
 
-See documents on [https://docs.inventory.z72.io](https://docs.inventory.z72.io).
-
-
-## Development
-
-The majority of the codebase is written in TypeScript, employing React Native to build the mobile app. Java and Objective-C native modules are used for handling UART/Bluetooth communications with RFID devices, and other heavy-lifting tasks such as supporting index build for full-text searching. 
-
-For more details on each project component, check the following directories:
-
-* `App/` - the React Native iOS/Android app.
-* `Data/` - data schema and data logic.
-* `packages/` - other shared modules.
+See documents at [https://docs.inventory.z72.io](https://docs.inventory.z72.io).
 
 
 ## Get In Touch

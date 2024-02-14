@@ -1,0 +1,30 @@
+{
+  "name": "@invt/integration-airtable",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --pretty",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@invt/data": "workspace:^",
+    "@invt/data-storage-couchdb": "workspace:^",
+    "@types/node-fetch": "^2",
+    "airtable": "^0.12.2",
+    "commander": "^11.0.0",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/jest": "*",
+    "eslint": "*",
+    "eslint-config-workspace": "workspace:^",
+    "jest": "*",
+    "jest-config-workspace": "workspace:^",
+    "node-fetch": "^2",
+    "ts-node": "*",
+    "tsconfig-paths": "^4",
+    "tsconfig-workspace": "workspace:^",
+    "typescript": "^4"
+  }
+}

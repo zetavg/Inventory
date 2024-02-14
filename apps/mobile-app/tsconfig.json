@@ -1,0 +1,40 @@
+{
+  "extends": "@tsconfig/react-native/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "jsx": "react-native",
+    "lib": ["es2017"],
+    "moduleResolution": "node",
+    "noEmit": true,
+    "strict": true,
+    "target": "esnext",
+    "paths": {
+      "@app/*": ["./app/*"],
+      // Use the un-compiled source code from workspace dependencies to avoid the need to build them first during development.
+      // To simulate using the compiled code as installing the packages from npm, comment out the following path mappings.
+      "@invt/integration-airtable": ["../../pkgs/integration-airtable/src"],
+      "@invt/integration-airtable/*": ["../../pkgs/integration-airtable/src/*"],
+      "@invt/data-storage-couchdb": ["../../pkgs/data-storage-couchdb/src"],
+      "@invt/data-storage-couchdb/*": ["../../pkgs/data-storage-couchdb/src/*"],
+      "@invt/data": ["../../pkgs/data/src"],
+      "@invt/data/*": ["../../pkgs/data/src/*"],
+      "@invt/epc-utils": ["../../pkgs/epc-utils/src"]
+    },
+    "typeRoots": [
+      "node_modules/@types",
+      "app/lib/types"
+    ],
+    "types": ["node", "jest"]
+  },
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js"
+  ]
+}

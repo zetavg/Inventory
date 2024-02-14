@@ -1,0 +1,32 @@
+{
+  "name": "@invt/data",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "generate-schema": "ts-node scripts/generate-schema.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --pretty",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@invt/epc-utils": "workspace:^",
+    "@types/uuid": "*",
+    "uuid": "^8",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@types/eslint": "*",
+    "@types/jest": "*",
+    "@types/node": "*",
+    "eslint": "*",
+    "eslint-config-workspace": "workspace:^",
+    "jest": "*",
+    "jest-config-workspace": "workspace:^",
+    "json-schema-to-zod": "^2",
+    "json5": "^2",
+    "ts-node": "*",
+    "tsconfig-workspace": "workspace:^",
+    "typescript": "^4",
+    "zod-to-json-schema": "^3"
+  }
+}
