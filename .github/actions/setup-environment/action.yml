@@ -26,6 +26,7 @@ runs:
         key: ${{ runner.os }}-${{ env.cache-name }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}-${{ hashFiles('yarn.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}${{ inputs.yarn-workspaces-focus && format('-{0}', inputs.yarn-workspaces-focus) || '' }}-
+        save-always: true
     - name: Install dependencies
       if: ${{ inputs.skip-yarn-install != 'true' }}
       shell: bash

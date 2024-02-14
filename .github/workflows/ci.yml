@@ -1,285 +1,283 @@
-name: CI
+name: CI (Old)
 run-name: "CI${{ vars.CI_ENABLE_BUILD && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) && ' & Build:' || ':' }} ${{ github.event_name == 'push' && format('[{0}] {1}', github.ref_name, github.event.head_commit.message) || github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'release' && format('{0}', github.event.release.name) || github.event_name == 'schedule' && format('Scheduled: {0}', github.ref_name) || github.ref_name }}"
 on:
   push:
     branches:
-    # - main
-    - __ignore__ # Temporary disable this workflow
+      - main
     paths-ignore:
       - '**/README.md'
-  # pull_request:
-  #   types: [opened, synchronize, reopened, ready_for_review]
-  #   branches:
-  #   - main
-  #   paths-ignore:
-  #     - '**/README.md'
-  # release:
-  #   types: [published]
-  # schedule:
-  #   # Every Monday
-  #   - cron: 0 0 * * 1
-  #   # # First Sunday of every month
-  #   # # See: https://crontab.guru/#0_0_1-7_*_*/7
-  #   # - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches:
+    - main
+    paths-ignore:
+      - '**/README.md'
+  release:
+    types: [published]
+  schedule:
+    # Every Monday
+    - cron: 0 0 * * 1
+    # # First Sunday of every month
+    # # See: https://crontab.guru/#0_0_1-7_*_*/7
+    # - cron: '0 0 1-7 * */7'  # https://stackoverflow.com/a/73826599
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  test-data:
-    name: "Test: Data"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: data-node_modules
-      with:
-        path: Data/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Data/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd Data
-        yarn install
-    - name: Typecheck
-      run: |
-        cd Data
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd Data
-        FORCE_COLOR=true yarn test --verbose
+  # test-data:
+  #   name: "Test: Data"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: data-node_modules
+  #     with:
+  #       path: Data/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('Data/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd Data
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd Data
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd Data
+  #       FORCE_COLOR=true yarn test --verbose
 
-  test-app:
-    name: "Test: App"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: app-node_modules
-      with:
-        path: App/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd App
-        yarn install
-    - name: Typecheck
-      run: |
-        cd App
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd App
-        FORCE_COLOR=true yarn test --verbose
+  # test-app:
+  #   name: "Test: App"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: app-node_modules
+  #     with:
+  #       path: App/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd App
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd App
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd App
+  #       FORCE_COLOR=true yarn test --verbose
 
-  test-epc-utils:
-    name: "Test: epc-utils"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: epc-utils-node_modules
-      with:
-        path: packages/epc-utils/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/epc-utils/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd packages/epc-utils
-        yarn install
-    - name: Typecheck
-      run: |
-        cd packages/epc-utils
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd packages/epc-utils
-        FORCE_COLOR=true yarn test --verbose
+  # test-epc-utils:
+  #   name: "Test: epc-utils"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: epc-utils-node_modules
+  #     with:
+  #       path: packages/epc-utils/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/epc-utils/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd packages/epc-utils
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd packages/epc-utils
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd packages/epc-utils
+  #       FORCE_COLOR=true yarn test --verbose
 
-  test-data-storage-couchdb:
-    name: "Test: data-storage-couchdb"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: data-storage-couchdb-node_modules
-      with:
-        path: packages/data-storage-couchdb/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd packages/data-storage-couchdb
-        yarn install
-    - name: Typecheck
-      run: |
-        cd packages/data-storage-couchdb
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd packages/data-storage-couchdb
-        FORCE_COLOR=true yarn test --verbose
+  # test-data-storage-couchdb:
+  #   name: "Test: data-storage-couchdb"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: data-storage-couchdb-node_modules
+  #     with:
+  #       path: packages/data-storage-couchdb/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd packages/data-storage-couchdb
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd packages/data-storage-couchdb
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd packages/data-storage-couchdb
+  #       FORCE_COLOR=true yarn test --verbose
 
-  test-data-storage-couchdb-remote:
-    name: "Test: data-storage-couchdb w/CouchDB"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: data-storage-couchdb-node_modules
-      with:
-        path: packages/data-storage-couchdb/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Setup CouchDB
-      uses: zetavg/couchdb-action@master
-    - name: Create CouchDB Database
-      run: |
-        curl -X PUT http://user:password@localhost:5984/test
-    - name: Yarn Install
-      run: |
-        cd packages/data-storage-couchdb
-        yarn install
-    - name: Test
-      run: |
-        cd packages/data-storage-couchdb
-        COUCHDB_URI='http://127.0.0.1:5984/test' COUCHDB_USERNAME=user COUCHDB_PASSWORD=password yarn test lib/__tests__/data-storage-couchdb.test.ts --runInBand
+  # test-data-storage-couchdb-remote:
+  #   name: "Test: data-storage-couchdb w/CouchDB"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: data-storage-couchdb-node_modules
+  #     with:
+  #       path: packages/data-storage-couchdb/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/data-storage-couchdb/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Setup CouchDB
+  #     uses: zetavg/couchdb-action@master
+  #   - name: Create CouchDB Database
+  #     run: |
+  #       curl -X PUT http://user:password@localhost:5984/test
+  #   - name: Yarn Install
+  #     run: |
+  #       cd packages/data-storage-couchdb
+  #       yarn install
+  #   - name: Test
+  #     run: |
+  #       cd packages/data-storage-couchdb
+  #       COUCHDB_URI='http://127.0.0.1:5984/test' COUCHDB_USERNAME=user COUCHDB_PASSWORD=password yarn test lib/__tests__/data-storage-couchdb.test.ts --runInBand
 
-  test-integration-airtable:
-    name: "Test: integration-airtable"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: integration-airtable-node_modules
-      with:
-        path: packages/integration-airtable/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-airtable/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd packages/integration-airtable
-        yarn install
-    - name: Typecheck
-      run: |
-        cd packages/integration-airtable
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd packages/integration-airtable
-        FORCE_COLOR=true yarn test --verbose
+  # test-integration-airtable:
+  #   name: "Test: integration-airtable"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: integration-airtable-node_modules
+  #     with:
+  #       path: packages/integration-airtable/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-airtable/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd packages/integration-airtable
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd packages/integration-airtable
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd packages/integration-airtable
+  #       FORCE_COLOR=true yarn test --verbose
 
-  test-integration-snipe-it:
-    name: "Test: integration-snipe-it"
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.15.0
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: integration-snipe-it-node_modules
-      with:
-        path: packages/integration-snipe-it/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-snipe-it/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn Install
-      run: |
-        cd packages/integration-snipe-it
-        yarn install
-    - name: Typecheck
-      run: |
-        cd packages/integration-snipe-it
-        yarn run typecheck
-    - name: Test
-      run: |
-        cd packages/integration-snipe-it
-        FORCE_COLOR=true yarn test --verbose
+  # test-integration-snipe-it:
+  #   name: "Test: integration-snipe-it"
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18.15.0
+  #   - name: Cache node_modules
+  #     uses: actions/cache@v3
+  #     env:
+  #       cache-name: integration-snipe-it-node_modules
+  #     with:
+  #       path: packages/integration-snipe-it/node_modules
+  #       key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('packages/integration-snipe-it/yarn.lock') }}
+  #       restore-keys: |
+  #         ${{ runner.os }}-${{ env.cache-name }}-
+  #   - name: Yarn Install
+  #     run: |
+  #       cd packages/integration-snipe-it
+  #       yarn install
+  #   - name: Typecheck
+  #     run: |
+  #       cd packages/integration-snipe-it
+  #       yarn run typecheck
+  #   - name: Test
+  #     run: |
+  #       cd packages/integration-snipe-it
+  #       FORCE_COLOR=true yarn test --verbose
 
-  paths-filter:
-    runs-on: ubuntu-latest
-    outputs:
-      app: ${{ steps.filter.outputs.app }}
-    steps:
-    - uses: actions/checkout@v2
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          app:
-            - 'App/**'
-          data:
-            - 'Data/**'
-          data-storage-couchdb:
-            - 'packages/data-storage-couchdb/**'
-          epc-utils:
-            - 'packages/epc-utils/**'
-          integration-airtable:
-            - 'packages/integration-airtable/**'
+  # paths-filter:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     app: ${{ steps.filter.outputs.app }}
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - uses: dorny/paths-filter@v2
+  #     id: filter
+  #     with:
+  #       filters: |
+  #         app:
+  #           - 'App/**'
+  #         data:
+  #           - 'Data/**'
+  #         data-storage-couchdb:
+  #           - 'packages/data-storage-couchdb/**'
+  #         epc-utils:
+  #           - 'packages/epc-utils/**'
+  #         integration-airtable:
+  #           - 'packages/integration-airtable/**'
 
   build:
     name: "Build App"
-    needs:
-    - test-app
-    - paths-filter
+    # needs:
+    # - paths-filter
     # Build if the app has changes, and event is not a pull request, or if the pull request is not a draft and the pull request is not from a fork (runs of fork PRs will not have access to secrets that are required for building the app).
-    if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true' || needs.paths-filter.outputs.data == 'true' || needs.paths-filter.outputs.data-storage-couchdb == 'true' || needs.paths-filter.outputs.epc-utils == 'true' || needs.paths-filter.outputs.integration-airtable == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
+    if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || true) && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     uses: ./.github/workflows/build_app.yml
     with:
       build-release: ${{ github.event_name == 'release' }}

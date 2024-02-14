@@ -1,4 +1,4 @@
-name: Lint
+name: Lint (Old)
 run-name: "Lint: ${{ github.event_name == 'push' && format('[{0}] {1}', github.ref_name, github.event.head_commit.message) || github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || github.ref_name }}"
 on:
   push:
