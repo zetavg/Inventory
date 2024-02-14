@@ -81,8 +81,8 @@ export class AirtableAPIError extends Error {
   details?: string;
 
   constructor(error: unknown, details?: string) {
-    var errorMessage = `Unknown Error: ${JSON.stringify(error)}`;
-    var type = 'UNKNOWN';
+    let errorMessage = `Unknown Error: ${JSON.stringify(error)}`;
+    let type = 'UNKNOWN';
     if (
       error &&
       typeof error === 'object' &&
