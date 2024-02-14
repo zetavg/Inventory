@@ -1,4 +1,4 @@
-import { DataMeta, DataTypeWithID } from '@deps/data/types';
+import { DataMeta, DataTypeWithID } from '@invt/data/types';
 
 import {
   collectionToAirtableRecord,

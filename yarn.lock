@@ -549,7 +549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@invt/data-storage-couchdb@workspace:pkgs/data-storage-couchdb":
+"@invt/data-storage-couchdb@workspace:^, @invt/data-storage-couchdb@workspace:pkgs/data-storage-couchdb":
   version: 0.0.0-use.local
   resolution: "@invt/data-storage-couchdb@workspace:pkgs/data-storage-couchdb"
   dependencies:
@@ -617,6 +617,29 @@ __metadata:
     jest-config-workspace: "workspace:^"
     tsconfig-workspace: "workspace:^"
     typescript: "npm:^4"
+  languageName: unknown
+  linkType: soft
+
+"@invt/integration-airtable@workspace:pkgs/integration-airtable":
+  version: 0.0.0-use.local
+  resolution: "@invt/integration-airtable@workspace:pkgs/integration-airtable"
+  dependencies:
+    "@invt/data": "workspace:^"
+    "@invt/data-storage-couchdb": "workspace:^"
+    "@types/jest": "npm:*"
+    "@types/node-fetch": "npm:^2"
+    airtable: "npm:^0.12.2"
+    commander: "npm:^11.0.0"
+    eslint: "npm:*"
+    eslint-config-workspace: "workspace:^"
+    jest: "npm:*"
+    jest-config-workspace: "workspace:^"
+    node-fetch: "npm:^2"
+    ts-node: "npm:*"
+    tsconfig-paths: "npm:^4"
+    tsconfig-workspace: "workspace:^"
+    typescript: "npm:^4"
+    zod: "npm:^3"
   languageName: unknown
   linkType: soft
 
@@ -1257,12 +1280,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node-fetch@npm:^2":
+  version: 2.6.11
+  resolution: "@types/node-fetch@npm:2.6.11"
+  dependencies:
+    "@types/node": "npm:*"
+    form-data: "npm:^4.0.0"
+  checksum: 10c0/5283d4e0bcc37a5b6d8e629aee880a4ffcfb33e089f4b903b2981b19c623972d1e64af7c3f9540ab990f0f5c89b9b5dda19c5bcb37a8e177079e93683bfd2f49
+  languageName: node
+  linkType: hard
+
 "@types/node@npm:*, @types/node@npm:^20":
   version: 20.11.17
   resolution: "@types/node@npm:20.11.17"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/1f30dae80b416cbf38f133a619ffb0e9fb9e7bc58f82d900bf73816ae5781740c4640892bf5971dd9c12570d5d05241646be3e7540bb4e059322ec6af4e51e15
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:>=8.0.0 <15":
+  version: 14.18.63
+  resolution: "@types/node@npm:14.18.63"
+  checksum: 10c0/626a371419a6a0e11ca460b22bb4894abe5d75c303739588bc96267e380aa8b90ba5a87bc552400584f0ac2a84b5c458dadcbcf0dfd2396ebeb765f7a7f95893
   languageName: node
   linkType: hard
 
@@ -1772,12 +1812,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"abort-controller@npm:3.0.0":
+"abort-controller@npm:3.0.0, abort-controller@npm:^3.0.0":
   version: 3.0.0
   resolution: "abort-controller@npm:3.0.0"
   dependencies:
     event-target-shim: "npm:^5.0.0"
   checksum: 10c0/90ccc50f010250152509a344eb2e71977fbf8db0ab8f1061197e3275ddf6c61a41a6edfd7b9409c664513131dd96e962065415325ef23efa5db931b382d24ca5
+  languageName: node
+  linkType: hard
+
+"abortcontroller-polyfill@npm:^1.4.0":
+  version: 1.7.5
+  resolution: "abortcontroller-polyfill@npm:1.7.5"
+  checksum: 10c0/d7a5ab6fda4f9a54f22ddeb233a2564d2f4f857ec17be25fee21a91bb5090bee57c630c454634b5c4b93fc06bd90d592d1f2fc69f77cd28791ac0fe361feb7d2
   languageName: node
   linkType: hard
 
@@ -1866,6 +1913,19 @@ __metadata:
     clean-stack: "npm:^2.0.0"
     indent-string: "npm:^4.0.0"
   checksum: 10c0/a42f67faa79e3e6687a4923050e7c9807db3848a037076f791d10e092677d65c1d2d863b7848560699f40fc0502c19f40963fb1cd1fb3d338a7423df8e45e039
+  languageName: node
+  linkType: hard
+
+"airtable@npm:^0.12.2":
+  version: 0.12.2
+  resolution: "airtable@npm:0.12.2"
+  dependencies:
+    "@types/node": "npm:>=8.0.0 <15"
+    abort-controller: "npm:^3.0.0"
+    abortcontroller-polyfill: "npm:^1.4.0"
+    lodash: "npm:^4.17.21"
+    node-fetch: "npm:^2.6.7"
+  checksum: 10c0/80a23da4826c57676bfa4835675463c951e3e6578301655ed190f1a7237774425f8e333b2ea8eacf68ea71b6b1987b277e984bb1cff9ef40baabf2301e3c3adf
   languageName: node
   linkType: hard
 
@@ -6176,6 +6236,20 @@ __metadata:
     encoding:
       optional: true
   checksum: 10c0/fcae80f5ac52fbf5012f5e19df2bd3915e67d3b3ad51cb5942943df2238d32ba15890fecabd0e166876a9f98a581ab50f3f10eb942b09405c49ef8da36b826c7
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:^2, node-fetch@npm:^2.6.7":
+  version: 2.7.0
+  resolution: "node-fetch@npm:2.7.0"
+  dependencies:
+    whatwg-url: "npm:^5.0.0"
+  peerDependencies:
+    encoding: ^0.1.0
+  peerDependenciesMeta:
+    encoding:
+      optional: true
+  checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
   languageName: node
   linkType: hard
 

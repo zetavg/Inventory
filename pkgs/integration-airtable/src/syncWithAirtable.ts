@@ -9,9 +9,9 @@ import {
   InvalidDataTypeWithID,
   SaveDatum,
   ValidDataTypeWithID,
-} from '@deps/data/types';
-import { hasChanges, onlyValid } from '@deps/data/utils';
-import getChildrenItems from '@deps/data/utils/getChildrenItems';
+} from '@invt/data/types';
+import { hasChanges, onlyValid } from '@invt/data/utils';
+import getChildrenItems from '@invt/data/utils/getChildrenItems';
 
 import AirtableAPI, {
   AirtableAPIError,

@@ -5,8 +5,8 @@ import {
   GetData,
   InvalidDataTypeWithID,
   ValidDataTypeWithID,
-} from '@deps/data/types';
-import { onlyValid } from '@deps/data/utils';
+} from '@invt/data/types';
+import { onlyValid } from '@invt/data/utils';
 
 type Fetch = (url: string | Request, opts?: RequestInit) => Promise<Response>;
 

@@ -6,8 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import repl from 'repl';
 
-import AirtableAPI, { AirtableAPIError } from './lib/AirtableAPI';
-import createInventoryBase from './lib/createInventoryBase';
+import AirtableAPI, { AirtableAPIError } from './src/AirtableAPI';
+import createInventoryBase from './src/createInventoryBase';
 
 program.description('Inventory Airtable Integration REPL.');
 
