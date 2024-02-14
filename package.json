@@ -5,7 +5,8 @@
   "workspaces": [
     "configs/*",
     "types/*",
-    "pkgs/*"
+    "pkgs/*",
+    "apps/*"
   ],
   "scripts": {
     "preinstall": "node scripts/package-inherit-cli.js update",
