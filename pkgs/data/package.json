@@ -23,6 +23,7 @@
     "jest": "*",
     "jest-config-workspace": "workspace:^",
     "json-schema-to-zod": "^2",
+    "json5": "^2",
     "ts-node": "*",
     "tsconfig-workspace": "workspace:^",
     "typescript": "^4",

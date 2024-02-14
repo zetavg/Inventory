@@ -519,6 +519,7 @@ __metadata:
     jest: "npm:*"
     jest-config-workspace: "workspace:^"
     json-schema-to-zod: "npm:^2"
+    json5: "npm:^2"
     ts-node: "npm:*"
     tsconfig-workspace: "workspace:^"
     typescript: "npm:^4"
