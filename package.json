@@ -16,9 +16,15 @@
     "build": "FORCE_COLOR=true yarn workspaces foreach --all --topological --exclude . run build",
     "clean": "FORCE_COLOR=true yarn workspaces foreach --all --exclude . run clean"
   },
+  "inherits": [
+    "inventory-workspaces/package.babel-runtime.json"
+  ],
   "resolutions": {
     "@craftzdog/pouchdb-adapter-websql-core@npm:^7.2.3": "patch:@craftzdog/pouchdb-adapter-websql-core@npm%3A7.2.3#~/.yarn/patches/@craftzdog-pouchdb-adapter-websql-core-npm-7.2.3-5de18d0cc0.patch",
     "@react-navigation/core@^6.4.10": "6.2.2",
     "esprima-fb@~3001.0001.0000-dev-harmony-fb": "3001.1.0-dev-harmony-fb"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7"
   }
 }

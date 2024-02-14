@@ -7,6 +7,12 @@ const tsConfig = JSON5.parse(
 );
 const { compilerOptions } = tsConfig;
 
+const BASE_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.json'];
+const PLATFORMS = ['', '.ios', '.android'];
+const EXTENSIONS = BASE_EXTENSIONS.flatMap(ext =>
+  PLATFORMS.map(platform => `${platform}${ext}`),
+);
+
 module.exports = {
   presets: ['module:metro-react-native-babel-preset'],
   plugins: [
@@ -21,6 +27,7 @@ module.exports = {
       'module-resolver',
       {
         root: ['./'],
+        extensions: EXTENSIONS,
         alias: {
           '@app': './app',
           ...(compilerOptions?.paths && !process.env.RN_DISABLE_TS_PATHS

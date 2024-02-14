@@ -2153,7 +2153,7 @@ NSInteger dataIndex = 0;
 
 - (CBCharacteristic *)myCharacteristic {
   if (_myCharacteristic == nil) {
-    _myCharacteristic = [CBCharacteristic new];
+    _myCharacteristic = [CBCharacteristic alloc];
   }
   return _myCharacteristic;
 }
