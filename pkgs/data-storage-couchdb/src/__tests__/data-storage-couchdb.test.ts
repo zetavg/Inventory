@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { fixDataConsistency } from '@invt/data/utils';
 import getChildrenItems from '@invt/data/utils/getChildrenItems';
 import { ValidationError } from '@invt/data/validation';
@@ -25,6 +26,7 @@ const COUCHDB_PASSWORD = process.env.COUCHDB_PASSWORD;
 const contextSet = new Set();
 const getContextID = () => {
   let id = 1;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (!contextSet.has(id)) {
       contextSet.add(id);

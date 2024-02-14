@@ -1,5 +1,5 @@
-import type PouchDB from 'pouchdb';
 import type nano from 'nano';
+import type PouchDB from 'pouchdb';
 
 export type Logger = {
   debug: (message: string) => void;

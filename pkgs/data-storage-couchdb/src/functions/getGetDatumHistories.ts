@@ -33,7 +33,9 @@ export default function getGetDatumHistories({
           name: DDOC_NAME,
           index: INDEX as any,
         });
-      } catch (e) {}
+      } catch (e) {
+        /* empty */
+      }
     }
 
     const query = {
@@ -61,6 +63,7 @@ export default function getGetDatumHistories({
       }
 
       let retries = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           return await db.find(query);

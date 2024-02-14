@@ -131,7 +131,7 @@ function getProxiedDocDatum(
   const proxyTarget: Record<string, string | number | boolean | undefined> = {};
   function updatePt() {
     for (const key in proxyTarget) {
-      if (proxyTarget.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(proxyTarget, key)) {
         delete proxyTarget[key];
       }
     }
@@ -311,7 +311,7 @@ export function getDocFromDatum<T extends DataTypeName>(
 
 export function flattenSelector(obj: any, parent = '', result = {} as any) {
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (key.startsWith('$') && parent) {
         result[parent] = obj;
         return result;
@@ -335,7 +335,7 @@ export function sortObjectKeys<T extends Record<string, unknown>>(
 ) {
   const sortedObj: any = {};
   for (const key of sort) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       sortedObj[key] = obj[key];
     }
   }

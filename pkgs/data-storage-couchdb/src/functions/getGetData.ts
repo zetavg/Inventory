@@ -98,6 +98,7 @@ export default function getGetData({
       }
 
       // Select or sort
+      // eslint-disable-next-line no-constant-condition
       if (true) {
         const flattenedSelector = flattenSelector(
           Object.fromEntries(
@@ -230,7 +231,9 @@ export default function getGetData({
           name: ddocName,
           index,
         });
-      } catch (e) {}
+      } catch (e) {
+        /* empty */
+      }
     }
 
     let explain: string | object = '';
@@ -261,6 +264,7 @@ export default function getGetData({
       }
 
       let retries = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           return await db.find(query);

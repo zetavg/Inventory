@@ -1,3 +1,4 @@
+import CouchDBData from './CouchDBData';
 import { getDatumFromDoc } from './functions/couchdb-utils';
 import getAttachAttachmentToDatum from './functions/getAttachAttachmentToDatum';
 import getGetAllAttachmentInfoFromDatum from './functions/getGetAllAttachmentInfoFromDatum';
@@ -15,7 +16,6 @@ import getListHistoryBatchesCreatedBy from './functions/getListHistoryBatchesCre
 import getRestoreHistory from './functions/getRestoreHistory';
 import getSaveDatum from './functions/getSaveDatum';
 import getUpdateConfig from './functions/getUpdateConfig';
-import CouchDBData from './CouchDBData';
 export type {
   GetViewData,
   GetViewDataOptions,

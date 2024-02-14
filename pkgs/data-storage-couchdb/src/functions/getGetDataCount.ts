@@ -46,6 +46,7 @@ export default function getGetDataCount({
       if (dbType === 'pouchdb') {
         let retries = 0;
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           try {
             const body = await db.query(`${ddocName}/count`);
@@ -86,6 +87,7 @@ export default function getGetDataCount({
       } else {
         let retries = 0;
 
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           try {
             const body = await db.view(ddocName, 'count');
@@ -169,6 +171,7 @@ export default function getGetDataCount({
     if (dbType === 'pouchdb') {
       let retries = 0;
 
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           const body = await db.query(`${ddocName}/count`, { key });
@@ -209,6 +212,7 @@ export default function getGetDataCount({
     } else {
       let retries = 0;
 
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           const body = await db.view(ddocName, 'count', { key });

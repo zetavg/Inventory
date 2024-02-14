@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import PouchDB from 'pouchdb';
 
 import { NYAN_CAT_PNG } from '../__fixtures__/sample-data';
@@ -14,6 +15,7 @@ PouchDB.plugin(SQLiteAdapter);
 const contextSet = new Set();
 const getContextID = () => {
   let id = 1;
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     if (!contextSet.has(id)) {
       contextSet.add(id);

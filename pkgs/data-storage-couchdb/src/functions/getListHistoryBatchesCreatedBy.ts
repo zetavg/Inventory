@@ -30,11 +30,15 @@ export default function getListHistoryBatchesCreatedBy({
       if (dbType === 'pouchdb') {
         try {
           await db.put(DESIGN_DOC);
-        } catch (e) {}
+        } catch (e) {
+          /* empty */
+        }
       } else {
         try {
           await db.insert(DESIGN_DOC);
-        } catch (e) {}
+        } catch (e) {
+          /* empty */
+        }
       }
     }
     if (alwaysCreateIndexFirst) {
@@ -43,6 +47,7 @@ export default function getListHistoryBatchesCreatedBy({
 
     const results = await (async () => {
       let retries = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           if (dbType === 'pouchdb') {

@@ -1,5 +1,4 @@
 import VIEWS, { VIEWS_PREFIX } from '../views';
-
 import { Context } from './types';
 
 export type GetViewDataOptions = {
@@ -54,6 +53,7 @@ export default function getGetViewData({
     };
 
     let retries = 0;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       try {
         const results = await dbQuery();

@@ -27,7 +27,9 @@ export default function getGetHistoriesInBatch({
           name: DDOC_NAME,
           index: INDEX as any,
         });
-      } catch (e) {}
+      } catch (e) {
+        /* empty */
+      }
     }
 
     const query = {
@@ -52,6 +54,7 @@ export default function getGetHistoriesInBatch({
       }
 
       let retries = 0;
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         try {
           return await db.find(query);
