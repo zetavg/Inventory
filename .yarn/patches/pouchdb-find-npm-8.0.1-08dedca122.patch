@@ -1,0 +1,15 @@
+diff --git a/lib/index.js b/lib/index.js
+index 7062fcc625cec9b9bc4060f867296bebb339c16b..3b3856c2d6707c2023e08e4d2cad4a50fbef5f21 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -869,6 +869,10 @@ function checkFieldInIndex(index, field) {
+ // so that's what this determines
+ function userOperatorLosesPrecision(selector, field) {
+   var matcher = selector[field];
++  // Fixes the error "TypeError: Cannot convert undefined or null to object"
++  // since field might not be in selector when doing sorting
++  if (!matcher) return false;
++
+   var userOperator = pouchdbSelectorCore.getKey(matcher);
+
+   return userOperator !== '$eq';

@@ -1,4 +1,4 @@
-name: Build App
+name: Build App (Old)
 run-name: ${{ format('Build {0}{1}', github.event.inputs.branch, github.event.inputs.notes && format(' - {0}', github.event.inputs.notes)) }}
 on:
   workflow_dispatch:
@@ -156,51 +156,40 @@ jobs:
       run: |
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: app-node_modules
-      with:
-        path: App/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn install
-      run: |
-        cd App
-        yarn install
+    - name: Setup Environment
+      uses: ./.github/actions/setup-environment
     - name: Get Changelog
       uses: actions/download-artifact@v3
       with:
         name: changelog
-        path: App
+        path: apps/mobile-app
     - name: Prepare Keystore
       run: |
         mkdir -p ~/.gradle
         echo "${{ secrets.GRADLE_PROPERTIES }}" > ~/.gradle/gradle.properties
-        mkdir -p App/android/app
-        echo "${{ secrets.DEV_KEYSTORE_BASE64 }}" > App/android/app/dev.keystore.base64
-        base64 --decode App/android/app/dev.keystore.base64 > App/android/app/dev.keystore
+        mkdir -p apps/mobile-app/android/app
+        echo "${{ secrets.DEV_KEYSTORE_BASE64 }}" > apps/mobile-app/android/app/dev.keystore.base64
+        base64 --decode apps/mobile-app/android/app/dev.keystore.base64 > apps/mobile-app/android/app/dev.keystore
     - name: Build Android
       run: |
-        cd App
+        cd apps/mobile-app
         cd android
         ./gradlew assembleRelease
     - name: Upload Built APK
       uses: actions/upload-artifact@v3
       with:
         name: android-app-apk
-        path: App/android/app/build/outputs/apk/release/app-release.apk
+        path: apps/mobile-app/android/app/build/outputs/apk/release/app-release.apk
     - name: Write Android build info
       run: |
-        cd App/android
+        cd apps/mobile-app/android
         echo '{}' > android_build_info.json
     - name: Upload Android build info
       uses: actions/upload-artifact@v3
       with:
         name: android-build-info
         path: |
-          App/android/android_build_info.json
+          apps/mobile-app/android/android_build_info.json
 
   build-ios-nightly:
     name: "Build iOS Nightly"
@@ -263,49 +252,40 @@ jobs:
       run: |
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: app-node_modules
-      with:
-        path: App/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn install
-      run: |
-        cd App
-        yarn install
+    - name: Setup Environment
+      uses: ./.github/actions/setup-environment
     - name: Get Changelog
       uses: actions/download-artifact@v3
       with:
         name: changelog
-        path: App
+        path: apps/mobile-app
     - name: Prepare config.xcconfig
       run: |
-        echo "${{ secrets.CONFIG_XCCONFIG }}" > App/ios/config.xcconfig
-        echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
-        echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
+        echo "${{ secrets.CONFIG_XCCONFIG }}" > apps/mobile-app/ios/config.xcconfig
+        echo "MARKETING_VERSION = 0.1.2" >> apps/mobile-app/ios/config.xcconfig
+        echo "CURRENT_PROJECT_VERSION = 10" >> apps/mobile-app/ios/config.xcconfig
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
         base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
-        cache-name: app-pods
+        cache-name: app-pods-202402
       with:
-        path: App/ios/Pods
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/ios/Podfile.lock') }}
+        path: apps/mobile-app/ios/Pods
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('apps/mobile-app/ios/Podfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-
+        save-always: true
     - name: Pod install
       env:
         USE_BUILDCACHE: true
       run: |
-        cd App
+        cd apps/mobile-app
+        gem install cocoapods -v 1.15.2 # https://github.com/CocoaPods/CocoaPods/issues/12226#issuecomment-1930604302
         bash scripts/pod-install.sh
     - name: Install Fastlane
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle install
         # Patch cert_checker.rb to not print out sensitive information.
         # See: https://github.com/fastlane/fastlane/issues/21351
@@ -333,7 +313,7 @@ jobs:
         MATCH_PASSWORD: ${{ secrets.SYNC_CODE_SIGNING_GIT_PASSPHRASE }}
         SKIP_UPLOAD_TO_TESTFLIGHT: true
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle exec fastlane nightly
     - name: Show error log
       if: ${{ failure() }}
@@ -345,7 +325,7 @@ jobs:
       env:
         CI: true
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle exec fastlane lane_upload_to_testflight
         cp ci_output_data.json ios_appstore_upload_info_nightly.json
     - name: Upload App Store Upload Info
@@ -353,16 +333,16 @@ jobs:
       with:
         name: ios-appstore-upload-info-nightly
         path: |
-          App/ios/ios_appstore_upload_info_nightly.json
+          apps/mobile-app/ios/ios_appstore_upload_info_nightly.json
     - name: Upload Archive
       uses: actions/upload-artifact@v3
       with:
         name: ios-archive-nightly
         path: |
-          App/ios/*.xcarchive
-          App/ios/*.xcarchive.zip
-          App/*.xcarchive
-          App/*.xcarchive.zip
+          apps/mobile-app/ios/*.xcarchive
+          apps/mobile-app/ios/*.xcarchive.zip
+          apps/mobile-app/*.xcarchive
+          apps/mobile-app/*.xcarchive.zip
 
   build-ios-release:
     name: "Build iOS Release"
@@ -426,49 +406,39 @@ jobs:
       run: |
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
-    - name: Cache node_modules
-      uses: actions/cache@v3
-      env:
-        cache-name: app-node_modules
-      with:
-        path: App/node_modules
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ env.cache-name }}-
-    - name: Yarn install
-      run: |
-        cd App
-        yarn install
+    - name: Setup Environment
+      uses: ./.github/actions/setup-environment
     - name: Get Changelog
       uses: actions/download-artifact@v3
       with:
         name: changelog
-        path: App
+        path: apps/mobile-app
     - name: Prepare config.xcconfig
       run: |
-        echo "${{ secrets.CONFIG_XCCONFIG }}" > App/ios/config.xcconfig
-        echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
-        echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
+        echo "${{ secrets.CONFIG_XCCONFIG }}" > apps/mobile-app/ios/config.xcconfig
+        echo "MARKETING_VERSION = 0.1.2" >> apps/mobile-app/ios/config.xcconfig
+        echo "CURRENT_PROJECT_VERSION = 10" >> apps/mobile-app/ios/config.xcconfig
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
         base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
-        cache-name: app-pods
+        cache-name: app-pods-202402
       with:
-        path: App/ios/Pods
-        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('App/ios/Podfile.lock') }}
+        path: apps/mobile-app/ios/Pods
+        key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('apps/mobile-app/ios/Podfile.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ env.cache-name }}-
+        save-always: true
     - name: Pod install
       env:
         USE_BUILDCACHE: true
       run: |
-        cd App
+        cd apps/mobile-app
         bash scripts/pod-install.sh
     - name: Install Fastlane
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle install
         # Patch cert_checker.rb to not print out sensitive information.
         # See: https://github.com/fastlane/fastlane/issues/21351
@@ -496,7 +466,7 @@ jobs:
         MATCH_PASSWORD: ${{ secrets.SYNC_CODE_SIGNING_GIT_PASSPHRASE }}
         SKIP_UPLOAD_TO_TESTFLIGHT: true
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle exec fastlane release
     - name: Show error log
       if: ${{ failure() && github.event_name == 'release' }}
@@ -508,7 +478,7 @@ jobs:
       env:
         CI: true
       run: |
-        cd App/ios
+        cd apps/mobile-app/ios
         bundle exec fastlane lane_upload_to_testflight
         cp ci_output_data.json ios_appstore_upload_info_release.json
     - name: Upload App Store Upload Info
@@ -516,16 +486,16 @@ jobs:
       with:
         name: ios-appstore-upload-info-release
         path: |
-          App/ios/ios_appstore_upload_info_release.json
+          apps/mobile-app/ios/ios_appstore_upload_info_release.json
     - name: Upload Archive
       uses: actions/upload-artifact@v3
       with:
         name: ios-archive-release
         path: |
-          App/ios/*.xcarchive
-          App/ios/*.xcarchive.zip
-          App/*.xcarchive
-          App/*.xcarchive.zip
+          apps/mobile-app/ios/*.xcarchive
+          apps/mobile-app/ios/*.xcarchive.zip
+          apps/mobile-app/*.xcarchive
+          apps/mobile-app/*.xcarchive.zip
 
   publish:
     runs-on: ubuntu-latest

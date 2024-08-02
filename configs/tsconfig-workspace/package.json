@@ -1,0 +1,6 @@
+{
+  "name": "tsconfig-workspace",
+  "peerDependencies": {
+    "typescript": "^4"
+  }
+}
