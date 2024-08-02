@@ -82,7 +82,7 @@
     "react-native-picker-select": "^8.0.4",
     "react-native-platform-searchbar": "^1.2.3",
     "react-native-quick-base64": "^2.0.7",
-    "react-native-quick-crypto": "^0.6.1",
+    "react-native-quick-crypto": "^0.7.2",
     "react-native-quick-md5": "^3.0.5",
     "react-native-quick-sqlite": "^8.0.2",
     "react-native-quick-websql": "^0.3.0",
