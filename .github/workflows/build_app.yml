@@ -303,7 +303,7 @@ jobs:
         USE_BUILDCACHE: true
       run: |
         cd App
-        bash scripts/pod-install.sh
+        NO_FLIPPER=1 bash scripts/pod-install.sh
     - name: Install Fastlane
       run: |
         cd App/ios
@@ -467,7 +467,7 @@ jobs:
         USE_BUILDCACHE: true
       run: |
         cd App
-        bash scripts/pod-install.sh
+        NO_FLIPPER=1 bash scripts/pod-install.sh
     - name: Install Fastlane
       run: |
         cd App/ios
