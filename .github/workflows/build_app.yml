@@ -288,7 +288,7 @@ jobs:
         echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
         echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
-        base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
+        base64 --decode --input ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
       uses: actions/cache@v3
       env:
@@ -452,7 +452,7 @@ jobs:
         echo "MARKETING_VERSION = 0.1.2" >> App/ios/config.xcconfig
         echo "CURRENT_PROJECT_VERSION = 10" >> App/ios/config.xcconfig
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
-        base64 --decode ~/AuthKey.p8.base64 > ~/AuthKey.p8
+        base64 --decode --input ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
       uses: actions/cache@v3
       env:
