@@ -274,6 +274,7 @@ jobs:
           ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn install
       run: |
+        brew install python-setuptools # Fixes `ModuleNotFoundError: No module named 'distutils'` when running `yarn install`
         cd App
         yarn install
     - name: Get Changelog
@@ -437,6 +438,7 @@ jobs:
           ${{ runner.os }}-${{ env.cache-name }}-
     - name: Yarn install
       run: |
+        brew install python-setuptools # Fixes `ModuleNotFoundError: No module named 'distutils'` when running `yarn install`
         cd App
         yarn install
     - name: Get Changelog
