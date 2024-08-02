@@ -14136,11 +14136,6 @@ recast@^0.21.0:
     source-map "~0.6.1"
     tslib "^2.0.1"
 
-redux-middleware-flipper@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/redux-middleware-flipper/-/redux-middleware-flipper-1.0.9.tgz#cdcb21e1a6500c1c94d5d5a2d7ac02cb4382c60a"
-  integrity sha512-8TrWjHpnj/lFuy5VLVsidHwnOf5TGAxsJNaBCopx8Nreda6VjjSazfWF4WyIe8FVkOWiIyOkbrKilbVsuzUwlw==
-
 redux-persist-sensitive-storage@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/redux-persist-sensitive-storage/-/redux-persist-sensitive-storage-1.0.0.tgz#19f5e5bd8ce4c4a4bc852eec61d18360abe07b66"

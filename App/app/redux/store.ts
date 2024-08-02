@@ -95,16 +95,16 @@ export const store = configureStore({
       },
     }).concat(logger);
 
-    if (__DEV__) {
-      const reduxDebugger = require('redux-middleware-flipper').default;
-      middleware.push(
-        reduxDebugger({
-          actionsBlacklist: [],
-          actionsWhitelist: [],
-          actionReplayDelay: 500,
-        }),
-      );
-    }
+    // if (__DEV__) {
+    //   const reduxDebugger = require('redux-middleware-flipper').default;
+    //   middleware.push(
+    //     reduxDebugger({
+    //       actionsBlacklist: [],
+    //       actionsWhitelist: [],
+    //       actionReplayDelay: 500,
+    //     }),
+    //   );
+    // }
 
     return middleware;
   },
