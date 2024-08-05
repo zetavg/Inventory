@@ -41,7 +41,8 @@ target 'Inventory' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  pod 'OpenSSL-Universal', :modular_headers => true, :configurations => ['Nightly', 'Release']
+  # Forcing OpenSSL-Universal version due to https://github.com/margelo/react-native-quick-crypto/issues/189#issuecomment-1711561970
+  pod 'OpenSSL-Universal', '1.1.1100', :modular_headers => true, :configurations => ['Nightly', 'Release']
 
   target 'InventoryTests' do
     inherit! :complete
@@ -49,6 +50,13 @@ target 'Inventory' do
   end
 
   post_install do |installer|
+    # https://github.com/facebook/react-native/issues/37748#issuecomment-1580589448
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)', '_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION']
+      end
+    end
+
     react_native_post_install(
       installer,
       # Set `mac_catalyst_enabled` to `true` in order to apply patches
