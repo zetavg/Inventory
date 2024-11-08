@@ -308,15 +308,6 @@ jobs:
       run: |
         cd App/ios
         bundle install
-        # Patch cert_checker.rb to not print out sensitive information.
-        # See: https://github.com/fastlane/fastlane/issues/21351
-        FASTLANE_PATH="$(bundle show fastlane)"
-        FASTLANE_PATH_CERT_CHECKER_PATH="$FASTLANE_PATH/fastlane_core/lib/fastlane_core/cert_checker.rb"
-        if [[ -f "$FASTLANE_PATH_CERT_CHECKER_PATH" ]]; then
-          patch --force "$FASTLANE_PATH_CERT_CHECKER_PATH" < fastlane/cert_checker.patch
-        else
-          exit 1
-        fi
     - name: Set Sync Code Signing Git SSH key
       env:
         SYNC_CODE_SIGNING_GIT_SSH_KEY: ${{ secrets.SYNC_CODE_SIGNING_GIT_SSH_KEY }}
@@ -472,15 +463,6 @@ jobs:
       run: |
         cd App/ios
         bundle install
-        # Patch cert_checker.rb to not print out sensitive information.
-        # See: https://github.com/fastlane/fastlane/issues/21351
-        FASTLANE_PATH="$(bundle show fastlane)"
-        FASTLANE_PATH_CERT_CHECKER_PATH="$FASTLANE_PATH/fastlane_core/lib/fastlane_core/cert_checker.rb"
-        if [[ -f "$FASTLANE_PATH_CERT_CHECKER_PATH" ]]; then
-          patch --force "$FASTLANE_PATH_CERT_CHECKER_PATH" < fastlane/cert_checker.patch
-        else
-          exit 1
-        fi
     - name: Set Sync Code Signing Git SSH key
       env:
         SYNC_CODE_SIGNING_GIT_SSH_KEY: ${{ secrets.SYNC_CODE_SIGNING_GIT_SSH_KEY }}
