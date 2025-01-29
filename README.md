@@ -14,19 +14,19 @@ The Inventory iOS/Android app is the mandatory tool we provide for asset trackin
 * **iOS TestFlight**: Join via https://testflight.apple.com/join/aXKHypal.
 * **Android APK Download**: Please check the `.apk` assets in the [latest release](https://github.com/zetavg/Inventory/releases).
 
-> To leverage the complete functionality of the app, a compatible RFID UHF reader is needed. See a list of the currently supported devices [in the documentation here](https://docs.inventory.z72.io/rfid-hardware/supported-rfid-devices).
+> To leverage the complete functionality of the app, a compatible RFID UHF reader is needed. See a list of the currently supported devices [in the documentation here](https://docs.inventory.ztg.app/rfid-hardware/supported-rfid-devices).
 
-Here are some guides for you to get started: [Get Started Guides](https://docs.inventory.z72.io/get-started/setup).
+Here are some guides for you to get started: [Get Started Guides](https://docs.inventory.ztg.app/get-started/setup).
 
 
 ## Documents
 
-See documents on [https://docs.inventory.z72.io](https://docs.inventory.z72.io).
+See documents on [https://docs.inventory.ztg.app](https://docs.inventory.ztg.app).
 
 
 ## Development
 
-The majority of the codebase is written in TypeScript, employing React Native to build the mobile app. Java and Objective-C native modules are used for handling UART/Bluetooth communications with RFID devices, and other heavy-lifting tasks such as supporting index build for full-text searching. 
+The majority of the codebase is written in TypeScript, employing React Native to build the mobile app. Java and Objective-C native modules are used for handling UART/Bluetooth communications with RFID devices, and other heavy-lifting tasks such as supporting index build for full-text searching.
 
 For more details on each project component, check the following directories:
 
