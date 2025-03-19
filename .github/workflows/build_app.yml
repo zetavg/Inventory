@@ -88,7 +88,7 @@ jobs:
       run: |
         cat changelog.txt
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: changelog
         path: changelog.txt
@@ -187,7 +187,7 @@ jobs:
         cd android
         ./gradlew assembleRelease
     - name: Upload Built APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: android-app-apk
         path: App/android/app/build/outputs/apk/release/app-release.apk
@@ -196,7 +196,7 @@ jobs:
         cd App/android
         echo '{}' > android_build_info.json
     - name: Upload Android build info
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: android-build-info
         path: |
@@ -341,13 +341,13 @@ jobs:
         bundle exec fastlane lane_upload_to_testflight
         cp ci_output_data.json ios_appstore_upload_info_nightly.json
     - name: Upload App Store Upload Info
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ios-appstore-upload-info-nightly
         path: |
           App/ios/ios_appstore_upload_info_nightly.json
     - name: Upload Archive
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ios-archive-nightly
         path: |
@@ -496,13 +496,13 @@ jobs:
         bundle exec fastlane lane_upload_to_testflight
         cp ci_output_data.json ios_appstore_upload_info_release.json
     - name: Upload App Store Upload Info
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ios-appstore-upload-info-release
         path: |
           App/ios/ios_appstore_upload_info_release.json
     - name: Upload Archive
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ios-archive-release
         path: |
