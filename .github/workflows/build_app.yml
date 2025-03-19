@@ -170,7 +170,7 @@ jobs:
         cd App
         yarn install
     - name: Get Changelog
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: changelog
         path: App
@@ -278,7 +278,7 @@ jobs:
         cd App
         yarn install
     - name: Get Changelog
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: changelog
         path: App
@@ -433,7 +433,7 @@ jobs:
         cd App
         yarn install
     - name: Get Changelog
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: changelog
         path: App
@@ -529,18 +529,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Download Android Build Info
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       continue-on-error: true
       with:
         name: android-build-info
     - name: Download iOS App Store Nightly Upload Info
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       continue-on-error: true
       with:
         name: ios-appstore-upload-info-nightly
     - name: Download iOS App Store Release Upload Info
       if: ${{ github.events.inputs.build-release || inputs.build-release }}
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       continue-on-error: true
       with:
         name: ios-appstore-upload-info-release
