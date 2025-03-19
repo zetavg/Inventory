@@ -37,7 +37,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: data-node_modules
       with:
@@ -69,7 +69,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-node_modules
       with:
@@ -101,7 +101,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: epc-utils-node_modules
       with:
@@ -133,7 +133,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: data-storage-couchdb-node_modules
       with:
@@ -165,7 +165,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: data-storage-couchdb-node_modules
       with:
@@ -198,7 +198,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: integration-airtable-node_modules
       with:
@@ -230,7 +230,7 @@ jobs:
       with:
         node-version: 18.15.0
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: integration-snipe-it-node_modules
       with:

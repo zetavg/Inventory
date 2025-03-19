@@ -157,7 +157,7 @@ jobs:
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-node_modules
       with:
@@ -264,7 +264,7 @@ jobs:
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-node_modules
       with:
@@ -290,7 +290,7 @@ jobs:
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
         base64 --decode --input ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-pods
       with:
@@ -419,7 +419,7 @@ jobs:
         [ -n "$REF_NAME" ] && git checkout -b "ci/$REF_NAME"
         git status
     - name: Cache node_modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-node_modules
       with:
@@ -445,7 +445,7 @@ jobs:
         echo "${{ secrets.AUTHKEY_P8_BASE64 }}" > ~/AuthKey.p8.base64
         base64 --decode --input ~/AuthKey.p8.base64 > ~/AuthKey.p8
     - name: Cache Pods
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       env:
         cache-name: app-pods
       with:
