@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "typecheck": "tsc",
     "storybook-watcher": "sb-rn-watcher",
-    "postinstall": "yarn run copy-dependencies && patch-package && scripts/compile-pouchdb-adapter-websql-core.sh && ./patches/patch-immediate-330.sh"
+    "postinstall": "yarn run copy-dependencies && patch-package || true && scripts/compile-pouchdb-adapter-websql-core.sh && ./patches/patch-immediate-330.sh"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^3.13.0",
