@@ -281,5 +281,7 @@ jobs:
     if: ${{ vars.CI_ENABLE_BUILD && (github.event_name == 'release' || github.event_name == 'schedule' || needs.paths-filter.outputs.app == 'true' || needs.paths-filter.outputs.data == 'true' || needs.paths-filter.outputs.data-storage-couchdb == 'true' || needs.paths-filter.outputs.epc-utils == 'true' || needs.paths-filter.outputs.integration-airtable == 'true') && ((github.event_name != 'pull_request' && github.event_name != 'pull_request_target') || (!github.event.pull_request.draft && github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.clone_url == github.event.pull_request.base.repo.clone_url)) }}
     uses: ./.github/workflows/build_app.yml
     with:
-      build-release: ${{ github.event_name == 'release' }}
+      # TMP
+      # build-release: ${{ github.event_name == 'release' }}
+      build-release: true
     secrets: inherit
