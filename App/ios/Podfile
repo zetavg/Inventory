@@ -87,5 +87,29 @@ target 'Inventory' do
         end
       end
     end
+
+    bitcode_strip_path = `xcrun --find bitcode_strip`.chop!
+
+    def strip_bitcode_from_framework(bitcode_strip_path, framework_relative_path)
+      framework_path = File.join(Dir.pwd, framework_relative_path)
+      command = "#{bitcode_strip_path} #{framework_path} -r -o #{framework_path}"
+      puts "Stripping bitcode: #{command}"
+      system(command)
+    end
+
+    framework_paths = [
+      "Pods/OpenSSL-Universal/Frameworks/OpenSSL.xcframework/ios-arm64_armv7/OpenSSL.framework/OpenSSL",
+      "Pods/OpenSSL-Universal/Frameworks/OpenSSL.xcframework/ios-arm64_i386_x86_64-simulator/OpenSSL.framework/OpenSSL",
+      "Pods/OpenSSL-Universal/Frameworks/OpenSSL.xcframework/ios-arm64_x86_64-maccatalyst/OpenSSL.framework/OpenSSL",
+      "Pods/OpenSSL-Universal/Frameworks/OpenSSL.xcframework/macos-arm64_x86_64/OpenSSL.framework/OpenSSL",
+      "Pods/hermes-engine/destroot/Library/Frameworks/macosx/hermes.framework/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/macosx/hermes.framework/Versions/Current/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64/hermes.framework/hermes",
+      "Pods/hermes-engine/destroot/Library/Frameworks/universal/hermes.xcframework/ios-arm64_x86_64-maccatalyst/hermes.framework/hermes",
+    ]
+
+    framework_paths.each do |framework_relative_path|
+      strip_bitcode_from_framework(bitcode_strip_path, framework_relative_path)
+    end
   end
 end
