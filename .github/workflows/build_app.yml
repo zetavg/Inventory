@@ -213,6 +213,8 @@ jobs:
       group: build-ios-nightly
       cancel-in-progress: false
     steps:
+    - name: Set Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
@@ -368,6 +370,8 @@ jobs:
       group: build-ios-release
       cancel-in-progress: false
     steps:
+    - name: Set Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
