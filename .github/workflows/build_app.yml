@@ -204,7 +204,7 @@ jobs:
 
   build-ios-nightly:
     name: "Build iOS Nightly"
-    runs-on: macos-latest
+    runs-on: macos-14
     timeout-minutes: 60
     needs:
     - generate-changelog
@@ -361,7 +361,7 @@ jobs:
   build-ios-release:
     name: "Build iOS Release"
     if: ${{ github.events.inputs.build-release || inputs.build-release }}
-    runs-on: macos-latest
+    runs-on: macos-14
     timeout-minutes: 60
     needs:
     - generate-changelog
